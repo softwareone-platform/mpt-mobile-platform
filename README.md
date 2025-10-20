@@ -48,6 +48,8 @@ A comprehensive React Native mobile application built with Expo, featuring Auth0
 
 2. **Configure Environment**
    - Copy `.env.example` to `.env`
+   - Download `.env` file for this project from [Keeper Vault](https://keepersecurity.eu/vault/)
+   - Add all necessary variables from downloaded file to your local `.env` file
    - Add your Auth0 configuration (see [Auth0 Setup](#auth0-configuration))
 
 3. **Start Development**
