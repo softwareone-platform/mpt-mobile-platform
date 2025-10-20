@@ -4,7 +4,7 @@
 
 A comprehensive React Native mobile application built with Expo, featuring Auth0 authentication, multi-platform navigation, and modern development patterns. Includes a Swift reference implementation for iOS developers.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ### React Native App
 - **Platform**: iOS & Android (React Native 0.81 + Expo SDK 54)
@@ -12,14 +12,14 @@ A comprehensive React Native mobile application built with Expo, featuring Auth0
 - **Navigation**: React Navigation v7 with tab and stack navigation
 - **State Management**: React Context + TypeScript
 
-## ✅ Platform Compatibility
+## Platform Compatibility
 
 **iOS 17 & iOS 18**: Fully supported  
 **Android 14 & Android 15**: Fully supported
 
 > **Note**: Some features (like biometrics) are disabled in Expo Go during development but work properly in production builds.
 
-## 🚀 Key Features
+## Key Features
 
 - **Auth0 Authentication**: OAuth2/OIDC with OTP verification
 - **Multi-Account Support**: Account switching and profile management  
@@ -27,7 +27,7 @@ A comprehensive React Native mobile application built with Expo, featuring Auth0
 - **Secure Storage**: Keychain/Keystore integration with fallbacks
 - **Real-time Data**: API integration with search, filtering, and state sync
 
-## 🛠️ Quick Setup
+## Quick Setup
 
 ### Prerequisites
 - **Node.js**: LTS version (20.19.4 or later)
@@ -98,7 +98,7 @@ vsts-npm-auth -config .npmrc
 npm install
 ```
 
-## 🔐 Auth0 Configuration
+## Auth0 Configuration
 
 ### Required Environment Variables
 ```env
@@ -132,11 +132,11 @@ softwareone.playground-platform-navigation://login-dev.pyracloud.com/android/com
 
 > **Note**: Leave `TEMPORARY_AUTH0_TOKEN` empty unless debugging.
 
-## 🔒 Zscaler Configuration
+## Zscaler Configuration
 
 If you're working in a corporate environment with Zscaler, please make sure that your Zscaller policies are up to date.
 
-## 🎯 Development Workflow
+## Development Workflow
 
 ### Development Build (Full Native Features)
 ```bash
@@ -156,3 +156,6 @@ npx expo start
 ```bash
 npx expo start --clear
 ```
+
+## Local Build - iOS
+For detailed setup and configuration, please refer to [Local Build - iOS](documents/LOCAL_BUILD_IOS.md)
