@@ -19,7 +19,7 @@ Note - This step is optional. The ejected app is already in the ios folder.
 If you're starting with an Expo managed app, you need to eject first:
 
 ```bash
-cd react-native-app
+cd app
 npx expo prebuild --platform ios
 ```
 

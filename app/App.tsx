@@ -14,7 +14,7 @@ const App = () => {
   return (
     <View style={styles.container}>
       <Text>Welcome!</Text>
-      {/* <StatusBar style="auto" /> */}
+      <StatusBar style="auto" />
     </View>
   );
 }
