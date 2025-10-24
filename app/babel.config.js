@@ -3,6 +3,13 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
+      ['module-resolver', {
+        root: ['./src'],
+        alias: {
+          '@config': 'config',
+          '@featureFlags': 'src/config/feature-flags/featureFlags',
+        },
+      }],
       ['module:react-native-dotenv', {
         moduleName: '@env',
         path: '.env',
