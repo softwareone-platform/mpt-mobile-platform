@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
-    "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0"
+    "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0",
+    "test": "jest"
   },
   "dependencies": {
     "expo": "~54.0.13",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
@@ -29,6 +31,8 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-native": "^5.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
     "typescript": "~5.9.2"
   },
   "private": true
