@@ -27,6 +27,8 @@ This creates the native iOS project files in the `ios/` directory.
 
 ### 2. Build iOS project and install dependencies
 
+This will install all dependencies, build and run local build of the project in emulator (without Expo Go)
+
 ```bash
 npx expo run:ios
 ```
