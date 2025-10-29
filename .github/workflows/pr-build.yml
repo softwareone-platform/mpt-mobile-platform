@@ -31,14 +31,31 @@ jobs:
     steps:
       - name: PR Status Check
         run: |
-          echo "## PR Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ PR Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ All validation checks passed!" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.validate.result }}" == "success" ]; then
+            echo "### ✅ All Checks Passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Some Checks Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Checks Performed:" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔍 Code linting (ESLint)" >> $GITHUB_STEP_SUMMARY
-          echo "- 🧪 Unit tests (Jest)" >> $GITHUB_STEP_SUMMARY
-          echo "- 📦 Dependency validation" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 Code linting (ESLint) - Zero warnings allowed" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Unit tests (Jest) - With coverage reports" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 Dependencies validated" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** iOS native builds are not performed on PRs to save runner costs." >> $GITHUB_STEP_SUMMARY
-          echo "iOS builds can be triggered manually from the main branch after merge." >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 iOS Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "**PR Stage:** iOS builds are not performed on PRs (cost optimization)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**After Merge:** iOS build will **automatically run** when merged to \`main\` branch" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Review code changes" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ Merge to \`main\` when approved" >> $GITHUB_STEP_SUMMARY
+          echo "3. 🤖 Main CI will automatically:" >> $GITHUB_STEP_SUMMARY
+          echo "   - Run validation checks again" >> $GITHUB_STEP_SUMMARY
+          echo "   - Build iOS app for verification (~20-30 min)" >> $GITHUB_STEP_SUMMARY
+          echo "   - Upload iOS .app artifact (7-day retention)" >> $GITHUB_STEP_SUMMARY
+          echo "4. 🚀 To deploy to TestFlight: Manually trigger **iOS TestFlight Deployment** workflow" >> $GITHUB_STEP_SUMMARY
