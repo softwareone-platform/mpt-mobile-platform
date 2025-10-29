@@ -63,20 +63,21 @@ jobs:
       - name: Test Summary
         if: always()
         run: |
-          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Build & Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Test Results
+          echo "### 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ -f coverage/coverage-summary.json ]; then
-            echo "### ✅ Tests Completed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-
             # Extract coverage summary
             TOTAL_LINES=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.lines.pct" 2>/dev/null || echo "N/A")
             TOTAL_STATEMENTS=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.statements.pct" 2>/dev/null || echo "N/A")
             TOTAL_FUNCTIONS=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.functions.pct" 2>/dev/null || echo "N/A")
             TOTAL_BRANCHES=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.branches.pct" 2>/dev/null || echo "N/A")
 
-            echo "### 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            echo "**Coverage Summary:**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
             echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
@@ -85,7 +86,16 @@ jobs:
             echo "| Functions | ${TOTAL_FUNCTIONS}% |" >> $GITHUB_STEP_SUMMARY
             echo "| Lines | ${TOTAL_LINES}% |" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "📦 **Coverage reports available as artifacts**" >> $GITHUB_STEP_SUMMARY
+            echo "📦 Coverage reports available as artifacts" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ No coverage reports generated (no tests found)" >> $GITHUB_STEP_SUMMARY
           fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 iOS Build Info" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR Stage:** No iOS build (cost optimization)" >> $GITHUB_STEP_SUMMARY
+          echo "- **After Merge:** iOS build runs automatically on \`main\` branch" >> $GITHUB_STEP_SUMMARY
+          echo "- **TestFlight:** Manual trigger from Actions tab when ready" >> $GITHUB_STEP_SUMMARY
