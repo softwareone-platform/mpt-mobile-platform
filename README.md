@@ -138,22 +138,83 @@ If you're working in a corporate environment with Zscaler, please make sure that
 
 ## Development Workflow
 
-### Development Build (Full Native Features)
+### iOS Simulator Deployment (Recommended)
+
+We provide automated scripts for building and deploying to the iOS Simulator. These scripts handle the complete build cycle: cleaning, building, and deploying.
+
+#### Quick Deploy to iOS Simulator
+```bash
+# Deploy with verbose output
+./scripts/deploy-ios.sh --verbose
+
+# Deploy with specific simulator
+./scripts/deploy-ios.sh --simulator "iPhone 15 Pro"
+
+# Deploy with logs
+./scripts/deploy-ios.sh --logs
+
+# Deploy in release mode
+./scripts/deploy-ios.sh --release
+```
+
+**Script Options:**
+- `-c, --client-id ID`: Auth0 client ID (if not configured in .env)
+- `-r, --release`: Build in release mode (default: debug)
+- `-s, --simulator NAME`: Specify simulator (default: iPhone 16 Pro)
+- `-f, --force-boot`: Force boot simulator
+- `-l, --logs`: Show app logs after launch
+- `-v, --verbose`: Show detailed output
+- `-h, --help`: Show help message
+
+#### Hot Reload Development (Fastest Iteration)
+
+For rapid development with hot reload:
+
+```bash
+# Start development server with hot reload
+./scripts/hot-reload.sh
+
+# Clear cache and start
+./scripts/hot-reload.sh --clear
+
+# Auto-open iOS Simulator
+./scripts/hot-reload.sh --ios
+
+# Auto-open Android Emulator
+./scripts/hot-reload.sh --android
+```
+
+Once the server starts:
+- Press `i` for iOS Simulator
+- Press `a` for Android Emulator
+- Press `r` to reload
+- Press `Ctrl+C` to stop
+
+#### Cleanup Build Artifacts
+
+```bash
+# Standard cleanup
+./scripts/cleanup.sh
+
+# Deep clean (removes node_modules, reinstalls)
+./scripts/cleanup.sh --deep
+```
+
+### Manual Development Build (Alternative)
+
+If you prefer to use Expo commands directly:
+
 ```bash
 # iOS
 npx expo run:ios
 
-# Android  
+# Android
 npx expo run:android
-```
 
-### Expo Go (Quick Development)
-```bash
+# Expo Go (Quick Development)
 npx expo start
-```
 
-### Clear Cache
-```bash
+# Clear Cache
 npx expo start --clear
 ```
 
