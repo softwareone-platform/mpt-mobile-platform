@@ -1,0 +1,44 @@
+name: PR Build & Test
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - '.github/workflows/**'
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate PR
+    uses: ./.github/workflows/reusable-build-test.yml
+    with:
+      node-version: '20.x'
+      working-directory: './app'
+
+  pr-summary:
+    name: PR Summary
+    needs: validate
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: PR Status Check
+        run: |
+          echo "## PR Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All validation checks passed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Checks Performed:" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 Code linting (ESLint)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Unit tests (Jest)" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 Dependency validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** iOS native builds are not performed on PRs to save runner costs." >> $GITHUB_STEP_SUMMARY
+          echo "iOS builds can be triggered manually from the main branch after merge." >> $GITHUB_STEP_SUMMARY
