@@ -22,12 +22,3 @@ jobs:
     with:
       node-version: '20.x'
       working-directory: './app'
-
-  # TEMPORARY: Testing iOS build (will be removed)
-  build-ios:
-    name: Build iOS (Test)
-    needs: validate
-    uses: ./.github/workflows/ios-build.yml
-    with:
-      build-mode: 'Debug'
-      create-archive: false

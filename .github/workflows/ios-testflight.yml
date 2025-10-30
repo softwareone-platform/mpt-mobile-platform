@@ -33,7 +33,7 @@ env:
 jobs:
   deploy-testflight:
     name: Build and Deploy to TestFlight
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 60
     environment:
       name: TestFlight
