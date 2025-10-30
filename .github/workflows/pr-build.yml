@@ -1,0 +1,24 @@
+name: PR Build & Test
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - '.github/workflows/**'
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate PR
+    uses: ./.github/workflows/reusable-build-test.yml
+    with:
+      node-version: '20.x'
+      working-directory: './app'
