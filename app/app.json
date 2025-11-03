@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "SoftwareOne",
-    "slug": "oftwareone-marketplace-mobile",
+    "slug": "softwareone-marketplace-mobile",
     "version": "4.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

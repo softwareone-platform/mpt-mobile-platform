@@ -1,0 +1,101 @@
+name: Reusable Build & Test
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        type: string
+        default: '20.x'
+      working-directory:
+        description: 'Working directory for the app'
+        required: false
+        type: string
+        default: './app'
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ inputs.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            ${{ inputs.working-directory }}/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint:check
+
+      - name: Run tests
+        run: npm test -- --coverage --passWithNoTests --verbose
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: ${{ inputs.working-directory }}/coverage
+          retention-days: 7
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## ✅ Build & Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Test Results
+          echo "### 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f coverage/coverage-summary.json ]; then
+            # Extract coverage summary
+            TOTAL_LINES=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.lines.pct" 2>/dev/null || echo "N/A")
+            TOTAL_STATEMENTS=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.statements.pct" 2>/dev/null || echo "N/A")
+            TOTAL_FUNCTIONS=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.functions.pct" 2>/dev/null || echo "N/A")
+            TOTAL_BRANCHES=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json', 'utf8')).total.branches.pct" 2>/dev/null || echo "N/A")
+
+            echo "**Coverage Summary:**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Statements | ${TOTAL_STATEMENTS}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Branches | ${TOTAL_BRANCHES}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Functions | ${TOTAL_FUNCTIONS}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Lines | ${TOTAL_LINES}% |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📦 Coverage reports available as artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No coverage reports generated (no tests found)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 iOS Build Info" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR Stage:** No iOS build (cost optimization)" >> $GITHUB_STEP_SUMMARY
+          echo "- **After Merge:** iOS build runs automatically on \`main\` branch" >> $GITHUB_STEP_SUMMARY
+          echo "- **TestFlight:** Manual trigger from Actions tab when ready" >> $GITHUB_STEP_SUMMARY
