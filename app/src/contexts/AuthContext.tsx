@@ -4,6 +4,18 @@ import authService, { AuthTokens, User } from '@/services/authService';
 
 export type AuthState = 'loading' | 'unauthenticated' | 'authenticated';
 
+const AUTH_ACTIONS = {
+  SET_LOADING: 'SET_LOADING',
+  SET_AUTHENTICATED: 'SET_AUTHENTICATED',
+  SET_UNAUTHENTICATED: 'SET_UNAUTHENTICATED',
+  UPDATE_TOKENS: 'UPDATE_TOKENS',
+} as const;
+
+const STORAGE_KEYS = {
+  TOKENS: 'auth_tokens',
+  USER: 'auth_user',
+} as const;
+
 interface AuthContextType {
   state: AuthState;
   user: User | null;
@@ -16,10 +28,10 @@ interface AuthContextType {
 }
 
 type AuthAction =
-  | { type: 'SET_LOADING' }
-  | { type: 'SET_AUTHENTICATED'; payload: { user: User; tokens: AuthTokens } }
-  | { type: 'SET_UNAUTHENTICATED' }
-  | { type: 'UPDATE_TOKENS'; payload: AuthTokens };
+  | { type: typeof AUTH_ACTIONS.SET_LOADING }
+  | { type: typeof AUTH_ACTIONS.SET_AUTHENTICATED; payload: { user: User; tokens: AuthTokens } }
+  | { type: typeof AUTH_ACTIONS.SET_UNAUTHENTICATED }
+  | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens };
 
 interface AuthReducerState {
   state: AuthState;
@@ -27,31 +39,26 @@ interface AuthReducerState {
   tokens: AuthTokens | null;
 }
 
-const STORAGE_KEYS = {
-  TOKENS: 'auth_tokens',
-  USER: 'auth_user',
-} as const;
-
 const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerState => {
   switch (action.type) {
-    case 'SET_LOADING':
+    case AUTH_ACTIONS.SET_LOADING:
       return {
         ...state,
         state: 'loading',
       };
-    case 'SET_AUTHENTICATED':
+    case AUTH_ACTIONS.SET_AUTHENTICATED:
       return {
         state: 'authenticated',
         user: action.payload.user,
         tokens: action.payload.tokens,
       };
-    case 'SET_UNAUTHENTICATED':
+    case AUTH_ACTIONS.SET_UNAUTHENTICATED:
       return {
         state: 'unauthenticated',
         user: null,
         tokens: null,
       };
-    case 'UPDATE_TOKENS':
+    case AUTH_ACTIONS.UPDATE_TOKENS:
       return {
         ...state,
         tokens: action.payload,
@@ -108,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (!authService.isTokenExpired(tokens.expiresAt)) {
           dispatch({
-            type: 'SET_AUTHENTICATED',
+            type: AUTH_ACTIONS.SET_AUTHENTICATED,
             payload: { user, tokens },
           });
         } else {
@@ -117,25 +124,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const newTokens = await authService.refreshAccessToken(tokens.refreshToken);
               await storeTokens(newTokens);
               dispatch({
-                type: 'SET_AUTHENTICATED',
+                type: AUTH_ACTIONS.SET_AUTHENTICATED,
                 payload: { user, tokens: newTokens },
               });
             } catch (error) {
               console.error('Failed to refresh tokens:', error);
               await clearStoredAuth();
-              dispatch({ type: 'SET_UNAUTHENTICATED' });
+              dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
             }
           } else {
             await clearStoredAuth();
-            dispatch({ type: 'SET_UNAUTHENTICATED' });
+            dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
           }
         }
       } else {
-        dispatch({ type: 'SET_UNAUTHENTICATED' });
+        dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
       }
     } catch (error) {
       console.error('Failed to load stored auth:', error);
-      dispatch({ type: 'SET_UNAUTHENTICATED' });
+      dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
     }
   };
 
@@ -165,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, otp: string) => {
     try {
-      dispatch({ type: 'SET_LOADING' });
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING });
 
       const tokens = await authService.verifyPasswordlessOtp(email, otp);
       const user = await authService.getUserProfile(tokens.accessToken);
@@ -176,14 +183,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ]);
 
       dispatch({
-        type: 'SET_AUTHENTICATED',
+        type: AUTH_ACTIONS.SET_AUTHENTICATED,
         payload: {
           user,
           tokens,
         },
       });
     } catch (error) {
-      dispatch({ type: 'SET_UNAUTHENTICATED' });
+      dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
       throw error;
     }
   };
@@ -197,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Logout API error:', error);
     } finally {
       await clearStoredAuth();
-      dispatch({ type: 'SET_UNAUTHENTICATED' });
+      dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
     }
   };
 
@@ -220,7 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await storeTokens(newTokens);
       
       dispatch({
-        type: 'UPDATE_TOKENS',
+        type: AUTH_ACTIONS.UPDATE_TOKENS,
         payload: newTokens,
       });
     } catch (error) {
