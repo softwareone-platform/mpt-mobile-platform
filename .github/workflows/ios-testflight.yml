@@ -1,0 +1,404 @@
+name: iOS TestFlight Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: false
+        default: 'build'
+        type: choice
+        options:
+          - none
+          - build
+          - patch
+          - minor
+          - major
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - production
+
+env:
+  NODE_VERSION: '20'
+  XCODE_VERSION: '16.0'
+  APP_BUNDLE_ID: 'com.softwareone.marketplaceMobile'
+  DEVELOPMENT_TEAM: '47PY6J2KQC'
+  APP_STORE_APP_ID: '6752612555'
+
+jobs:
+  deploy-testflight:
+    name: Build and Deploy to TestFlight
+    runs-on: macos-latest
+    timeout-minutes: 60
+    environment:
+      name: TestFlight
+      url: https://appstoreconnect.apple.com
+
+    defaults:
+      run:
+        working-directory: ./app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select Xcode version
+        run: |
+          echo "📋 Selecting Xcode ${{ env.XCODE_VERSION }}"
+          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            ./app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: |
+            ./app/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --passWithNoTests
+
+      - name: Setup environment variables
+        run: |
+          # Select environment-specific Auth0 configuration
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            AUTH0_DOMAIN="${{ secrets.AUTH0_DOMAIN_PROD }}"
+            AUTH0_CLIENT_ID="${{ secrets.AUTH0_CLIENT_ID_PROD }}"
+            AUTH0_AUDIENCE="${{ secrets.AUTH0_AUDIENCE_PROD }}"
+            AUTH0_API_URL="${{ secrets.AUTH0_API_URL_PROD }}"
+          else
+            AUTH0_DOMAIN="${{ secrets.AUTH0_DOMAIN_TEST }}"
+            AUTH0_CLIENT_ID="${{ secrets.AUTH0_CLIENT_ID_TEST }}"
+            AUTH0_AUDIENCE="${{ secrets.AUTH0_AUDIENCE_TEST }}"
+            AUTH0_API_URL="${{ secrets.AUTH0_API_URL_TEST }}"
+          fi
+
+          cat > .env << EOF
+          AUTH0_DOMAIN=${AUTH0_DOMAIN}
+          AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
+          AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+          AUTH0_SCOPE=openid profile email offline_access
+          AUTH0_API_URL=${AUTH0_API_URL}
+          AUTH0_OTP_DIGITS=6
+          AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          TEMPORARY_AUTH0_TOKEN=
+          EOF
+          echo "✅ Environment variables configured for ${{ inputs.environment }} environment"
+
+      - name: Increment build number
+        id: version
+        run: |
+          # Get current version and build number from app.json
+          CURRENT_VERSION=$(node -p "require('./app.json').expo.version")
+          CURRENT_BUILD=$(node -p "require('./app.json').expo.ios.buildNumber")
+
+          echo "Current version: $CURRENT_VERSION"
+          echo "Current build number: $CURRENT_BUILD"
+
+          # Calculate new version based on input
+          VERSION_BUMP="${{ github.event.inputs.version_bump }}"
+          if [ -z "$VERSION_BUMP" ]; then
+            VERSION_BUMP="build"
+          fi
+
+          case "$VERSION_BUMP" in
+            major)
+              NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1+1".0.0"}')
+              NEW_BUILD=1
+              ;;
+            minor)
+              NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2+1".0"}')
+              NEW_BUILD=1
+              ;;
+            patch)
+              NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
+              NEW_BUILD=1
+              ;;
+            build|*)
+              NEW_VERSION=$CURRENT_VERSION
+              NEW_BUILD=$((CURRENT_BUILD + 1))
+              ;;
+          esac
+
+          echo "New version: $NEW_VERSION"
+          echo "New build number: $NEW_BUILD"
+
+          # Update app.json with new version and build number
+          node -e "
+            const fs = require('fs');
+            const appJson = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+            appJson.expo.version = '$NEW_VERSION';
+            appJson.expo.ios.buildNumber = '$NEW_BUILD';
+            fs.writeFileSync('app.json', JSON.stringify(appJson, null, 2) + '\n');
+          "
+
+          echo "✅ Updated app.json with version $NEW_VERSION and build number $NEW_BUILD"
+
+          # Set outputs for later use
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
+
+      - name: Prebuild iOS native project
+        run: |
+          echo "📦 Generating native iOS project with Expo (includes CocoaPods)..."
+          npx expo prebuild --platform ios --clean
+          echo "✅ Native iOS project generated with CocoaPods installed"
+
+      - name: Configure Xcode project with Team ID
+        run: |
+          # Find the generated Xcode project
+          XCODE_PROJECT=$(find ios -maxdepth 1 -name "*.xcodeproj" -type d | head -1)
+          echo "Found Xcode project: $XCODE_PROJECT"
+
+          # Use xcodeproj gem to set development team
+          gem install xcodeproj
+
+          ruby << RUBY
+          require 'xcodeproj'
+          project_path = '${XCODE_PROJECT}'
+          project = Xcodeproj::Project.open(project_path)
+
+          project.targets.each do |target|
+            target.build_configurations.each do |config|
+              config.build_settings['DEVELOPMENT_TEAM'] = '${{ env.DEVELOPMENT_TEAM }}'
+            end
+          end
+
+          project.save
+          puts "✅ Development team configured for all targets"
+          RUBY
+
+      - name: Setup App Store Connect API
+        run: |
+          mkdir -p ~/private_keys
+          # Decode base64 API key and save it
+          echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" | base64 -d > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8
+
+          # Verify the file was created and has content
+          if [ -f ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8 ]; then
+            echo "✅ App Store Connect API key file created"
+            echo "File size: $(wc -c < ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8) bytes"
+          else
+            echo "❌ Failed to create API key file"
+            exit 1
+          fi
+
+      - name: Setup iOS Distribution Certificate
+        run: |
+          # Create a temporary keychain
+          KEYCHAIN_NAME="build.keychain"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+
+          # Create the keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+
+          # Add to search list and make it default
+          security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed 's/\"//g')
+          security default-keychain -s "$KEYCHAIN_NAME"
+
+          # Import the certificate
+          echo "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64 }}" | base64 --decode > certificate.p12
+          security import certificate.p12 -k "$KEYCHAIN_NAME" -P "${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/xcodebuild
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+
+          # Verify certificate installation
+          echo "📋 Installed certificates:"
+          security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+
+          echo "✅ Distribution certificate installed"
+          echo "KEYCHAIN_NAME=$KEYCHAIN_NAME" >> $GITHUB_ENV
+
+      - name: Install Provisioning Profile
+        run: |
+          # Decode and install the provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
+
+          # Extract UUID and copy to the correct location
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< $(security cms -D -i profile.mobileprovision))
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+
+          echo "✅ Provisioning profile installed: $PROFILE_UUID"
+          echo "PROVISIONING_PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+
+      - name: Archive iOS app with distribution signing
+        working-directory: ./app/ios
+        run: |
+          # Find the workspace and scheme name dynamically
+          WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" -type d | head -1 | xargs basename)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+
+          echo "Using workspace: $WORKSPACE"
+          echo "Using scheme: $SCHEME"
+
+          # Archive for App Store distribution with manual signing
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            -archivePath "build/${SCHEME}.xcarchive" \
+            -destination "generic/platform=iOS" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="${{ secrets.PROVISIONING_PROFILE_SPECIFIER }}" \
+            DEVELOPMENT_TEAM="${{ env.DEVELOPMENT_TEAM }}" \
+            archive
+
+          echo "✅ Archive created successfully"
+          echo "SCHEME=$SCHEME" >> $GITHUB_ENV
+
+      - name: Export IPA for App Store
+        working-directory: ./app/ios
+        run: |
+          # Create export options plist for App Store distribution with manual signing
+          cat > ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>destination</key>
+            <string>export</string>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>${{ env.DEVELOPMENT_TEAM }}</string>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${{ env.APP_BUNDLE_ID }}</key>
+              <string>${{ secrets.PROVISIONING_PROFILE_SPECIFIER }}</string>
+            </dict>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+            <key>stripSwiftSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+          # Export signed IPA using manual signing
+          xcodebuild -exportArchive \
+            -archivePath "build/${{ env.SCHEME }}.xcarchive" \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions.plist
+
+          echo "✅ IPA exported successfully"
+          ls -la build/ipa/
+
+      - name: Upload to TestFlight
+        working-directory: ./app/ios
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          echo "📤 Uploading to TestFlight..."
+
+          IPA_PATH=$(find build/ipa -maxdepth 1 -type f -name "*.ipa" | head -1)
+          if [[ -z "$IPA_PATH" ]]; then
+            echo "❌ No .ipa file found in build/ipa"
+            ls -R build/ipa || true
+            exit 1
+          fi
+
+          echo "Using IPA: $IPA_PATH"
+
+          xcrun altool --upload-app \
+            -f "$IPA_PATH" \
+            -t ios \
+            --apiKey ${API_KEY_ID} \
+            --apiIssuer ${ISSUER_ID} \
+            --private-key @file:~/private_keys/AuthKey_${API_KEY_ID}.p8 \
+            --verbose
+
+          echo "✅ Successfully uploaded to TestFlight!"
+          echo "📱 The build will be available in TestFlight within 10-15 minutes"
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-testflight-${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}
+          path: |
+            app/ios/build/ipa/*.ipa
+            app/ios/build/${{ env.SCHEME }}.xcarchive/dSYMs/
+          retention-days: 30
+
+      - name: Commit build number increment
+        if: success()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add app.json
+          git commit -m "chore: bump build number to ${{ steps.version.outputs.build }} [skip ci]"
+          git push
+
+      - name: Create release tag
+        if: success()
+        run: |
+          TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}"
+          git tag -a "$TAG" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }}"
+          git push origin "$TAG"
+
+      - name: Clean up sensitive files
+        if: always()
+        run: |
+          rm -rf ~/private_keys
+          rm -f ios/ExportOptions.plist
+          rm -f .env
+          # Clean up keychain
+          if [ -n "$KEYCHAIN_NAME" ]; then
+            security delete-keychain "$KEYCHAIN_NAME" || true
+          fi
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "## 🚀 TestFlight Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Number:** ${{ steps.version.outputs.build }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Bundle ID:** ${{ env.APP_BUNDLE_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Wait 10-15 minutes for App Store Connect processing" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check TestFlight: [App Store Connect](https://appstoreconnect.apple.com/apps/${{ env.APP_STORE_APP_ID }}/testflight/ios)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
+          echo "4. Provide release notes for testers" >> $GITHUB_STEP_SUMMARY
