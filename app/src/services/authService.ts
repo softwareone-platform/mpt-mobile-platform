@@ -66,7 +66,7 @@ class AuthenticationService {
 
     async sendPasswordlessEmail(email: string): Promise<Auth0PasswordlessResponse> {
         try {
-            const result = await this.auth0.auth.passwordlessWithEmail({
+            await this.auth0.auth.passwordlessWithEmail({
                 email,
                 send: 'code',
                 authParams: {
@@ -164,7 +164,7 @@ class AuthenticationService {
                     }),
                 });
             }
-        } catch (error) {
+        } catch {
             success = false;
         }
 
@@ -172,7 +172,7 @@ class AuthenticationService {
             if (this.auth0.credentialsManager) {
                 await this.auth0.credentialsManager.clearCredentials();
             }
-        } catch (error) {
+        } catch {
             success = false;
         }
 

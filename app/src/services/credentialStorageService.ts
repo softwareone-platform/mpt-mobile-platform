@@ -21,7 +21,7 @@ class CredentialStorageService {
                 await SecureStore.setItemAsync(this.STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
             }
 
-            const { refreshToken, ...tokenDataWithoutRefresh } = tokens;
+            const { refreshToken: _, ...tokenDataWithoutRefresh } = tokens;
             await AsyncStorage.setItem(this.STORAGE_KEYS.TOKENS, JSON.stringify(tokenDataWithoutRefresh));
 
         } catch (error) {

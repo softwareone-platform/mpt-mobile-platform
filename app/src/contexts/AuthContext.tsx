@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
 
@@ -78,11 +78,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadStoredAuth();
     }, []);
 
+    const logout = useCallback(async () => {
+        try {
+            if (authState.tokens?.accessToken) {
+                await authService.logout(authState.tokens.accessToken);
+            }
+        } catch (error) {
+            console.error('Logout API error:', error);
+        } finally {
+            await clearStoredAuth();
+            dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
+        }
+    }, [authState.tokens?.accessToken]);
+
+    const refreshAuth = useCallback(async () => {
+        try {
+            if (!authState.tokens?.refreshToken) {
+                throw new Error('No refresh token available');
+            }
+
+            const newTokens = await authService.refreshAccessToken(authState.tokens.refreshToken);
+            await storeTokens(newTokens);
+
+            console.log('Refreshed tokens successfully', newTokens.accessToken);
+
+            dispatch({
+                type: AUTH_ACTIONS.UPDATE_TOKENS,
+                payload: newTokens,
+            });
+        } catch (error) {
+            console.error('Failed to refresh auth:', error);
+            await logout();
+        }
+    }, [authState.tokens?.refreshToken, logout]);
+
     useEffect(() => {
         if (authState.tokens && authState.state === 'authenticated') {
             const expiresAt = authState.tokens.expiresAt;
             if (expiresAt) {
-                const timeUntilExpiry = (expiresAt * 1000) - Date.now() - (5 * 60 * 1000);
+                const timeUntilExpiry = (expiresAt * 1000) - Date.now() - (5 * 60 * 1000); // 5 minutes before expiry
 
                 if (timeUntilExpiry > 0) {
                     const timer = setTimeout(() => {
@@ -91,11 +125,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     return () => clearTimeout(timer);
                 } else {
+                    console.warn('Token is expiring soon');
                     refreshAuth();
                 }
             }
         }
-    }, [authState.tokens]);
+    }, [authState.tokens, authState.state, refreshAuth]);
 
     const loadStoredAuth = async () => {
         try {
@@ -181,44 +216,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const logout = async () => {
-        try {
-            if (authState.tokens?.accessToken) {
-                await authService.logout(authState.tokens.accessToken);
-            }
-        } catch (error) {
-            console.error('Logout API error:', error);
-        } finally {
-            await clearStoredAuth();
-            dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
-        }
-    };
-
     const resendPasswordlessEmail = async (email: string) => {
         try {
             await authService.resendPasswordlessEmail(email);
         } catch (error) {
             console.error('Resend passwordless email error:', error);
             throw error;
-        }
-    };
-
-    const refreshAuth = async () => {
-        try {
-            if (!authState.tokens?.refreshToken) {
-                throw new Error('No refresh token available');
-            }
-
-            const newTokens = await authService.refreshAccessToken(authState.tokens.refreshToken);
-            await storeTokens(newTokens);
-
-            dispatch({
-                type: AUTH_ACTIONS.UPDATE_TOKENS,
-                payload: newTokens,
-            });
-        } catch (error) {
-            console.error('Failed to refresh auth:', error);
-            await logout();
         }
     };
 
