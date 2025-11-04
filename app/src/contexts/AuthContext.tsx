@@ -73,45 +73,47 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
     const [authState, dispatch] = useReducer(authReducer, initialState);
+    const REFRESH_BUFFER_MINUTES = 5;
+    const REFRESH_BUFFER_MS = REFRESH_BUFFER_MINUTES * 60 * 1000;
+
+    const setUnauthenticated = async () => {
+        await credentialStorageService.clearAllCredentials();
+        dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
+    };
+
+    const setAuthenticated = (user: User, tokens: AuthTokens) => {
+        dispatch({
+            type: AUTH_ACTIONS.SET_AUTHENTICATED,
+            payload: { user, tokens },
+        });
+    };
+
+    const loadStoredAuth = async () => {
+        try {
+            const { tokens, user } = await credentialStorageService.loadStoredCredentials();
+            if (!tokens || !user) {
+                await setUnauthenticated();
+                return;
+            }
+            if (!authService.isTokenExpired(tokens.expiresAt)) {
+                setAuthenticated(user, tokens);
+                return;
+            }
+            if (!tokens.refreshToken) {
+                await setUnauthenticated();
+                return;
+            }
+
+            const newTokens = await authService.refreshAccessToken(tokens.refreshToken);
+            await credentialStorageService.storeTokens(newTokens);
+            setAuthenticated(user, newTokens);
+        } catch (error) {
+            console.error('Failed to load stored auth:', error instanceof Error ? error.message : error);
+            await setUnauthenticated();
+        }
+    };
 
     useEffect(() => {
-        const setUnauthenticated = async () => {
-            await credentialStorageService.clearAllCredentials();
-            dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
-        };
-
-        const setAuthenticated = (user: User, tokens: AuthTokens) => {
-            dispatch({
-                type: AUTH_ACTIONS.SET_AUTHENTICATED,
-                payload: { user, tokens },
-            });
-        };
-
-        const loadStoredAuth = async () => {
-            try {
-                const { tokens, user } = await credentialStorageService.loadStoredCredentials();
-                if (!tokens || !user) {
-                    await setUnauthenticated();
-                    return;
-                }
-                if (!authService.isTokenExpired(tokens.expiresAt)) {
-                    setAuthenticated(user, tokens);
-                    return;
-                }
-                if (!tokens.refreshToken) {
-                    await setUnauthenticated();
-                    return;
-                }
-
-                const newTokens = await authService.refreshAccessToken(tokens.refreshToken);
-                await credentialStorageService.storeTokens(newTokens);
-                setAuthenticated(user, newTokens);
-            } catch (error) {
-                console.error('Failed to load stored auth:', error instanceof Error ? error.message : error);
-                await setUnauthenticated();
-            }
-        };
-
         loadStoredAuth();
     }, []);
 
@@ -147,19 +149,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }
     }, [authState.tokens?.refreshToken, logout]);
 
-
-
+    const calculateTimeUntilRefresh = (expiresAt: number): number => {
+        const tokenExpiryMs = expiresAt * 1000;
+        const currentTimeMs = Date.now();
+        return tokenExpiryMs - currentTimeMs - REFRESH_BUFFER_MS;
+    };
 
     useEffect(() => {
-        const REFRESH_BUFFER_MINUTES = 5;
-        const REFRESH_BUFFER_MS = REFRESH_BUFFER_MINUTES * 60 * 1000;
-
-        const calculateTimeUntilRefresh = (expiresAt: number): number => {
-            const tokenExpiryMs = expiresAt * 1000;
-            const currentTimeMs = Date.now();
-            return tokenExpiryMs - currentTimeMs - REFRESH_BUFFER_MS;
-        };
-
         if (!authState.tokens || authState.state !== 'authenticated') {
             return;
         }
