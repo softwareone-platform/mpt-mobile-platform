@@ -76,19 +76,19 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     const REFRESH_BUFFER_MINUTES = 5;
     const REFRESH_BUFFER_MS = REFRESH_BUFFER_MINUTES * 60 * 1000;
 
-    const setUnauthenticated = async () => {
+    const setUnauthenticated = useCallback(async () => {
         await credentialStorageService.clearAllCredentials();
         dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
-    };
+    }, []);
 
-    const setAuthenticated = (user: User, tokens: AuthTokens) => {
+    const setAuthenticated = useCallback((user: User, tokens: AuthTokens) => {
         dispatch({
             type: AUTH_ACTIONS.SET_AUTHENTICATED,
             payload: { user, tokens },
         });
-    };
+    }, []);
 
-    const loadStoredAuth = async () => {
+    const loadStoredAuth = useCallback(async () => {
         try {
             const { tokens, user } = await credentialStorageService.loadStoredCredentials();
             if (!tokens || !user) {
@@ -111,11 +111,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             console.error('Failed to load stored auth:', error instanceof Error ? error.message : error);
             await setUnauthenticated();
         }
-    };
+    }, [setUnauthenticated, setAuthenticated]);
 
     useEffect(() => {
         loadStoredAuth();
-    }, []);
+    }, [loadStoredAuth]);
 
     const logout = useCallback(async () => {
         try {
@@ -149,11 +149,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }
     }, [authState.tokens?.refreshToken, logout]);
 
-    const calculateTimeUntilRefresh = (expiresAt: number): number => {
+    const calculateTimeUntilRefresh = useCallback((expiresAt: number): number => {
         const tokenExpiryMs = expiresAt * 1000;
         const currentTimeMs = Date.now();
         return tokenExpiryMs - currentTimeMs - REFRESH_BUFFER_MS;
-    };
+    }, [REFRESH_BUFFER_MS]);
 
     useEffect(() => {
         if (!authState.tokens || authState.state !== 'authenticated') {
@@ -176,7 +176,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }, timeUntilRefresh);
 
         return () => clearTimeout(timer);
-    }, [authState.tokens, authState.state, refreshAuth]);
+    }, [authState.tokens, authState.state, refreshAuth, calculateTimeUntilRefresh]);
 
     const sendPasswordlessEmail = async (email: string) => {
         try {
