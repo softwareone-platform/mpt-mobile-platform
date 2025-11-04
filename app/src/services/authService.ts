@@ -5,7 +5,6 @@ import { jwtDecode } from 'jwt-decode';
 export interface AuthTokens {
   accessToken: string;
   refreshToken?: string;
-  idToken?: string;
   expiresAt?: number;
   tokenType?: string;
 }
@@ -26,7 +25,6 @@ export interface Auth0PasswordlessResponse {
 
 export interface Auth0TokenResponse {
   access_token: string;
-  id_token?: string;
   refresh_token?: string;
   token_type: string;
   expires_in: number;
@@ -105,7 +103,6 @@ class AuthenticationService {
       
       return {
         accessToken: result.accessToken,
-        idToken: result.idToken,
         refreshToken: result.refreshToken,
         tokenType: result.tokenType || 'Bearer',
         expiresAt,
@@ -132,7 +129,6 @@ class AuthenticationService {
       
       return {
         accessToken: result.accessToken,
-        idToken: result.idToken,
         refreshToken: result.refreshToken || refreshToken,
         tokenType: result.tokenType || 'Bearer',
         expiresAt,
