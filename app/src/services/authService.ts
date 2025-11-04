@@ -59,7 +59,7 @@ class AuthenticationService {
             const decoded = jwtDecode<JWTPayload>(accessToken);
             return decoded.exp;
         } catch (error) {
-            console.error('Failed to decode JWT:', error);
+            console.error('Failed to decode JWT:', error instanceof Error ? error.message : error);
             return undefined;
         }
     }
@@ -133,7 +133,7 @@ class AuthenticationService {
                 tokenType: result.tokenType || 'Bearer',
                 expiresAt,
             };
-        } catch (error) {
+        } catch {
             throw new Error('Failed to refresh authentication');
         }
     }
@@ -143,7 +143,7 @@ class AuthenticationService {
             const userData = await this.auth0.auth.userInfo({ token: accessToken });
 
             return userData;
-        } catch (error) {
+        } catch {
             throw new Error('Failed to get user profile');
         }
     }

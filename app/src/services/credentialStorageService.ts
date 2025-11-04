@@ -21,12 +21,15 @@ class CredentialStorageService {
                 await SecureStore.setItemAsync(this.STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
             }
 
-            const { refreshToken: _, ...tokenDataWithoutRefresh } = tokens;
+            const tokenDataWithoutRefresh = {
+                accessToken: tokens.accessToken,
+                expiresAt: tokens.expiresAt,
+                tokenType: tokens.tokenType,
+            };
             await AsyncStorage.setItem(this.STORAGE_KEYS.TOKENS, JSON.stringify(tokenDataWithoutRefresh));
 
         } catch (error) {
-            console.error('Failed to store tokens:', error);
-            throw new Error('Failed to store authentication tokens');
+            console.error('Failed to store tokens:', error instanceof Error ? error.message : error);
         }
     }
 
@@ -51,7 +54,7 @@ class CredentialStorageService {
 
             return tokens;
         } catch (error) {
-            console.error('Failed to load tokens:', error);
+            console.error('Failed to load tokens:', error instanceof Error ? error.message : error);
             return null;
         }
     }
@@ -60,8 +63,7 @@ class CredentialStorageService {
         try {
             await AsyncStorage.setItem(this.STORAGE_KEYS.USER, JSON.stringify(user));
         } catch (error) {
-            console.error('Failed to store user data:', error);
-            throw new Error('Failed to store user data');
+            console.error('Failed to store user data:', error instanceof Error ? error.message : error);
         }
     }
 
@@ -77,7 +79,7 @@ class CredentialStorageService {
             const user: User = JSON.parse(storedUser);
             return user;
         } catch (error) {
-            console.error('Failed to load user data:', error);
+            console.error('Failed to load user data:', error instanceof Error ? error.message : error);
             return null;
         }
     }
@@ -91,7 +93,7 @@ class CredentialStorageService {
 
             return { tokens, user };
         } catch (error) {
-            console.error('Failed to load stored credentials:', error);
+            console.error('Failed to load stored credentials:', error instanceof Error ? error.message : error);
             return { tokens: null, user: null };
         }
     }
@@ -104,8 +106,7 @@ class CredentialStorageService {
                 this.storeUser(user),
             ]);
         } catch (error) {
-            console.error('Failed to store credentials:', error);
-            throw new Error('Failed to store credentials');
+            console.error('Failed to store credentials:', error instanceof Error ? error.message : error);
         }
     }
 
@@ -117,8 +118,7 @@ class CredentialStorageService {
                 SecureStore.deleteItemAsync(this.STORAGE_KEYS.REFRESH_TOKEN),
             ]);
         } catch (error) {
-            console.error('Failed to clear credentials:', error);
-            throw new Error('Failed to clear credentials');
+            console.error('Failed to clear credentials:', error instanceof Error ? error.message : error);
         }
     }
 
@@ -131,7 +131,7 @@ class CredentialStorageService {
 
             return !!(tokenData && userData);
         } catch (error) {
-            console.error('Failed to check stored credentials:', error);
+            console.error('Failed to check stored credentials:', error instanceof Error ? error.message : error);
             return false;
         }
     }
