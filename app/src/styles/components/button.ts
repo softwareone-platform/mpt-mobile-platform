@@ -2,8 +2,8 @@ import { Color, BorderRadius, Spacing, Shadow } from '../tokens';
 
 export const buttonStyle = {
 	primary: {
-		backgroundColor: Color.brand.primary, // swoPurple matching CommonButton
-		borderRadius: BorderRadius.xs, // 5 as in Swift CommonButton
+		backgroundColor: Color.brand.primary,
+		borderRadius: BorderRadius.xs,
 		paddingVertical: Spacing.spacing2,
 		paddingHorizontal: Spacing.spacing3,
 		alignItems: 'center' as const,
