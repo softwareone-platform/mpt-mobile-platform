@@ -1,5 +1,6 @@
 import config from '@/config/environment';
 import Auth0 from 'react-native-auth0';
+import { jwtDecode } from 'jwt-decode';
 
 export interface AuthTokens {
   accessToken: string;
@@ -31,6 +32,13 @@ export interface Auth0TokenResponse {
   expires_in: number;
 }
 
+interface JWTPayload {
+  exp?: number;
+  iat?: number;
+  sub?: string;
+  [key: string]: any;
+}
+
 class AuthenticationService {
   private auth0: Auth0;
   private domain: string;
@@ -46,6 +54,16 @@ class AuthenticationService {
       domain: this.domain,
       clientId: this.clientId,
     });
+  }
+
+  private getExpiryFromJWT(accessToken: string): number | undefined {
+    try {
+      const decoded = jwtDecode<JWTPayload>(accessToken);
+      return decoded.exp;
+    } catch (error) {
+      console.error('Failed to decode JWT:', error);
+      return undefined;
+    }
   }
 
   async sendPasswordlessEmail(email: string): Promise<Auth0PasswordlessResponse> {
@@ -78,12 +96,19 @@ class AuthenticationService {
         scope: config.AUTH0_SCOPE,
       });
       
+      let expiresAt: number | undefined;
+      if (result.expiresIn) {
+        expiresAt = Math.floor(Date.now() / 1000) + result.expiresIn;
+      } else {
+        expiresAt = this.getExpiryFromJWT(result.accessToken);
+      }
+      
       return {
         accessToken: result.accessToken,
         idToken: result.idToken,
         refreshToken: result.refreshToken,
         tokenType: result.tokenType || 'Bearer',
-        expiresAt: result.expiresIn ? Math.floor(Date.now() / 1000) + result.expiresIn : undefined,
+        expiresAt,
       };
     } catch (error) {
       throw new Error(
@@ -98,12 +123,19 @@ class AuthenticationService {
     try {
       const result = await this.auth0.auth.refreshToken({ refreshToken });
       
+      let expiresAt: number | undefined;
+      if (result.expiresIn) {
+        expiresAt = Math.floor(Date.now() / 1000) + result.expiresIn;
+      } else {
+        expiresAt = this.getExpiryFromJWT(result.accessToken);
+      }
+      
       return {
         accessToken: result.accessToken,
         idToken: result.idToken,
         refreshToken: result.refreshToken || refreshToken,
         tokenType: result.tokenType || 'Bearer',
-        expiresAt: result.expiresIn ? Math.floor(Date.now() / 1000) + result.expiresIn : undefined,
+        expiresAt,
       };
     } catch (error) {
       throw new Error('Failed to refresh authentication');

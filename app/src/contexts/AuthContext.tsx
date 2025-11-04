@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
 import authService, { AuthTokens, User } from '@/services/authService';
+import credentialStorageService from '@/services/credentialStorageService';
 
 export type AuthState = 'loading' | 'unauthenticated' | 'authenticated';
 
@@ -9,11 +9,6 @@ const AUTH_ACTIONS = {
   SET_AUTHENTICATED: 'SET_AUTHENTICATED',
   SET_UNAUTHENTICATED: 'SET_UNAUTHENTICATED',
   UPDATE_TOKENS: 'UPDATE_TOKENS',
-} as const;
-
-const STORAGE_KEYS = {
-  TOKENS: 'auth_tokens',
-  USER: 'auth_user',
 } as const;
 
 interface AuthContextType {
@@ -85,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (authState.tokens && authState.state === 'authenticated') {
-      const { expiresAt } = authState.tokens;
+      const  expiresAt  = authState.tokens.expiresAt;
       if (expiresAt) {
         const timeUntilExpiry = (expiresAt * 1000) - Date.now() - (5 * 60 * 1000);
         
@@ -104,15 +99,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadStoredAuth = async () => {
     try {
-      const [storedTokens, storedUser] = await Promise.all([
-        SecureStore.getItemAsync(STORAGE_KEYS.TOKENS),
-        SecureStore.getItemAsync(STORAGE_KEYS.USER),
-      ]);
+      const { tokens, user } = await credentialStorageService.loadStoredCredentials();
 
-      if (storedTokens && storedUser) {
-        const tokens: AuthTokens = JSON.parse(storedTokens);
-        const user: User = JSON.parse(storedUser);
-
+      if (tokens && user) {
         if (!authService.isTokenExpired(tokens.expiresAt)) {
           dispatch({
             type: AUTH_ACTIONS.SET_AUTHENTICATED,
@@ -122,18 +111,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (tokens.refreshToken) {
             try {
               const newTokens = await authService.refreshAccessToken(tokens.refreshToken);
-              await storeTokens(newTokens);
+              await credentialStorageService.storeTokens(newTokens);
               dispatch({
                 type: AUTH_ACTIONS.SET_AUTHENTICATED,
                 payload: { user, tokens: newTokens },
               });
             } catch (error) {
               console.error('Failed to refresh tokens:', error);
-              await clearStoredAuth();
+              await credentialStorageService.clearAllCredentials();
               dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
             }
           } else {
-            await clearStoredAuth();
+            await credentialStorageService.clearAllCredentials();
             dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
           }
         }
@@ -147,18 +136,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const storeTokens = async (tokens: AuthTokens) => {
-    await SecureStore.setItemAsync(STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
+    await credentialStorageService.storeTokens(tokens);
   };
 
   const storeUser = async (user: User) => {
-    await SecureStore.setItemAsync(STORAGE_KEYS.USER, JSON.stringify(user));
+    await credentialStorageService.storeUser(user);
   };
 
   const clearStoredAuth = async () => {
-    await Promise.all([
-      SecureStore.deleteItemAsync(STORAGE_KEYS.TOKENS),
-      SecureStore.deleteItemAsync(STORAGE_KEYS.USER),
-    ]);
+    await credentialStorageService.clearAllCredentials();
   };
 
   const sendPasswordlessEmail = async (email: string) => {
