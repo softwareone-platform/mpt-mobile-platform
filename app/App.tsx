@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { isFeatureEnabled } from '@featureFlags';
+import { Colors } from './src/constants/colors';
 
 const App = () => {
   const featureTestEnabled = isFeatureEnabled('FEATURE_TEST');
@@ -22,7 +23,7 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
