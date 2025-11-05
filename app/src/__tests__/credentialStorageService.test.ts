@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { credentialStorageService } from '../services/credentialStorageService';
-import { AuthTokens, User } from '../services/authService';
+import { AuthTokens } from '../services/authService';
 
 jest.mock('expo-secure-store');
 jest.mock('@react-native-async-storage/async-storage');

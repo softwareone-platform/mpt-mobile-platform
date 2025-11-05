@@ -1,6 +1,6 @@
 import authService from '../services/authService';
 import credentialStorageService from '../services/credentialStorageService';
-import { AuthTokens, User } from '../services/authService';
+import { AuthTokens } from '../services/authService';
 import { jwtDecode } from 'jwt-decode';
 
 jest.mock('../services/authService');
@@ -10,21 +10,6 @@ jest.mock('jwt-decode');
 const mockAuthService = authService as jest.Mocked<typeof authService>;
 const mockCredentialStorageService = credentialStorageService as jest.Mocked<typeof credentialStorageService>;
 const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
-
-const mockUser: User = {
-    sub: 'auth0|123456789',
-    email: 'test@example.com',
-    name: 'Test User',
-    picture: 'https://example.com/avatar.jpg',
-    email_verified: true,
-};
-
-const mockTokens: AuthTokens = {
-    accessToken: 'mock-access-token',
-    refreshToken: 'mock-refresh-token',
-    expiresAt: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-    tokenType: 'Bearer',
-};
 
 describe('AuthContext Integration Tests', () => {
     beforeEach(() => {
