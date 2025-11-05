@@ -20,6 +20,7 @@ interface AuthContextType {
     sendPasswordlessEmail: (email: string) => Promise<void>;
     resendPasswordlessEmail: (email: string) => Promise<void>;
     refreshAuth: () => Promise<void>;
+    getAccessToken: () => Promise<string | null>;
 }
 
 type AuthAction =
@@ -90,21 +91,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const loadStoredAuth = useCallback(async () => {
         try {
-            const { tokens, user } = await credentialStorageService.loadStoredCredentials();
-            if (!tokens || !user) {
-                await setUnauthenticated();
-                return;
-            }
-            if (!authService.isTokenExpired(tokens.expiresAt)) {
-                setAuthenticated(user, tokens);
-                return;
-            }
-            if (!tokens.refreshToken) {
+            const { refreshToken, user } = await credentialStorageService.loadStoredCredentials();
+            if (!refreshToken || !user) {
                 await setUnauthenticated();
                 return;
             }
 
-            const newTokens = await authService.refreshAccessToken(tokens.refreshToken);
+            const newTokens = await authService.refreshAccessToken(refreshToken);
             await credentialStorageService.storeTokens(newTokens);
             setAuthenticated(user, newTokens);
         } catch (error) {
@@ -221,6 +214,24 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }
     };
 
+    const getAccessToken = useCallback(async (): Promise<string | null> => {
+        if (authState.state !== 'authenticated' || !authState.tokens) {
+            return null;
+        }
+
+        if (!authService.isTokenExpired(authState.tokens.expiresAt)) {
+            return authState.tokens.accessToken;
+        }
+
+        try {
+            await refreshAuth();
+            return authState.tokens?.accessToken || null;
+        } catch (error) {
+            console.error('Failed to refresh token for API call:', error instanceof Error ? error.message : error);
+            return null;
+        }
+    }, [authState.state, authState.tokens, refreshAuth]);
+
     const value: AuthContextType = {
         state: authState.state,
         user: authState.user,
@@ -230,6 +241,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         sendPasswordlessEmail,
         resendPasswordlessEmail,
         refreshAuth,
+        getAccessToken,
     };
 
     return (

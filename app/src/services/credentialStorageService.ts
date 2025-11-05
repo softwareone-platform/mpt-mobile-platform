@@ -20,42 +20,37 @@ class CredentialStorageService {
             if (tokens.refreshToken) {
                 await SecureStore.setItemAsync(this.STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
             }
-
-            const tokenDataWithoutRefresh = {
-                accessToken: tokens.accessToken,
+            
+            const tokenMetadata = {
                 expiresAt: tokens.expiresAt,
                 tokenType: tokens.tokenType,
             };
-            await AsyncStorage.setItem(this.STORAGE_KEYS.TOKENS, JSON.stringify(tokenDataWithoutRefresh));
+            await AsyncStorage.setItem(this.STORAGE_KEYS.TOKENS, JSON.stringify(tokenMetadata));
 
         } catch (error) {
             console.error('Failed to store tokens:', error instanceof Error ? error.message : error);
         }
     }
 
-    async loadTokens(): Promise<AuthTokens | null> {
+    async loadTokens(): Promise<{ refreshToken: string | null; metadata: { expiresAt?: number; tokenType?: string } | null }> {
         try {
-            const [storedTokenData, storedRefreshToken] = await Promise.all([
+            const [storedTokenMetadata, storedRefreshToken] = await Promise.all([
                 AsyncStorage.getItem(this.STORAGE_KEYS.TOKENS),
                 SecureStore.getItemAsync(this.STORAGE_KEYS.REFRESH_TOKEN),
             ]);
 
-            if (!storedTokenData) {
-                console.log('No stored tokens found');
-                return null;
+            let metadata = null;
+            if (storedTokenMetadata) {
+                metadata = JSON.parse(storedTokenMetadata);
             }
 
-            const tokenData = JSON.parse(storedTokenData);
-
-            const tokens: AuthTokens = {
-                ...tokenData,
-                refreshToken: storedRefreshToken || undefined,
+            return {
+                refreshToken: storedRefreshToken,
+                metadata,
             };
-
-            return tokens;
         } catch (error) {
             console.error('Failed to load tokens:', error instanceof Error ? error.message : error);
-            return null;
+            return { refreshToken: null, metadata: null };
         }
     }
 
@@ -84,17 +79,21 @@ class CredentialStorageService {
         }
     }
 
-    async loadStoredCredentials(): Promise<{ tokens: AuthTokens | null; user: User | null }> {
+    async loadStoredCredentials(): Promise<{ refreshToken: string | null; user: User | null; metadata: { expiresAt?: number; tokenType?: string } | null }> {
         try {
-            const [tokens, user] = await Promise.all([
+            const [tokenData, user] = await Promise.all([
                 this.loadTokens(),
                 this.loadUser(),
             ]);
 
-            return { tokens, user };
+            return { 
+                refreshToken: tokenData.refreshToken, 
+                metadata: tokenData.metadata,
+                user 
+            };
         } catch (error) {
             console.error('Failed to load stored credentials:', error instanceof Error ? error.message : error);
-            return { tokens: null, user: null };
+            return { refreshToken: null, metadata: null, user: null };
         }
     }
 
