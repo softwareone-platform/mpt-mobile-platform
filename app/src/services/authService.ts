@@ -94,12 +94,7 @@ class AuthenticationService {
                 scope: config.AUTH0_SCOPE,
             });
 
-            let expiresAt: number | undefined;
-            if (result.expiresIn) {
-                expiresAt = Math.floor(Date.now() / 1000) + result.expiresIn;
-            } else {
-                expiresAt = this.getExpiryFromJWT(result.accessToken);
-            }
+            const expiresAt = this.getExpiryFromJWT(result.accessToken);
 
             return {
                 accessToken: result.accessToken,
@@ -119,13 +114,7 @@ class AuthenticationService {
     async refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
         try {
             const result = await this.auth0.auth.refreshToken({ refreshToken });
-
-            let expiresAt: number | undefined;
-            if (result.expiresIn) {
-                expiresAt = Math.floor(Date.now() / 1000) + result.expiresIn;
-            } else {
-                expiresAt = this.getExpiryFromJWT(result.accessToken);
-            }
+            const expiresAt = this.getExpiryFromJWT(result.accessToken);
 
             return {
                 accessToken: result.accessToken,
