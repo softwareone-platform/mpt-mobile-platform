@@ -119,8 +119,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const logout = useCallback(async () => {
         try {
-            if (authState.tokens?.accessToken) {
-                await authService.logout(authState.tokens.accessToken);
+            if (authState.tokens?.refreshToken) {
+                await authService.logout(authState.tokens.refreshToken);
             }
         } catch (error) {
             console.error('Logout API error:', error instanceof Error ? error.message : error);
@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             await credentialStorageService.clearAllCredentials();
             dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
         }
-    }, [authState.tokens?.accessToken]);
+    }, [authState.tokens?.refreshToken]);
 
     const refreshAuth = useCallback(async () => {
         try {

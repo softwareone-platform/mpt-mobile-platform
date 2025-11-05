@@ -137,21 +137,12 @@ class AuthenticationService {
         }
     }
 
-    async logout(accessToken?: string): Promise<boolean> {
+    async logout(refreshToken?: string): Promise<boolean> {
         let success = true;
 
         try {
-            if (accessToken) {
-                await fetch(`https://${this.domain}/oauth/revoke`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        client_id: this.clientId,
-                        token: accessToken,
-                    }),
-                });
+            if (refreshToken) {
+                await this.auth0.auth.revoke({ refreshToken });
             }
         } catch {
             success = false;
