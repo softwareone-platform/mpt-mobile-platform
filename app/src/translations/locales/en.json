@@ -1,0 +1,8 @@
+{
+  "features": {
+    "test": {
+      "enabled": "Test Feature Enabled",
+      "disabled": "Test Feature Disabled"
+    }
+  }
+}
