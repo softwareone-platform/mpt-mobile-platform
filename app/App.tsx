@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { isFeatureEnabled } from '@featureFlags';
 import { Colors } from './src/constants/colors';
+import Navigation from './src/components/navigation/Navigation';
 
 const styles = StyleSheet.create({
   container: {
@@ -16,12 +17,7 @@ const App = () => {
   const featureTestEnabled = isFeatureEnabled('FEATURE_TEST');
 
   return (
-    <View style={styles.container}>
-      <Text>
-        {featureTestEnabled ? 'Test Feature Enabled' : 'Test Feature Disabled'}
-      </Text>
-      <StatusBar style="auto" />
-    </View>
+    <Navigation />
   );
 }
 
