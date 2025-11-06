@@ -1,0 +1,10 @@
+import { Color, BorderRadius, Spacing, Shadow } from '../tokens';
+
+export const cardStyle = {
+  container: {
+    backgroundColor: Color.brand.white,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.spacing2,
+    ...Shadow.md,
+  },
+} as const;
