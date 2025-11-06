@@ -12,14 +12,14 @@ const AUTH_ACTIONS = {
 } as const;
 
 interface AuthContextType {
-    state: AuthState;
+    status: AuthState;
     user: User | null;
     tokens: AuthTokens | null;
     login: (email: string, otp: string) => Promise<void>;
     logout: () => Promise<void>;
     sendPasswordlessEmail: (email: string) => Promise<void>;
     resendPasswordlessEmail: (email: string) => Promise<void>;
-    refreshAuth: () => Promise<void>;
+    refreshAuth: () => Promise<AuthTokens | null>;
     getAccessToken: () => Promise<string | null>;
 }
 
@@ -30,7 +30,7 @@ type AuthAction =
     | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens };
 
 interface AuthReducerState {
-    state: AuthState;
+    status: AuthState;
     user: User | null;
     tokens: AuthTokens | null;
 }
@@ -40,17 +40,17 @@ const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerSt
         case AUTH_ACTIONS.SET_LOADING:
             return {
                 ...state,
-                state: 'loading',
+                status: 'loading',
             };
         case AUTH_ACTIONS.SET_AUTHENTICATED:
             return {
-                state: 'authenticated',
+                status: 'authenticated',
                 user: action.payload.user,
                 tokens: action.payload.tokens,
             };
         case AUTH_ACTIONS.SET_UNAUTHENTICATED:
             return {
-                state: 'unauthenticated',
+                status: 'unauthenticated',
                 user: null,
                 tokens: null,
             };
@@ -65,7 +65,7 @@ const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerSt
 };
 
 const initialState: AuthReducerState = {
-    state: 'loading',
+    status: 'loading',
     user: null,
     tokens: null,
 };
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }
     }, [authState.tokens?.refreshToken]);
 
-    const refreshAuth = useCallback(async () => {
+    const refreshAuth = useCallback(async (): Promise<AuthTokens | null> => {
         try {
             if (!authState.tokens?.refreshToken) {
                 throw new Error('No refresh token available');
@@ -136,9 +136,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
                 type: AUTH_ACTIONS.UPDATE_TOKENS,
                 payload: newTokens,
             });
+
+            return newTokens;
         } catch (error) {
             console.error('Failed to refresh auth:', error instanceof Error ? error.message : error);
             await logout();
+            return null;
         }
     }, [authState.tokens?.refreshToken, logout]);
 
@@ -149,7 +152,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }, [REFRESH_BUFFER_MS]);
 
     useEffect(() => {
-        if (!authState.tokens || authState.state !== 'authenticated') {
+        console.log('Setting up token refresh effect');
+        if (!authState.tokens || authState.status !== 'authenticated') {
             return;
         }
 
@@ -169,7 +173,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }, timeUntilRefresh);
 
         return () => clearTimeout(timer);
-    }, [authState.tokens, authState.state, refreshAuth, calculateTimeUntilRefresh]);
+    }, [authState.tokens, authState.status, refreshAuth, calculateTimeUntilRefresh]);
 
     const sendPasswordlessEmail = async (email: string) => {
         try {
@@ -215,7 +219,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     };
 
     const getAccessToken = useCallback(async (): Promise<string | null> => {
-        if (authState.state !== 'authenticated' || !authState.tokens) {
+        if (authState.status !== 'authenticated' || !authState.tokens) {
             return null;
         }
 
@@ -224,16 +228,16 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         }
 
         try {
-            await refreshAuth();
-            return authState.tokens?.accessToken || null;
+            const newTokens = await refreshAuth();
+            return newTokens?.accessToken ?? authState.tokens?.accessToken ?? null;
         } catch (error) {
             console.error('Failed to refresh token for API call:', error instanceof Error ? error.message : error);
             return null;
         }
-    }, [authState.state, authState.tokens, refreshAuth]);
+    }, [authState.status, authState.tokens, refreshAuth]);
 
     const value: AuthContextType = {
-        state: authState.state,
+        status: authState.status,
         user: authState.user,
         tokens: authState.tokens,
         login,

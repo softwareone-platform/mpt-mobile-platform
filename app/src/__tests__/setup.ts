@@ -14,6 +14,7 @@ jest.mock('react-native-auth0', () => {
   return jest.fn().mockImplementation(() => ({
     auth: {
       passwordlessWithEmail: jest.fn(),
+      loginWithEmail: jest.fn(),
       refreshToken: jest.fn(),
       userInfo: jest.fn(),
       revoke: jest.fn(),
