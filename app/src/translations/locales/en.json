@@ -4,5 +4,34 @@
       "enabled": "Test Feature Enabled",
       "disabled": "Test Feature Disabled"
     }
+  },
+  "auth": {
+    "errors": {
+      "sendEmailFailed": "Failed to send authentication email",
+      "verifyCodeFailed": "Failed to verify authentication code",
+      "refreshFailed": "Failed to refresh authentication",
+      "getUserProfileFailed": "Failed to get user profile",
+      "tokenExpiringSoon": "Token is expiring soon, refreshing immediately",
+      "sendPasswordlessEmailError": "Send passwordless email error",
+      "loginError": "Login error occurred",
+      "resendPasswordlessEmailError": "Resend passwordless email error",
+      "loadStoredAuthError": "Failed to load stored auth",
+      "logoutApiError": "Logout API error",
+      "refreshAuthError": "Failed to refresh auth",
+      "getAccessTokenError": "Failed to refresh token for API call"
+    }
+  },
+  "storage": {
+    "errors": {
+      "storeTokensFailed": "Failed to store tokens",
+      "loadTokensFailed": "Failed to load tokens", 
+      "storeUserFailed": "Failed to store user data",
+      "loadUserFailed": "Failed to load user data",
+      "loadCredentialsFailed": "Failed to load stored credentials",
+      "storeCredentialsFailed": "Failed to store credentials"
+    },
+    "info": {
+      "noStoredUserData": "No stored user data found"
+    }
   }
 }
