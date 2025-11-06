@@ -467,7 +467,6 @@ These must match Auth0 dashboard configuration.
 ## Important Notes
 
 1. **New Architecture Enabled**: React 19 with New Architecture (`newArchEnabled: true` in `app.json`)
-2. **Biometrics in Expo Go**: Disabled during Expo Go development, enabled in production builds
 3. **Zscaler Users**: Ensure Zscaler policies are up-to-date for corporate environments
 4. **Node Version**: Use Node.js LTS (20.19.4+)
 5. **Android Emulator**: Must be running before `npm run android`
