@@ -6,8 +6,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigationData } from '@/context/NavigationContext';
 import { TabParamList } from '@/types/navigation';
 
-type SecondaryStackParamList = keyof TabParamList | 'MoreMenu';
-
 const Stack = createStackNavigator<TabParamList>();
 
 function SecondaryMenu() {
