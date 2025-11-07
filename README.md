@@ -147,13 +147,42 @@ We provide automated scripts for building and deploying to the iOS Simulator. Th
 ```
 
 **Script Options:**
-- `-c, --client-id ID`: Auth0 client ID (if not configured in .env)
 - `-r, --release`: Build in release mode (default: debug)
 - `-s, --simulator NAME`: Specify simulator (default: iPhone 16 Pro)
 - `-f, --force-boot`: Force boot simulator
 - `-l, --logs`: Show app logs after launch
 - `-v, --verbose`: Show detailed output
 - `-h, --help`: Show help message
+
+**Note:** The script requires a `.env` file with Auth0 configuration. See [Auth0 Configuration](#auth0-configuration) section.
+
+#### Quick Deploy to Android Emulator/Device
+
+We provide automated scripts for building and deploying to Android devices and emulators. These scripts handle the complete build cycle: cleaning, building, and deploying.
+
+```bash
+# Deploy with verbose output
+./scripts/deploy-android.sh --verbose
+
+# Deploy to specific device/emulator
+./scripts/deploy-android.sh --device "emulator-5554"
+
+# Deploy with logs
+./scripts/deploy-android.sh --logs
+
+# Deploy in release mode
+./scripts/deploy-android.sh --release
+```
+
+**Script Options:**
+- `-r, --release`: Build in release mode (default: debug)
+- `-d, --device NAME`: Specify device/emulator (default: first available)
+- `-f, --force-boot`: Force boot emulator
+- `-l, --logs`: Show app logs after launch
+- `-v, --verbose`: Show detailed output
+- `-h, --help`: Show help message
+
+**Note:** The script requires a `.env` file with Auth0 configuration. See [Auth0 Configuration](#auth0-configuration) section.
 
 #### Hot Reload Development (Fastest Iteration)
 

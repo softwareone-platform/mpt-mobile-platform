@@ -21,15 +21,10 @@ BUILD_MODE="debug"
 FORCE_BOOT=false
 SHOW_LOGS=false
 VERBOSE=false
-CLIENT_ID=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --client-id|-c)
-            CLIENT_ID="$2"
-            shift 2
-            ;;
         --release|-r)
             BUILD_MODE="release"
             shift
@@ -54,7 +49,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 [options]"
             echo ""
             echo "This script performs a complete React Native app deployment cycle:"
-            echo "1. Configures Auth0 test environment (if client-id provided)"
+            echo "1. Validates .env configuration"
             echo "2. Uninstalls existing app from simulator"
             echo "3. Cleans React Native build cache"
             echo "4. Builds fresh React Native app with Expo"
@@ -62,7 +57,6 @@ while [[ $# -gt 0 ]]; do
             echo "6. Launches the app"
             echo ""
             echo "Options:"
-            echo "  -c, --client-id ID    Auth0 client ID (required if .env not configured)"
             echo "  -r, --release         Build in release mode (default: debug)"
             echo "  -s, --simulator NAME  Specify simulator name (default: iPhone 16 Pro)"
             echo "  -f, --force-boot      Force boot simulator even if already running"
@@ -71,9 +65,9 @@ while [[ $# -gt 0 ]]; do
             echo "  -h, --help            Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0 --client-id YOUR_CLIENT_ID"
-            echo "  $0 -c YOUR_CLIENT_ID --release --logs"
-            echo "  $0 -s \"iPhone 15 Pro\" -v       # Uses existing .env file"
+            echo "  $0"
+            echo "  $0 --release --logs"
+            echo "  $0 -s \"iPhone 15 Pro\" -v"
             exit 0
             ;;
         *)
@@ -159,45 +153,24 @@ fi
 
 log "${GREEN}✅ Environment validated${NC}"
 
-# Step 1.5: Configure Auth0 environment
-log "\n${YELLOW}Step 1.5: Configuring Auth0 environment...${NC}"
+# Step 1.5: Validate .env configuration
+log "\n${YELLOW}Step 1.5: Validating .env configuration...${NC}"
 
-# If client-id provided, create/update .env file
-if [ -n "$CLIENT_ID" ]; then
-    log "Creating .env file with test environment configuration..." "verbose"
-    cat > .env <<EOF
-# Auth0 Configuration (Test Environment)
-AUTH0_DOMAIN=login-test.pyracloud.com
-AUTH0_CLIENT_ID=$CLIENT_ID
-AUTH0_AUDIENCE=https://api-test.pyracloud.com/
-AUTH0_SCOPE=openid profile email offline_access
-AUTH0_API_URL=https://api.s1.show/public/
-AUTH0_OTP_DIGITS=6
-AUTH0_SCHEME=com.softwareone.marketplaceMobile
-TEMPORARY_AUTH0_TOKEN=
-EOF
-    log "${GREEN}✅ .env file configured with test environment${NC}"
-else
-    # Check if .env exists
-    if [ ! -f ".env" ]; then
-        log "${RED}❌ No .env file found and no --client-id provided${NC}"
-        log "Please either:"
-        log "  1. Provide --client-id: ${YELLOW}$0 --client-id YOUR_CLIENT_ID${NC}"
-        log "  2. Or create a .env file manually in app directory"
-        exit 1
-    fi
-
-    # Check if AUTH0_CLIENT_ID is set in .env
-    if ! grep -q "^AUTH0_CLIENT_ID=.\\+" .env 2>/dev/null; then
-        log "${RED}❌ AUTH0_CLIENT_ID not configured in .env file${NC}"
-        log "Please either:"
-        log "  1. Provide --client-id: ${YELLOW}$0 --client-id YOUR_CLIENT_ID${NC}"
-        log "  2. Or set AUTH0_CLIENT_ID in your .env file"
-        exit 1
-    fi
-
-    log "${GREEN}✅ Using existing .env configuration${NC}"
+# Check if .env exists
+if [ ! -f ".env" ]; then
+    log "${RED}❌ No .env file found${NC}"
+    log "Please create a .env file in the app directory with required Auth0 configuration"
+    exit 1
 fi
+
+# Check if AUTH0_CLIENT_ID is set in .env
+if ! grep -q "^AUTH0_CLIENT_ID=.\\+" .env 2>/dev/null; then
+    log "${RED}❌ AUTH0_CLIENT_ID not configured in .env file${NC}"
+    log "Please set AUTH0_CLIENT_ID in your .env file"
+    exit 1
+fi
+
+log "${GREEN}✅ .env configuration validated${NC}"
 
 # Step 2: Find and prepare simulator
 log "\n${YELLOW}Step 2: Preparing iOS Simulator...${NC}"
