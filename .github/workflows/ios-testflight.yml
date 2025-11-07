@@ -117,10 +117,17 @@ jobs:
 
       - name: Increment build number
         id: version
+        working-directory: ./app
         run: |
-          # Get current version and build number from app.json
-          CURRENT_VERSION=$(node -p "require('./app.json').expo.version")
-          CURRENT_BUILD=$(node -p "require('./app.json').expo.ios.buildNumber")
+          # Get current version from app.config.js
+          cat > read_version.mjs << 'EOF'
+          import config from './app.config.js';
+          console.log(config.expo.version);
+          EOF
+          CURRENT_VERSION=$(node read_version.mjs)
+          rm read_version.mjs
+          # Build numbers start from 0 and increment for TestFlight
+          CURRENT_BUILD="0"
 
           echo "Current version: $CURRENT_VERSION"
           echo "Current build number: $CURRENT_BUILD"
@@ -153,22 +160,23 @@ jobs:
           echo "New version: $NEW_VERSION"
           echo "New build number: $NEW_BUILD"
 
-          # Update app.json with new version and build number
+          # Update version in app.config.js
           node -e "
             const fs = require('fs');
-            const appJson = JSON.parse(fs.readFileSync('app.json', 'utf8'));
-            appJson.expo.version = '$NEW_VERSION';
-            appJson.expo.ios.buildNumber = '$NEW_BUILD';
-            fs.writeFileSync('app.json', JSON.stringify(appJson, null, 2) + '\n');
+            let configContent = fs.readFileSync('app.config.js', 'utf8');
+            // Replace the version string in the config file
+            configContent = configContent.replace(/version: \"[^\"]+\"/, 'version: \"$NEW_VERSION\"');
+            fs.writeFileSync('app.config.js', configContent);
           "
 
-          echo "✅ Updated app.json with version $NEW_VERSION and build number $NEW_BUILD"
+          echo "✅ Updated app.config.js with version $NEW_VERSION and build number $NEW_BUILD"
 
           # Set outputs for later use
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
 
       - name: Prebuild iOS native project
+        working-directory: ./app
         run: |
           echo "📦 Generating native iOS project with Expo (includes CocoaPods)..."
           npx expo prebuild --platform ios --clean
@@ -365,7 +373,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add app.json
+          git add app/app.config.js
           git commit -m "chore: bump build number to ${{ steps.version.outputs.build }} [skip ci]"
           git push
 
@@ -380,8 +388,8 @@ jobs:
         if: always()
         run: |
           rm -rf ~/private_keys
-          rm -f ios/ExportOptions.plist
-          rm -f .env
+          rm -f app/ios/ExportOptions.plist
+          rm -f app/.env
           # Clean up keychain
           if [ -n "$KEYCHAIN_NAME" ]; then
             security delete-keychain "$KEYCHAIN_NAME" || true

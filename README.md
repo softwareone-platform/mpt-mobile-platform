@@ -17,8 +17,6 @@ A comprehensive React Native mobile application built with Expo, featuring Auth0
 **iOS 17 & iOS 18**: Fully supported  
 **Android 14 & Android 15**: Fully supported
 
-> **Note**: Some features (like biometrics) are disabled in Expo Go during development but work properly in production builds.
-
 ## Key Features
 
 - **Auth0 Authentication**: OAuth2/OIDC with OTP verification
@@ -54,14 +52,9 @@ A comprehensive React Native mobile application built with Expo, featuring Auth0
 
 3. **Start Development**
    ```bash
-   npx expo start --clear
+   npx expo run:ios
+   npx expo run:android
    ```
-   
-   Then:
-   - **iOS**: Press `i` or scan QR code with Camera app
-   - **Android**: Press `a` or scan QR code with Expo Go app
-   - Press `r` to reload the app when needed
-   - Click `Ctrl+C` to shut down the server
 
 ### Android Emulator Setup (if needed)
 
@@ -121,10 +114,6 @@ Please ask team members to share specifics
 
 **Callback URLs:**
 ```
-# Development (Expo Go)
-exp://[YOUR-IP]:8081/--/auth0
-exp://localhost:8081/--/auth0
-
 # Production
 softwareone.playground-platform-navigation://login-dev.pyracloud.com/ios/com.softwareone.marketplaceMobile/callback
 softwareone.playground-platform-navigation://login-dev.pyracloud.com/android/com.softwareone.marketplaceMobile/callback
@@ -210,12 +199,6 @@ npx expo run:ios
 
 # Android
 npx expo run:android
-
-# Expo Go (Quick Development)
-npx expo start
-
-# Clear Cache
-npx expo start --clear
 ```
 
 ## Local Build - iOS

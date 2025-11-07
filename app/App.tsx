@@ -1,8 +1,24 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { AuthProvider } from '@/context/AuthContext';
 import { isFeatureEnabled } from '@featureFlags';
 import { Colors } from './src/constants/colors';
 import Navigation from './src/components/navigation/Navigation';
+
+const App = () => {
+  const featureTestEnabled = isFeatureEnabled('FEATURE_TEST');
+  
+  return (
+    <AuthProvider>
+      <View style={styles.container}>
+        <Navigation />
+        <StatusBar style="auto" />
+      </View>
+    </AuthProvider>
+  );
+};
+
 
 const styles = StyleSheet.create({
   container: {
@@ -12,13 +28,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-
-const App = () => {
-  const featureTestEnabled = isFeatureEnabled('FEATURE_TEST');
-
-  return (
-    <Navigation />
-  );
-}
 
 export default App;

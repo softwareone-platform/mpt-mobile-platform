@@ -101,20 +101,27 @@ jobs:
 
       - name: Get version info
         id: version
+        working-directory: ./app
         run: |
-          VERSION=$(node -p "require('./app.json').expo.version")
-          BUILD=$(node -p "require('./app.json').expo.ios.buildNumber")
+          # Create a temporary script to read from app.config.js with proper environment
+          cat > read_version.mjs << 'EOF'
+          import config from './app.config.js';
+          console.log(config.expo.version);
+          EOF
+          VERSION=$(node read_version.mjs)
+          rm read_version.mjs
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "build=$BUILD" >> $GITHUB_OUTPUT
-          echo "📱 Building version $VERSION (build $BUILD)"
+          echo "📱 Building version $VERSION"
 
       - name: Expo prebuild (generate native iOS project)
+        working-directory: ./app
         run: |
           echo "📦 Generating native iOS project with Expo (includes CocoaPods)..."
           npx expo prebuild --platform ios --clean
           echo "✅ Native iOS project generated with CocoaPods installed"
 
       - name: Build iOS app for generic device
+        working-directory: ./app
         run: |
           echo "🔨 Building for iOS Device in ${{ inputs.build-mode }} mode (verification build, no signing)..."
           cd ios
@@ -141,6 +148,7 @@ jobs:
 
       - name: Create archive (optional)
         if: ${{ inputs.create-archive && inputs.build-mode == 'Release' }}
+        working-directory: ./app
         run: |
           cd ios
           echo "📦 Creating archive..."
@@ -158,6 +166,7 @@ jobs:
 
       - name: Find build artifacts
         id: find-artifacts
+        working-directory: ./app
         run: |
           cd ios/build/DerivedData/Build/Products
 
