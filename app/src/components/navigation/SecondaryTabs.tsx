@@ -8,7 +8,7 @@ import { TabParamList } from '@/types/navigation';
 
 const Stack = createStackNavigator<TabParamList>();
 
-function SecondaryMenu() {
+const SecondaryMenu = () => {
   const navigation = useNavigation<StackNavigationProp<TabParamList>>();
   const { secondaryTabsData } = useNavigationData();
 
@@ -30,7 +30,7 @@ function SecondaryMenu() {
       />
     </View>
   );
-}
+};
 
 const SecondaryTabs = () => {
   const { secondaryTabsData } = useNavigationData();
