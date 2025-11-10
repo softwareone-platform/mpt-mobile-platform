@@ -31,7 +31,7 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: AUTH0_SCHEME
+      bundleIdentifier: "com.softwareone.marketplaceMobile"
     },
     android: {
       adaptiveIcon: {
@@ -40,7 +40,7 @@ export default {
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
-      package: AUTH0_SCHEME
+      package: "com.softwareone.marketplaceMobile"
     },
     web: {
       favicon: "./assets/favicon.png"

@@ -1,32 +1,15 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
 import { AuthProvider } from '@/context/AuthContext';
-import { isFeatureEnabled } from '@featureFlags';
-import { Colors } from './src/constants/colors';
+import { Navigation } from '@/components/navigation';
 
 const App = () => {
-  const featureTestEnabled = isFeatureEnabled('FEATURE_TEST');
-  
   return (
     <AuthProvider>
-      <View style={styles.container}>
-        <Text>
-          {featureTestEnabled ? 'Test Feature Enabled' : 'Test Feature Disabled'}
-        </Text>
+        <Navigation />
         <StatusBar style="auto" />
-      </View>
     </AuthProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 export default App;
