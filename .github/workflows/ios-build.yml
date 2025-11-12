@@ -83,7 +83,7 @@ jobs:
         run: npm ci
 
       - name: Run tests before build
-        run: npm test -- --passWithNoTests
+        run: npm test
 
       - name: Create .env file
         run: |
