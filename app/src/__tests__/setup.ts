@@ -26,15 +26,6 @@ jest.mock('jwt-decode', () => ({
   jwtDecode: jest.fn(),
 }));
 
-jest.mock('@/config/environment', () => ({
-  default: {
-    AUTH0_DOMAIN: 'test-domain.auth0.com',
-    AUTH0_CLIENT_ID: 'test-client-id',
-    AUTH0_AUDIENCE: 'test-audience',
-    AUTH0_SCOPE: 'openid profile email',
-  },
-}));
-
 const originalConsoleError = console.error;
 const originalConsoleLog = console.log;
 const originalConsoleWarn = console.warn;
