@@ -86,7 +86,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test -- --passWithNoTests
+        run: npm test
 
       - name: Setup environment variables
         run: |
