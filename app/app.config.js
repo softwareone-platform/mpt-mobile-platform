@@ -34,8 +34,13 @@ export default {
       bundleIdentifier: "com.softwareone.marketplaceMobile"
     },
     android: {
+      splash: {
+        image: "./assets/splash-icon.png",
+        resizeMode: "contain",
+        backgroundColor: "#ffffff",
+      },
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./assets/android_icon.png",
         backgroundColor: "#ffffff"
       },
       edgeToEdgeEnabled: true,
