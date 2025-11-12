@@ -13,13 +13,13 @@
     "test": "jest"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^2.2.0",
-    "@types/jwt-decode": "^2.2.1",
-    "dotenv": "^17.2.3",
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/bottom-tabs": "^7.8.1",
     "@react-navigation/native": "^7.1.19",
     "@react-navigation/stack": "^7.6.2",
+    "@types/jwt-decode": "^2.2.1",
+    "dotenv": "^17.2.3",
     "expo": "~54.0.13",
     "expo-dev-client": "~6.0.15",
     "expo-secure-store": "^15.0.7",
@@ -38,6 +38,7 @@
     "@types/react": "~19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
+    "babel-jest": "^30.2.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "^54.0.4",
     "eslint": "^9.37.0",
@@ -45,7 +46,6 @@
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-native": "^5.0.0",
     "jest": "^30.2.0",
-    "ts-jest": "^29.4.5",
     "typescript": "~5.9.2"
   },
   "private": true
