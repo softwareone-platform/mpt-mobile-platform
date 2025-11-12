@@ -1,6 +1,11 @@
-import config from '@/config/environment';
 import Auth0 from 'react-native-auth0';
 import { jwtDecode } from 'jwt-decode';
+import {
+  AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID,
+  AUTH0_AUDIENCE,
+  AUTH0_SCOPE,
+} from '@env';
 
 export interface AuthTokens {
     accessToken: string;
@@ -44,9 +49,9 @@ class AuthenticationService {
     private audience?: string;
 
     constructor() {
-        this.domain = config.AUTH0_DOMAIN;
-        this.clientId = config.AUTH0_CLIENT_ID;
-        this.audience = config.AUTH0_AUDIENCE;
+        this.domain = AUTH0_DOMAIN;
+        this.clientId = AUTH0_CLIENT_ID;
+        this.audience = AUTH0_AUDIENCE;
 
         this.auth0 = new Auth0({
             domain: this.domain,
@@ -70,7 +75,7 @@ class AuthenticationService {
                 email,
                 send: 'code',
                 authParams: {
-                    scope: config.AUTH0_SCOPE,
+                    scope: AUTH0_SCOPE,
                     ...(this.audience && { audience: this.audience }),
                 },
             });
@@ -91,7 +96,7 @@ class AuthenticationService {
                 email,
                 code: otp,
                 audience: this.audience,
-                scope: config.AUTH0_SCOPE,
+                scope: AUTH0_SCOPE,
             });
 
             const expiresAt = this.getExpiryFromJWT(result.accessToken);

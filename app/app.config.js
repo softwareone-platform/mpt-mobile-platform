@@ -2,6 +2,7 @@ import 'dotenv/config';
 
 const {
   AUTH0_DOMAIN,
+  AUTH0_CLIENT_ID,
   AUTH0_SCHEME,
 } = process.env;
 
@@ -20,6 +21,7 @@ export default {
         "react-native-auth0",
         {
           domain: AUTH0_DOMAIN,
+          clientId: AUTH0_CLIENT_ID,
           customScheme: AUTH0_SCHEME
         }
       ]
