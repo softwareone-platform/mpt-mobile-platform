@@ -25,17 +25,17 @@ type NavigationDataContextType = {
 const NavigationDataContext = createContext<NavigationDataContextType | undefined>(undefined);
 
 const DEFAULT_MAIN_TABS: TabItem<keyof TabParamList>[] = [
-  { name: 'Spotlight', label: 'Spotlight', icon: 'flare', component: SpotlightScreen },
-  { name: 'Orders', label: 'Orders', icon: 'shopping-basket', component: OrdersScreen },
-  { name: 'Subscriptions', label: 'Subscriptions', icon: 'sell', component: SubscriptionsScreen },
-  { name: 'More', label: 'More', icon: 'more-horiz' },
+  { name: 'spotlight', icon: 'flare', component: SpotlightScreen },
+  { name: 'orders', icon: 'shopping-basket', component: OrdersScreen },
+  { name: 'subscriptions', icon: 'sell', component: SubscriptionsScreen },
+  { name: 'more', icon: 'more-horiz' },
 ];
 
 const DEFAULT_SECONDARY_TABS: TabItem<keyof TabParamList>[] = [
-  { name: 'Agreements', label: 'Agreements', icon: 'assignment', component: AgreementsScreen },
-  { name: 'CreditMemos', label: 'Credit Memos', icon: 'description', component: CreditMemosScreen },
-  { name: 'Invoices', label: 'Invoices', icon: 'receipt-long', component: InvoicesScreen },
-  { name: 'Statements', label: 'Statements', icon: 'receipt', component: StatementsScreen },
+  { name: 'agreements', icon: 'assignment', component: AgreementsScreen },
+  { name: 'creditMemos', icon: 'description', component: CreditMemosScreen },
+  { name: 'invoices', icon: 'receipt-long', component: InvoicesScreen },
+  { name: 'statements', icon: 'receipt', component: StatementsScreen },
 ];
 
 export const NavigationDataProvider = ({ children }: { children: ReactNode }) => {
