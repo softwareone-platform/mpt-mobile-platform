@@ -1,5 +1,3 @@
-// components/common/icons/OutlinedIcon.tsx
-import React from 'react';
 import { Svg } from 'react-native-svg';
 import { OutlinedIcons } from '@assets/icons';
 import type { OutlinedIconProps } from '@/types/icons';
