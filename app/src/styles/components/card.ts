@@ -5,6 +5,12 @@ export const cardStyle = {
     backgroundColor: Color.brand.white,
     borderRadius: BorderRadius.md,
     padding: Spacing.spacing2,
+    margin: Spacing.spacing2,
+  },
+  containerWithShadow: {
+    backgroundColor: Color.brand.white,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.spacing2,
     ...Shadow.md,
   },
 } as const;

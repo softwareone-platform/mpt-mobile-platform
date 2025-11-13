@@ -1,46 +1,62 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialIcons } from '@expo/vector-icons';
+import { StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import DynamicIcon from '@/components/common/DynamicIcon';
 import { useNavigationData } from '@/context/NavigationContext';
 import { TabParamList } from './types';
 import SecondaryTabs from './SecondaryTabs';
-import { Color } from '@/styles';
+import { Color, navigationStyle } from '@/styles';
+import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
 const MainTabs = () => {
   const { mainTabsData } = useNavigationData();
+  const { t } = useTranslation();
 
   return (
+
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
-          const item = mainTabsData.find((t) => t.name === route.name);
+        tabBarIcon: ({ focused, color, size }) => {
+          const item = mainTabsData.find((tab) => tab.name === route.name);
           if (!item) return null;
-          return <MaterialIcons name={item.icon as keyof typeof MaterialIcons.glyphMap} size={size} color={color} />;
+          return <DynamicIcon name={item.icon} size={size} color={color} variant={focused ? 'filled' : 'outlined'} />;
         },
         tabBarActiveTintColor: Color.brand.primary,
         tabBarInactiveTintColor: Color.gray.gray4,
+        tabBarSafeAreaInsets: { bottom: 0 },
         headerShown: true,
+        tabBarStyle: styles.container,
+        tabBarLabelStyle: styles.label,
+        tabBarBackground: () => <LinearGradientHorisontal height={3} />,
       })}
     >
-      {mainTabsData.map((tab) =>
-        tab.name === 'More' ? (
-          <Tab.Screen
-            key={tab.name}
-            name="More"
-            component={SecondaryTabs}
-            options={{ headerShown: false }}
-          />
-        ) : (
+      {mainTabsData.map((tab) => {
+        
+        const tabComponent = tab.name === 'more' ? SecondaryTabs : tab.component!;
+        const isHeaderShown = tab.name === 'more' ? false : true;
+
+        return (
           <Tab.Screen
             key={tab.name}
             name={tab.name as keyof TabParamList}
-            component={tab.component!}
+            component={tabComponent}
+            options={{
+              tabBarLabel: t(`navigation.tabs.${tab.name}`),
+              headerTitle: t(`navigation.tabs.${tab.name}`),
+              headerShown: isHeaderShown,
+            }}
           />
-        )
-      )}
+        );
+      })}
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  container: navigationStyle.primary.container,
+  label: navigationStyle.primary.label,
+});
 
 export default MainTabs;

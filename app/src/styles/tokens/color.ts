@@ -11,9 +11,9 @@ export const Color = {
     type: '#000000',
     white: '#ffffff',
     gradient: {
-      colors: ['#00C9CD', '#472AFF', '#392D9C', '#000000'],
-      start: { x: 1, y: 0 }, // approximate 256deg angle
-      end: { x: 0, y: 1 },
+      colors: ['#00C9CD', '#472AFF', '#392D9C'],
+      start: { x: 1, y: 0.4 }, // approximate 256deg angle
+      end: { x: 0, y: 0.6 },
     },
   },
   gray: {
@@ -54,6 +54,13 @@ export const Color = {
   },
   shadow: {
     dark: 'rgba(0, 0, 0, 0.3)',
+  },
+  labels: {
+    primary: '#000000',
+    tertiary: 'rgba(60, 60, 67, 0.3)',
+  },
+  separators: {
+    nonOpaque: 'rgba(84, 84, 86, 0.34)',
   }
 } as const;
 

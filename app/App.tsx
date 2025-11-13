@@ -1,7 +1,7 @@
-import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '@/context/AuthContext';
 import { Navigation } from '@/components/navigation';
+import './src/i18n';
 
 const App = () => {
   return (
