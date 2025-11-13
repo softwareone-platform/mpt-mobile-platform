@@ -25,6 +25,7 @@ const AuthInput: React.FC<AuthInputProps> = ({
                     style
                 ]}
                 placeholderTextColor={Color.gray.gray4}
+                clearButtonMode="while-editing"
                 {...textInputProps}
             />
             {error && <Text style={styles.errorText}>{error}</Text>}
