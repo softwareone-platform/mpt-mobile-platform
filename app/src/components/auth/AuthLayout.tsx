@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Color, Spacing } from '@/styles/tokens';
 
 interface AuthLayoutProps {
@@ -10,6 +11,7 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) => {
+  const { t } = useTranslation();
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
@@ -28,9 +30,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
                 </View>
                 <View style={styles.footer}>
                     {/* TODO: Add links to Terms of Use and Privacy Policy */}
-                    <Text style={styles.footerText}>Terms of use</Text>
+                    <Text style={styles.footerText}>{t('common.footer.termsOfUse')}</Text>
                     <Text style={styles.footerDivider}> | </Text>
-                    <Text style={styles.footerText}>Privacy Policy</Text>
+                    <Text style={styles.footerText}>{t('common.footer.privacyPolicy')}</Text>
                 </View>
             </View>
         </SafeAreaView>

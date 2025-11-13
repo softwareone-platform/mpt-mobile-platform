@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
 import { Spacing } from '@/styles/tokens';
@@ -12,6 +13,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
   const [emailError, setEmailError] = useState('');
   
   const { sendPasswordlessEmail } = useAuth();
+  const { t } = useTranslation();
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,12 +24,12 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
     setEmailError('');
     
     if (!email.trim()) {
-      setEmailError('Email is required');
+      setEmailError(t('auth.validation.emailRequired'));
       return;
     }
     
     if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email address');
+      setEmailError(t('auth.validation.emailInvalid'));
       return;
     }
 
@@ -35,13 +37,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
     
     try {
       await sendPasswordlessEmail(email);
-
-      // TODO: MPT-14544 - Navigate to OTP verification screen - remove alert below
-      Alert.alert(
-        'Email Sent!',
-        'We have sent a verification code to your email address. Please check your email and enter the code when ready.',
-        [{ text: 'OK' }]
-      );
+      // TODO: MPT-14544 - Navigate to OTP verification screen
+      console.log('Email sent successfully');
 
     } catch (error) {
       console.error('Send email error:', error instanceof Error ? error.message : 'Unknown error');
@@ -55,24 +52,24 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
 
   return (
     <AuthLayout
-      title="Welcome"
-      subtitle="Existing Marketplace users can now enjoy our mobile experience. Enter your corporate email address below to continue."
+      title={t('auth.welcome.title')}
+      subtitle={t('auth.welcome.subtitle')}
     >
       <View style={styles.form}>
         <AuthInput
-          label="Corporate email address"
+          label={t('auth.welcome.emailLabel')}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
-          placeholder="Enter your email address"
+          placeholder={t('auth.welcome.emailPlaceholder')}
           error={emailError}
           containerStyle={styles.inputContainer}
         />
         
         <AuthButton
-          title="Continue"
+          title={t('auth.welcome.continueButton')}
           onPress={handleContinue}
           disabled={!isFormValid}
           loading={loading}
