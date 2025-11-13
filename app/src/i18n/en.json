@@ -33,5 +33,19 @@
     "info": {
       "noStoredUserData": "No stored user data found"
     }
+  },
+  "navigation": {
+    "moreMenuTitle": "More",
+    "headerBackTitle": "Back",
+    "tabs": {
+      "spotlight": "Spotlight",
+      "orders": "Orders",
+      "subscriptions": "Subscriptions",
+      "more": "More",
+      "agreements": "Agreements",
+      "creditMemos": "Credit Memos",
+      "invoices": "Invoices",
+      "statements": "Statements"
+    }
   }
 }
