@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
-import { Color, Spacing } from '@/styles/tokens';
+import { Color, Spacing, Typography, BorderRadius } from '@/styles/tokens';
 
 interface AuthInputProps extends TextInputProps {
     label?: string;
@@ -17,7 +17,6 @@ const AuthInput: React.FC<AuthInputProps> = ({
 }) => {
     return (
         <View style={[styles.container, containerStyle]}>
-            {label && <Text style={styles.label}>{label}</Text>}
             <TextInput
                 style={[
                     styles.input,
@@ -37,19 +36,13 @@ const styles = StyleSheet.create({
     container: {
         marginBottom: Spacing.spacing2,
     },
-    label: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: Color.brand.type,
-        marginBottom: Spacing.spacing1,
-    },
     input: {
         height: 56,
         borderWidth: 1,
         borderColor: Color.gray.gray3,
-        borderRadius: 12,
+        borderRadius: BorderRadius.md,
         paddingHorizontal: Spacing.spacing2,
-        fontSize: 16,
+        fontSize: Typography.fontSize.font3,
         color: Color.brand.type,
         backgroundColor: Color.brand.white,
     },
@@ -57,7 +50,7 @@ const styles = StyleSheet.create({
         borderColor: Color.brand.danger,
     },
     errorText: {
-        fontSize: 12,
+        fontSize: Typography.fontSize.font1,
         color: Color.brand.danger,
         marginTop: Spacing.spacing1,
     },

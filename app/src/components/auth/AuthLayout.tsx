@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Color, Spacing } from '@/styles/tokens';
+import { Color, Spacing, Typography } from '@/styles/tokens';
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -15,14 +15,14 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
-                <View style={styles.logoSection}>
-                    <Image
-                        source={require('@assets/icon.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
-                </View>
                 <View style={styles.content}>
+                    <View style={styles.logoSection}>
+                        <Image
+                            source={require('@assets/icon.png')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                    </View>
                     {title && <Text style={styles.title}>{title}</Text>}
                     {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
 
@@ -50,30 +50,29 @@ const styles = StyleSheet.create({
     },
     logoSection: {
         alignItems: 'center',
-        paddingTop: Spacing.spacing6,
-        paddingBottom: Spacing.spacing8,
+        paddingBottom: Spacing.spacing2,
     },
     logo: {
-        width: 100,
-        height: 100,
+        width: 120,
+        height: 120,
     },
     content: {
         flex: 1,
         justifyContent: 'center',
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
+        fontSize: Typography.fontSize.font7,
+        fontWeight: Typography.fontWeight.bold,
         color: Color.brand.type,
         textAlign: 'center',
         marginBottom: Spacing.spacing2,
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: Typography.fontSize.font3,
         color: Color.gray.gray5,
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: Spacing.spacing6,
+        lineHeight: Typography.fontSize.font3 * Typography.lineHeight.relaxed,
+        marginBottom: Spacing.spacing10,
     },
     footer: {
         flexDirection: 'row',
@@ -82,12 +81,14 @@ const styles = StyleSheet.create({
         paddingBottom: Spacing.spacing4,
     },
     footerText: {
-        fontSize: 14,
+        fontSize: Typography.fontSize.font1,
         color: Color.gray.gray4,
+        fontWeight: Typography.fontWeight.regular,
     },
     footerDivider: {
-        fontSize: 14,
+        fontSize: Typography.fontSize.font1,
         color: Color.gray.gray4,
+        fontWeight: Typography.fontWeight.regular,
     },
 });
 

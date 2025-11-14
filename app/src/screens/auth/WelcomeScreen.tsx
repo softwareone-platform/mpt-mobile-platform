@@ -22,23 +22,22 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
 
   const handleContinue = async () => {
     setEmailError('');
-    
+
     if (!email.trim()) {
       setEmailError(t('auth.validation.emailRequired'));
       return;
     }
-    
+
     if (!validateEmail(email)) {
       setEmailError(t('auth.validation.emailInvalid'));
       return;
     }
 
     setLoading(true);
-    
+
     try {
       await sendPasswordlessEmail(email);
       // TODO: MPT-14544 - Navigate to OTP verification screen
-      console.log('Email sent successfully');
 
     } catch (error) {
       console.error('Send email error:', error instanceof Error ? error.message : 'Unknown error');
@@ -57,7 +56,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
     >
       <View style={styles.form}>
         <AuthInput
-          label={t('auth.welcome.emailLabel')}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"

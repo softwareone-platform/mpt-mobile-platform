@@ -8,9 +8,8 @@
   "auth": {
     "welcome": {
       "title": "Welcome",
-      "subtitle": "Existing Marketplace users can now enjoy our mobile experience. Enter your corporate email address below to continue.",
-      "emailLabel": "Corporate email address",
-      "emailPlaceholder": "Enter your email address",
+      "subtitle": "Existing Marketplace users can now enjoy our mobile experience. Enter your registered email address below to gain access.",
+      "emailPlaceholder": "Enter your email",
       "continueButton": "Continue"
     },
     "validation": {
@@ -19,6 +18,7 @@
     },
     "errors": {
       "sendEmailFailed": "Failed to send authentication email",
+      "unknownError": "An unexpected error occurred. Please try again.",
       "verifyCodeFailed": "Failed to verify authentication code",
       "refreshFailed": "Failed to refresh authentication",
       "getUserProfileFailed": "Failed to get user profile",
@@ -35,7 +35,7 @@
   "storage": {
     "errors": {
       "storeTokensFailed": "Failed to store tokens",
-      "loadTokensFailed": "Failed to load tokens", 
+      "loadTokensFailed": "Failed to load tokens",
       "storeUserFailed": "Failed to store user data",
       "loadUserFailed": "Failed to load user data",
       "loadCredentialsFailed": "Failed to load stored credentials",
