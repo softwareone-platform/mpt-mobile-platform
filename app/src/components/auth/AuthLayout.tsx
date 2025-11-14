@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { authLayoutStyle } from '@/styles/components';
 
 interface AuthLayoutProps {
@@ -11,7 +10,6 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) => {
-  const { t } = useTranslation();
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
