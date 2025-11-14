@@ -1,3 +1,19 @@
+jest.mock('react-native', () => ({
+  View: 'View',
+  Text: 'Text',
+  StyleSheet: {
+    create: (styles: any) => styles,
+  },
+  TouchableOpacity: 'TouchableOpacity',
+  TextInput: 'TextInput',
+  ActivityIndicator: 'ActivityIndicator',
+  Image: 'Image',
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: 'SafeAreaView',
+}));
+
 jest.mock('expo-secure-store', () => ({
   setItemAsync: jest.fn(),
   getItemAsync: jest.fn(),

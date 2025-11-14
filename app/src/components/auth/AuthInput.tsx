@@ -3,13 +3,11 @@ import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native'
 import { Color, Spacing, Typography, BorderRadius } from '@/styles/tokens';
 
 interface AuthInputProps extends TextInputProps {
-    label?: string;
     error?: string;
     containerStyle?: any;
 }
 
 const AuthInput: React.FC<AuthInputProps> = ({
-    label,
     error,
     containerStyle,
     style,
