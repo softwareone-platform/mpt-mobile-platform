@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import DynamicIcon from '@/components/common/DynamicIcon';
 import { useNavigationData } from '@/context/NavigationContext';
