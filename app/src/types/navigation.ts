@@ -1,7 +1,13 @@
 import type { NavigationProp, RouteProp } from '@react-navigation/native';
 
 export type RootStackParamList = {
+  Auth: undefined;
   Main: undefined;
+};
+
+export type AuthStackParamList = {
+  Welcome: undefined;
+  // TODO: MPT-14544 - Add OTP Verification screen
 };
 
 export type TabParamList = {
