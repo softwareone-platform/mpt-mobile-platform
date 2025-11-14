@@ -37,14 +37,13 @@ export const inputStyle = {
 		marginBottom: Spacing.spacing2,
 	},
 	authInput: {
-		height: 56,
-		borderWidth: 1,
+		height: 52,
 		borderColor: Color.gray.gray3,
-		borderRadius: BorderRadius.md,
+		borderRadius: BorderRadius.xl,
 		paddingHorizontal: Spacing.spacing2,
 		fontSize: Typography.fontSize.font3,
 		color: Color.brand.type,
-		backgroundColor: Color.brand.white,
+		backgroundColor: Color.gray.gray2,
 	},
 	authInputError: {
 		borderColor: Color.brand.danger,

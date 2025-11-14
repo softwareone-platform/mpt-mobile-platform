@@ -22,22 +22,16 @@ export const buttonStyle = {
 	},
 	authPrimary: {
 		height: 48,
-		borderRadius: BorderRadius.md,
+		borderRadius: BorderRadius.xl,
 		justifyContent: 'center' as const,
 		alignItems: 'center' as const,
 		paddingHorizontal: Spacing.spacing3,
 		backgroundColor: Color.brand.primary,
-	},
-	authPrimaryDisabled: {
-		backgroundColor: Color.gray.gray2,
 	},
 	authPrimaryText: {
 		fontSize: Typography.fontSize.font3,
 		fontWeight: Typography.fontWeight.medium,
 		textAlign: 'center' as const,
 		color: Color.brand.white,
-	},
-	authPrimaryTextDisabled: {
-		color: Color.gray.gray4,
 	},
 } as const;
