@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { Color, Spacing, Typography, BorderRadius } from '@/styles/tokens';
+import { Color } from '@/styles/tokens';
+import { buttonStyle } from '@/styles/components';
 
 interface AuthButtonProps {
     title: string;
@@ -41,26 +42,10 @@ const AuthButton: React.FC<AuthButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
-    button: {
-        height: 48,
-        borderRadius: BorderRadius.md,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.spacing3,
-        backgroundColor: Color.brand.primary,
-    },
-    disabledButton: {
-        backgroundColor: Color.gray.gray2,
-    },
-    buttonText: {
-        fontSize: Typography.fontSize.font3,
-        fontWeight: Typography.fontWeight.medium,
-        textAlign: 'center',
-        color: Color.brand.white,
-    },
-    disabledButtonText: {
-        color: Color.gray.gray4,
-    },
+    button: buttonStyle.authPrimary,
+    disabledButton: buttonStyle.authPrimaryDisabled,
+    buttonText: buttonStyle.authPrimaryText,
+    disabledButtonText: buttonStyle.authPrimaryTextDisabled,
 });
 
 export default AuthButton;

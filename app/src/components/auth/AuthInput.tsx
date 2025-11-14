@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
-import { Color, Spacing, Typography, BorderRadius } from '@/styles/tokens';
+import { Color } from '@/styles/tokens';
+import { inputStyle } from '@/styles/components';
 
 interface AuthInputProps extends TextInputProps {
     error?: string;
@@ -31,27 +32,10 @@ const AuthInput: React.FC<AuthInputProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: {
-        marginBottom: Spacing.spacing2,
-    },
-    input: {
-        height: 56,
-        borderWidth: 1,
-        borderColor: Color.gray.gray3,
-        borderRadius: BorderRadius.md,
-        paddingHorizontal: Spacing.spacing2,
-        fontSize: Typography.fontSize.font3,
-        color: Color.brand.type,
-        backgroundColor: Color.brand.white,
-    },
-    inputError: {
-        borderColor: Color.brand.danger,
-    },
-    errorText: {
-        fontSize: Typography.fontSize.font1,
-        color: Color.brand.danger,
-        marginTop: Spacing.spacing1,
-    },
+    container: inputStyle.authContainer,
+    input: inputStyle.authInput,
+    inputError: inputStyle.authInputError,
+    errorText: inputStyle.authErrorText,
 });
 
 export default AuthInput;

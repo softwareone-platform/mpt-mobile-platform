@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Color, Spacing, Typography } from '@/styles/tokens';
+import { layoutStyle } from '@/styles/components';
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -40,56 +40,16 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) =>
 };
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: Color.brand.white,
-    },
-    container: {
-        flex: 1,
-        paddingHorizontal: Spacing.spacing3,
-    },
-    logoSection: {
-        alignItems: 'center',
-        paddingBottom: Spacing.spacing2,
-    },
-    logo: {
-        width: 120,
-        height: 120,
-    },
-    content: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    title: {
-        fontSize: Typography.fontSize.font7,
-        fontWeight: Typography.fontWeight.bold,
-        color: Color.brand.type,
-        textAlign: 'center',
-        marginBottom: Spacing.spacing2,
-    },
-    subtitle: {
-        fontSize: Typography.fontSize.font3,
-        color: Color.gray.gray5,
-        textAlign: 'center',
-        lineHeight: Typography.fontSize.font3 * Typography.lineHeight.relaxed,
-        marginBottom: Spacing.spacing10,
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingBottom: Spacing.spacing4,
-    },
-    footerText: {
-        fontSize: Typography.fontSize.font1,
-        color: Color.gray.gray4,
-        fontWeight: Typography.fontWeight.regular,
-    },
-    footerDivider: {
-        fontSize: Typography.fontSize.font1,
-        color: Color.gray.gray4,
-        fontWeight: Typography.fontWeight.regular,
-    },
+    safeArea: layoutStyle.authSafeArea,
+    container: layoutStyle.authContainer,
+    logoSection: layoutStyle.authLogoSection,
+    logo: layoutStyle.authLogo,
+    content: layoutStyle.authContent,
+    title: layoutStyle.authTitle,
+    subtitle: layoutStyle.authSubtitle,
+    footer: layoutStyle.authFooter,
+    footerText: layoutStyle.authFooterText,
+    footerDivider: layoutStyle.authFooterDivider,
 });
 
 export default AuthLayout;
