@@ -2,6 +2,7 @@ import type { NavigationProp, RouteProp } from '@react-navigation/native';
 
 export type RootStackParamList = {
   Main: undefined;
+  Profile: undefined;
 };
 
 export type TabParamList = {

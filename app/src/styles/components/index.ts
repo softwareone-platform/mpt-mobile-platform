@@ -7,3 +7,4 @@ export { cardStyle } from './card';
 export { screenStyle } from './common';
 export { separatorStyle } from './separator';
 export { navigationStyle } from './navigation';
+export { avatarStyle } from './avatar';
