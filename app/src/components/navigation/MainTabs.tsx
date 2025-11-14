@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import DynamicIcon from '@/components/common/DynamicIcon';
 import { useNavigationData } from '@/context/NavigationContext';
@@ -7,6 +7,7 @@ import { TabParamList } from './types';
 import SecondaryTabs from './SecondaryTabs';
 import { Color, navigationStyle } from '@/styles';
 import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
+import AccountToolbarButton from './AccontToolbarButton';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -15,7 +16,6 @@ const MainTabs = () => {
   const { t } = useTranslation();
 
   return (
-
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
@@ -30,10 +30,10 @@ const MainTabs = () => {
         tabBarStyle: styles.container,
         tabBarLabelStyle: styles.label,
         tabBarBackground: () => <LinearGradientHorisontal height={3} />,
+        headerRight: () => <AccountToolbarButton />
       })}
     >
       {mainTabsData.map((tab) => {
-        
         const tabComponent = tab.name === 'more' ? SecondaryTabs : tab.component!;
         const isHeaderShown = tab.name === 'more' ? false : true;
 
