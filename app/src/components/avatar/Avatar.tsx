@@ -4,15 +4,10 @@ import Jdenticon from '@/components/common/JdenticonIcon';
 
 
 interface AvatarIconProps {
-  /** The ID used for Jdenticon fallback */
   id: string;
-  /** The API path/URL for the image (can be relative or absolute) */
   imagePath?: string;
-  /** Size of the avatar */
   size?: number;
-  /** Custom style */
   style?: any;
-  /** Border radius override */
   borderRadius?: number;
 }
 
@@ -22,7 +17,6 @@ const AvatarIcon: React.FC<AvatarIconProps> = ({
 }) => {
   // TODO: Implement image loading logic when login in done
 
-  // Render Jdenticon fallback
   const renderFallback = () => (
     <View style={styles.container}>
       <Jdenticon
@@ -32,7 +26,6 @@ const AvatarIcon: React.FC<AvatarIconProps> = ({
     </View>
   );
 
-  // While loading or if no source, show Jdenticon
   return renderFallback();
 };
 
