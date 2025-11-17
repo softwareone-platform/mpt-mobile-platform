@@ -9,6 +9,7 @@ import { TabParamList } from '@/types/navigation';
 import { OutlinedIcons } from '@assets/icons';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { Color, navigationStyle } from '@/styles';
+import AccountToolbarButton from './AccontToolbarButton';
 
 const Stack = createStackNavigator<TabParamList>();
 
@@ -56,7 +57,10 @@ const SecondaryTabs = () => {
   const { t } = useTranslation();
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator screenOptions={{ 
+      headerShown: true,
+      headerRight: () => <AccountToolbarButton />
+    }}>
       <Stack.Screen 
         name="moreMenu" 
         component={SecondaryMenu} 

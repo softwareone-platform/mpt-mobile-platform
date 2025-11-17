@@ -3,6 +3,7 @@ import type { NavigationProp, RouteProp } from '@react-navigation/native';
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
+  Profile: undefined;
 };
 
 export type AuthStackParamList = {

@@ -53,6 +53,7 @@
   "navigation": {
     "moreMenuTitle": "More",
     "headerBackTitle": "Back",
+    "headerProfileTitle": "Profile",
     "tabs": {
       "spotlight": "Spotlight",
       "orders": "Orders",
