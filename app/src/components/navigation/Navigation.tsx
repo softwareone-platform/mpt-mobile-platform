@@ -3,21 +3,28 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { NavigationDataProvider } from '@/context/NavigationContext';
+import { useAuth } from '@/context/AuthContext';
 import { RootStackParamList } from './types';
 import MainTabs from './MainTabs';
+import AuthStack from './AuthStack';
 import ProfileScreen from '@/screens/account/ProfileScreen';
 import { Color, navigationStyle } from '@/styles';
 
 const RootStack = createStackNavigator<RootStackParamList>();
 
 const Navigation = () => {
+  const { status } = useAuth();
   const { t } = useTranslation();
 
   return (
     <NavigationDataProvider>
       <NavigationContainer>
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
-          <RootStack.Screen name="Main" component={MainTabs} />
+          {status === 'authenticated' ? (
+            <RootStack.Screen name="Main" component={MainTabs} />
+          ) : (
+            <RootStack.Screen name="Auth" component={AuthStack} />
+          )}
           <RootStack.Screen
             name="Profile" 
             component={ProfileScreen} 
