@@ -3,6 +3,7 @@
  */
 export { buttonStyle } from './button';
 export { inputStyle } from './input';
+export { authLayoutStyle } from './authLayout';
 export { cardStyle } from './card';
 export { screenStyle } from './common';
 export { separatorStyle } from './separator';
