@@ -1,0 +1,242 @@
+name: iOS Build and Appium Tests
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      build-mode:
+        description: 'Build configuration'
+        required: true
+        type: choice
+        options:
+          - Debug
+          - Release
+        default: 'Debug'
+      create-archive:
+        description: 'Create archive (.xcarchive) in addition to .app'
+        required: false
+        type: boolean
+        default: false
+
+  # Reusable workflow (called from other workflows)
+  workflow_call:
+    inputs:
+      build-mode:
+        description: 'Build configuration'
+        required: false
+        type: string
+        default: 'Debug'
+      create-archive:
+        description: 'Create archive (.xcarchive) in addition to .app'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: ./app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: |
+          echo "📋 Selecting Xcode 16.0"
+          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            ./app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: |
+            ./app/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests before build
+        run: npm test
+
+      - name: Create .env file
+        run: |
+          cat > .env <<EOF
+          # Auth0 Configuration (Build Verification)
+          AUTH0_DOMAIN=login-test.pyracloud.com
+          AUTH0_CLIENT_ID=placeholder-for-build
+          AUTH0_AUDIENCE=https://api-test.pyracloud.com/
+          AUTH0_SCOPE=openid profile email offline_access
+          AUTH0_API_URL=https://api.s1.show/public/
+          AUTH0_OTP_DIGITS=6
+          AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          TEMPORARY_AUTH0_TOKEN=
+          EOF
+
+      - name: Get version info
+        id: version
+        working-directory: ./app
+        run: |
+          # Create a temporary script to read from app.config.js with proper environment
+          cat > read_version.mjs << 'EOF'
+          import config from './app.config.js';
+          console.log(config.expo.version);
+          EOF
+          VERSION=$(node read_version.mjs)
+          rm read_version.mjs
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📱 Building version $VERSION"
+
+      - name: Expo prebuild (generate native iOS project)
+        working-directory: ./app
+        run: |
+          echo "📦 Generating native iOS project with Expo (includes CocoaPods)..."
+          npx expo prebuild --platform ios --clean
+          echo "✅ Native iOS project generated with CocoaPods installed"
+
+      - name: Build iOS app for generic device
+        working-directory: ./app
+        run: |
+          echo "🔨 Building for iOS Device in ${{ inputs.build-mode }} mode (verification build, no signing)..."
+          cd ios
+          WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" -type d | head -1 | xargs basename)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+
+          echo "Using workspace: $WORKSPACE"
+          echo "Using scheme: $SCHEME"
+
+          # Build for generic iOS device without code signing (verification only)
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration ${{ inputs.build-mode }} \
+            -derivedDataPath build/DerivedData \
+            -destination "generic/platform=iOS" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+          echo "SCHEME=$SCHEME" >> $GITHUB_ENV
+          echo "✅ ${{ inputs.build-mode }} build for generic iOS device completed (unsigned, verification only)"
+
+      - name: Create archive (optional)
+        if: ${{ inputs.create-archive && inputs.build-mode == 'Release' }}
+        working-directory: ./app
+        run: |
+          cd ios
+          echo "📦 Creating archive..."
+
+          xcodebuild -workspace "${{ env.SCHEME }}.xcworkspace" \
+            -scheme "${{ env.SCHEME }}" \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            -archivePath "build/${{ env.SCHEME }}.xcarchive" \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            archive || echo "⚠️ Archive creation skipped (requires code signing for full archive)"
+
+      - name: Find build artifacts
+        id: find-artifacts
+        working-directory: ./app
+        run: |
+          cd ios/build/DerivedData/Build/Products
+
+          # Look for .app in the build products directory
+          APP_PATH=$(find . -name "*.app" -type d | head -n 1 | sed 's|^\./||')
+
+          if [ -n "$APP_PATH" ]; then
+            echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+            echo "✅ Found app at: $APP_PATH"
+            ls -lah "$APP_PATH" || true
+          else
+            echo "⚠️ App not found, listing build directory:"
+            ls -R . || true
+          fi
+
+      - name: Upload iOS app artifact
+        if: steps.find-artifacts.outputs.app_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-${{ inputs.build-mode }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
+          path: app/ios/build/DerivedData/Build/Products/${{ steps.find-artifacts.outputs.app_path }}
+          retention-days: 7
+
+      - name: Upload archive (if created)
+        if: ${{ inputs.create-archive && inputs.build-mode == 'Release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-archive-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
+          path: app/ios/build/*.xcarchive
+          retention-days: 7
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## iOS Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Mode:** ${{ inputs.build-mode }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Number:** ${{ steps.version.outputs.build }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ steps.find-artifacts.outputs.app_path }}" ]; then
+            echo "✅ **Build Status:** Success" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Artifacts:" >> $GITHUB_STEP_SUMMARY
+            echo "- iOS app (.app) uploaded" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ inputs.create-archive }}" == "true" ]; then
+              echo "- Archive (.xcarchive) uploaded (if successful)" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Build Status:** Failed or artifact not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Purpose:" >> $GITHUB_STEP_SUMMARY
+          echo "This workflow builds iOS app for **verification only**." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This build is NOT signed and NOT deployed to TestFlight." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To deploy to TestFlight, use the **iOS TestFlight Deployment** workflow." >> $GITHUB_STEP_SUMMARY
+
+  test-ios:
+    needs: build-ios
+    uses: ./.github/workflows/templates/ios-testing.yml
+    with:
+      app_file_name: ${{ needs.build-ios.outputs.app-app_path }}
+      ios_version: '26.0'
+      device_name: 'iPhone 16'
+      node_version: '20'
+      appium_version: 'next'
+    secrets:
+      APP_BUNDLE_ID: com.softwareone.marketplaceMobile

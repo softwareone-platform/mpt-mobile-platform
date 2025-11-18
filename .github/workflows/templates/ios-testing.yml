@@ -1,0 +1,223 @@
+name: iOS Appium Tests
+
+on:
+  workflow_call:
+    inputs:
+      app_file_name:
+        description: 'Relative path to the local .app bundle (e.g., apps/MyApp.app)'
+        required: true
+        type: string
+      ios_version:
+        description: 'iOS version for simulator'
+        required: false
+        type: string
+        default: '26.0'
+      device_name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16'
+      node_version:
+        description: 'Node.js version to use'
+        required: false
+        type: string
+        default: '20'
+      appium_version:
+        description: 'Appium version to install'
+        required: false
+        type: string
+        default: 'next'
+
+    secrets:
+      APP_BUNDLE_ID:
+        description: 'iOS app bundle identifier'
+        required: true
+      APPIUM_HOST:
+        description: 'Appium server host'
+        required: false
+      APPIUM_PORT:
+        description: 'Appium server port'
+        required: false
+
+jobs:
+  ios-simulator-tests:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    
+    env:
+      PLATFORM_NAME: iOS
+      PLATFORM_VERSION: ${{ inputs.ios_version }}
+      DEVICE_NAME: ${{ inputs.device_name }}
+      AUTOMATION_NAME: XCUITest
+      APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'localhost' }}
+      APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
+      APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
+      
+    steps:
+      - name: Checkout test repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: 'npm'
+          
+      - name: Install test dependencies
+        run: npm ci
+
+      - name: Set APP_PATH environment variable
+        run: |
+          APP_PATH="${GITHUB_WORKSPACE}/${{ inputs.app_file_name }}"
+          echo "APP_PATH=${APP_PATH}" >> $GITHUB_ENV
+          echo "Using local .app at: ${APP_PATH}"
+          
+      - name: Verify APP file exists
+        run: |
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Error: Local APP bundle not found at path:"
+            echo "$APP_PATH"
+            echo "Searching for .app bundles in workspace:"
+            find . -name "*.app" -type d
+            exit 1
+          fi
+          echo "✓ APP bundle found: $APP_PATH"
+          ls -lh "$APP_PATH"
+          
+      - name: Install Appium
+        run: |
+          npm install -g appium@${{ inputs.appium_version }}
+          appium --version
+          
+      - name: Install Appium XCUITest driver
+        run: |
+          appium driver install xcuitest
+          appium driver list --installed
+          
+      - name: List available iOS simulators
+        run: |
+          echo "Available iOS Simulators:"
+          xcrun simctl list devices available
+          
+      - name: Find and boot iOS Simulator
+        run: |
+          DEVICE_UDID=$(xcrun simctl list devices available | \
+            grep "${{ env.DEVICE_NAME }}" | \
+            grep "${{ env.PLATFORM_VERSION }}" | \
+            grep -oE '[A-F0-9-]+' | head -n 1)
+          
+          if [ -z "$DEVICE_UDID" ]; then
+            echo "Error: Could not find ${{ env.DEVICE_NAME }} with iOS ${{ env.PLATFORM_VERSION }}"
+            echo "Available simulators:"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          
+          echo "DEVICE_UDID=${DEVICE_UDID}" >> $GITHUB_ENV
+          echo "✓ Found simulator: ${{ env.DEVICE_NAME }} (${DEVICE_UDID})"
+          
+          # Boot the simulator
+          xcrun simctl boot ${DEVICE_UDID} || echo "Simulator already booted"
+          
+          # Wait for boot to complete
+          echo "Waiting for simulator to boot..."
+          xcrun simctl bootstatus ${DEVICE_UDID} -b
+          echo "✓ Simulator booted successfully"
+          
+      - name: Verify simulator status
+        run: |
+          xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}"
+          
+      - name: Start Appium Server
+        run: |
+          echo "Starting Appium server..."
+          appium --log-level info --log appium.log &
+          APPIUM_PID=$!
+          echo ${APPIUM_PID} > appium.pid
+          echo "Appium PID: ${APPIUM_PID}"
+          
+          # Wait for Appium to start
+          echo "Waiting for Appium server to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:${{ env.APPIUM_PORT }}/status > /dev/null; then
+              echo "✓ Appium server is ready"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "✗ Appium server failed to start within 30 seconds"
+              cat appium.log
+              exit 1
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 1
+          done
+          
+      - name: Verify Appium Server
+        run: |
+          echo "Verifying Appium server status..."
+          curl -f http://localhost:${{ env.APPIUM_PORT }}/status | jq '.'
+          
+      - name: Run Appium Tests
+        run: npm test
+        continue-on-error: false
+          
+      - name: Upload Appium logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-logs-${{ github.run_number }}
+          path: appium.log
+          retention-days: 7
+          if-no-files-found: warn
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_number }}
+          path: |
+            test-results/
+            screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
+          
+      - name: Capture simulator logs
+        if: always()
+        run: |
+          echo "Capturing simulator logs..."
+          xcrun simctl spawn ${{ env.DEVICE_UDID }} log collect --output simulator.log || true
+          
+      - name: Upload simulator logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-logs-${{ github.run_number }}
+          path: simulator.log
+          retention-days: 7
+          if-no-files-found: ignore
+          
+      - name: Shutdown Simulator
+        if: always()
+        run: |
+          echo "Shutting down simulator..."
+          xcrun simctl shutdown ${{ env.DEVICE_UDID }} || true
+          echo "✓ Simulator shutdown complete"
+          
+      - name: Stop Appium Server
+        if: always()
+        run: |
+          if [ -f appium.pid ]; then
+            APPIUM_PID=$(cat appium.pid)
+            echo "Stopping Appium server (PID: ${APPIUM_PID})..."
+            kill ${APPIUM_PID} || true
+            rm appium.pid
+            echo "✓ Appium server stopped"
+          fi
+          
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up test artifacts..."
+          # Optional: Remove app from simulator
+          # xcrun simctl uninstall ${{ env.DEVICE_UDID }} ${{ env.APP_BUNDLE_ID }} || true
+          echo "✓ Cleanup complete"

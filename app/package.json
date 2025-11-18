@@ -19,6 +19,13 @@
     "@react-navigation/native": "^7.1.19",
     "@react-navigation/stack": "^7.6.2",
     "@types/jwt-decode": "^2.2.1",
+    "@wdio/appium-service": "^9.20.0",
+    "@wdio/cli": "^9.20.0",
+    "@wdio/junit-reporter": "^9.20.0",
+    "@wdio/local-runner": "^9.20.0",
+    "@wdio/mocha-framework": "^9.20.0",
+    "@wdio/spec-reporter": "^9.20.0",
+    "appium": "^3.1.1",
     "dotenv": "^17.2.3",
     "expo": "~54.0.13",
     "expo-dev-client": "~6.0.15",
@@ -35,7 +42,8 @@
     "react-native-dotenv": "^3.4.11",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
-    "react-native-svg": "15.12.1"
+    "react-native-svg": "15.12.1",
+    "wdio": "^6.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
@@ -43,6 +51,7 @@
     "@types/react": "~19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
+    "appium-xcuitest-driver": "^10.5.1",
     "babel-jest": "^30.2.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "^54.0.4",
