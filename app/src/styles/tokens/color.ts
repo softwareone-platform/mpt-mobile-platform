@@ -57,6 +57,7 @@ export const Color = {
   },
   labels: {
     primary: '#000000',
+    secondary: 'rgba(60, 60, 67, 0.6)',
     tertiary: 'rgba(60, 60, 67, 0.3)',
   },
   separators: {
