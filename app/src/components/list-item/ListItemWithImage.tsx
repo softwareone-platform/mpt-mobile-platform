@@ -13,7 +13,7 @@ type Props = {
   onPress?: () => void;
 };
 
-const NavigationItemWithImage = ({ id, title, subtitle, isLast, isSelected, onPress }: Props) => (
+const ListItemWithImage = ({ id, title, subtitle, isLast, isSelected, onPress }: Props) => (
   <TouchableOpacity
     style={styles.container}
     onPress={onPress}
@@ -42,4 +42,4 @@ const styles = StyleSheet.create({
   subtitle: listItemStyle.textAndImage.subtitle,
 });
 
-export default NavigationItemWithImage;
+export default ListItemWithImage;
