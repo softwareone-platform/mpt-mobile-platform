@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { RouteProp } from '@react-navigation/native';
@@ -22,23 +22,18 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [otpError, setOtpError] = useState('');
+    const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
 
     const { login, sendPasswordlessEmail } = useAuth();
     const { t } = useTranslation();
 
-    useEffect(() => {
-        if (otp.length === AUTH_CONSTANTS.OTP_LENGTH) {
-            handleVerify();
-        }
-    }, [otp]);
-
-    const validateOTP = (code: string): boolean => {
+    const validateOTP = useCallback((code: string): boolean => {
         const expectedLength = AUTH_CONSTANTS.OTP_LENGTH;
         const digitRegex = new RegExp(`^\\d{${expectedLength}}$`);
         return code.length === expectedLength && digitRegex.test(code);
-    };
+    }, []);
 
-    const parseAuth0Error = (error: Error): string => {
+    const parseAuth0Error = useCallback((error: Error): string => {
         const errorMessage = error.message.toLowerCase();
 
         if (errorMessage.includes('invalid_code') || errorMessage.includes('invalid code')) {
@@ -52,16 +47,17 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
 
         return t('auth.errors.verifyCodeFailed');
-    };
+    }, [t]);
 
     const handleOTPChange = (text: string) => {
         setOtp(text);
+        setHasAutoSubmitted(false);
         if (otpError) {
             setOtpError('');
         }
     };
 
-    const handleVerify = async () => {
+    const handleVerify = useCallback(async () => {
         setOtpError('');
 
         if (!otp.trim()) {
@@ -89,7 +85,14 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         } finally {
             setLoading(false);
         }
-    };
+    }, [otp, t, login, email, validateOTP, parseAuth0Error]);
+
+    useEffect(() => {
+        if (otp.length === AUTH_CONSTANTS.OTP_LENGTH && validateOTP(otp) && !loading && !hasAutoSubmitted) {
+            setHasAutoSubmitted(true);
+            handleVerify();
+        }
+    }, [otp, handleVerify, validateOTP, loading, hasAutoSubmitted]);
 
     const handleResendCode = async () => {
         setOtpError('');
@@ -102,7 +105,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
             );
         } catch (error) {
             console.error('Resend OTP error:', error instanceof Error ? error.message : 'Unknown error');
-            
+
             if (error instanceof Error) {
                 setOtpError(parseAuth0Error(error));
             } else {
