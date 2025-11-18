@@ -15,32 +15,16 @@ interface OTPVerificationScreenProps {
     navigation: StackNavigationProp<AuthStackParamList, 'OTPVerification'>;
 }
 
-const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({ 
-    route 
+const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
+    route
 }) => {
     const { email } = route.params;
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
-    const [resendLoading, setResendLoading] = useState(false);
     const [otpError, setOtpError] = useState('');
-    const [resendTimer, setResendTimer] = useState(0);
 
     const { login, sendPasswordlessEmail } = useAuth();
     const { t } = useTranslation();
-
-    useEffect(() => {
-        let interval: NodeJS.Timeout | null = null;
-        if (resendTimer > 0) {
-            interval = setInterval(() => {
-                setResendTimer(resendTimer - 1);
-            }, 1000);
-        } else if (interval) {
-            clearInterval(interval);
-        }
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [resendTimer]);
 
     useEffect(() => {
         if (otp.length === AUTH_CONSTANTS.OTP_LENGTH) {
@@ -56,7 +40,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
     const parseAuth0Error = (error: Error): string => {
         const errorMessage = error.message.toLowerCase();
-        
+
         if (errorMessage.includes('invalid_code') || errorMessage.includes('invalid code')) {
             return t('auth.errors.otpVerificationFailed');
         }
@@ -96,7 +80,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
             await login(email, otp);
         } catch (error) {
             console.error('OTP verification error:', error instanceof Error ? error.message : 'Unknown error');
-            
+
             if (error instanceof Error) {
                 setOtpError(parseAuth0Error(error));
             } else {
@@ -108,14 +92,10 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     };
 
     const handleResendCode = async () => {
-        if (resendTimer > 0) return;
-
-        setResendLoading(true);
         setOtpError('');
 
         try {
             await sendPasswordlessEmail(email);
-            setResendTimer(AUTH_CONSTANTS.OTP_RESEND_COOLDOWN);
             Alert.alert(
                 t('auth.otpVerification.resendCode'),
                 t('auth.otpVerification.subtitle', { email })
@@ -128,17 +108,10 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
             } else {
                 setOtpError(t('auth.errors.resendOtpFailed'));
             }
-        } finally {
-            setResendLoading(false);
         }
     };
 
-    const getResendText = () => {
-        if (resendTimer > 0) {
-            return `${t('auth.otpVerification.resendCode')} (${resendTimer}s)`;
-        }
-        return t('auth.otpVerification.resendCode');
-    };
+
 
     return (
         <AuthLayout
@@ -166,21 +139,11 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
                 <View style={otpVerificationScreenStyle.resendSection}>
                     <Text style={otpVerificationScreenStyle.didntGetCodeText}>
-                        {t('auth.otpVerification.didntGetCode')}
+                        {t('auth.otpVerification.didntGetCode')}{' '}
                     </Text>
-                    <TouchableOpacity 
-                        style={[
-                            otpVerificationScreenStyle.resendLink,
-                            (resendTimer > 0 || resendLoading) && otpVerificationScreenStyle.resendLinkDisabled
-                        ]} 
-                        onPress={handleResendCode}
-                        disabled={resendTimer > 0 || resendLoading}
-                    >
-                        <Text style={[
-                            otpVerificationScreenStyle.resendText,
-                            (resendTimer > 0 || resendLoading) && otpVerificationScreenStyle.resendTextDisabled
-                        ]}>
-                            {getResendText()}
+                    <TouchableOpacity onPress={handleResendCode}>
+                        <Text style={otpVerificationScreenStyle.resendText}>
+                            {t('auth.otpVerification.resendCode')}
                         </Text>
                     </TouchableOpacity>
                 </View>

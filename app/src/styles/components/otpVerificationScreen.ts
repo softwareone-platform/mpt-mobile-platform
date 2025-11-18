@@ -1,5 +1,6 @@
 import { Color, Spacing, Typography } from '../tokens';
 
+//TODO: Restyle after Figma design of OTP input is ready
 export const otpVerificationScreenStyle = {
     form: {
         width: '100%',
@@ -17,26 +18,19 @@ export const otpVerificationScreenStyle = {
     },
     resendSection: {
         marginTop: Spacing.spacing3,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
     },
     didntGetCodeText: {
         fontSize: Typography.fontSize.font2,
         color: Color.gray.gray4,
         fontWeight: Typography.fontWeight.regular,
-        marginBottom: Spacing.spacing1,
-    },
-    resendLink: {
-        paddingVertical: Spacing.spacing1,
-    },
-    resendLinkDisabled: {
-        opacity: 0.5,
     },
     resendText: {
         fontSize: Typography.fontSize.font2,
         color: Color.brand.primary,
         fontWeight: Typography.fontWeight.medium,
-    },
-    resendTextDisabled: {
-        color: Color.gray.gray4,
     },
 } as const;

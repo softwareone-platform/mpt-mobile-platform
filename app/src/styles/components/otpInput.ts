@@ -1,5 +1,6 @@
-import { Color, Typography } from '../tokens';
+import { BorderRadius, Color, Typography } from '../tokens';
 
+//TODO: Restyle after Figma design of OTP input is ready
 export const otpInputStyle = {
     container: {
         alignItems: 'center',
@@ -16,7 +17,7 @@ export const otpInputStyle = {
         height: 55,
         borderWidth: 1,
         borderColor: Color.gray.gray3,
-        borderRadius: 8,
+        borderRadius: BorderRadius.md,
         backgroundColor: Color.brand.white,
         justifyContent: 'center',
         alignItems: 'center',
