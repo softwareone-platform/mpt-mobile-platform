@@ -50,7 +50,7 @@ jobs:
         run: npm run lint:check
 
       - name: Run tests
-        run: npm test -- --coverage --passWithNoTests --verbose
+        run: npm test -- --coverage --verbose
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4

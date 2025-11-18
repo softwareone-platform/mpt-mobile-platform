@@ -1,19 +1,26 @@
 import type { NavigationProp, RouteProp } from '@react-navigation/native';
 
 export type RootStackParamList = {
+  Auth: undefined;
   Main: undefined;
+  Profile: undefined;
+};
+
+export type AuthStackParamList = {
+  Welcome: undefined;
+  // TODO: MPT-14544 - Add OTP Verification screen
 };
 
 export type TabParamList = {
-  Spotlight: undefined;
-  Orders: undefined;
-  Subscriptions: undefined;
-  Agreements: undefined;
-  Invoices: undefined;
-  CreditMemos: undefined;
-  Statements: undefined;
-  More: undefined;
-  MoreMenu: undefined
+  spotlight: undefined;
+  orders: undefined;
+  subscriptions: undefined;
+  agreements: undefined;
+  invoices: undefined;
+  creditMemos: undefined;
+  statements: undefined;
+  more: undefined;
+  moreMenu: undefined;
 };
 
 export type ScreenComponent<
@@ -26,7 +33,6 @@ export type ScreenComponent<
 
 export type TabItem<RouteName extends keyof TabParamList = keyof TabParamList> = {
   name: RouteName;
-  label: string;
   icon: string;
   component?: ScreenComponent<TabParamList, RouteName>;
 };

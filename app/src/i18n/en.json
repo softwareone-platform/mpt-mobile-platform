@@ -1,0 +1,68 @@
+{
+  "features": {
+    "test": {
+      "enabled": "Test Feature Enabled",
+      "disabled": "Test Feature Disabled"
+    }
+  },
+  "auth": {
+    "welcome": {
+      "title": "Welcome",
+      "subtitle": "Existing Marketplace users can now enjoy our mobile experience. Enter your registered email address below to gain access.",
+      "emailPlaceholder": "Enter your email",
+      "continueButton": "Continue",
+      "troubleSigningIn": "Trouble signing in?"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address"
+    },
+    "errors": {
+      "sendEmailFailed": "Failed to send authentication email. Please try again.",
+      "emailNotAuthorized": "This email address is not authorized to access the application. Please contact your administrator.",
+      "invalidEmail": "This email address is not recognized in our system.",
+      "networkError": "Network connection error. Please check your internet connection and try again.",
+      "auth0Error": "Authentication service error. Please try again later.",
+      "unknownError": "An unexpected error occurred. Please try again.",
+      "verifyCodeFailed": "Failed to verify authentication code",
+      "refreshFailed": "Failed to refresh authentication",
+      "getUserProfileFailed": "Failed to get user profile",
+      "tokenExpiringSoon": "Token is expiring soon, refreshing immediately",
+      "sendPasswordlessEmailError": "Send passwordless email error",
+      "loginError": "Login error occurred",
+      "resendPasswordlessEmailError": "Resend passwordless email error",
+      "loadStoredAuthError": "Failed to load stored auth",
+      "logoutApiError": "Logout API error",
+      "refreshAuthError": "Failed to refresh auth",
+      "getAccessTokenError": "Failed to refresh token for API call"
+    }
+  },
+  "storage": {
+    "errors": {
+      "storeTokensFailed": "Failed to store tokens",
+      "loadTokensFailed": "Failed to load tokens",
+      "storeUserFailed": "Failed to store user data",
+      "loadUserFailed": "Failed to load user data",
+      "loadCredentialsFailed": "Failed to load stored credentials",
+      "storeCredentialsFailed": "Failed to store credentials"
+    },
+    "info": {
+      "noStoredUserData": "No stored user data found"
+    }
+  },
+  "navigation": {
+    "moreMenuTitle": "More",
+    "headerBackTitle": "Back",
+    "headerProfileTitle": "Profile",
+    "tabs": {
+      "spotlight": "Spotlight",
+      "orders": "Orders",
+      "subscriptions": "Subscriptions",
+      "more": "More",
+      "agreements": "Agreements",
+      "creditMemos": "Credit Memos",
+      "invoices": "Invoices",
+      "statements": "Statements"
+    }
+  }
+}

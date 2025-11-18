@@ -1,3 +1,19 @@
+jest.mock('react-native', () => ({
+  View: 'View',
+  Text: 'Text',
+  StyleSheet: {
+    create: (styles: any) => styles,
+  },
+  TouchableOpacity: 'TouchableOpacity',
+  TextInput: 'TextInput',
+  ActivityIndicator: 'ActivityIndicator',
+  Image: 'Image',
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: 'SafeAreaView',
+}));
+
 jest.mock('expo-secure-store', () => ({
   setItemAsync: jest.fn(),
   getItemAsync: jest.fn(),
@@ -24,15 +40,6 @@ jest.mock('react-native-auth0', () => {
 
 jest.mock('jwt-decode', () => ({
   jwtDecode: jest.fn(),
-}));
-
-jest.mock('@/config/environment', () => ({
-  default: {
-    AUTH0_DOMAIN: 'test-domain.auth0.com',
-    AUTH0_CLIENT_ID: 'test-client-id',
-    AUTH0_AUDIENCE: 'test-audience',
-    AUTH0_SCOPE: 'openid profile email',
-  },
 }));
 
 const originalConsoleError = console.error;
