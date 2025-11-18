@@ -36,7 +36,11 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     const parseAuth0Error = useCallback((error: Error): string => {
         const errorMessage = error.message.toLowerCase();
 
-        if (errorMessage.includes('invalid_code') || errorMessage.includes('invalid code')) {
+
+        if (errorMessage.includes('inking account')) {
+            return t('auth.errors.emailNotAuthorized');
+        }
+        if (errorMessage.includes('verification code') || errorMessage.includes('inking account')) {
             return t('auth.errors.otpVerificationFailed');
         }
         if (errorMessage.includes('expired') || errorMessage.includes('code expired')) {
@@ -99,6 +103,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
         try {
             await sendPasswordlessEmail(email);
+            //TODO: Inform user that email has been resent
             Alert.alert(
                 t('auth.otpVerification.resendCode'),
                 t('auth.otpVerification.subtitle', { email })

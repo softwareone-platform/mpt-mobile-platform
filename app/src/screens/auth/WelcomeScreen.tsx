@@ -26,23 +26,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
     return emailRegex.test(email);
   };
 
-  const parseAuth0Error = (error: Error): string => {
-    const errorMessage = error.message.toLowerCase();
-    
-    //TODO: Refine error parsing based on actual Auth0 error messages when Auth0 paswordless will be fixed
-    if (errorMessage.includes('user does not exist') || errorMessage.includes('user not found')) {
-      return t('auth.errors.invalidEmail');
-    } 
-    if (errorMessage.includes('unauthorized') || errorMessage.includes('not authorized')) {
-      return t('auth.errors.emailNotAuthorized');
-    }
-    if (errorMessage.includes('network') || errorMessage.includes('connection')) {
-      return t('auth.errors.networkError');
-    }
-
-    return t('auth.errors.sendEmailFailed');
-  };
-
   const handleEmailChange = (text: string) => {
     setEmail(text);
     if (emailError) {
@@ -70,12 +53,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
       navigation.navigate('OTPVerification', { email });
     } catch (error) {
       console.error('Send email error:', error instanceof Error ? error.message : 'Unknown error');
-      
-      if (error instanceof Error) {
-        setEmailError(parseAuth0Error(error));
-      } else {
-        setEmailError(t('auth.errors.unknownError'));
-      }
+      setEmailError(t('auth.errors.sendEmailFailed'));
     } finally {
       setLoading(false);
     }
@@ -101,7 +79,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
           title={t('auth.welcome.continueButton')}
           onPress={handleContinue}
           loading={loading}
-        />        
+        />
         <TouchableOpacity style={styles.troubleLink} onPress={() => {
           // TODO: Handle trouble signing in action
           console.log('Trouble signing in pressed');
