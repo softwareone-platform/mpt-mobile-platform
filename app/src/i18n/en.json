@@ -28,7 +28,7 @@
       "networkError": "Network connection error. Please check your internet connection and try again.",
       "unknownError": "An unexpected error occurred. Please try again.",
       "verifyCodeFailed": "Failed to verify authentication code",
-      "otpVerificationFailed": "Invalid email or verification code. Please try again.",
+      "otpVerificationFailed": "Invalid verification code. Please try again.",
       "otpExpired": "Verification code has expired. Please request a new code.",
       "resendOtpFailed": "Failed to resend verification code. Please try again."
     }
