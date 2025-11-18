@@ -13,9 +13,19 @@
       "continueButton": "Continue",
       "troubleSigningIn": "Trouble signing in?"
     },
+    "otpVerification": {
+      "title": "Verify your identity",
+      "subtitle": "We have sent a verification code to {{email}}. Enter the code below to continue.",
+      "otpPlaceholder": "Enter verification code",
+      "verifyButton": "Verify",
+      "didntGetCode": "Didn't get a code?",
+      "resendCode": "Resend Code"
+    },
     "validation": {
       "emailRequired": "Email is required",
-      "emailInvalid": "Please enter a valid email address"
+      "emailInvalid": "Please enter a valid email address",
+      "otpRequired": "Verification code is required",
+      "otpInvalid": "Please enter a valid {{length}}-digit code"
     },
     "errors": {
       "sendEmailFailed": "Failed to send authentication email. Please try again.",
@@ -34,7 +44,10 @@
       "loadStoredAuthError": "Failed to load stored auth",
       "logoutApiError": "Logout API error",
       "refreshAuthError": "Failed to refresh auth",
-      "getAccessTokenError": "Failed to refresh token for API call"
+      "getAccessTokenError": "Failed to refresh token for API call",
+      "otpVerificationFailed": "Invalid verification code. Please try again.",
+      "otpExpired": "Verification code has expired. Please request a new code.",
+      "resendOtpFailed": "Failed to resend verification code. Please try again."
     }
   },
   "storage": {

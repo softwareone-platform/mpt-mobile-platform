@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
+import { AuthStackParamList } from '@/types/navigation';
 import { Spacing, Color, Typography } from '@/styles/tokens';
+
+type WelcomeScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
 interface WelcomeScreenProps { }
 
@@ -13,6 +18,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
   const [emailError, setEmailError] = useState('');
 
   const { sendPasswordlessEmail } = useAuth();
+  const navigation = useNavigation<WelcomeScreenNavigationProp>();
   const { t } = useTranslation();
 
   const validateEmail = (email: string): boolean => {
@@ -61,8 +67,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
 
     try {
       await sendPasswordlessEmail(email);
-      // TODO: MPT-14544 - Navigate to OTP verification screen
-
+      navigation.navigate('OTPVerification', { email });
     } catch (error) {
       console.error('Send email error:', error instanceof Error ? error.message : 'Unknown error');
       
