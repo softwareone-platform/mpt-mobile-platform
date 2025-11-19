@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
+import { AuthStackParamList } from '@/types/navigation';
 import { Spacing, Color, Typography } from '@/styles/tokens';
+
+type WelcomeScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
 interface WelcomeScreenProps { }
 
@@ -13,28 +18,12 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
   const [emailError, setEmailError] = useState('');
 
   const { sendPasswordlessEmail } = useAuth();
+  const navigation = useNavigation<WelcomeScreenNavigationProp>();
   const { t } = useTranslation();
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  const parseAuth0Error = (error: Error): string => {
-    const errorMessage = error.message.toLowerCase();
-    
-    //TODO: Refine error parsing based on actual Auth0 error messages when Auth0 paswordless will be fixed
-    if (errorMessage.includes('user does not exist') || errorMessage.includes('user not found')) {
-      return t('auth.errors.invalidEmail');
-    } 
-    if (errorMessage.includes('unauthorized') || errorMessage.includes('not authorized')) {
-      return t('auth.errors.emailNotAuthorized');
-    }
-    if (errorMessage.includes('network') || errorMessage.includes('connection')) {
-      return t('auth.errors.networkError');
-    }
-
-    return t('auth.errors.sendEmailFailed');
   };
 
   const handleEmailChange = (text: string) => {
@@ -61,16 +50,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
 
     try {
       await sendPasswordlessEmail(email);
-      // TODO: MPT-14544 - Navigate to OTP verification screen
-
+      navigation.navigate('OTPVerification', { email });
     } catch (error) {
       console.error('Send email error:', error instanceof Error ? error.message : 'Unknown error');
-      
-      if (error instanceof Error) {
-        setEmailError(parseAuth0Error(error));
-      } else {
-        setEmailError(t('auth.errors.unknownError'));
-      }
+      setEmailError(t('auth.errors.sendEmailFailed'));
     } finally {
       setLoading(false);
     }
@@ -96,7 +79,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
           title={t('auth.welcome.continueButton')}
           onPress={handleContinue}
           loading={loading}
-        />        
+        />
         <TouchableOpacity style={styles.troubleLink} onPress={() => {
           // TODO: Handle trouble signing in action
           console.log('Trouble signing in pressed');

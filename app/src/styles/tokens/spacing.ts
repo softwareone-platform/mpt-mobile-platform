@@ -4,6 +4,7 @@
  */
 
 export const Spacing = {
+  spacing05: 4,
   spacing1: 8,
   spacing2: 16,
   spacing3: 24,

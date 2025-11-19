@@ -13,4 +13,8 @@ export const cardStyle = {
     padding: Spacing.spacing2,
     ...Shadow.md,
   },
+  containerRounded: {
+    backgroundColor: Color.brand.white,
+    borderRadius: BorderRadius.xl,
+  },
 } as const;
