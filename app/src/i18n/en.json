@@ -64,5 +64,9 @@
       "invoices": "Invoices",
       "statements": "Statements"
     }
+  },
+  "profile": {
+    "yourProfile": "Your Profile",
+    "switchAccount": "Switch Account"
   }
 }

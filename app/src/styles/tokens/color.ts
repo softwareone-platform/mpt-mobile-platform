@@ -57,10 +57,14 @@ export const Color = {
   },
   labels: {
     primary: '#000000',
+    secondary: 'rgba(60, 60, 67, 0.6)',
     tertiary: 'rgba(60, 60, 67, 0.3)',
   },
   separators: {
     nonOpaque: 'rgba(84, 84, 86, 0.34)',
+  },
+  fills: {
+    tertiary: 'rgba(118, 118, 128, 0.12)',
   }
 } as const;
 
