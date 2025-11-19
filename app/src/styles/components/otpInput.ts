@@ -43,9 +43,8 @@ export const otpInputStyle = {
     },
     hiddenInput: {
         position: 'absolute',
-        left: -9999,
-        width: 1,
-        height: 1,
+        width: 0,
+        height: 0,
         opacity: 0,
     },
 } as const;
