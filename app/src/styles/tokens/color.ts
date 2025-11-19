@@ -62,6 +62,9 @@ export const Color = {
   },
   separators: {
     nonOpaque: 'rgba(84, 84, 86, 0.34)',
+  },
+  fills: {
+    tertiary: 'rgba(118, 118, 128, 0.12)',
   }
 } as const;
 
