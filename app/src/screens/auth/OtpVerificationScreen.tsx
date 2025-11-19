@@ -33,14 +33,15 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         return code.length === expectedLength && digitRegex.test(code);
     }, []);
 
+    //TODO: create auth0 error parsinge service
     const parseAuth0Error = useCallback((error: Error): string => {
         const errorMessage = error.message.toLowerCase();
 
 
-        if (errorMessage.includes('inking account')) {
+        if (errorMessage.includes('linking account')) {
             return t('auth.errors.emailNotAuthorized');
         }
-        if (errorMessage.includes('verification code') || errorMessage.includes('inking account')) {
+        if (errorMessage.includes('verification code')) {
             return t('auth.errors.otpVerificationFailed');
         }
         if (errorMessage.includes('expired') || errorMessage.includes('code expired')) {
