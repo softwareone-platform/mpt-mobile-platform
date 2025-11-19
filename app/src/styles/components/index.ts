@@ -9,4 +9,6 @@ export { screenStyle } from './common';
 export { separatorStyle } from './separator';
 export { navigationStyle } from './navigation';
 export { avatarStyle } from './avatar';
+export { otpInputStyle } from './otpInput';
+export { otpVerificationScreenStyle } from './otpVerificationScreen';
 export { listItemStyle } from './listItem';

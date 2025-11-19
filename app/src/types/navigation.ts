@@ -8,7 +8,7 @@ export type RootStackParamList = {
 
 export type AuthStackParamList = {
   Welcome: undefined;
-  // TODO: MPT-14544 - Add OTP Verification screen
+  OTPVerification: { email: string };
 };
 
 export type TabParamList = {
