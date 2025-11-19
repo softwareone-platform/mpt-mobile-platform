@@ -9,6 +9,7 @@ import OTPInput from '@/components/auth/OTPInput';
 import { AuthStackParamList } from '@/types/navigation';
 import { otpVerificationScreenStyle } from '@/styles/components';
 import { AUTH_CONSTANTS } from '@/constants';
+import { validateOTP } from '@/utils/validation';
 
 interface OTPVerificationScreenProps {
     route: RouteProp<AuthStackParamList, 'OTPVerification'>;
@@ -27,11 +28,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     const { login, sendPasswordlessEmail } = useAuth();
     const { t } = useTranslation();
 
-    const validateOTP = useCallback((code: string): boolean => {
-        const expectedLength = AUTH_CONSTANTS.OTP_LENGTH;
-        const digitRegex = new RegExp(`^\\d{${expectedLength}}$`);
-        return code.length === expectedLength && digitRegex.test(code);
-    }, []);
+
 
     //TODO: create auth0 error parsinge service
     const parseAuth0Error = useCallback((error: Error): string => {
@@ -90,14 +87,14 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [otp, t, login, email, validateOTP, parseAuth0Error]);
+    }, [otp, t, login, email, parseAuth0Error]);
 
     useEffect(() => {
         if (otp.length === AUTH_CONSTANTS.OTP_LENGTH && validateOTP(otp) && !loading && !hasAutoSubmitted) {
             setHasAutoSubmitted(true);
             handleVerify();
         }
-    }, [otp, handleVerify, validateOTP, loading, hasAutoSubmitted]);
+    }, [otp, handleVerify, loading, hasAutoSubmitted]);
 
     const handleResendCode = async () => {
         setOtpError('');
