@@ -231,7 +231,7 @@ jobs:
 
   test-ios:
     needs: build-ios
-    uses: ./.github/workflows/ios-testing.template.yml
+    uses: ./.github/workflows/ios-testing-template.yml
     with:
       app_file_name: ${{ needs.build-ios.outputs.app-app_path }}
       ios_version: '26.0'

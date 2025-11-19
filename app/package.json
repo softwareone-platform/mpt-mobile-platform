@@ -18,6 +18,7 @@
     "@react-navigation/bottom-tabs": "^7.8.1",
     "@react-navigation/native": "^7.1.19",
     "@react-navigation/stack": "^7.6.2",
+    "@reportportal/agent-js-webdriverio": "^5.4.1",
     "@types/jwt-decode": "^2.2.1",
     "@wdio/appium-service": "^9.20.0",
     "@wdio/cli": "^9.20.0",

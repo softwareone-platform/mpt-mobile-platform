@@ -1,3 +1,8 @@
+const fs = require('fs');
+const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
+
+const SCREENSHOT_FOLDER = './screenshots';
+
 exports.config = {
     //
     // ====================
@@ -139,6 +144,19 @@ exports.config = {
             outputFileFormat: function(options) {
                 return `results-${options.cid}.xml`
             }
+        }],
+        [Reporter, {
+            apiKey: process.env.REPORT_PORTAL_API_KEY || 'value not set',
+            endpoint: (process.env.REPORT_PORTAL_ENDPOINT || 'http://localhost:8080') + '/api/v2',
+            project: process.env.REPORT_PORTAL_PROJECT || 'default_personal',
+            launch: process.env.REPORT_PORTAL_LAUNCH_NAME || 'Appium Tests Launch',
+            description: process.env.REPORT_PORTAL_LAUNCH_DESCRIPTION || 'Appium tests against ReactNative Marketplace Mobile App',
+            // attributes: [{ key: 'key', value: 'value' }, { value: 'value' }],
+            attachPicturesToLogs: false,
+            reportSeleniumCommands: true,
+            seleniumCommandsLogLevel: 'debug',
+            autoAttachScreenshots: false,
+            screenshotsLogLevel: 'info',
         }]
     ],
 
@@ -162,8 +180,16 @@ exports.config = {
      * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
-    // onPrepare: function (config, capabilities) {
-    // },
+    reporterSyncInterval: 1000,
+    onPrepare: function (config, capabilities) {
+        fs.mkdir(SCREENSHOT_FOLDER, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('New directory successfully created.');
+        }
+        });
+    },
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
      * for that worker as well as modify runtime environments in an async fashion.
@@ -201,8 +227,9 @@ exports.config = {
      * @param {Array.<String>} specs        List of spec file paths that are to be run
      * @param {object}         browser      instance of created browser/device session
      */
-    // before: function (capabilities, specs) {
-    // },
+    before: function (capabilities, specs) {
+        this.reporter = Reporter.getAgent();
+    },
     /**
      * Runs before a WebdriverIO command gets executed.
      * @param {string} commandName hook command name
@@ -243,8 +270,21 @@ exports.config = {
      * @param {boolean} result.passed    true if test has passed, otherwise false
      * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    // afterTest: function(test, context, { error, result, duration, passed, retries }) {
-    // },
+    afterTest: async function(test, context, { error, result, duration, passed, retries }) {
+        if (!passed) {
+            const timestamp = new Date()
+                .toISOString()
+                .replace(/[^0-9]/g, '')
+                .slice(0, -5)
+            const fileName = `${timestamp}_${test.parent.replace(/ /g, '-')}_${test.title.replace(/ /g, '-')}.png`
+            const filePath = `${SCREENSHOT_FOLDER}/${fileName}`
+            const screenshot = await browser.saveScreenshot(filePath)
+            ReportingApi.error(
+                `Screenshot "${fileName}" captured for failing test: ${test.parent} / ${test.title}`,
+                {name: fileName, type: 'image/png', content: screenshot.toString('base64')}
+            );
+        }
+    },
 
 
     /**
@@ -287,8 +327,15 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
      */
-    // onComplete: function(exitCode, config, capabilities, results) {
-    // },
+    onComplete: function (exitCode, config, capabilities, results) {
+        fs.rm(SCREENSHOT_FOLDER, { recursive: true }, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('Directory successfully removed.');
+        }
+        });
+    },
     /**
     * Gets executed when a refresh happens.
     * @param {string} oldSessionId session ID of the old session
