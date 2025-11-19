@@ -1,4 +1,4 @@
-import { Color, Spacing } from '../tokens';
+import { Color, Spacing, Typography } from '../tokens';
 
 export const screenStyle = {
   container: {
@@ -7,5 +7,15 @@ export const screenStyle = {
   },
   padding: {
     paddingHorizontal: Spacing.spacing2,
+  },
+  containerMain: {
+    padding: Spacing.spacing2,
+  },
+  sectionHeader: {
+    fontSize: Typography.fontSize.font2,
+    textTransform: 'uppercase',
+    color: Color.labels.secondary,
+    marginBottom: Spacing.spacing1,
+    marginLeft: Spacing.spacing2,
   },
 } as const;
