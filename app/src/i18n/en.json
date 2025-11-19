@@ -38,7 +38,8 @@
   "navigation": {
     "moreMenuTitle": "More",
     "headerBackTitle": "Back",
-    "headerProfileTitle": "Profile",
+    "profile": "Profile",
+    "userSettings": "User Settings",
     "tabs": {
       "spotlight": "Spotlight",
       "orders": "Orders",
@@ -50,7 +51,7 @@
       "statements": "Statements"
     }
   },
-  "profile": {
+  "profileScreen": {
     "yourProfile": "Your Profile",
     "switchAccount": "Switch Account"
   }

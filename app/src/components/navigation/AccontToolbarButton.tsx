@@ -3,9 +3,13 @@ import { useNavigation } from '@react-navigation/native';
 import Avatar from '@/components/avatar/Avatar';
 import { avatarStyle } from '@/styles';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
+import { RootStackParamList } from '@/types/navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileRoot'>;
 
 const AccountToolbarButton: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   // TODO: replace with actual user data fetching logic
   const user = {
@@ -18,8 +22,7 @@ const AccountToolbarButton: React.FC = () => {
   };
 
   const handlePress = () => {
-    const rootNavigation = navigation.getParent() ?? navigation;
-    rootNavigation.navigate('Profile');
+    navigation.navigate('ProfileRoot');
   };
 
   return (
