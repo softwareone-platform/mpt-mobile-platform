@@ -181,7 +181,7 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      */
     reporterSyncInterval: 1000,
-    onPrepare: function (config, capabilities) {
+    onPrepare: function () {
         fs.mkdir(SCREENSHOT_FOLDER, function (err) {
         if (err) {
             console.log(err);
@@ -227,9 +227,8 @@ exports.config = {
      * @param {Array.<String>} specs        List of spec file paths that are to be run
      * @param {object}         browser      instance of created browser/device session
      */
-    before: function (capabilities, specs) {
-        this.reporter = Reporter.getAgent();
-    },
+    // before: function () {
+    // },
     /**
      * Runs before a WebdriverIO command gets executed.
      * @param {string} commandName hook command name
@@ -270,7 +269,7 @@ exports.config = {
      * @param {boolean} result.passed    true if test has passed, otherwise false
      * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    afterTest: async function(test, context, { error, result, duration, passed, retries }) {
+    afterTest: async function(test, context, { passed }) {
         if (!passed) {
             const timestamp = new Date()
                 .toISOString()
@@ -327,7 +326,7 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities, results) {
+    onComplete: function () {
         fs.rm(SCREENSHOT_FOLDER, { recursive: true }, function (err) {
         if (err) {
             console.log(err);
