@@ -34,4 +34,20 @@ export const buttonStyle = {
 		textAlign: 'center' as const,
 		color: Color.brand.white,
 	},
+	authSecondary: {
+		height: 48,
+		borderRadius: BorderRadius.xl,
+		justifyContent: 'center' as const,
+		alignItems: 'center' as const,
+		paddingHorizontal: Spacing.spacing3,
+		backgroundColor: Color.gray.gray1,
+		borderWidth: 1,
+		borderColor: Color.gray.gray3,
+	},
+	authSecondaryText: {
+		fontSize: Typography.fontSize.font3,
+		fontWeight: Typography.fontWeight.medium,
+		textAlign: 'center' as const,
+		color: Color.gray.gray5,
+	},
 } as const;

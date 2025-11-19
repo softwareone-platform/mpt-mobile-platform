@@ -16,6 +16,9 @@ export const otpVerificationScreenStyle = {
         marginTop: Spacing.spacing1,
         textAlign: 'center',
     },
+    changeEmailButton: {
+        marginTop: Spacing.spacing2,
+    },
     resendSection: {
         marginTop: Spacing.spacing3,
         flexDirection: 'row',

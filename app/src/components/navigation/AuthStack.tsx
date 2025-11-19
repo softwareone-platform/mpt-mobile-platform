@@ -25,7 +25,7 @@ const AuthStack = () => {
                 name="OTPVerification" 
                 component={OTPVerificationScreen}
                 options={{
-                    gestureEnabled: true,
+                    gestureEnabled: false,
                 }}
             />
         </Stack.Navigator>

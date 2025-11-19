@@ -17,7 +17,8 @@ interface OTPVerificationScreenProps {
 }
 
 const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
-    route
+    route,
+    navigation
 }) => {
     const { email } = route.params;
     const [otp, setOtp] = useState('');
@@ -117,6 +118,13 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     };
 
+    const handleChangeEmail = () => {
+        setOtp('');
+        setOtpError('');
+        setHasAutoSubmitted(false);
+        navigation.goBack();
+    };
+
 
 
     return (
@@ -142,6 +150,14 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
                     onPress={handleVerify}
                     loading={loading}
                 />
+
+                <View style={otpVerificationScreenStyle.changeEmailButton}>
+                    <AuthButton
+                        title={t('auth.otpVerification.changeEmail')}
+                        onPress={handleChangeEmail}
+                        variant="secondary"
+                    />
+                </View>
 
                 <View style={otpVerificationScreenStyle.resendSection}>
                     <Text style={otpVerificationScreenStyle.didntGetCodeText}>
