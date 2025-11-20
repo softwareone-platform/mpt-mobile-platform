@@ -4,6 +4,15 @@ permissions:
   contents: read
 
 on:
+  # Trigger on pull requests to main branch
+  pull_request:
+      branches:
+        - main
+      types:
+        - opened
+        - synchronize
+        - reopened
+        - ready_for_review
   # Manual trigger
   workflow_dispatch:
     inputs:
