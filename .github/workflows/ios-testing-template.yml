@@ -69,6 +69,7 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'npm'
+          cache-dependency-path: ../package-lock.json
 
       - name: Restore node modules cache
         id: npm-cache
