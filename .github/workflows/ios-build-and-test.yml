@@ -24,11 +24,6 @@ on:
           - Debug
           - Release
         default: 'Debug'
-      create-archive:
-        description: 'Create archive (.xcarchive) in addition to .app'
-        required: false
-        type: boolean
-        default: false
 
   # Reusable workflow (called from other workflows)
   workflow_call:
@@ -38,15 +33,9 @@ on:
         required: false
         type: string
         default: 'Debug'
-      create-archive:
-        description: 'Create archive (.xcarchive) in addition to .app'
-        required: false
-        type: boolean
-        default: false
 
 env:
   BUILD_MODE: ${{ github.event.inputs.build-mode || 'Debug' }}
-  CREATE_ARCHIVE: ${{ github.event.inputs.create-archive || false }}
 
 jobs:
   build-ios:
@@ -59,7 +48,7 @@ jobs:
         working-directory: ./app
   
     outputs:
-      app_path: ${{ steps.find-artifacts.outputs.app_path }}
+      app_download_url: ${{ steps.upload-app.outputs.app_download_url }}
       artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
 
     steps:
@@ -166,24 +155,6 @@ jobs:
           echo "SCHEME=$SCHEME" >> $GITHUB_ENV
           echo "✅ ${{ env.BUILD_MODE }} build for generic iOS device completed (unsigned, verification only)"
 
-      - name: Create archive (optional)
-        if: ${{ env.CREATE_ARCHIVE && env.BUILD_MODE == 'Release' }}
-        working-directory: ./app
-        run: |
-          cd ios
-          echo "📦 Creating archive..."
-
-          xcodebuild -workspace "${{ env.SCHEME }}.xcworkspace" \
-            -scheme "${{ env.SCHEME }}" \
-            -configuration Release \
-            -derivedDataPath build/DerivedData \
-            -archivePath "build/${{ env.SCHEME }}.xcarchive" \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            archive || echo "⚠️ Archive creation skipped (requires code signing for full archive)"
-
       - name: Find build artifacts
         id: find-artifacts
         working-directory: ./app
@@ -203,6 +174,7 @@ jobs:
           fi
 
       - name: Upload iOS app artifact
+        id: upload-app
         if: steps.find-artifacts.outputs.app_path != ''
         uses: actions/upload-artifact@v4
         with:
@@ -210,13 +182,10 @@ jobs:
           path: app/ios/build/DerivedData/Build/Products/${{ steps.find-artifacts.outputs.app_path }}
           retention-days: 7
 
-      - name: Upload archive (if created)
-        if: ${{ env.CREATE_ARCHIVE && env.BUILD_MODE == 'Release' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-archive-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
-          path: app/ios/build/*.xcarchive
-          retention-days: 7
+      - name: Set app_download_url output
+        if: steps.find-artifacts.outputs.app_path != ''
+        run: |
+          echo "app_download_url=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-app.outputs.artifact_id }}" >> $GITHUB_OUTPUT
 
       - name: Build Summary
         if: always()
@@ -234,9 +203,6 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Artifacts:" >> $GITHUB_STEP_SUMMARY
             echo "- iOS app (.app) uploaded" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ env.CREATE_ARCHIVE }}" == "true" ]; then
-              echo "- Archive (.xcarchive) uploaded (if successful)" >> $GITHUB_STEP_SUMMARY
-            fi
           else
             echo "❌ **Build Status:** Failed or artifact not found" >> $GITHUB_STEP_SUMMARY
           fi
@@ -253,7 +219,7 @@ jobs:
     needs: build-ios
     uses: ./.github/workflows/ios-testing-template.yml
     with:
-      app_path: ${{ needs.build-ios.outputs.app_path }}
+      app_download_url: ${{ needs.build-ios.outputs.app_download_url }}
       ios_version: '26.0'
       device_name: 'iPhone 16'
       node_version: '20'

@@ -6,8 +6,8 @@ permissions:
 on:
   workflow_call:
     inputs:
-      app_path:
-        description: 'Relative path to the local .app bundle (e.g., apps/MyApp.app)'
+      app_download_url:
+        description: 'URL to download the .app archive (zip/tar.gz)'
         required: true
         type: string
       ios_version:
@@ -59,7 +59,7 @@ jobs:
       APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'http://localhost' }}
       APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
       APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
-      APP_PATH: ${{ inputs.app_path }}
+      APP_DOWNLOAD_URL: ${{ inputs.app_download_url }}
       
     steps:
       - name: Checkout test repository
@@ -85,47 +85,22 @@ jobs:
 
       - name: Install dependencies (only missing packages)
         run: npm ci
-      
-      - name: List workspace root
-        run: |
-          echo "📂 Listing workspace root:"
-          ls -la $GITHUB_WORKSPACE
-
-      - name: Find all .app bundles under workspace
-        run: |
-          echo "🔍 Searching recursively for *.app bundles:"
-          find $GITHUB_WORKSPACE -name "*.app" -type d -maxdepth 6
-
-      - name: List app directories
-        run: |
-          echo "📂 Listing build/ directories:"
-          find $GITHUB_WORKSPACE -type d -name "build" -maxdepth 5 -print
-          echo "----------------------------------"
-          echo "Contents of any Debug-* folders:"
-          find $GITHUB_WORKSPACE -type d -name "Debug-*" -maxdepth 6 -print -exec ls -la {} \;
-      
-      - name: List contents of app folder (unlimited depth)
-        run: |
-          echo "📂 Listing all files under: $GITHUB_WORKSPACE/app"
-          if [ -d "$GITHUB_WORKSPACE/app" ]; then
-            ls -laR "$GITHUB_WORKSPACE/app"
-          else
-            echo "❌ Folder '$GITHUB_WORKSPACE/app' does not exist."
-            echo "📂 Listing workspace root instead:"
-            ls -la "$GITHUB_WORKSPACE"
-          fi
           
-      - name: Verify APP file exists
+      - name: Download and extract .app archive
         run: |
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Error: Local APP bundle not found at path:"
-            echo "$APP_PATH"
-            echo "Searching for .app bundles in workspace:"
-            find . -name "*.app" -type d
+          echo "Downloading app archive from: $APP_DOWNLOAD_URL"
+          mkdir -p app_download
+          cd app_download
+          curl -L "$APP_DOWNLOAD_URL" -o app.zip
+          unzip -o app.zip
+          APP_PATH=$(find . -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: No .app bundle found after extraction."
             exit 1
           fi
-          echo "✓ APP bundle found: $APP_PATH"
-          ls -lh "$APP_PATH"
+          echo "APP_PATH=$(pwd)/$APP_PATH" >> $GITHUB_ENV
+          echo "✓ APP bundle prepared at: $(pwd)/$APP_PATH"
+        shell: bash
           
       - name: Install Appium
         run: |
