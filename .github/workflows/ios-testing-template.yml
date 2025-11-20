@@ -6,7 +6,7 @@ permissions:
 on:
   workflow_call:
     inputs:
-      app_file_name:
+      app_path:
         description: 'Relative path to the local .app bundle (e.g., apps/MyApp.app)'
         required: true
         type: string
@@ -59,6 +59,7 @@ jobs:
       APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'http://localhost' }}
       APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
       APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
+      APP_PATH: ${{ inputs.app_path }}
       
     steps:
       - name: Checkout test repository
@@ -84,12 +85,6 @@ jobs:
 
       - name: Install dependencies (only missing packages)
         run: npm ci
-
-      - name: Set APP_PATH environment variable
-        run: |
-          APP_PATH="${GITHUB_WORKSPACE}/${{ inputs.app_file_name }}"
-          echo "APP_PATH=${APP_PATH}" >> $GITHUB_ENV
-          echo "Using local .app at: ${APP_PATH}"
           
       - name: Verify APP file exists
         run: |
