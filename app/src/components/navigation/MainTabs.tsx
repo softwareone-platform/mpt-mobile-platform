@@ -7,7 +7,7 @@ import { TabParamList } from './types';
 import SecondaryTabs from './SecondaryTabs';
 import { Color, navigationStyle } from '@/styles';
 import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
-import AccountToolbarButton from './AccontToolbarButton';
+import AccountToolbarButton from './AccountToolbarButton';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
