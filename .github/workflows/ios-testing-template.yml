@@ -52,7 +52,7 @@ jobs:
       PLATFORM_VERSION: ${{ inputs.ios_version }}
       DEVICE_NAME: ${{ inputs.device_name }}
       AUTOMATION_NAME: XCUITest
-      APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'localhost' }}
+      APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'http://localhost' }}
       APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
       APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
       
@@ -65,8 +65,19 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'npm'
-          
-      - name: Install test dependencies
+
+      - name: Restore node modules cache
+        id: npm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies (only missing packages)
         run: npm ci
 
       - name: Set APP_PATH environment variable
@@ -142,7 +153,7 @@ jobs:
           # Wait for Appium to start
           echo "Waiting for Appium server to start..."
           for i in {1..30}; do
-            if curl -s http://localhost:${{ env.APPIUM_PORT }}/status > /dev/null; then
+            if curl -s env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status > /dev/null; then
               echo "✓ Appium server is ready"
               break
             fi
@@ -158,10 +169,11 @@ jobs:
       - name: Verify Appium Server
         run: |
           echo "Verifying Appium server status..."
-          curl -f http://localhost:${{ env.APPIUM_PORT }}/status | jq '.'
+          curl -f env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status | jq '.'
           
       - name: Run Appium Tests
-        run: npm test
+        working-directory: ./app
+        run: npx wdio run wdio.conf.js --suite welcome
         continue-on-error: false
           
       - name: Upload Appium logs
