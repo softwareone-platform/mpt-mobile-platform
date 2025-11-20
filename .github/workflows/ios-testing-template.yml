@@ -96,18 +96,24 @@ jobs:
           echo "🔍 Searching recursively for *.app bundles:"
           find $GITHUB_WORKSPACE -name "*.app" -type d -maxdepth 6
 
-      - name: List build directories
+      - name: List app directories
         run: |
           echo "📂 Listing build/ directories:"
           find $GITHUB_WORKSPACE -type d -name "build" -maxdepth 5 -print
           echo "----------------------------------"
           echo "Contents of any Debug-* folders:"
           find $GITHUB_WORKSPACE -type d -name "Debug-*" -maxdepth 6 -print -exec ls -la {} \;
-
-      - name: List iOS build products
+      
+      - name: List contents of app folder (unlimited depth)
         run: |
-          echo "📂 Searching Xcode DerivedData for products:"
-          find $GITHUB_WORKSPACE -path "*/Build/Products/*" -maxdepth 6 -print -exec ls -la {} \;
+          echo "📂 Listing all files under: $GITHUB_WORKSPACE/app"
+          if [ -d "$GITHUB_WORKSPACE/app" ]; then
+            ls -laR "$GITHUB_WORKSPACE/app"
+          else
+            echo "❌ Folder '$GITHUB_WORKSPACE/app' does not exist."
+            echo "📂 Listing workspace root instead:"
+            ls -la "$GITHUB_WORKSPACE"
+          fi
           
       - name: Verify APP file exists
         run: |
