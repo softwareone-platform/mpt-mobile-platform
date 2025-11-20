@@ -110,8 +110,14 @@ jobs:
           
       - name: Install Appium XCUITest driver
         run: |
-          appium driver install xcuitest
           appium driver list --installed
+          if appium driver list --installed | grep -q xcuitest; then
+            echo "Updating XCUITest driver..."
+            appium driver update xcuitest
+          else
+            echo "Installing XCUITest driver..."
+            appium driver install xcuitest
+          fi
           
       - name: List available iOS simulators
         run: |
