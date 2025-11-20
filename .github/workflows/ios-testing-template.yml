@@ -69,7 +69,7 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'npm'
-          cache-dependency-path: ../package-lock.json
+          cache-dependency-path: ./app/package-lock.json
 
       - name: Restore node modules cache
         id: npm-cache
@@ -177,7 +177,6 @@ jobs:
           curl -f env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status | jq '.'
           
       - name: Run Appium Tests
-        working-directory: ./app
         run: npx wdio run wdio.conf.js --suite welcome
         continue-on-error: false
           
