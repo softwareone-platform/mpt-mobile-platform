@@ -48,7 +48,7 @@ jobs:
         working-directory: ./app
   
     outputs:
-      app_download_url: ${{ steps.upload-app.outputs.app_download_url }}
+      app_download_url: ${{ steps.set-upload-url.outputs.app_download_url }}
       artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
 
     steps:
@@ -174,7 +174,6 @@ jobs:
           fi
 
       - name: Upload iOS app artifact
-        id: upload-app
         if: steps.find-artifacts.outputs.app_path != ''
         uses: actions/upload-artifact@v4
         with:
@@ -183,6 +182,7 @@ jobs:
           retention-days: 7
 
       - name: Set app_download_url output
+        id: set-upload-url
         if: steps.find-artifacts.outputs.app_path != ''
         run: |
           echo "app_download_url=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-app.outputs.artifact_id }}" >> $GITHUB_OUTPUT
