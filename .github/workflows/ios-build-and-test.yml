@@ -219,6 +219,7 @@ jobs:
     needs: build-ios
     uses: ./.github/workflows/ios-testing-template.yml
     with:
+      artifact_name: ${{ needs.build-ios.outputs.artifact_name }}
       app_download_url: ${{ needs.build-ios.outputs.app_download_url }}
       ios_version: '26.0'
       device_name: 'iPhone 16'

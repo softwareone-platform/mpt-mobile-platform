@@ -6,6 +6,9 @@ permissions:
 on:
   workflow_call:
     inputs:
+      artifact_name:
+        required: true
+        type: string
       app_download_url:
         description: 'URL to download the .app archive (zip/tar.gz)'
         required: true
@@ -86,21 +89,26 @@ jobs:
       - name: Install dependencies (only missing packages)
         run: npm ci
           
-      - name: Download and extract .app archive
+      - name: Download app artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: app_download
+      
+      - name: Extract .app bundle
         run: |
-          echo "Downloading app archive from: $APP_DOWNLOAD_URL"
-          mkdir -p app_download
+          echo "Extracting app artifact..."
           cd app_download
-          curl -L "$APP_DOWNLOAD_URL" -o app.zip
-          unzip -o app.zip
+          unzip -o *.zip
           APP_PATH=$(find . -name "*.app" -type d | head -n 1)
+
           if [ -z "$APP_PATH" ]; then
             echo "Error: No .app bundle found after extraction."
             exit 1
           fi
+
           echo "APP_PATH=$(pwd)/$APP_PATH" >> $GITHUB_ENV
           echo "✓ APP bundle prepared at: $(pwd)/$APP_PATH"
-        shell: bash
           
       - name: Install Appium
         run: |
