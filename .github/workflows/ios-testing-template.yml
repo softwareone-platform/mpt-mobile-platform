@@ -85,6 +85,29 @@ jobs:
 
       - name: Install dependencies (only missing packages)
         run: npm ci
+      
+      - name: List workspace root
+        run: |
+          echo "📂 Listing workspace root:"
+          ls -la $GITHUB_WORKSPACE
+
+      - name: Find all .app bundles under workspace
+        run: |
+          echo "🔍 Searching recursively for *.app bundles:"
+          find $GITHUB_WORKSPACE -name "*.app" -type d -maxdepth 6
+
+      - name: List build directories
+        run: |
+          echo "📂 Listing build/ directories:"
+          find $GITHUB_WORKSPACE -type d -name "build" -maxdepth 5 -print
+          echo "----------------------------------"
+          echo "Contents of any Debug-* folders:"
+          find $GITHUB_WORKSPACE -type d -name "Debug-*" -maxdepth 6 -print -exec ls -la {} \;
+
+      - name: List iOS build products
+        run: |
+          echo "📂 Searching Xcode DerivedData for products:"
+          find $GITHUB_WORKSPACE -path "*/Build/Products/*" -maxdepth 6 -print -exec ls -la {} \;
           
       - name: Verify APP file exists
         run: |
