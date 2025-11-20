@@ -57,6 +57,10 @@ jobs:
     defaults:
       run:
         working-directory: ./app
+  
+    outputs:
+      app_path: ${{ steps.find-artifacts.outputs.app_path }}
+      artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
 
     steps:
       - name: Checkout code
