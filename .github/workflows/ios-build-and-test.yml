@@ -70,6 +70,7 @@ jobs:
         working-directory: ./app
   
     outputs:
+      app_path: ${{ steps.find-artifacts.outputs.app_path }}
       app_download_url: ${{ steps.set-upload-url.outputs.app_download_url }}
       artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
 
@@ -238,6 +239,11 @@ jobs:
     name: Verify and install iOS App
     needs: build-ios
     runs-on: macos-latest
+
+    env:
+      APP_PATH: ${{ needs.build-ios.outputs.app_path }}
+      PLATFORM_VERSION: ${{ github.event.inputs.platform-version || '26.0' }}
+      DEVICE_NAME: ${{ github.event.inputs.device-name || 'iPhone 16' }}
 
     outputs:
       device_udid: ${{ steps.boot-simulator.outputs.device_udid }}
