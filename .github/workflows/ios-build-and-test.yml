@@ -212,7 +212,7 @@ jobs:
         if: steps.find-artifacts.outputs.app_path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: ios-simulator-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-${{ github.sha }}
+          name: ${{ needs.build-ios.outputs.artifact_name }}
           path: app/${{ steps.find-artifacts.outputs.app_path }}
           retention-days: 7
           if-no-files-found: error
