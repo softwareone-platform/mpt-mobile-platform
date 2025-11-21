@@ -301,7 +301,19 @@ jobs:
           set -e
           DEVICE_NAME="${{ env.DEVICE_NAME }}"
           PLATFORM_VERSION="${{ env.PLATFORM_VERSION }}"
-          UDID=$(xcrun simctl list devices available | grep -E "$DEVICE_NAME \(" | grep "($PLATFORM_VERSION)" | grep -oE '[A-F0-9\-]{36}' | head -n 1)
+
+          # Find the UDID for the device under the correct iOS version section
+          UDID=$(
+            awk -v ver="-- iOS $PLATFORM_VERSION --" -v name="$DEVICE_NAME" '
+              $0 == ver { in_section=1; next }
+              in_section && $0 ~ /^--/ { in_section=0 }
+              in_section && $0 ~ name" \\(" {
+                match($0, /\(([A-F0-9\-]{36})\)/, arr)
+                if (arr[1] != "") { print arr[1]; exit }
+              }
+            ' < <(xcrun simctl list devices available)
+          )
+
           if [ -z "$UDID" ]; then
             echo "❌ Error: Could not find $DEVICE_NAME with iOS $PLATFORM_VERSION"
             exit 1
