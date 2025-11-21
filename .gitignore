@@ -65,6 +65,7 @@ yarn-error.log
 **/coverage
 *.lcov
 .nyc_output
+test-results/
 
 # Yarn
 .yarn/*

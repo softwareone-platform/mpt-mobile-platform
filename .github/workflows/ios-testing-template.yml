@@ -1,0 +1,195 @@
+name: iOS Appium Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      device_uuid:
+        description: 'iOS simulator device UUID'
+        required: true
+        type: string
+      ios_version:
+        description: 'iOS version for simulator'
+        required: false
+        type: string
+        default: '26.0'
+      device_name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16'
+      node_version:
+        description: 'Node.js version to use'
+        required: false
+        type: string
+        default: '20'
+      appium_version:
+        description: 'Appium version to install'
+        required: false
+        type: string
+        default: '3.1.1'
+
+    secrets:
+      APP_BUNDLE_ID:
+        description: 'iOS app bundle identifier'
+        required: true
+      APPIUM_HOST:
+        description: 'Appium server host'
+        required: false
+      APPIUM_PORT:
+        description: 'Appium server port'
+        required: false
+
+jobs:
+  ios-simulator-tests:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        working-directory: ./app
+    
+    env:
+      AUTOMATION_NAME: XCUITest
+      APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'http://localhost' }}
+      APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
+      APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
+      DEVICE_UDID: ${{ inputs.device_uuid }}
+      
+    steps:
+      - name: Checkout test repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: 'npm'
+          cache-dependency-path: ./app/package-lock.json
+
+      - name: Restore node modules cache
+        id: npm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies (only missing packages)
+        run: npm ci
+
+      - name: Install Appium
+        run: |
+          npm install -g appium@${{ inputs.appium_version }}
+          appium --version
+          
+      - name: Install Appium XCUITest driver
+        run: |
+          appium driver list --installed
+          if appium driver list --installed | grep -q xcuitest; then
+            echo "Updating XCUITest driver..."
+            appium driver update xcuitest
+          else
+            echo "Installing XCUITest driver..."
+            appium driver install xcuitest
+          fi
+          
+      - name: Start Appium Server
+        run: |
+          echo "Starting Appium server..."
+          appium --log-level info --log appium.log &
+          APPIUM_PID=$!
+          echo ${APPIUM_PID} > appium.pid
+          echo "Appium PID: ${APPIUM_PID}"
+          
+          # Wait for Appium to start
+          echo "Waiting for Appium server to start..."
+          for i in {1..30}; do
+            if curl -s env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status > /dev/null; then
+              echo "✓ Appium server is ready"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "✗ Appium server failed to start within 30 seconds"
+              cat appium.log
+              exit 1
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 1
+          done
+          
+      - name: Verify Appium Server
+        run: |
+          echo "Verifying Appium server status..."
+          curl -f env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status | jq '.'
+
+      # Running the Appium tests:
+      - name: Run Appium Tests
+        run: npx wdio run wdio.conf.js --suite welcome
+        continue-on-error: false
+          
+      - name: Upload Appium logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-logs-${{ github.run_number }}
+          path: appium.log
+          retention-days: 7
+          if-no-files-found: warn
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_number }}
+          path: |
+            test-results/
+            screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
+          
+      - name: Capture simulator logs
+        if: always()
+        run: |
+          echo "Capturing simulator logs..."
+          xcrun simctl spawn ${{ env.DEVICE_UDID }} log collect --output simulator.log || true
+          
+      - name: Upload simulator logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-logs-${{ github.run_number }}
+          path: simulator.log
+          retention-days: 7
+          if-no-files-found: ignore
+          
+      - name: Shutdown Simulator
+        if: always()
+        run: |
+          echo "Shutting down simulator..."
+          xcrun simctl shutdown ${{ env.DEVICE_UDID }} || true
+          echo "✓ Simulator shutdown complete"
+          
+      - name: Stop Appium Server
+        if: always()
+        run: |
+          if [ -f appium.pid ]; then
+            APPIUM_PID=$(cat appium.pid)
+            echo "Stopping Appium server (PID: ${APPIUM_PID})..."
+            kill ${APPIUM_PID} || true
+            rm appium.pid
+            echo "✓ Appium server stopped"
+          fi
+          
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up test artifacts..."
+          # Optional: Remove app from simulator
+          # xcrun simctl uninstall ${{ env.DEVICE_UDID }} ${{ env.APP_BUNDLE_ID }} || true
+          echo "✓ Cleanup complete"
