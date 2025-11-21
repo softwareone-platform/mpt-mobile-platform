@@ -209,14 +209,14 @@ jobs:
             echo "Bundle ID: $BUNDLE_ID"
           fi
 
-      # - name: Upload iOS Simulator app artifact
-      #   if: steps.find-artifacts.outputs.app_path != ''
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
-      #     path: app/${{ steps.find-artifacts.outputs.app_path }}
-      #     retention-days: 7
-      #     if-no-files-found: error
+      - name: Upload iOS Simulator app artifact
+        if: steps.find-artifacts.outputs.app_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
+          path: app/${{ steps.find-artifacts.outputs.app_path }}
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Build Summary
         if: always()
@@ -250,33 +250,32 @@ jobs:
       bundle_id: ${{ steps.install-app.outputs.bundle_id }}
 
     steps:
-      # - name: Download iOS app
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ needs.build-ios.outputs.artifact_name }}
-      #     path: ./downloaded-app
+      - name: Download iOS app
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-ios.outputs.artifact_name }}
+          path: ./downloaded-app
 
-      - name: Verify .app bundle from previous job
+      - name: Verify .app bundle from previous step
         id: verify-app
         run: |
-          echo "📦 Verifying .app bundle at: ${{ env.APP_PATH }}"
-          
-          if [ -z "${{ env.APP_PATH }}" ]; then
-            echo "❌ Error: APP_PATH is not set"
+          echo "📦 Verifying .app bundle in ./downloaded-app"
+
+          APP_PATH=$(find ./downloaded-app -name "*.app" -type d -maxdepth 2 | head -n 1)
+          ls -la ./downloaded-app
+
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ Error: .app bundle not found in ./downloaded-app"
             exit 1
           fi
 
-          if [ ! -d "${{ env.APP_PATH }}" ]; then
-            echo "❌ Error: .app bundle not found at ${APP_PATH}"
-            exit 1
-          fi
-
-          if [ ! -f "${{ env.APP_PATH }}/Info.plist" ]; then
+          if [ ! -f "$APP_PATH/Info.plist" ]; then
             echo "❌ Error: Invalid .app bundle - missing Info.plist"
             exit 1
           fi
 
-          echo "✅ Valid .app bundle confirmed at ${{ env.APP_PATH }}"
+          echo "✅ Valid .app bundle confirmed at $APP_PATH"
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
 
       - name: List available iOS simulators
         run: |
