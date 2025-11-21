@@ -200,7 +200,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
-          path: app/ios/build/DerivedData/Build/Products/${{ steps.find-artifacts.outputs.app_path }}
+          path: app/ios/build/DerivedData/Build/Products/${{ steps.find-artifacts.outputs.app_path }}/
           retention-days: 7
 
       - name: Set app_download_url output
@@ -255,7 +255,7 @@ jobs:
         - name: Verify downloaded artifact
           run: |
             ls -la ./downloaded-app
-            echo "✅ Successfully downloaded iOS app"
+            find ./downloaded-app -name "*.app" -type d
 
         - name: List available iOS simulators
           run: |
