@@ -250,31 +250,27 @@ jobs:
       #     name: ${{ needs.build-ios.outputs.artifact_name }}
       #     path: ./downloaded-app
 
-      - name: Find and verify .app bundle
-        id: find-app
+      - name: Verify .app bundle from previous job
+        id: verify-app
         run: |
-          echo "📦 Contents of downloaded artifact:"
-          ls -laR ./downloaded-app
+          echo "📦 Verifying .app bundle at: ${{ env.APP_PATH }}"
           
-          # Find the .app bundle
-          APP_PATH=$(find ./downloaded-app -name "*.app" -type d | head -n 1)
-          
-          if [ -z "$APP_PATH" ]; then
-            echo "❌ Error: No .app bundle found in artifact"
+          if [ -z "${{ env.APP_PATH }}" ]; then
+            echo "❌ Error: APP_PATH is not set"
             exit 1
           fi
-          
-          echo "APP_PATH=${APP_PATH}" >> $GITHUB_ENV
-          echo "app_path=${APP_PATH}" >> $GITHUB_OUTPUT
-          echo "✅ Found app: ${APP_PATH}"
-          
-          # Verify Info.plist exists
-          if [ ! -f "$APP_PATH/Info.plist" ]; then
+
+          if [ ! -d "${{ env.APP_PATH }}" ]; then
+            echo "❌ Error: .app bundle not found at ${APP_PATH}"
+            exit 1
+          fi
+
+          if [ ! -f "${{ env.APP_PATH }}/Info.plist" ]; then
             echo "❌ Error: Invalid .app bundle - missing Info.plist"
             exit 1
           fi
-          
-          echo "✅ Valid .app bundle confirmed"
+
+          echo "✅ Valid .app bundle confirmed at ${{ env.APP_PATH }}"
 
       - name: List available iOS simulators
         run: |
