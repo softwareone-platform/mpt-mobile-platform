@@ -347,7 +347,6 @@ jobs:
 
   test-ios:
     needs: verify-and-install-ios
-    runs-on: macos-latest
     uses: ./.github/workflows/ios-testing-template.yml
     with:
       device_uuid: ${{ needs.verify-and-install-ios.outputs.device_udid }}
