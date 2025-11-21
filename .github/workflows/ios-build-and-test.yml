@@ -249,7 +249,7 @@ jobs:
         - name: Download iOS app
           uses: actions/download-artifact@v4
           with:
-            name: ios-app-${{ inputs.build-mode }}-${{ needs.build-ios.outputs.version }}-build${{ needs.build-ios.outputs.build }}-${{ github.sha }}
+            name: ${{ needs.build-ios.outputs.artifact_name }}
             path: ./downloaded-app
 
         - name: Verify downloaded artifact
