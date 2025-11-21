@@ -22,7 +22,7 @@ const ProfileStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Profile"
+        name="profile"
         component={ProfileScreen}
         options={{ 
           title: t('navigation.profile'),
@@ -30,7 +30,7 @@ const ProfileStack = () => {
         }}
       />
       <Stack.Screen
-        name="UserSettings"
+        name="userSettings"
         component={UserSettingsScreen}
         options={{
           title: t('navigation.userSettings'),

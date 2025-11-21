@@ -6,6 +6,11 @@ import AssignmentOutlined from './assignment';
 import DescriptionOutlined from './description';
 import ReceiptLongOutlined from './receipt-long';
 import ReceiptOutlined from './receipt';
+import CreditCardOutlined from './credit-card';
+import LanguageOutlined from './language';
+import LockOutlined from './lock';
+import NotificationsOutlined from './notifications';
+import EmailOutlined from './email';
 
 // Export all outlined icons with keys matching the names of filled Material Icons
 export const OutlinedIcons = {
@@ -17,4 +22,9 @@ export const OutlinedIcons = {
   'description': DescriptionOutlined,
   'receipt-long': ReceiptLongOutlined,
   'receipt': ReceiptOutlined,
+  'credit-card': CreditCardOutlined,
+  'language': LanguageOutlined,
+  'lock': LockOutlined,
+  'notifications': NotificationsOutlined,
+  'email': EmailOutlined,
 } as const;

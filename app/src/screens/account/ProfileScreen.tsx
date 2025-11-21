@@ -44,7 +44,6 @@ const accountsData = [
 
 type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
-
 const ProfileScreen = () => {
   const [selectedId, setSelectedId] = useState<string | null>('234');
 
@@ -63,7 +62,7 @@ const ProfileScreen = () => {
             title="Sarah Sanderson"
             subtitle="USR-1234-1234"
             isLast={true}
-            onPress={() => navigation.navigate("UserSettings")}
+            onPress={() => navigation.navigate("userSettings")}
           />
         </View>
       </View>
