@@ -6,11 +6,8 @@ permissions:
 on:
   workflow_call:
     inputs:
-      artifact_name:
-        required: true
-        type: string
-      app_download_url:
-        description: 'URL to download the .app archive (zip/tar.gz)'
+      device_uuid:
+        description: 'iOS simulator device UUID'
         required: true
         type: string
       ios_version:
@@ -55,14 +52,11 @@ jobs:
         working-directory: ./app
     
     env:
-      PLATFORM_NAME: iOS
-      PLATFORM_VERSION: ${{ inputs.ios_version }}
-      DEVICE_NAME: ${{ inputs.device_name }}
       AUTOMATION_NAME: XCUITest
       APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'http://localhost' }}
       APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
       APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
-      APP_DOWNLOAD_URL: ${{ inputs.app_download_url }}
+      DEVICE_UDID: ${{ inputs.device_uuid }}
       
     steps:
       - name: Checkout test repository
@@ -88,28 +82,7 @@ jobs:
 
       - name: Install dependencies (only missing packages)
         run: npm ci
-          
-      - name: Download app artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.artifact_name }}
-          path: app_download
-      
-      - name: Extract .app bundle
-        run: |
-          echo "Extracting app artifact..."
-          cd app_download
-          unzip -o *.zip
-          APP_PATH=$(find . -name "*.app" -type d | head -n 1)
 
-          if [ -z "$APP_PATH" ]; then
-            echo "Error: No .app bundle found after extraction."
-            exit 1
-          fi
-
-          echo "APP_PATH=$(pwd)/$APP_PATH" >> $GITHUB_ENV
-          echo "✓ APP bundle prepared at: $(pwd)/$APP_PATH"
-          
       - name: Install Appium
         run: |
           npm install -g appium@${{ inputs.appium_version }}
@@ -125,40 +98,6 @@ jobs:
             echo "Installing XCUITest driver..."
             appium driver install xcuitest
           fi
-          
-      - name: List available iOS simulators
-        run: |
-          echo "Available iOS Simulators:"
-          xcrun simctl list devices available
-          
-      - name: Find and boot iOS Simulator
-        run: |
-          DEVICE_UDID=$(xcrun simctl list devices available | \
-            grep "${{ env.DEVICE_NAME }}" | \
-            grep "${{ env.PLATFORM_VERSION }}" | \
-            grep -oE '[A-F0-9-]+' | head -n 1)
-          
-          if [ -z "$DEVICE_UDID" ]; then
-            echo "Error: Could not find ${{ env.DEVICE_NAME }} with iOS ${{ env.PLATFORM_VERSION }}"
-            echo "Available simulators:"
-            xcrun simctl list devices available
-            exit 1
-          fi
-          
-          echo "DEVICE_UDID=${DEVICE_UDID}" >> $GITHUB_ENV
-          echo "✓ Found simulator: ${{ env.DEVICE_NAME }} (${DEVICE_UDID})"
-          
-          # Boot the simulator
-          xcrun simctl boot ${DEVICE_UDID} || echo "Simulator already booted"
-          
-          # Wait for boot to complete
-          echo "Waiting for simulator to boot..."
-          xcrun simctl bootstatus ${DEVICE_UDID} -b
-          echo "✓ Simulator booted successfully"
-          
-      - name: Verify simulator status
-        run: |
-          xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}"
           
       - name: Start Appium Server
         run: |
@@ -188,7 +127,8 @@ jobs:
         run: |
           echo "Verifying Appium server status..."
           curl -f env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status | jq '.'
-          
+
+      # Running the Appium tests:
       - name: Run Appium Tests
         run: npx wdio run wdio.conf.js --suite welcome
         continue-on-error: false
