@@ -151,10 +151,10 @@ jobs:
           npx expo prebuild --platform ios --clean
           echo "✅ Native iOS project generated with CocoaPods installed"
 
-      - name: Build iOS app for generic device
+      - name: Build iOS app for Simulator
         working-directory: ./app
         run: |
-          echo "🔨 Building for iOS Device in ${{ env.BUILD_MODE }} mode (verification build, no signing)..."
+          echo "🔨 Building for iOS SIMULATOR in ${{ env.BUILD_MODE }} mode..."
           cd ios
           WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" -type d | head -1 | xargs basename)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
@@ -162,208 +162,199 @@ jobs:
           echo "Using workspace: $WORKSPACE"
           echo "Using scheme: $SCHEME"
 
-          # Build for generic iOS device without code signing (verification only)
+          # Build for iOS Simulator (not generic device!)
           xcodebuild -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
             -configuration ${{ env.BUILD_MODE }} \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build/DerivedData \
-            -destination "generic/platform=iOS" \
-            CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             build
 
           echo "SCHEME=$SCHEME" >> $GITHUB_ENV
-          echo "✅ ${{ env.BUILD_MODE }} build for generic iOS device completed (unsigned, verification only)"
+          echo "✅ Simulator build completed"
 
-      - name: Find build artifacts
+      - name: Find and prepare .app artifact
         id: find-artifacts
         working-directory: ./app
         run: |
-          cd ios/build/DerivedData/Build/Products
-
-          # Look for .app in the build products directory
-          APP_PATH=$(find . -name "*.app" -type d | head -n 1 | sed 's|^\./||')
-
-          if [ -n "$APP_PATH" ]; then
-            echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
-            echo "✅ Found app at: $APP_PATH"
-            ls -lah "$APP_PATH" || true
-          else
-            echo "⚠️ App not found, listing build directory:"
-            ls -R . || true
+          # The simulator build outputs to Debug-iphonesimulator or Release-iphonesimulator
+          BUILD_DIR="ios/build/DerivedData/Build/Products/${{ env.BUILD_MODE }}-iphonesimulator"
+          
+          echo "Looking for .app in: $BUILD_DIR"
+          ls -la "$BUILD_DIR" || true
+          
+          # Find the .app bundle
+          APP_PATH=$(find "$BUILD_DIR" -name "*.app" -type d -maxdepth 1 | head -n 1)
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ No .app found in expected location"
+            echo "Searching entire build directory..."
+            find ios/build -name "*.app" -type d
+            exit 1
+          fi
+          
+          APP_NAME=$(basename "$APP_PATH")
+          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "✅ Found app: $APP_PATH"
+          
+          # Verify it's a valid .app bundle
+          if [ -f "$APP_PATH/Info.plist" ]; then
+            BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+            echo "Bundle ID: $BUNDLE_ID"
           fi
 
-      - name: Upload iOS app artifact
+      - name: Upload iOS Simulator app artifact
         if: steps.find-artifacts.outputs.app_path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
-          path: app/ios/build/DerivedData/Build/Products/${{ steps.find-artifacts.outputs.app_path }}/
+          name: ios-simulator-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-${{ github.sha }}
+          path: app/${{ steps.find-artifacts.outputs.app_path }}
           retention-days: 7
-
-      - name: Set app_download_url output
-        id: set-upload-url
-        if: steps.find-artifacts.outputs.app_path != ''
-        run: |
-          echo "app_download_url=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-app.outputs.artifact_id }}" >> $GITHUB_OUTPUT
+          if-no-files-found: error
 
       - name: Build Summary
         if: always()
         run: |
-          echo "## iOS Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## iOS Simulator Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Build Mode:** ${{ env.BUILD_MODE }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** iOS Simulator" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Build Number:** ${{ steps.version.outputs.build }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
           if [ -n "${{ steps.find-artifacts.outputs.app_path }}" ]; then
             echo "✅ **Build Status:** Success" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Artifacts:" >> $GITHUB_STEP_SUMMARY
-            echo "- iOS app (.app) uploaded" >> $GITHUB_STEP_SUMMARY
+            echo "**App:** ${{ steps.find-artifacts.outputs.app_name }}" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ **Build Status:** Failed or artifact not found" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
           fi
 
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Purpose:" >> $GITHUB_STEP_SUMMARY
-          echo "This workflow builds iOS app for **verification only**." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** This build is NOT signed and NOT deployed to TestFlight." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "To deploy to TestFlight, use the **iOS TestFlight Deployment** workflow." >> $GITHUB_STEP_SUMMARY
-
   verify-and-install-ios:
-      name: Verify and install iOS App
-      needs: build-ios
-      runs-on: macos-latest
-  
-      outputs:
-        device_udid: ${{ steps.boot-simulator.outputs.DEVICE_UDID }}
+    name: Verify and install iOS App
+    needs: build-ios
+    runs-on: macos-latest
 
-      steps:
-        - name: Download iOS app
-          uses: actions/download-artifact@v4
-          with:
-            name: ${{ needs.build-ios.outputs.artifact_name }}
-            path: ./downloaded-app
+    outputs:
+      device_udid: ${{ steps.boot-simulator.outputs.device_udid }}
+      bundle_id: ${{ steps.install-app.outputs.bundle_id }}
 
-        - name: Verify downloaded artifact
-          run: |
-            ls -la ./downloaded-app
-            find ./downloaded-app -name "*.app" -type d
+    steps:
+      - name: Download iOS app
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-ios.outputs.artifact_name }}
+          path: ./downloaded-app
 
-        - name: List available iOS simulators
-          run: |
-            echo "Available iOS Simulators:"
-            xcrun simctl list devices available
-        
-        - name: Find app file
-          id: find-app
-          run: |
-            # Find .app bundle (for simulator) or .ipa file
-            APP_FILE=$(find ./downloaded-app -name "*.app" -type d | head -n 1)
-            
-            if [ -z "$APP_FILE" ]; then
-              # If no .app found, look for .ipa and extract it
-              IPA_FILE=$(find ./downloaded-app -name "*.ipa" -type f | head -n 1)
-              
-              if [ -z "$IPA_FILE" ]; then
-                echo "Error: No .app or .ipa file found in downloaded artifact"
-                ls -laR ./downloaded-app
-                exit 1
-              fi
-              
-              echo "Found IPA file: ${IPA_FILE}"
-              echo "Extracting .app from IPA..."
-              
-              # Create extraction directory
-              mkdir -p ./extracted-app
-              
-              # IPA is just a zip file - extract it
-              unzip -q "${IPA_FILE}" -d ./extracted-app
-              
-              # Find the .app bundle inside Payload folder
-              APP_FILE=$(find ./extracted-app/Payload -name "*.app" -type d | head -n 1)
-              
-              if [ -z "$APP_FILE" ]; then
-                echo "Error: Could not find .app bundle in IPA"
-                ls -laR ./extracted-app
-                exit 1
-              fi
-            fi
-            
-            echo "APP_PATH=${APP_FILE}" >> $GITHUB_ENV
-            echo "✓ Found app: ${APP_FILE}"
-            
-        - name: Find and boot iOS Simulator
-          id: boot-simulator
-          run: |
+      - name: Find and verify .app bundle
+        id: find-app
+        run: |
+          echo "📦 Contents of downloaded artifact:"
+          ls -laR ./downloaded-app
+          
+          # Find the .app bundle
+          APP_PATH=$(find ./downloaded-app -name "*.app" -type d | head -n 1)
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ Error: No .app bundle found in artifact"
+            exit 1
+          fi
+          
+          echo "APP_PATH=${APP_PATH}" >> $GITHUB_ENV
+          echo "app_path=${APP_PATH}" >> $GITHUB_OUTPUT
+          echo "✅ Found app: ${APP_PATH}"
+          
+          # Verify Info.plist exists
+          if [ ! -f "$APP_PATH/Info.plist" ]; then
+            echo "❌ Error: Invalid .app bundle - missing Info.plist"
+            exit 1
+          fi
+          
+          echo "✅ Valid .app bundle confirmed"
+
+      - name: List available iOS simulators
+        run: |
+          echo "Available iOS Simulators:"
+          xcrun simctl list devices available
+
+      - name: Find and boot iOS Simulator
+        id: boot-simulator
+        run: |
+          echo "Looking for: ${{ env.DEVICE_NAME }} with iOS ${{ env.PLATFORM_VERSION }}"
+          
+          # More robust UDID extraction
+          DEVICE_UDID=$(xcrun simctl list devices available -j | \
+            python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          for runtime, devices in data.get('devices', {}).items():
+              if '${{ env.PLATFORM_VERSION }}' in runtime:
+                  for d in devices:
+                      if d['name'] == '${{ env.DEVICE_NAME }}' and d['isAvailable']:
+                          print(d['udid'])
+                          sys.exit(0)
+          " 2>/dev/null || echo "")
+          
+          # Fallback to grep method if python approach fails
+          if [ -z "$DEVICE_UDID" ]; then
             DEVICE_UDID=$(xcrun simctl list devices available | \
+              grep -A1 "iOS ${{ env.PLATFORM_VERSION }}" | \
               grep "${{ env.DEVICE_NAME }}" | \
-              grep "${{ env.PLATFORM_VERSION }}" | \
-              grep -oE '[A-F0-9-]+' | head -n 1)
-            
-            if [ -z "$DEVICE_UDID" ]; then
-              echo "Error: Could not find ${{ env.DEVICE_NAME }} with iOS ${{ env.PLATFORM_VERSION }}"
-              echo "Available simulators:"
-              xcrun simctl list devices available
-              exit 1
-            fi
-            
-            echo "DEVICE_UDID=${DEVICE_UDID}" >> $GITHUB_ENV
-            echo "✓ Found simulator: ${{ env.DEVICE_NAME }} (${DEVICE_UDID})"
-            
-            # Boot the simulator
-            xcrun simctl boot ${DEVICE_UDID} || echo "Simulator already booted"
-            
-            # Wait for boot to complete
-            echo "Waiting for simulator to boot..."
-            xcrun simctl bootstatus ${DEVICE_UDID} -b
-            echo "✓ Simulator booted successfully"
-            
-        - name: Verify simulator status
-          run: |
-            xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}"
+              grep -oE '[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}' | \
+              head -n 1)
+          fi
+          
+          if [ -z "$DEVICE_UDID" ]; then
+            echo "❌ Error: Could not find ${{ env.DEVICE_NAME }} with iOS ${{ env.PLATFORM_VERSION }}"
+            echo ""
+            echo "Available simulators:"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          
+          echo "DEVICE_UDID=${DEVICE_UDID}" >> $GITHUB_ENV
+          echo "device_udid=${DEVICE_UDID}" >> $GITHUB_OUTPUT
+          echo "✅ Found simulator: ${{ env.DEVICE_NAME }} (${DEVICE_UDID})"
+          
+          # Boot the simulator
+          xcrun simctl boot ${DEVICE_UDID} 2>/dev/null || echo "Simulator already booted"
+          
+          # Wait for boot to complete
+          echo "⏳ Waiting for simulator to boot..."
+          xcrun simctl bootstatus ${DEVICE_UDID} -b
+          echo "✅ Simulator booted successfully"
 
-        - name: Install app on simulator
-          run: |
-            echo "Installing app on simulator..."
-            echo "Device UDID: ${{ env.DEVICE_UDID }}"
-            echo "App path: ${{ env.APP_PATH }}"
-            
-            # Install the app
-            xcrun simctl install "${{ env.DEVICE_UDID }}" "${{ env.APP_PATH }}"
-            
-            echo "✅ App installed successfully"
+      - name: Install app on simulator
+        id: install-app
+        run: |
+          echo "📲 Installing app on simulator..."
+          echo "Device UDID: ${{ env.DEVICE_UDID }}"
+          echo "App path: ${{ env.APP_PATH }}"
+          
+          # Install the app
+          xcrun simctl install "${{ env.DEVICE_UDID }}" "${{ env.APP_PATH }}"
+          
+          # Extract and output bundle ID
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${{ env.APP_PATH }}/Info.plist")
+          echo "BUNDLE_ID=${BUNDLE_ID}" >> $GITHUB_ENV
+          echo "bundle_id=${BUNDLE_ID}" >> $GITHUB_OUTPUT
+          
+          echo "✅ App installed successfully"
+          echo "Bundle ID: ${BUNDLE_ID}"
 
-        - name: Verify app installation
-          run: |
-            echo "Listing installed apps on simulator..."
-            xcrun simctl listapps "${{ env.DEVICE_UDID }}"
-            
-        - name: Launch app (optional)
-          run: |
-            # Extract bundle ID from Info.plist
-            BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${{ env.APP_PATH }}/Info.plist")
-            echo "BUNDLE_ID=${BUNDLE_ID}" >> $GITHUB_ENV
-            echo "Bundle ID: ${BUNDLE_ID}"
-            
-            # Launch the app
-            xcrun simctl launch "${{ env.DEVICE_UDID }}" "${BUNDLE_ID}"
-            echo "✅ App launched successfully"
-
-        - name: Wait for app to start
-          run: |
-            echo "Waiting for app to initialize..."
-            sleep 5
-            
-            # Verify app is running
-            xcrun simctl spawn "${{ env.DEVICE_UDID }}" launchctl list | grep "${{ env.BUNDLE_ID }}" || echo "App process check completed"
+      - name: Launch and verify app
+        run: |
+          echo "🚀 Launching app..."
+          xcrun simctl launch "${{ env.DEVICE_UDID }}" "${{ env.BUNDLE_ID }}"
+          
+          echo "⏳ Waiting for app to initialize..."
+          sleep 5
+          
+          echo "✅ App launched successfully"
 
   test-ios:
     needs: verify-and-install-ios
