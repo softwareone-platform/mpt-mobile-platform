@@ -72,7 +72,7 @@ jobs:
     outputs:
       app_path: ${{ steps.find-artifacts.outputs.app_path }}
       app_download_url: ${{ steps.set-upload-url.outputs.app_download_url }}
-      artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}.app
+      artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
 
     steps:
       - name: Checkout code
@@ -209,12 +209,20 @@ jobs:
             echo "Bundle ID: $BUNDLE_ID"
           fi
 
+      - name: Zip .app bundle
+        if: steps.find-artifacts.outputs.app_path != ''
+        working-directory: ./app
+        run: |
+          cd $(dirname "${{ steps.find-artifacts.outputs.app_path }}")
+          APP_DIR=$(basename "${{ steps.find-artifacts.outputs.app_path }}")
+          zip -r app_bundle.zip "$APP_DIR"
+
       - name: Upload iOS Simulator app artifact
         if: steps.find-artifacts.outputs.app_path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}.app
-          path: app/${{ steps.find-artifacts.outputs.app_path }}
+          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
+          path: app/ios/build/DerivedData/Build/Products/${{ env.BUILD_MODE }}-iphonesimulator/app_bundle.zip
           retention-days: 7
           if-no-files-found: error
 
@@ -255,6 +263,10 @@ jobs:
         with:
           name: ${{ needs.build-ios.outputs.artifact_name }}
           path: ./downloaded-app
+      
+      - name: Unzip .app bundle
+        run: |
+          unzip ./downloaded-app/app_bundle.zip -d ./downloaded-app/
 
       - name: Verify .app bundle from previous step
         id: verify-app
