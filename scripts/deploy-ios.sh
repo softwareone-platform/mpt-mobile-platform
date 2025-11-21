@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 # Configuration
 APP_NAME="SoftwareOne"
 BUNDLE_ID="com.softwareone.marketplaceMobile"
-DEFAULT_SIMULATOR="iPhone 16 Pro"
+DEFAULT_SIMULATOR="iPhone 16e"
 BUILD_MODE="debug"
 FORCE_BOOT=false
 SHOW_LOGS=false
