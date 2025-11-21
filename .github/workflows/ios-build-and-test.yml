@@ -72,7 +72,7 @@ jobs:
     outputs:
       app_path: ${{ steps.find-artifacts.outputs.app_path }}
       app_download_url: ${{ steps.set-upload-url.outputs.app_download_url }}
-      artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
+      artifact_name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}.app
 
     steps:
       - name: Checkout code
@@ -213,8 +213,8 @@ jobs:
         if: steps.find-artifacts.outputs.app_path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
-          path: app/${{ steps.find-artifacts.outputs.app_path }}/
+          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}.app
+          path: app/${{ steps.find-artifacts.outputs.app_path }}
           retention-days: 7
           if-no-files-found: error
 
