@@ -38,6 +38,11 @@ export type TabItem<RouteName extends keyof TabParamList = keyof TabParamList> =
 };
 
 export type ProfileStackParamList = {
-  Profile: undefined;
-  UserSettings: undefined;
+  profile: undefined;
+  userSettings: undefined;
+  personalInformation: undefined;
+  regionalSettings: undefined;
+  security: undefined;
+  notificationSettings: undefined;
+  emailSettings: undefined;
 };

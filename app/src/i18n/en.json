@@ -54,5 +54,14 @@
   "profileScreen": {
     "yourProfile": "Your Profile",
     "switchAccount": "Switch Account"
-  }
+  },
+  "userSettingsScreen": {
+    "userDetails": "User Details",
+    "communication": "Communication",
+    "personalInformation": "Personal Information",
+    "regionalSettings": "Regional Settings",
+    "security": "Security",
+    "notificationSettings": "Notification Settings",
+    "emailSettings": "Email Settings"
+  } 
 }

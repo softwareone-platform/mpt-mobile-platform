@@ -125,8 +125,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         navigation.goBack();
     };
 
-
-
     return (
         <AuthLayout
             title={t('auth.otpVerification.title')}
