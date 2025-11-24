@@ -102,18 +102,19 @@ jobs:
           echo "Appium PID: ${APPIUM_PID}"
           
           # Wait for Appium to start
-          echo "Waiting for Appium server to start..."
-          for i in {1..30}; do
-            if curl -s env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status > /dev/null; then
+          APPIUM_WAIT_SECONDS=65
+          echo "Waiting for Appium server to start (timeout: ${APPIUM_WAIT_SECONDS}s)..."
+          for i in $(seq 1 ${APPIUM_WAIT_SECONDS}); do
+            if curl -s "${APPIUM_HOST}:${APPIUM_PORT}/status" > /dev/null; then
               echo "✓ Appium server is ready"
               break
             fi
-            if [ $i -eq 30 ]; then
-              echo "✗ Appium server failed to start within 30 seconds"
+            if [ $i -eq ${APPIUM_WAIT_SECONDS} ]; then
+              echo "✗ Appium server failed to start within ${APPIUM_WAIT_SECONDS} seconds"
               cat appium.log
               exit 1
             fi
-            echo "Waiting... ($i/30)"
+            echo "Waiting... ($i/${APPIUM_WAIT_SECONDS})"
             sleep 1
           done
           
