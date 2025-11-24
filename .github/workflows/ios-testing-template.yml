@@ -88,16 +88,21 @@ jobs:
           npm install -g appium@${{ inputs.appium_version }}
           appium --version
           
-      - name: Install Appium XCUITest driver
+      - name: Install or Update Appium XCUITest driver
         run: |
-          appium driver list --installed
-          if appium driver list --installed | grep -q xcuitest; then
-            echo "Updating XCUITest driver..."
+          echo "📦 Checking XCUITest driver..."
+          
+          # Check if driver is already installed
+          if appium driver list --installed | grep -q "xcuitest"; then
+            echo "⚠️  XCUITest driver already installed, updating..."
             appium driver update xcuitest
           else
-            echo "Installing XCUITest driver..."
+            echo "📥 Installing XCUITest driver..."
             appium driver install xcuitest
           fi
+          
+          echo "✅ XCUITest driver ready"
+          appium driver list --installed
           
       - name: Start Appium Server
         run: |
