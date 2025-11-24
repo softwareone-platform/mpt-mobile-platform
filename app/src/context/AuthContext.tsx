@@ -185,28 +185,22 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     };
 
     const login = async (email: string, otp: string) => {
-        try {
-            dispatch({ type: AUTH_ACTIONS.SET_LOADING });
 
-            const tokens = await authService.verifyPasswordlessOtp(email, otp);
-            const user = await authService.getUserProfile(tokens.accessToken);
+        const tokens = await authService.verifyPasswordlessOtp(email, otp);
+        const user = await authService.getUserProfile(tokens.accessToken);
 
-            await Promise.all([
-                credentialStorageService.storeTokens(tokens),
-                credentialStorageService.storeUser(user),
-            ]);
+        await Promise.all([
+            credentialStorageService.storeTokens(tokens),
+            credentialStorageService.storeUser(user),
+        ]);
 
-            dispatch({
-                type: AUTH_ACTIONS.SET_AUTHENTICATED,
-                payload: {
-                    user,
-                    tokens,
-                },
-            });
-        } catch (error) {
-            dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
-            throw error;
-        }
+        dispatch({
+            type: AUTH_ACTIONS.SET_AUTHENTICATED,
+            payload: {
+                user,
+                tokens,
+            },
+        });
     };
 
     const resendPasswordlessEmail = async (email: string) => {

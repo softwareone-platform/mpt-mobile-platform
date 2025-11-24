@@ -6,3 +6,4 @@ export { default as InvoicesScreen } from './invoices/InvoicesScreen';
 export { default as CreditMemosScreen } from './credit-memos/CreditMemosScreen';
 export { default as StatementsScreen } from './statements/StatementsScreen';
 export { WelcomeScreen } from './auth';
+export { LoadingScreen } from './loading';
