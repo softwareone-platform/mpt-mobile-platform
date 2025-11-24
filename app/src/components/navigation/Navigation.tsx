@@ -6,11 +6,16 @@ import { RootStackParamList } from './types';
 import MainTabs from './MainTabs';
 import AuthStack from './AuthStack';
 import ProfileStack from './ProfileStack';
+import { LoadingScreen } from '@/screens';
 
 const RootStack = createStackNavigator<RootStackParamList>();
 
 const Navigation = () => {
   const { status } = useAuth();
+
+  if (status === 'loading') {
+    return <LoadingScreen />;
+  }
 
   return (
     <NavigationDataProvider>

@@ -1,10 +1,11 @@
 import Auth0 from 'react-native-auth0';
 import { jwtDecode } from 'jwt-decode';
+import { configService } from '@/config/env.config';
 
-const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN!;
-const AUTH0_CLIENT_ID = process.env.AUTH0_CLIENT_ID!;
-const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
-const AUTH0_SCOPE = process.env.AUTH0_SCOPE!;
+const AUTH0_DOMAIN = configService.get('AUTH0_DOMAIN');
+const AUTH0_CLIENT_ID = configService.get('AUTH0_CLIENT_ID');
+const AUTH0_AUDIENCE = configService.get('AUTH0_AUDIENCE');
+const AUTH0_SCOPE = configService.get('AUTH0_SCOPE');
 
 export interface AuthTokens {
     accessToken: string;
@@ -69,15 +70,13 @@ class AuthenticationService {
     }
 
     async sendPasswordlessEmail(email: string): Promise<Auth0PasswordlessResponse> {
-        const audience = this.audience || undefined;
-
         try {
             await this.auth0.auth.passwordlessWithEmail({
                 email,
                 send: 'code',
                 authParams: {
                     scope: AUTH0_SCOPE,
-                    ...(audience && { audience: audience }),
+                    ...(this.audience && { audience: this.audience }),
                 },
             });
 
