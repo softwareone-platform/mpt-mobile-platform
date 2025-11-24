@@ -301,27 +301,63 @@ jobs:
           set -e
           DEVICE_NAME="${{ env.DEVICE_NAME }}"
           PLATFORM_VERSION="${{ env.PLATFORM_VERSION }}"
+          
+          echo "🔍 Looking for: $DEVICE_NAME with iOS $PLATFORM_VERSION"
+          
+          # Use Python with JSON output for reliable parsing
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+            import json
+            import sys
 
-          # Find the UDID for the device under the correct iOS version section
-          UDID=$(
-            awk -v ver="-- iOS $PLATFORM_VERSION --" -v name="$DEVICE_NAME" '
-              $0 == ver { in_section=1; next }
-              in_section && $0 ~ /^--/ { in_section=0 }
-              in_section && $0 ~ name" \\(" {
-                match($0, /\(([A-F0-9\-]{36})\)/, arr)
-                if (arr[1] != "") { print arr[1]; exit }
-              }
-            ' < <(xcrun simctl list devices available)
-          )
+            data = json.load(sys.stdin)
+            target_device = '$DEVICE_NAME'
+            target_version = '$PLATFORM_VERSION'
 
-          if [ -z "$UDID" ]; then
-            echo "❌ Error: Could not find $DEVICE_NAME with iOS $PLATFORM_VERSION"
+            # Format the version for comparison (e.g., '26.0' -> 'iOS-26-0')
+            formatted_version = 'iOS-' + target_version.replace(' ', '-').replace('.', '-')
+
+            for runtime_key, devices in data.get('devices', {}).items():
+                # Extract and format the runtime version from the key
+                # Runtime keys look like: 'com.apple.CoreSimulator.SimRuntime.iOS-26-0'
+                if formatted_version in runtime_key:
+                    for device in devices:
+                        if device.get('name') == target_device and device.get('isAvailable', False):
+                            print(device['udid'])
+                            sys.exit(0)
+
+            # If we get here, device wasn't found
+            sys.exit(1)
+            " 2>/dev/null)
+                
+                if [ -z "$UDID" ]; then
+                  echo "❌ Error: Could not find $DEVICE_NAME with iOS $PLATFORM_VERSION"
+                  echo ""
+                  echo "Available simulators:"
+                  xcrun simctl list devices available
+                  echo ""
+                  echo "Debugging - Runtime keys:"
+                  xcrun simctl list devices available -j | python3 -c "
+            import json
+            import sys
+            data = json.load(sys.stdin)
+            for key in data.get('devices', {}).keys():
+                print(key)
+            "
             exit 1
           fi
+          
           echo "DEVICE_UDID=$UDID" >> $GITHUB_ENV
+          echo "device_udid=$UDID" >> $GITHUB_OUTPUT
           echo "✅ Found simulator: $DEVICE_NAME ($UDID)"
+          
+          # Boot the simulator
+          echo "🚀 Booting simulator..."
           xcrun simctl boot $UDID 2>/dev/null || echo "Simulator already booted"
+          
+          # Wait for boot to complete
+          echo "⏳ Waiting for simulator to boot..."
           xcrun simctl bootstatus $UDID -b
+          echo "✅ Simulator booted successfully"
 
       - name: Install app on simulator
         id: install-app
