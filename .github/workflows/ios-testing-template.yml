@@ -59,6 +59,42 @@ jobs:
       DEVICE_UDID: ${{ inputs.device_uuid }}
       
     steps:
+      - name: Verify Required Secrets
+        run: |
+          echo "🔍 Verifying required secrets and environment variables..."
+          
+          # Check required secrets
+          if [ -z "${{ secrets.APP_BUNDLE_ID }}" ]; then
+            echo "❌ ERROR: APP_BUNDLE_ID secret is not set"
+            echo "Please set this secret in GitHub: Settings → Secrets and variables → Actions → Secrets"
+            exit 1
+          else
+            echo "✅ APP_BUNDLE_ID is set"
+          fi
+          
+          # Check optional secrets (show defaults if not set)
+          if [ -z "${{ secrets.APPIUM_HOST }}" ]; then
+            echo "ℹ️  APPIUM_HOST not set, using default: http://localhost"
+          else
+            echo "✅ APPIUM_HOST is set"
+          fi
+          
+          if [ -z "${{ secrets.APPIUM_PORT }}" ]; then
+            echo "ℹ️  APPIUM_PORT not set, using default: 4723"
+          else
+            echo "✅ APPIUM_PORT is set"
+          fi
+          
+          # Verify required inputs
+          if [ -z "${{ inputs.device_uuid }}" ]; then
+            echo "❌ ERROR: device_uuid input is required"
+            exit 1
+          else
+            echo "✅ device_uuid input is provided: ${{ inputs.device_uuid }}"
+          fi
+          
+          echo "🎉 All required secrets and inputs are properly configured!"
+
       - name: Checkout test repository
         uses: actions/checkout@v4
         
