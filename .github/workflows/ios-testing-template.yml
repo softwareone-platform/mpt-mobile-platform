@@ -121,7 +121,7 @@ jobs:
       - name: Verify Appium Server
         run: |
           echo "Verifying Appium server status..."
-          curl -f env.APPIUM_HOST:${{ env.APPIUM_PORT }}/status | jq '.'
+          curl -f "${APPIUM_HOST}:${APPIUM_PORT}/status" | jq '.'
 
       # Running the Appium tests:
       - name: Run Appium Tests
