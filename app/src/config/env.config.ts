@@ -85,7 +85,7 @@ class ConfigService {
   public get(key: EnvironmentVariable): string {
     const value = this.config[key];
     
-    if (!value && REQUIRED_VARS.includes(key)) {
+    if (!value && REQUIRED_VARS.includes(key) && !this.isTestEnvironment()) {
       throw new Error(`Required environment variable ${key} is not set`);
     }
     
