@@ -1,4 +1,4 @@
-import { AUTH0_OTP_DIGITS } from '@env';
+import { configService } from '@/config/env.config';
 
 const getValidOTPLength = (envValue?: string): number => {
   const defaultLength = 6;
@@ -18,5 +18,5 @@ const getValidOTPLength = (envValue?: string): number => {
 };
 
 export const AUTH_CONSTANTS = {
-  OTP_LENGTH: getValidOTPLength(AUTH0_OTP_DIGITS),
+  OTP_LENGTH: getValidOTPLength(configService.get('AUTH0_OTP_DIGITS')),
 } as const;
