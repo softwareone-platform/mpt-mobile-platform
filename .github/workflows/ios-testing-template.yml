@@ -128,6 +128,32 @@ jobs:
         run: |
           appium driver install xcuitest || echo "Driver already installed"
           appium driver list --installed
+
+      - name: Verify simulator and app are ready
+        run: |
+          echo "🔍 Verifying simulator and app setup from install workflow..."
+          
+          # Check simulator status
+          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" | head -1 || echo "Not found")
+          echo "Simulator status: $SIMULATOR_STATUS"
+          
+          if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+            echo "✅ Simulator is booted and ready"
+          else
+            echo "❌ ERROR: Simulator is not booted. Install workflow should have prepared this."
+            echo "Expected simulator to be ready from previous workflow step."
+            exit 1
+          fi
+          
+          # Verify app is installed (optional check - don't fail if we can't verify)
+          if xcrun simctl listapps "${{ env.DEVICE_UDID }}" 2>/dev/null | grep -q "${{ env.APP_BUNDLE_ID }}"; then
+            echo "✅ App is installed and ready"
+          else
+            echo "⚠️ WARNING: Could not verify app installation, but proceeding with test"
+            echo "Appium will provide better error messages if app is missing"
+          fi
+          
+          echo "🎯 Ready to start Appium tests"
           
       - name: Start Appium Server
         run: |

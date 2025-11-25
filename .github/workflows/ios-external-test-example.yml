@@ -16,11 +16,11 @@ on:
   # Manual trigger
   workflow_dispatch:
     inputs:
-      artifact_name:
-        description: 'Name of the iOS app artifact to download from a previous pipeline run'
+      download_url:
+        description: 'Direct download URL for the iOS app bundle'
         required: true
         type: string
-        default: 'ios-app-Debug-4.0.0-build-5657d643b068403ce39b824ab25c9a708751afad'
+        default: 'https://productionresultssa13.blob.core.windows.net/actions-results/00c40a20-3d7a-4e25-8222-dc855900d351/workflow-job-run-acbec018-d8a4-5e0e-b3bf-5d16122c147c/artifacts/7fffab548faf1e177fac2bff09815a07a51f7c3c001511451cbe805a17b4cf95.zip'
       ios_version:
         description: 'iOS platform version for simulator'
         required: false
@@ -37,8 +37,8 @@ jobs:
     name: Install External iOS Build
     uses: ./.github/workflows/ios-install-template.yml
     with:
-      # Use PR-specific default when triggered by pull_request, otherwise use manual input
-      artifact_name: ${{ github.event_name == 'pull_request' && 'ios-app-Debug-4.0.0-build-e9df9fe86785ccf37384f7825b8da23bcb959481' || inputs.artifact_name }}
+      # Use URL-specific default when triggered by pull_request, otherwise use manual input
+      download_url: ${{ github.event_name == 'pull_request' && 'https://productionresultssa13.blob.core.windows.net/actions-results/00c40a20-3d7a-4e25-8222-dc855900d351/workflow-job-run-acbec018-d8a4-5e0e-b3bf-5d16122c147c/artifacts/7fffab548faf1e177fac2bff09815a07a51f7c3c001511451cbe805a17b4cf95.zip' || inputs.download_url }}
       ios_version: ${{ inputs.ios_version || '26.0' }}
       device_name: ${{ inputs.device_name || 'iPhone 16' }}
 

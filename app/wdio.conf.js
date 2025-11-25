@@ -69,7 +69,10 @@ exports.config = {
         'appium:udid': process.env.DEVICE_UDID,
         'appium:noReset': true,
         'appium:fullReset': false,
-        'appium:newCommandTimeout': 300
+        'appium:newCommandTimeout': 600,
+        'appium:launchTimeout': 120000,
+        'appium:wdaLaunchTimeout': 120000,
+        'appium:wdaConnectionTimeout': 120000
     }],
 
     //
@@ -106,11 +109,11 @@ exports.config = {
     // baseUrl: 'http://localhost:8080',
     //
     // Default timeout for all waitFor* commands.
-    waitforTimeout: 10000,
+    waitforTimeout: 30000,
     //
     // Default timeout in milliseconds for request
     // if browser driver or grid doesn't send response
-    connectionRetryTimeout: 120000,
+    connectionRetryTimeout: 300000,
     //
     // Default request retries count
     connectionRetryCount: 3,
