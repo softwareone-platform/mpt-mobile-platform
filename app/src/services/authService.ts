@@ -82,11 +82,10 @@ class AuthenticationService {
 
             return { success: true };
         } catch (error) {
-            throw new Error(
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to send authentication email'
-            );
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Failed to send authentication email');
         }
     }
 
@@ -108,11 +107,10 @@ class AuthenticationService {
                 expiresAt,
             };
         } catch (error) {
-            throw new Error(
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to verify authentication code'
-            );
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Failed to verify authentication code');
         }
     }
 
@@ -127,7 +125,10 @@ class AuthenticationService {
                 tokenType: result.tokenType || 'Bearer',
                 expiresAt,
             };
-        } catch {
+        } catch (error) {
+            if (error instanceof Error) {
+                throw error;
+            }
             throw new Error('Failed to refresh authentication');
         }
     }
@@ -137,7 +138,10 @@ class AuthenticationService {
             const userData = await this.auth0.auth.userInfo({ token: accessToken });
 
             return userData;
-        } catch {
+        } catch (error) {
+            if (error instanceof Error) {
+                throw error;
+            }
             throw new Error('Failed to get user profile');
         }
     }
