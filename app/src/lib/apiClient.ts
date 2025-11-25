@@ -8,7 +8,6 @@ const BASE_URL = configService.get('AUTH0_API_URL');
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    "Content-Type": "application/json",
     "Accept": "application/json",
   },
 });
