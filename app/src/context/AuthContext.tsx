@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback, PropsWithChildren } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, PropsWithChildren } from 'react';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
+import { tokenProvider } from '@/lib/tokenProvider';
 
 export type AuthState = 'loading' | 'unauthenticated' | 'authenticated';
 
@@ -241,6 +242,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         refreshAuth,
         getAccessToken,
     };
+
+		useEffect(() => {
+			tokenProvider.register(getAccessToken);
+		}, [getAccessToken]);
 
     return (
         <AuthContext.Provider value={value}>

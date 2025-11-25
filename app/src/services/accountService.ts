@@ -1,6 +1,6 @@
-import { useApi } from "@/hooks/useApi";
-import { useAuth } from "@/context/AuthContext";
-import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET } from "@/constants/api";
+import { useApi } from '@/hooks/useApi';
+import { useAuth } from '@/context/AuthContext';
+import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET } from '@/constants/api';
 import type {
   UserAccount,
   SwitchAccountBody,
@@ -8,7 +8,7 @@ import type {
   FullUserData,
   SpotlightItem,
   SubscriptionItem,
-} from "@/types/api";
+} from '@/types/api';
 
 export function useAccountApi() {
   const api = useApi();
@@ -68,7 +68,7 @@ export function useAccountApi() {
     try {
       await getAccessToken();
     } catch (error) {
-      console.warn("Failed to refresh token after account switch", error);
+      console.warn('Failed to refresh token after account switch', error);
     }
   }
 

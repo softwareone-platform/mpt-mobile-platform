@@ -2,7 +2,7 @@ export function getImageUrl(baseUrl: string, imagePath: string): string | null {
   if (!baseUrl || !imagePath) {
     return null;
   }
-  
+
   return `${baseUrl}${imagePath}`
 }
 
@@ -18,7 +18,7 @@ export function getImageHeaders(accessToken: string): { [key: string]: string } 
       'Accept': 'image/*',
     };
   } catch (error) {
-    console.warn('Failed to get image headers:', error);
+    console.warn('Failed to get image headers: ', error);
     return null;
   }
 }
