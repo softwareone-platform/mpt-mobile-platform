@@ -254,10 +254,11 @@ The project uses GitHub Actions for continuous integration and deployment.
 **Main Branch Workflow** (`.github/workflows/main-ci.yml`)
 - Triggers on push to `main` branch
 - Runs validation (lint + tests) on Ubuntu runners
-- **Automatically builds iOS app** after validation succeeds
-- Ensures main branch always has working iOS build
+- **Automatically builds iOS and Android apps in parallel** after validation succeeds
+- Ensures main branch always has working builds for both platforms
 - Creates iOS .app artifact (7-day retention)
-- Uses Ubuntu for validation, macOS-14 for iOS build
+- Creates Android .apk artifact (7-day retention)
+- Uses Ubuntu for validation and Android build, macOS-14 for iOS build
 
 **iOS Build Workflow** (`.github/workflows/ios-build.yml`)
 - **Triggers:** Manual dispatch OR called by main-ci.yml
@@ -268,7 +269,19 @@ The project uses GitHub Actions for continuous integration and deployment.
 - Uploads .app artifact (7-day retention)
 - Does NOT deploy to TestFlight
 - Does NOT increment version numbers
-- **Automatically runs on main branch** after validation passes
+- **Automatically runs on main branch** after validation passes (in parallel with Android)
+- Can also be triggered manually for testing
+
+**Android Build Workflow** (`.github/workflows/android-build.yml`)
+- **Triggers:** Manual dispatch OR called by main-ci.yml
+- Uses Ubuntu runners (cost-effective)
+- **Purpose:** Build verification only
+- Builds Android APK in Debug mode
+- Creates unsigned Debug APK for verification
+- Uploads .apk artifact (7-day retention)
+- Does NOT build Release or AAB (App Bundle)
+- Does NOT sign for production
+- **Automatically runs on main branch** after validation passes (in parallel with iOS)
 - Can also be triggered manually for testing
 
 **iOS TestFlight Workflow** (`.github/workflows/ios-testflight.yml`)
@@ -290,15 +303,16 @@ The project uses GitHub Actions for continuous integration and deployment.
 - Jest tests with coverage
 - Coverage artifact upload
 
-### Running iOS Builds
+### Running Builds
 
-**When iOS Build runs automatically:**
+**When builds run automatically:**
 - **Every push to `main` branch** (after validation passes)
-- Ensures main branch always has working iOS build
-- Creates .app artifact for every main branch commit
+- iOS and Android builds run **in parallel** to save time
+- Ensures main branch always has working builds for both platforms
+- Creates .app artifact (iOS) and .apk artifact (Android) for every main branch commit
 
-**When to trigger iOS Build manually:**
-- Testing if code compiles for iOS on feature branches
+**When to trigger builds manually:**
+- Testing if code compiles for iOS/Android on feature branches
 - Verifying build succeeds before creating PR
 - Creating test artifacts without deployment
 - Testing build configuration changes
@@ -311,6 +325,13 @@ The project uses GitHub Actions for continuous integration and deployment.
 5. Choose whether to create archive
 6. Monitor progress (~20-30 minutes on macOS runners)
 7. Download .app artifact from workflow run
+
+**To manually trigger an Android build:**
+1. Go to GitHub Actions tab
+2. Select "Android Build" workflow
+3. Click "Run workflow"
+4. Monitor progress (~15-20 minutes on Ubuntu runners)
+5. Download .apk artifact from workflow run
 
 **When to use iOS TestFlight workflow (deployment):**
 - Ready to deploy to testers
@@ -326,20 +347,23 @@ The project uses GitHub Actions for continuous integration and deployment.
 6. Monitor progress (~30-45 minutes on macOS runners)
 7. Check App Store Connect for the build after 10-15 minutes
 
-**Key Differences:**
+**Build Comparison:**
 
-| Feature | iOS Build | iOS TestFlight |
-|---------|-----------|----------------|
-| **Trigger** | Auto on `main` + Manual | Manual only |
-| **Purpose** | Verification only | Full deployment |
-| **Code Signing** | No (unsigned) | Yes (App Store) |
-| **TestFlight Upload** | No | Yes |
-| **Version Bump** | No | Yes |
-| **Git Tag** | No | Yes |
-| **Artifact Retention** | 7 days | 30 days |
-| **Requires Secrets** | No | Yes (TestFlight env) |
-| **Duration** | ~20-30 min | ~30-45 min |
-| **Runs on Main** | ✅ Always | ❌ Never |
+| Feature | iOS Build | Android Build | iOS TestFlight |
+|---------|-----------|---------------|----------------|
+| **Trigger** | Auto on `main` + Manual | Auto on `main` + Manual | Manual only |
+| **Purpose** | Verification only | Verification only | Full deployment |
+| **Runner** | macOS-14 | Ubuntu (cost-effective) | macOS-14 |
+| **Build Mode** | Debug or Release | Debug only | Release |
+| **Code Signing** | No (unsigned) | No (unsigned) | Yes (App Store) |
+| **Artifact** | .app file | .apk file | .ipa + dSYMs |
+| **Deployment** | No | No | Yes (TestFlight) |
+| **Version Bump** | No | No | Yes |
+| **Git Tag** | No | No | Yes |
+| **Artifact Retention** | 7 days | 7 days | 30 days |
+| **Requires Secrets** | No | No | Yes (TestFlight env) |
+| **Duration** | ~20-30 min | ~15-20 min | ~30-45 min |
+| **Runs on Main** | ✅ Parallel | ✅ Parallel | ❌ Never |
 
 ### Caching Strategy
 
@@ -352,6 +376,11 @@ The project uses GitHub Actions for continuous integration and deployment.
 - Cache key: `${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}`
 - Cached paths: `ios/Pods`, `~/Library/Caches/CocoaPods`
 - Reduces iOS build time
+
+**Gradle (Android builds):**
+- Cache key: `${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}`
+- Cached paths: `~/.gradle/caches`, `~/.gradle/wrapper`, `./app/android/.gradle`
+- Reduces Android build time significantly
 
 ### TestFlight Deployment
 
