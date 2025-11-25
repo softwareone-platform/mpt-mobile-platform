@@ -7,11 +7,6 @@ on:
   # Reusable workflow (called from other workflows)
   workflow_call:
 
-  # For testing: trigger on push to current branch
-  push:
-    branches:
-      - halilk/add-android-build-workflow
-
 jobs:
   build-android:
     name: Build Android App
