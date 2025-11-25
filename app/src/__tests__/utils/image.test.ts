@@ -1,11 +1,12 @@
 import { getImageUrl, getImageHeaders } from '@/utils/image';
+import { HttpMethod } from '@/types/api';
 
 const baseUrlMock = 'https://example.com';
 const imagePathMock = '/path/to/image.png';
 const accessTokenMock = 'abc123';
+
 const imageHeadersMock = {
   'Authorization': `Bearer ${accessTokenMock}`,
-  'Content-Type': 'application/json',
   'Accept': 'image/*',
 };
 
@@ -37,20 +38,47 @@ describe('getImageUrl', () => {
 });
 
 describe('getImageHeaders', () => {
-  it('should return correct headers with valid token', () => {
-    const imageHeaders = getImageHeaders(accessTokenMock);
+  it('should return correct headers with valid token (GET)', () => {
+    const imageHeaders = getImageHeaders(accessTokenMock, HttpMethod.GET);
 
     expect(imageHeaders).toEqual(imageHeadersMock);
   });
 
+  it('should include Content-Type for POST requests', () => {
+    const imageHeaders = getImageHeaders(accessTokenMock, HttpMethod.POST);
+
+    expect(imageHeaders).toEqual({
+      ...imageHeadersMock,
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('should include Content-Type for PUT requests', () => {
+    const imageHeaders = getImageHeaders(accessTokenMock, HttpMethod.PUT);
+
+    expect(imageHeaders).toEqual({
+      ...imageHeadersMock,
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('should include Content-Type for PATCH requests', () => {
+    const imageHeaders = getImageHeaders(accessTokenMock, HttpMethod.PATCH);
+
+    expect(imageHeaders).toEqual({
+      ...imageHeadersMock,
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('should return null if token is empty', () => {
-    const imageHeaders = getImageHeaders('');
+    const imageHeaders = getImageHeaders('', HttpMethod.GET);
     
     expect(imageHeaders).toBeNull();
   });
 
   it('should return null if token is null', () => {
-    const imageHeaders = getImageHeaders(null as unknown as string);
+    const imageHeaders = getImageHeaders(null as unknown as string, HttpMethod.GET);
 
     expect(imageHeaders).toBeNull();
   });

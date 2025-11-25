@@ -1,3 +1,11 @@
+export enum HttpMethod {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE',
+}
+
 export interface UserAccount {
   id: string;
   name: string;

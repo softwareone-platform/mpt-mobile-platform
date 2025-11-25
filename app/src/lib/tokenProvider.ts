@@ -1,12 +1,22 @@
-let getAccessToken: (() => Promise<string | null>) | null = null;
+const subscribers = new Set<() => Promise<string | null>>();
 
 export const tokenProvider = {
   register(getTokenFn: () => Promise<string | null>) {
-    getAccessToken = getTokenFn;
+    subscribers.add(getTokenFn);
+
+    // Return unregister function for cleanup
+    return () => {
+      subscribers.delete(getTokenFn);
+    };
   },
+
+  // get latest token from the most recent subscriber
+  async getToken() {
+    const last = Array.from(subscribers).at(-1);
+    return last ? last() : null;
+  }
 };
 
 export async function getAccessTokenAsync(): Promise<string | null> {
-  if (!getAccessToken) return null;
-  return getAccessToken();
+  return tokenProvider.getToken();
 }

@@ -244,8 +244,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     };
 
 		useEffect(() => {
-			tokenProvider.register(getAccessToken);
-		}, [getAccessToken]);
+			const unregister = tokenProvider.register(getAccessToken);
+
+				return () => {
+					unregister();
+				};
+			}, [getAccessToken]);
 
     return (
         <AuthContext.Provider value={value}>
