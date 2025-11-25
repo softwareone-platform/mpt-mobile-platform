@@ -65,7 +65,11 @@ exports.config = {
         'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16e',
         'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
         'appium:automationName': process.env.AUTOMATION_NAME || 'XCUITest',
-        'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile'
+        'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
+        'appium:udid': process.env.DEVICE_UDID,
+        'appium:noReset': true,
+        'appium:fullReset': false,
+        'appium:newCommandTimeout': 300
     }],
 
     //

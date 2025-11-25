@@ -160,6 +160,26 @@ jobs:
           curl -f "http://${APPIUM_HOST}:${APPIUM_PORT}/status" | jq '.'
 
       # Running the Appium tests:
+      - name: Pre-test Debug Information
+        run: |
+          echo "=== Pre-test Debug Information ==="
+          echo "Environment Variables:"
+          echo "DEVICE_UDID: ${{ env.DEVICE_UDID }}"
+          echo "DEVICE_NAME: ${{ env.DEVICE_NAME }}"
+          echo "PLATFORM_VERSION: ${{ env.PLATFORM_VERSION }}"
+          echo "APP_BUNDLE_ID: ${{ env.APP_BUNDLE_ID }}"
+          echo "APPIUM_HOST: ${{ env.APPIUM_HOST }}"
+          echo "APPIUM_PORT: ${{ env.APPIUM_PORT }}"
+          
+          echo "Current Simulator Status:"
+          xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" || echo "Device not found"
+          
+          echo "App Installation Status:"
+          xcrun simctl listapps ${{ env.DEVICE_UDID }} | grep -i "${{ env.APP_BUNDLE_ID }}" || echo "App not found"
+          
+          echo "Appium Server Status:"
+          curl -s "http://${{ env.APPIUM_HOST }}:${{ env.APPIUM_PORT }}/status" | jq '.' || echo "Appium server not reachable"
+          
       - name: Run Appium Tests
         run: npx wdio run wdio.conf.js --suite welcome
         working-directory: ./app
@@ -180,8 +200,8 @@ jobs:
         with:
           name: test-results-${{ github.run_number }}
           path: |
-            test-results/
-            screenshots/
+            app/test-results/
+            app/screenshots/
           retention-days: 7
           if-no-files-found: ignore
           
