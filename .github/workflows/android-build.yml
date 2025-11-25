@@ -3,37 +3,9 @@ name: Android Build
 on:
   # Manual trigger
   workflow_dispatch:
-    inputs:
-      build-mode:
-        description: 'Build configuration'
-        required: true
-        type: choice
-        options:
-          - Debug
-          - Release
-        default: 'Debug'
-      build-type:
-        description: 'Build artifact type'
-        required: true
-        type: choice
-        options:
-          - APK
-          - AAB
-        default: 'APK'
 
   # Reusable workflow (called from other workflows)
   workflow_call:
-    inputs:
-      build-mode:
-        description: 'Build configuration'
-        required: false
-        type: string
-        default: 'Debug'
-      build-type:
-        description: 'Build artifact type (APK or AAB)'
-        required: false
-        type: string
-        default: 'APK'
 
   # For testing: trigger on push to current branch
   push:
@@ -91,9 +63,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests before build
-        run: npm test
-
       - name: Create .env file
         run: |
           cat > .env <<EOF
@@ -134,40 +103,18 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Android APK (Debug)
-        if: inputs.build-mode == 'Debug' && (inputs.build-type == 'APK' || inputs.build-type == '')
         working-directory: ./app/android
         run: |
           echo "🔨 Building Android APK in Debug mode..."
           ./gradlew assembleDebug --no-daemon --stacktrace
           echo "✅ Debug APK build completed"
 
-      - name: Build Android APK (Release)
-        if: inputs.build-mode == 'Release' && inputs.build-type == 'APK'
-        working-directory: ./app/android
-        run: |
-          echo "🔨 Building Android APK in Release mode (unsigned)..."
-          ./gradlew assembleRelease --no-daemon --stacktrace
-          echo "✅ Release APK build completed (unsigned)"
-
-      - name: Build Android AAB (Release)
-        if: inputs.build-mode == 'Release' && inputs.build-type == 'AAB'
-        working-directory: ./app/android
-        run: |
-          echo "🔨 Building Android App Bundle in Release mode (unsigned)..."
-          ./gradlew bundleRelease --no-daemon --stacktrace
-          echo "✅ Release AAB build completed (unsigned)"
-
       - name: Find APK artifacts
         id: find-apk
-        if: inputs.build-type == 'APK' || inputs.build-type == ''
         working-directory: ./app
         run: |
-          # Find the built APK
-          if [ "${{ inputs.build-mode }}" == "Release" ]; then
-            APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
-          else
-            APK_PATH=$(find android/app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
-          fi
+          # Find the built Debug APK
+          APK_PATH=$(find android/app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
 
           if [ -n "$APK_PATH" ]; then
             echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
@@ -177,36 +124,12 @@ jobs:
             echo "⚠️ APK not found"
           fi
 
-      - name: Find AAB artifacts
-        id: find-aab
-        if: inputs.build-type == 'AAB'
-        working-directory: ./app
-        run: |
-          # Find the built AAB
-          AAB_PATH=$(find android/app/build/outputs/bundle/release -name "*.aab" -type f | head -n 1)
-
-          if [ -n "$AAB_PATH" ]; then
-            echo "aab_path=$AAB_PATH" >> $GITHUB_OUTPUT
-            echo "✅ Found AAB at: $AAB_PATH"
-            ls -lah "$AAB_PATH"
-          else
-            echo "⚠️ AAB not found"
-          fi
-
       - name: Upload APK artifact
-        if: (inputs.build-type == 'APK' || inputs.build-type == '') && steps.find-apk.outputs.apk_path != ''
+        if: steps.find-apk.outputs.apk_path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ inputs.build-mode }}-${{ steps.version.outputs.version }}-${{ github.sha }}
+          name: android-apk-debug-${{ steps.version.outputs.version }}-${{ github.sha }}
           path: app/${{ steps.find-apk.outputs.apk_path }}
-          retention-days: 7
-
-      - name: Upload AAB artifact
-        if: inputs.build-type == 'AAB' && steps.find-aab.outputs.aab_path != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-aab-${{ inputs.build-mode }}-${{ steps.version.outputs.version }}-${{ github.sha }}
-          path: app/${{ steps.find-aab.outputs.aab_path }}
           retention-days: 7
 
       - name: Build Summary
@@ -214,22 +137,16 @@ jobs:
         run: |
           echo "## Android Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Build Mode:** ${{ inputs.build-mode }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Build Type:** ${{ inputs.build-type || 'APK' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Mode:** Debug" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ -n "${{ steps.find-apk.outputs.apk_path }}" ] || [ -n "${{ steps.find-aab.outputs.aab_path }}" ]; then
+          if [ -n "${{ steps.find-apk.outputs.apk_path }}" ]; then
             echo "✅ **Build Status:** Success" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Artifacts:" >> $GITHUB_STEP_SUMMARY
-            if [ -n "${{ steps.find-apk.outputs.apk_path }}" ]; then
-              echo "- Android APK (.apk) uploaded" >> $GITHUB_STEP_SUMMARY
-            fi
-            if [ -n "${{ steps.find-aab.outputs.aab_path }}" ]; then
-              echo "- Android App Bundle (.aab) uploaded" >> $GITHUB_STEP_SUMMARY
-            fi
+            echo "- Android Debug APK (.apk) uploaded" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Build Status:** Failed or artifact not found" >> $GITHUB_STEP_SUMMARY
           fi
@@ -238,6 +155,4 @@ jobs:
           echo "### Purpose:" >> $GITHUB_STEP_SUMMARY
           echo "This workflow builds Android app for **verification only**." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** This build is NOT signed for production." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "To deploy to Google Play, use a signed release build workflow." >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This is a Debug build, NOT signed for production." >> $GITHUB_STEP_SUMMARY

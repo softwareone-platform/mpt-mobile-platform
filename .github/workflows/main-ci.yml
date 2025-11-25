@@ -31,9 +31,6 @@ jobs:
     name: Build Android
     needs: validate
     uses: ./.github/workflows/android-build.yml
-    with:
-      build-mode: 'Debug'
-      build-type: 'APK'
 
   build-summary:
     name: Build Summary
