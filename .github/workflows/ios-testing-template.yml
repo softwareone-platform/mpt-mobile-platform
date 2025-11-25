@@ -49,7 +49,7 @@ jobs:
     
     env:
       AUTOMATION_NAME: XCUITest
-      APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'http://localhost' }}
+      APPIUM_HOST: ${{ secrets.APPIUM_HOST || 'localhost' }}
       APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
       APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
       DEVICE_UDID: ${{ inputs.device_uuid }}
@@ -141,7 +141,7 @@ jobs:
           APPIUM_WAIT_SECONDS=65
           echo "Waiting for Appium server to start (timeout: ${APPIUM_WAIT_SECONDS}s)..."
           for i in $(seq 1 ${APPIUM_WAIT_SECONDS}); do
-            if curl -s "${APPIUM_HOST}:${APPIUM_PORT}/status" > /dev/null; then
+            if curl -s "http://${APPIUM_HOST}:${APPIUM_PORT}/status" > /dev/null; then
               echo "✓ Appium server is ready"
               break
             fi
@@ -157,7 +157,7 @@ jobs:
       - name: Verify Appium Server
         run: |
           echo "Verifying Appium server status..."
-          curl -f "${APPIUM_HOST}:${APPIUM_PORT}/status" | jq '.'
+          curl -f "http://${APPIUM_HOST}:${APPIUM_PORT}/status" | jq '.'
 
       # Running the Appium tests:
       - name: Run Appium Tests
