@@ -249,16 +249,16 @@ jobs:
     uses: ./.github/workflows/ios-install-template.yml
     with:
       artifact_name: ${{ needs.build-ios.outputs.artifact_name }}
-      ios_version: ${{ inputs.platform-version }}
-      device_name: ${{ inputs.device-name }}
+      ios_version: ${{ inputs.platform-version || '26.0' }}
+      device_name: ${{ inputs.device-name || 'iPhone 16' }}
 
   test-ios:
     needs: install-ios
     uses: ./.github/workflows/ios-testing-template.yml
     with:
       device_uuid: ${{ needs.install-ios.outputs.device_udid }}
-      ios_version: ${{ inputs.platform-version }}
-      device_name: ${{ inputs.device-name }}
+      ios_version: ${{ inputs.platform-version || '26.0' }}
+      device_name: ${{ inputs.device-name || 'iPhone 16' }}
       node_version: '20'
       appium_version: '3.1.1'
     secrets:

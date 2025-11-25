@@ -37,9 +37,10 @@ jobs:
     name: Install External iOS Build
     uses: ./.github/workflows/ios-install-template.yml
     with:
-      artifact_name: ${{ inputs.artifact_name }}
-      ios_version: ${{ inputs.ios_version }}
-      device_name: ${{ inputs.device_name }}
+      # Use PR-specific default when triggered by pull_request, otherwise use manual input
+      artifact_name: ${{ github.event_name == 'pull_request' && 'ios-app-Debug-4.0.0-build-e9df9fe86785ccf37384f7825b8da23bcb959481' || inputs.artifact_name }}
+      ios_version: ${{ inputs.ios_version || '26.0' }}
+      device_name: ${{ inputs.device_name || 'iPhone 16' }}
 
   test-external-ios:
     needs: install-external-ios

@@ -40,8 +40,8 @@ jobs:
     timeout-minutes: 30
 
     env:
-      PLATFORM_VERSION: ${{ inputs.ios_version }}
-      DEVICE_NAME: ${{ inputs.device_name }}
+      PLATFORM_VERSION: ${{ inputs.ios_version || '26.0' }}
+      DEVICE_NAME: ${{ inputs.device_name || 'iPhone 16' }}
 
     outputs:
       device_udid: ${{ steps.boot-simulator.outputs.device_udid }}
