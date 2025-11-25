@@ -85,6 +85,28 @@ jobs:
             file "./downloaded-app/app_bundle.zip"
             echo "File contents (first 100 bytes as hex):"
             xxd -l 100 "./downloaded-app/app_bundle.zip" || hexdump -C "./downloaded-app/app_bundle.zip" | head -10
+            
+            # Check for common Azure blob storage errors
+            if grep -q "PublicAccessNotPermitted" "./downloaded-app/app_bundle.zip" 2>/dev/null; then
+              echo ""
+              echo "🔍 DIAGNOSIS: Azure blob storage access denied"
+              echo "The URL appears to be an Azure blob storage link that requires authentication."
+              echo "Possible issues:"
+              echo "  1. SAS token has expired"
+              echo "  2. URL is not publicly accessible"
+              echo "  3. URL requires different authentication"
+              echo ""
+              echo "💡 SOLUTION: Please check that:"
+              echo "  - The blob storage URL is publicly accessible, OR"
+              echo "  - The SAS token in the URL is still valid, OR" 
+              echo "  - Use a different download method that supports authentication"
+            elif grep -q "<Error>" "./downloaded-app/app_bundle.zip" 2>/dev/null; then
+              echo ""
+              echo "🔍 DIAGNOSIS: Server returned an error response instead of the file"
+              echo "The server responded with an XML error message instead of the ZIP file."
+              echo "Please check the URL and ensure it points directly to the downloadable file."
+            fi
+            
             exit 1
           else
             echo "✅ ZIP file validation successful"

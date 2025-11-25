@@ -243,23 +243,191 @@ jobs:
             echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
           fi
 
-  install-ios:
-    name: Install iOS App
+  install-and-test-ios:
+    name: Install and Test iOS App
     needs: build-ios
-    uses: ./.github/workflows/ios-install-template.yml
-    with:
-      artifact_name: ${{ needs.build-ios.outputs.artifact_name }}
-      ios_version: ${{ inputs.platform-version || '26.0' }}
-      device_name: ${{ inputs.device-name || 'iPhone 16' }}
+    runs-on: macos-latest
+    timeout-minutes: 60
+    
+    env:
+      PLATFORM_VERSION: ${{ inputs.platform-version || '26.0' }}
+      DEVICE_NAME: ${{ inputs.device-name || 'iPhone 16' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # === INSTALL PHASE (from ios-install-template.yml) ===
+      - name: Download iOS app from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-ios.outputs.artifact_name }}
+          path: ./downloaded-app
 
-  test-ios:
-    needs: install-ios
-    uses: ./.github/workflows/ios-testing-template.yml
-    with:
-      device_uuid: ${{ needs.install-ios.outputs.device_udid }}
-      ios_version: ${{ inputs.platform-version || '26.0' }}
-      device_name: ${{ inputs.device-name || 'iPhone 16' }}
-      node_version: '20'
-      appium_version: '3.1.1'
-    secrets:
-      APP_BUNDLE_ID: com.softwareone.marketplaceMobile
+      - name: Unzip app bundle
+        run: |
+          echo "📦 Extracting app bundle..."
+          
+          if [ -f "./downloaded-app/app_bundle.zip" ]; then
+            unzip "./downloaded-app/app_bundle.zip" -d ./downloaded-app/
+            echo "✅ App bundle extracted"
+          else
+            echo "❌ ERROR: app_bundle.zip not found"
+            ls -la ./downloaded-app/
+            exit 1
+          fi
+
+      - name: Verify app bundle
+        id: verify-app
+        run: |
+          echo "🔍 Verifying .app bundle..."
+          APP_PATH=$(find ./downloaded-app -name "*.app" -type d -maxdepth 2 | head -n 1)
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ ERROR: .app bundle not found"
+            find ./downloaded-app -name "*.app" -type d
+            exit 1
+          fi
+
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+          echo "📱 Found app: $(basename "$APP_PATH")"
+          echo "📋 Bundle ID: $BUNDLE_ID"
+          
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+          echo "BUNDLE_ID=$BUNDLE_ID" >> $GITHUB_ENV
+
+      - name: Find and boot iOS Simulator
+        id: boot-simulator
+        run: |
+          echo "🔍 Looking for: ${{ env.DEVICE_NAME }} with iOS ${{ env.PLATFORM_VERSION }}"
+          
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+            import json, sys
+            data = json.load(sys.stdin)
+            target_device = '${{ env.DEVICE_NAME }}'
+            target_version = '${{ env.PLATFORM_VERSION }}'
+            formatted_version = 'iOS-' + target_version.replace(' ', '-').replace('.', '-')
+
+            for runtime_key, devices in data.get('devices', {}).items():
+                if formatted_version in runtime_key:
+                    for device in devices:
+                        if device.get('name') == target_device and device.get('isAvailable', False):
+                            print(device['udid'])
+                            sys.exit(0)
+            sys.exit(1)
+            " 2>/dev/null)
+                
+          if [ -z "$UDID" ]; then
+            echo "❌ ERROR: Could not find ${{ env.DEVICE_NAME }} with iOS ${{ env.PLATFORM_VERSION }}"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          
+          echo "DEVICE_UDID=$UDID" >> $GITHUB_ENV
+          echo "✅ Found simulator: ${{ env.DEVICE_NAME }} ($UDID)"
+          
+          # Boot simulator
+          echo "🚀 Booting simulator..."
+          xcrun simctl boot $UDID 2>/dev/null || echo "Already booted"
+          
+          # Wait for boot (simple approach)
+          echo "⏳ Waiting for simulator to boot..."
+          for i in $(seq 1 120); do
+            if xcrun simctl list devices | grep "$UDID" | grep -q "(Booted)"; then
+              echo "✅ Simulator booted after ${i} seconds"
+              break
+            fi
+            if [ $i -eq 120 ]; then
+              echo "❌ ERROR: Simulator failed to boot"
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Install and launch app
+        run: |
+          echo "📲 Installing app on simulator..."
+          xcrun simctl install "${{ env.DEVICE_UDID }}" "${{ env.APP_PATH }}"
+          
+          echo "🚀 Launching app..."
+          xcrun simctl launch "${{ env.DEVICE_UDID }}" "${{ env.BUNDLE_ID }}"
+          sleep 5
+          
+          echo "✅ App installed and ready for testing"
+
+      # === TEST PHASE (from ios-testing-template.yml) ===
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./app
+
+      - name: Install Appium
+        run: |
+          npm install -g appium@3.1.1
+          appium driver install xcuitest
+          appium --version
+
+      - name: Start Appium Server
+        run: |
+          echo "Starting Appium server..."
+          appium --log-level info --log appium.log &
+          APPIUM_PID=$!
+          echo ${APPIUM_PID} > appium.pid
+          
+          # Wait for Appium to start
+          for i in $(seq 1 60); do
+            if curl -s "http://localhost:4723/status" > /dev/null; then
+              echo "✅ Appium server ready"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "❌ ERROR: Appium failed to start"
+              cat appium.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Run Appium Tests
+        env:
+          APPIUM_HOST: localhost
+          APPIUM_PORT: 4723
+          DEVICE_UDID: ${{ env.DEVICE_UDID }}
+          DEVICE_NAME: ${{ env.DEVICE_NAME }}
+          PLATFORM_VERSION: ${{ env.PLATFORM_VERSION }}
+          APP_BUNDLE_ID: ${{ env.BUNDLE_ID }}
+          AUTOMATION_NAME: XCUITest
+          PLATFORM_NAME: iOS
+        run: |
+          echo "🧪 Running Appium tests..."
+          echo "Device: ${{ env.DEVICE_NAME }} (${{ env.DEVICE_UDID }})"
+          echo "App: ${{ env.BUNDLE_ID }}"
+          
+          npm test -- --testNamePattern="Appium"
+        working-directory: ./app
+
+      - name: Stop Appium Server
+        if: always()
+        run: |
+          if [ -f appium.pid ]; then
+            APPIUM_PID=$(cat appium.pid)
+            kill $APPIUM_PID || true
+            echo "Appium server stopped"
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results-${{ github.sha }}
+          path: |
+            app/test-results/
+            appium.log
+          retention-days: 7
+          if-no-files-found: warn
