@@ -19,6 +19,7 @@
     "@react-navigation/native": "^7.1.19",
     "@react-navigation/stack": "^7.6.2",
     "@types/jwt-decode": "^2.2.1",
+    "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "expo": "~54.0.13",
     "expo-dev-client": "~6.0.15",
