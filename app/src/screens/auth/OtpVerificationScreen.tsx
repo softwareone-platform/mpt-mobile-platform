@@ -10,6 +10,7 @@ import { AuthStackParamList } from '@/types/navigation';
 import { otpVerificationScreenStyle } from '@/styles/components';
 import { AUTH_CONSTANTS } from '@/constants';
 import { validateOTP } from '@/utils/validation';
+import { auth0ErrorParsingService } from '@/services/auth0ErrorParsingService';
 
 interface OTPVerificationScreenProps {
     route: RouteProp<AuthStackParamList, 'OTPVerification'>;
@@ -28,29 +29,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
     const { login, sendPasswordlessEmail } = useAuth();
     const { t } = useTranslation();
-
-
-
-    //TODO: create auth0 error parsinge service
-    const parseAuth0Error = useCallback((error: Error): string => {
-        const errorMessage = error.message.toLowerCase();
-
-
-        if (errorMessage.includes('linking account')) {
-            return t('auth.errors.emailNotAuthorized');
-        }
-        if (errorMessage.includes('verification code')) {
-            return t('auth.errors.otpVerificationFailed');
-        }
-        if (errorMessage.includes('expired') || errorMessage.includes('code expired')) {
-            return t('auth.errors.otpExpired');
-        }
-        if (errorMessage.includes('network') || errorMessage.includes('connection')) {
-            return t('auth.errors.networkError');
-        }
-
-        return t('auth.errors.verifyCodeFailed');
-    }, [t]);
 
     const handleOTPChange = (text: string) => {
         setOtp(text);
@@ -81,28 +59,28 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
             console.error('OTP verification error:', error instanceof Error ? error.message : 'Unknown error');
 
             if (error instanceof Error) {
-                setOtpError(parseAuth0Error(error));
+                const translationKey = auth0ErrorParsingService.getTranslationKeyForError(error);
+                setOtpError(t(translationKey));
             } else {
                 setOtpError(t('auth.errors.unknownError'));
             }
         } finally {
             setLoading(false);
         }
-    }, [otp, t, login, email, parseAuth0Error]);
+    }, [otp, login, email, t]);
 
     useEffect(() => {
         if (otp.length === AUTH_CONSTANTS.OTP_LENGTH && validateOTP(otp) && !loading && !hasAutoSubmitted) {
             setHasAutoSubmitted(true);
             handleVerify();
         }
-    }, [otp, handleVerify, loading, hasAutoSubmitted]);
+    }, [otp, loading, hasAutoSubmitted, handleVerify]);
 
     const handleResendCode = async () => {
         setOtpError('');
 
         try {
             await sendPasswordlessEmail(email);
-            //TODO: Inform user that email has been resent
             Alert.alert(
                 t('auth.otpVerification.resendCode'),
                 t('auth.otpVerification.subtitle', { email })
@@ -111,9 +89,10 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
             console.error('Resend OTP error:', error instanceof Error ? error.message : 'Unknown error');
 
             if (error instanceof Error) {
-                setOtpError(parseAuth0Error(error));
+                const translationKey = auth0ErrorParsingService.getTranslationKeyForError(error);
+                setOtpError(t(translationKey));
             } else {
-                setOtpError(t('auth.errors.resendOtpFailed'));
+                setOtpError(t('auth.errors.unknownError'));
             }
         }
     };

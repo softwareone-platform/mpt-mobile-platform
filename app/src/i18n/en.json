@@ -26,12 +26,13 @@
     "errors": {
       "sendEmailFailed": "Failed to send authentication email. Please try again.",
       "emailNotAuthorized": "This email address is not authorized to access the application. Please contact your administrator.",
-      "networkError": "Network connection error. Please check your internet connection and try again.",
       "unknownError": "An unexpected error occurred. Please try again.",
       "verifyCodeFailed": "Failed to verify authentication code",
       "otpVerificationFailed": "Invalid verification code. Please try again.",
       "otpExpired": "Verification code has expired. Please request a new code.",
-      "resendOtpFailed": "Failed to resend verification code. Please try again."
+      "resendOtpFailed": "Failed to resend verification code. Please try again.",
+      "tooManyAttempts": "Too many attempts. Please wait a few minutes before trying again.",
+      "userBlocked": "Your account has been blocked. Please contact support for assistance."
     }
   },
 
