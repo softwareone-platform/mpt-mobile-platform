@@ -37,14 +37,6 @@ class Auth0ErrorParsingService {
     private extractErrorDetails(error: Error): Auth0ErrorDetails {
         const errorAny = error as any;
 
-        // Debug logging to see the actual error structure
-        console.log('🔍 Debugging Auth0 Error:');
-        console.log('  error.name:', error.name);
-        console.log('  error.message:', error.message);
-        console.log('  error.code:', errorAny.code);
-        console.log('  error.status:', errorAny.status);
-        console.log('  All properties:', Object.keys(error));
-
         const name = error.name !== 'Error' && error.name !== 'unknown_error'
             ? error.name
             : errorAny.code || 'unknown_error';
@@ -56,7 +48,6 @@ class Auth0ErrorParsingService {
             status: errorAny.status,
         };
 
-        console.log('✅ Parsed error:', details);
         return details;
     }
 
