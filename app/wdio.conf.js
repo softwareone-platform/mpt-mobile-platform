@@ -11,7 +11,7 @@ exports.config = {
     // WebdriverIO supports running e2e tests as well as unit and component tests.
     runner: 'local',
     hostname: process.env.APPIUM_HOST || 'localhost',
-    port: process.env.APPIUM_PORT || 4723,
+    port: parseInt(process.env.APPIUM_PORT, 10) || 4723,
     //
     // ==================
     // Specify Test Files
@@ -65,7 +65,7 @@ exports.config = {
         'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16e',
         'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
         'appium:automationName': process.env.AUTOMATION_NAME || 'XCUITest',
-        'appium:appPackage': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile'
+        'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile'
     }],
 
     //
@@ -146,19 +146,22 @@ exports.config = {
                 return `results-${options.cid}.xml`
             }
         }],
-        [Reporter, {
-            apiKey: process.env.REPORT_PORTAL_API_KEY || 'value not set',
-            endpoint: (process.env.REPORT_PORTAL_ENDPOINT || 'http://localhost:8080') + '/api/v2',
-            project: process.env.REPORT_PORTAL_PROJECT || 'default_personal',
-            launch: process.env.REPORT_PORTAL_LAUNCH_NAME || 'Appium Tests Launch',
-            description: process.env.REPORT_PORTAL_LAUNCH_DESCRIPTION || 'Appium tests against ReactNative Marketplace Mobile App',
-            // attributes: [{ key: 'key', value: 'value' }, { value: 'value' }],
-            attachPicturesToLogs: false,
-            reportSeleniumCommands: true,
-            seleniumCommandsLogLevel: 'debug',
-            autoAttachScreenshots: false,
-            screenshotsLogLevel: 'info',
-        }]
+        // Only enable Report Portal when proper configuration is available
+        ...(process.env.REPORT_PORTAL_API_KEY && process.env.REPORT_PORTAL_API_KEY !== 'value not set' ? [
+            [Reporter, {
+                apiKey: process.env.REPORT_PORTAL_API_KEY,
+                endpoint: (process.env.REPORT_PORTAL_ENDPOINT || 'http://localhost:8080') + '/api/v2',
+                project: process.env.REPORT_PORTAL_PROJECT || 'default_personal',
+                launch: process.env.REPORT_PORTAL_LAUNCH_NAME || 'Appium Tests Launch',
+                description: process.env.REPORT_PORTAL_LAUNCH_DESCRIPTION || 'Appium tests against ReactNative Marketplace Mobile App',
+                // attributes: [{ key: 'key', value: 'value' }, { value: 'value' }],
+                attachPicturesToLogs: false,
+                reportSeleniumCommands: true,
+                seleniumCommandsLogLevel: 'debug',
+                autoAttachScreenshots: false,
+                screenshotsLogLevel: 'info',
+            }]
+        ] : [])
     ],
 
     // Options to be passed to Mocha.

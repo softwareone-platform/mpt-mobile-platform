@@ -53,6 +53,9 @@ jobs:
       APPIUM_PORT: ${{ secrets.APPIUM_PORT || '4723' }}
       APP_BUNDLE_ID: ${{ secrets.APP_BUNDLE_ID }}
       DEVICE_UDID: ${{ inputs.device_uuid }}
+      DEVICE_NAME: ${{ inputs.device_name }}
+      PLATFORM_VERSION: ${{ inputs.ios_version }}
+      PLATFORM_NAME: iOS
       
     steps:
       - name: Verify Required Secrets
