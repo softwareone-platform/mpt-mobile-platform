@@ -1,371 +1,244 @@
-name: iOS App Install and Setup
+name: 'iOS App Install and Setup'
+description: 'Download, install, and setup iOS app on simulator'
+inputs:
+  artifact_name:
+    description: 'Name of the iOS app artifact to download'
+    required: false
+  download_url:
+    description: 'Direct download URL for the iOS app bundle'
+    required: false
+  ios_version:
+    description: 'iOS version for simulator'
+    required: false
+    default: '26.0'
+  device_name:
+    description: 'iOS simulator device name'
+    required: false
+    default: 'iPhone 16'
+outputs:
+  device_udid:
+    description: 'UUID of the booted iOS simulator'
+    value: ${{ steps.boot-simulator.outputs.device_udid }}
+  bundle_id:
+    description: 'Bundle ID of the installed app'
+    value: ${{ steps.install-app.outputs.bundle_id }}
+  app_path:
+    description: 'Path to the installed app bundle'
+    value: ${{ steps.verify-app.outputs.app_path }}
 
-permissions:
-  contents: read
+runs:
+  using: 'composite'
+  steps:
+    - name: Download iOS app from artifact
+      if: inputs.artifact_name != ''
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: ./downloaded-app
 
-on:
-  workflow_call:
-    inputs:
-      artifact_name:
-        description: 'Name of the iOS app artifact to download'
-        required: false
-        type: string
-      download_url:
-        description: 'Direct download URL for the iOS app bundle (alternative to artifact_name)'
-        required: false
-        type: string
-      ios_version:
-        description: 'iOS version for simulator'
-        required: false
-        type: string
-        default: '26.0'
-      device_name:
-        description: 'iOS simulator device name'
-        required: false
-        type: string
-        default: 'iPhone 16'
+    - name: Download iOS app from URL
+      if: inputs.download_url != ''
+      shell: bash
+      run: |
+        echo "📥 Downloading iOS app from URL..."
+        echo "URL: ${{ inputs.download_url }}"
+        
+        # Create download directory
+        mkdir -p ./downloaded-app
+        
+        # Download the file
+        curl -L -o ./downloaded-app/app_bundle.zip "${{ inputs.download_url }}"
+        
+        # Verify download
+        if [ ! -f "./downloaded-app/app_bundle.zip" ]; then
+          echo "❌ ERROR: Download failed"
+          exit 1
+        fi
+        
+        # Check file size
+        FILE_SIZE=$(stat -f%z "./downloaded-app/app_bundle.zip" 2>/dev/null || stat -c%s "./downloaded-app/app_bundle.zip")
+        echo "✅ Downloaded app bundle (${FILE_SIZE} bytes)"
 
-    outputs:
-      device_udid:
-        description: 'UUID of the booted iOS simulator'
-        value: ${{ jobs.verify-and-install-ios.outputs.device_udid }}
-      bundle_id:
-        description: 'Bundle ID of the installed app'
-        value: ${{ jobs.verify-and-install-ios.outputs.bundle_id }}
+    - name: Verify download method
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.artifact_name }}" ] && [ -z "${{ inputs.download_url }}" ]; then
+          echo "❌ ERROR: Either artifact_name or download_url must be provided"
+          exit 1
+        fi
+        
+        if [ -n "${{ inputs.artifact_name }}" ] && [ -n "${{ inputs.download_url }}" ]; then
+          echo "⚠️ WARNING: Both artifact_name and download_url provided, using artifact_name"
+        fi
 
-jobs:
-  verify-and-install-ios:
-    name: Install iOS App and Setup Simulator
-    runs-on: macos-latest
-    timeout-minutes: 30
-
-    env:
-      PLATFORM_VERSION: ${{ inputs.ios_version || '26.0' }}
-      DEVICE_NAME: ${{ inputs.device_name || 'iPhone 16' }}
-
-    outputs:
-      device_udid: ${{ steps.boot-simulator.outputs.device_udid }}
-      bundle_id: ${{ steps.install-app.outputs.bundle_id }}
-
-    steps:
-      - name: Download iOS app from artifact
-        if: inputs.artifact_name != ''
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.artifact_name }}
-          path: ./downloaded-app
-
-      - name: Download iOS app from URL
-        if: inputs.download_url != ''
-        run: |
-          echo "📥 Downloading iOS app from URL..."
-          echo "URL: ${{ inputs.download_url }}"
-          
-          # Create download directory
-          mkdir -p ./downloaded-app
-          
-          # Download the file
-          curl -L -o ./downloaded-app/app_bundle.zip "${{ inputs.download_url }}"
-          
-          # Verify download
-          if [ ! -f "./downloaded-app/app_bundle.zip" ]; then
-            echo "❌ ERROR: Download failed"
-            exit 1
-          fi
-          
-          # Check file size
-          FILE_SIZE=$(stat -f%z "./downloaded-app/app_bundle.zip" 2>/dev/null || stat -c%s "./downloaded-app/app_bundle.zip")
-          echo "✅ Downloaded app bundle (${FILE_SIZE} bytes)"
-          
-          # Validate it's a valid ZIP file
-          echo "🔍 Validating ZIP file..."
-          if ! unzip -t "./downloaded-app/app_bundle.zip" >/dev/null 2>&1; then
-            echo "❌ ERROR: Downloaded file is not a valid ZIP archive"
-            echo "File info:"
-            file "./downloaded-app/app_bundle.zip"
-            echo "File contents (first 100 bytes as hex):"
-            xxd -l 100 "./downloaded-app/app_bundle.zip" || hexdump -C "./downloaded-app/app_bundle.zip" | head -10
-            
-            # Check for common Azure blob storage errors
-            if grep -q "PublicAccessNotPermitted" "./downloaded-app/app_bundle.zip" 2>/dev/null; then
-              echo ""
-              echo "🔍 DIAGNOSIS: Azure blob storage access denied"
-              echo "The URL appears to be an Azure blob storage link that requires authentication."
-              echo "Possible issues:"
-              echo "  1. SAS token has expired"
-              echo "  2. URL is not publicly accessible"
-              echo "  3. URL requires different authentication"
-              echo ""
-              echo "💡 SOLUTION: Please check that:"
-              echo "  - The blob storage URL is publicly accessible, OR"
-              echo "  - The SAS token in the URL is still valid, OR" 
-              echo "  - Use a different download method that supports authentication"
-            elif grep -q "<Error>" "./downloaded-app/app_bundle.zip" 2>/dev/null; then
-              echo ""
-              echo "🔍 DIAGNOSIS: Server returned an error response instead of the file"
-              echo "The server responded with an XML error message instead of the ZIP file."
-              echo "Please check the URL and ensure it points directly to the downloadable file."
-            fi
-            
-            exit 1
-          else
-            echo "✅ ZIP file validation successful"
-          fi
-
-      - name: Verify download method
-        run: |
-          if [ -z "${{ inputs.artifact_name }}" ] && [ -z "${{ inputs.download_url }}" ]; then
-            echo "❌ ERROR: Either artifact_name or download_url must be provided"
-            exit 1
-          fi
-          
-          if [ -n "${{ inputs.artifact_name }}" ] && [ -n "${{ inputs.download_url }}" ]; then
-            echo "⚠️ WARNING: Both artifact_name and download_url provided, using artifact_name"
-          fi
-
-      - name: Unzip app bundle
-        run: |
-          echo "📦 Extracting app bundle..."
-          
-          # Find and extract the zip file
-          if [ -f "./downloaded-app/app_bundle.zip" ]; then
-            # Show ZIP contents first
-            echo "📋 ZIP file contents:"
-            unzip -l "./downloaded-app/app_bundle.zip" || {
-              echo "❌ ERROR: Cannot list ZIP contents"
-              echo "File info:"
-              file "./downloaded-app/app_bundle.zip"
-              exit 1
-            }
-            
-            # Extract the ZIP file
-            unzip "./downloaded-app/app_bundle.zip" -d ./downloaded-app/ || {
-              echo "❌ ERROR: Failed to extract ZIP file"
-              echo "ZIP test result:"
-              unzip -t "./downloaded-app/app_bundle.zip"
-              exit 1
-            }
-            echo "✅ App bundle extracted successfully"
-          else
-            echo "❌ ERROR: app_bundle.zip not found in ./downloaded-app"
-            echo "Contents of ./downloaded-app:"
-            ls -la ./downloaded-app/
-            exit 1
-          fi
-
-      - name: Verify app bundle
-        id: verify-app
-        run: |
-          echo "🔍 Verifying .app bundle..."
-
-          APP_PATH=$(find ./downloaded-app -name "*.app" -type d -maxdepth 2 | head -n 1)
-          
+    - name: Unzip app bundle
+      shell: bash
+      run: |
+        echo "📦 Extracting app bundle..."
+        
+        # Find and extract the zip file
+        if [ -f "./downloaded-app/app_bundle.zip" ]; then
+          unzip "./downloaded-app/app_bundle.zip" -d ./downloaded-app/
+          echo "✅ App bundle extracted"
+        else
+          echo "❌ ERROR: app_bundle.zip not found in ./downloaded-app"
           echo "Contents of ./downloaded-app:"
           ls -la ./downloaded-app/
+          exit 1
+        fi
 
-          if [ -z "$APP_PATH" ]; then
-            echo "❌ ERROR: .app bundle not found"
-            echo "Searching for .app files:"
-            find ./downloaded-app -name "*.app" -type d
-            exit 1
-          fi
+    - name: Verify app bundle
+      id: verify-app
+      shell: bash
+      run: |
+        echo "🔍 Verifying .app bundle..."
 
-          if [ ! -f "$APP_PATH/Info.plist" ]; then
-            echo "❌ ERROR: Invalid .app bundle - missing Info.plist"
-            exit 1
-          fi
+        APP_PATH=$(find ./downloaded-app -name "*.app" -type d -maxdepth 2 | head -n 1)
+        
+        echo "Contents of ./downloaded-app:"
+        ls -la ./downloaded-app/
 
-          # Extract bundle ID for verification
-          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
-          echo "📱 Found valid app bundle: $(basename "$APP_PATH")"
-          echo "📋 Bundle ID: $BUNDLE_ID"
-          
-          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
-          echo "VERIFIED_BUNDLE_ID=$BUNDLE_ID" >> $GITHUB_ENV
+        if [ -z "$APP_PATH" ]; then
+          echo "❌ ERROR: .app bundle not found"
+          echo "Searching for .app files:"
+          find ./downloaded-app -name "*.app" -type d
+          exit 1
+        fi
 
-      - name: List available iOS simulators
-        run: |
-          echo "📱 Available iOS Simulators:"
+        if [ ! -f "$APP_PATH/Info.plist" ]; then
+          echo "❌ ERROR: Invalid .app bundle - missing Info.plist"
+          exit 1
+        fi
+
+        # Extract bundle ID for verification
+        BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+        echo "📱 Found valid app bundle: $(basename "$APP_PATH")"
+        echo "📋 Bundle ID: $BUNDLE_ID"
+        
+        echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+        echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+        echo "VERIFIED_BUNDLE_ID=$BUNDLE_ID" >> $GITHUB_ENV
+
+    - name: List available iOS simulators
+      shell: bash
+      run: |
+        echo "📱 Available iOS Simulators:"
+        xcrun simctl list devices available
+
+    - name: Find and boot iOS Simulator
+      id: boot-simulator
+      shell: bash
+      run: |
+        set -e
+        DEVICE_NAME="${{ inputs.device_name }}"
+        PLATFORM_VERSION="${{ inputs.ios_version }}"
+        
+        echo "🔍 Looking for: $DEVICE_NAME with iOS $PLATFORM_VERSION"
+        
+        # Use Python with JSON output for reliable parsing
+        UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+          target_device = '$DEVICE_NAME'
+          target_version = '$PLATFORM_VERSION'
+
+          # Format the version for comparison (e.g., '26.0' -> 'iOS-26-0')
+          formatted_version = 'iOS-' + target_version.replace(' ', '-').replace('.', '-')
+
+          for runtime_key, devices in data.get('devices', {}).items():
+              # Extract and format the runtime version from the key
+              # Runtime keys look like: 'com.apple.CoreSimulator.SimRuntime.iOS-26-0'
+              if formatted_version in runtime_key:
+                  for device in devices:
+                      if device.get('name') == target_device and device.get('isAvailable', False):
+                          print(device['udid'])
+                          sys.exit(0)
+
+          # If we get here, device wasn't found
+          sys.exit(1)
+          " 2>/dev/null)
+            
+        if [ -z "$UDID" ]; then
+          echo "❌ ERROR: Could not find $DEVICE_NAME with iOS $PLATFORM_VERSION"
+          echo ""
+          echo "Available simulators:"
           xcrun simctl list devices available
-
-      - name: Find and boot iOS Simulator
-        id: boot-simulator
-        run: |
-          set -e
-          DEVICE_NAME="${{ env.DEVICE_NAME }}"
-          PLATFORM_VERSION="${{ env.PLATFORM_VERSION }}"
-          
-          echo "🔍 Looking for: $DEVICE_NAME with iOS $PLATFORM_VERSION"
-          
-          # Use Python with JSON output for reliable parsing
-          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          echo ""
+          echo "Debugging - Runtime keys:"
+          xcrun simctl list devices available -j | python3 -c "
             import json
             import sys
-
             data = json.load(sys.stdin)
-            target_device = '$DEVICE_NAME'
-            target_version = '$PLATFORM_VERSION'
+            for key in data.get('devices', {}).keys():
+                print(key)
+          "
+          exit 1
+        fi
+        
+        echo "DEVICE_UDID=$UDID" >> $GITHUB_ENV
+        echo "device_udid=$UDID" >> $GITHUB_OUTPUT
+        echo "✅ Found simulator: $DEVICE_NAME ($UDID)"
+        
+        # Boot the simulator
+        echo "🚀 Booting simulator..."
+        xcrun simctl boot $UDID 2>/dev/null || echo "Simulator already booted"
+        
+        # Wait for boot to complete
+        echo "⏳ Waiting for simulator to boot..."
+        xcrun simctl bootstatus $UDID -b
+        
+        # Double-check simulator status and ensure it's ready for testing
+        echo "🔍 Final verification that simulator is ready..."
+        SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
+        echo "Simulator status: $SIMULATOR_STATUS"
+        
+        if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+          echo "✅ Simulator is booted and ready for testing"
+        else
+          echo "❌ ERROR: Simulator failed to boot properly"
+          echo "Current status: $SIMULATOR_STATUS"
+          exit 1
+        fi
 
-            # Format the version for comparison (e.g., '26.0' -> 'iOS-26-0')
-            formatted_version = 'iOS-' + target_version.replace(' ', '-').replace('.', '-')
+    - name: Install app on simulator
+      id: install-app
+      shell: bash
+      run: |
+        echo "📲 Installing app on simulator..."
+        echo "Device UDID: ${{ env.DEVICE_UDID }}"
+        echo "App path: ${{ env.APP_PATH }}"
+        
+        # Install the app
+        xcrun simctl install "${{ env.DEVICE_UDID }}" "${{ env.APP_PATH }}"
+        
+        # Extract and output bundle ID
+        BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${{ env.APP_PATH }}/Info.plist")
+        echo "BUNDLE_ID=${BUNDLE_ID}" >> $GITHUB_ENV
+        echo "bundle_id=${BUNDLE_ID}" >> $GITHUB_OUTPUT
+        
+        echo "✅ App installed successfully"
+        echo "📋 Bundle ID: ${BUNDLE_ID}"
 
-            for runtime_key, devices in data.get('devices', {}).items():
-                # Extract and format the runtime version from the key
-                # Runtime keys look like: 'com.apple.CoreSimulator.SimRuntime.iOS-26-0'
-                if formatted_version in runtime_key:
-                    for device in devices:
-                        if device.get('name') == target_device and device.get('isAvailable', False):
-                            print(device['udid'])
-                            sys.exit(0)
-
-            # If we get here, device wasn't found
-            sys.exit(1)
-            " 2>/dev/null)
-                
-          if [ -z "$UDID" ]; then
-            echo "❌ ERROR: Could not find $DEVICE_NAME with iOS $PLATFORM_VERSION"
-            echo ""
-            echo "Available simulators:"
-            xcrun simctl list devices available
-            echo ""
-            echo "Debugging - Runtime keys:"
-            xcrun simctl list devices available -j | python3 -c "
-              import json
-              import sys
-              data = json.load(sys.stdin)
-              for key in data.get('devices', {}).keys():
-                  print(key)
-            "
-            exit 1
-          fi
-          
-          echo "DEVICE_UDID=$UDID" >> $GITHUB_ENV
-          echo "device_udid=$UDID" >> $GITHUB_OUTPUT
-          echo "✅ Found simulator: $DEVICE_NAME ($UDID)"
-          
-          # Boot the simulator with timeout protection
-          echo "🚀 Booting simulator..."
-          xcrun simctl boot $UDID 2>/dev/null || echo "Simulator already booted or boot command completed"
-          
-          # Wait for boot to complete with timeout and fallback strategy
-          echo "⏳ Waiting for simulator to boot (timeout: 180 seconds)..."
-          
-          BOOT_TIMEOUT=180
-          BOOT_SUCCESS=false
-          
-          for i in $(seq 1 $BOOT_TIMEOUT); do
-            # Check if simulator is booted
-            SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
-            if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
-              BOOT_SUCCESS=true
-              echo "✅ Simulator booted successfully after ${i} seconds"
-              break
-            fi
-            
-            # Progress indicator every 10 seconds
-            if [ $((i % 10)) -eq 0 ]; then
-              echo "⏳ Still waiting... (${i}/${BOOT_TIMEOUT} seconds)"
-              echo "Current status: $SIMULATOR_STATUS"
-            fi
-            
-            sleep 1
-          done
-          
-          if [ "$BOOT_SUCCESS" = false ]; then
-            echo "❌ ERROR: Simulator failed to boot within $BOOT_TIMEOUT seconds"
-            echo "Final status: $(xcrun simctl list devices | grep "$UDID" | head -1)"
-            echo ""
-            echo "🔧 Attempting recovery..."
-            
-            # Try to shutdown and reboot once
-            echo "🔄 Shutting down simulator..."
-            xcrun simctl shutdown $UDID || true
-            sleep 5
-            
-            echo "🚀 Attempting second boot..."
-            xcrun simctl boot $UDID
-            
-            # Give it one more chance with shorter timeout
-            echo "⏳ Final boot attempt (60 seconds timeout)..."
-            FINAL_TIMEOUT=60
-            FINAL_SUCCESS=false
-            
-            for i in $(seq 1 $FINAL_TIMEOUT); do
-              SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
-              if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
-                FINAL_SUCCESS=true
-                echo "✅ Simulator recovered and booted after ${i} seconds"
-                break
-              fi
-              sleep 1
-            done
-            
-            if [ "$FINAL_SUCCESS" = false ]; then
-              echo "❌ FATAL: Simulator boot failed completely"
-              echo "This might be a CI environment issue with iOS simulators"
-              exit 1
-            fi
-          fi
-          
-          # Double-check simulator status and ensure it's ready for testing
-          echo "🔍 Final verification that simulator is ready..."
-          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
-          echo "Simulator status: $SIMULATOR_STATUS"
-          
-          if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
-            echo "✅ Simulator is booted and ready for testing"
-          else
-            echo "❌ ERROR: Simulator failed to reach booted state"
-            echo "Current status: $SIMULATOR_STATUS"
-            exit 1
-          fi
-
-      - name: Install app on simulator
-        id: install-app
-        run: |
-          echo "📲 Installing app on simulator..."
-          echo "Device UDID: ${{ env.DEVICE_UDID }}"
-          echo "App path: ${{ env.APP_PATH }}"
-          
-          # Install the app
-          xcrun simctl install "${{ env.DEVICE_UDID }}" "${{ env.APP_PATH }}"
-          
-          # Extract and output bundle ID
-          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${{ env.APP_PATH }}/Info.plist")
-          echo "BUNDLE_ID=${BUNDLE_ID}" >> $GITHUB_ENV
-          echo "bundle_id=${BUNDLE_ID}" >> $GITHUB_OUTPUT
-          
-          echo "✅ App installed successfully"
-          echo "📋 Bundle ID: ${BUNDLE_ID}"
-
-      - name: Launch and verify app
-        run: |
-          echo "🚀 Launching app..."
-          xcrun simctl launch "${{ env.DEVICE_UDID }}" "${{ env.BUNDLE_ID }}"
-          
-          echo "⏳ Waiting for app to initialize..."
-          sleep 5
-          
-          # Verify app is installed and accessible for testing
-          echo "🔍 Final app verification before testing..."
-          if xcrun simctl listapps "${{ env.DEVICE_UDID }}" | grep -q "${{ env.BUNDLE_ID }}"; then
-            echo "✅ App ${{ env.BUNDLE_ID }} is installed and available for Appium testing"
-          else
-            echo "❌ ERROR: App not found after installation"
-            echo "Installed apps:"
-            xcrun simctl listapps "${{ env.DEVICE_UDID }}"
-            exit 1
-          fi
-          
-          echo "🎯 App launched successfully and ready for testing"
-
-      - name: Installation Summary
-        run: |
-          echo "## iOS App Installation Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Device:** ${{ env.DEVICE_NAME }}" >> $GITHUB_STEP_SUMMARY
-          echo "**iOS Version:** ${{ env.PLATFORM_VERSION }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Simulator UDID:** ${{ env.DEVICE_UDID }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Bundle ID:** ${{ env.BUNDLE_ID }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Status:** Ready for testing" >> $GITHUB_STEP_SUMMARY
+    - name: Launch and verify app
+      shell: bash
+      run: |
+        echo "🚀 Launching app..."
+        xcrun simctl launch "${{ env.DEVICE_UDID }}" "${{ env.BUNDLE_ID }}"
+        
+        echo "⏳ Waiting for app to initialize..."
+        sleep 5
+        
+        # Verify app is installed and accessible for testing
+        echo "🔍 Final app verification before testing..."
+        if xcrun simctl listapps "${{ env.DEVICE_UDID }}" | grep -q "${{ env.BUNDLE_ID }}"; then
+          echo "✅ App ${{ env.BUNDLE_ID }} is installed and available for Appium testing"
+        else
+          echo "❌ ERROR: App not found after installation"
+          echo "Installed apps:"
+          xcrun simctl listapps "${{ env.DEVICE_UDID }}"
+          exit 1
+        fi
+        
+        echo "🎯 App launched successfully and ready for testing"
