@@ -357,7 +357,19 @@ jobs:
           # Wait for boot to complete
           echo "⏳ Waiting for simulator to boot..."
           xcrun simctl bootstatus $UDID -b
-          echo "✅ Simulator booted successfully"
+          
+          # Double-check simulator status and ensure it's ready for testing
+          echo "🔍 Final verification that simulator is ready..."
+          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
+          echo "Simulator status: $SIMULATOR_STATUS"
+          
+          if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+            echo "✅ Simulator is booted and ready for testing"
+          else
+            echo "❌ ERROR: Simulator failed to boot properly"
+            echo "Current status: $SIMULATOR_STATUS"
+            exit 1
+          fi
 
       - name: Install app on simulator
         id: install-app
@@ -385,7 +397,18 @@ jobs:
           echo "⏳ Waiting for app to initialize..."
           sleep 5
           
-          echo "✅ App launched successfully"
+          # Verify app is installed and accessible for testing
+          echo "🔍 Final app verification before testing..."
+          if xcrun simctl listapps "${{ env.DEVICE_UDID }}" | grep -q "${{ env.BUNDLE_ID }}"; then
+            echo "✅ App ${{ env.BUNDLE_ID }} is installed and available for Appium testing"
+          else
+            echo "❌ ERROR: App not found after installation"
+            echo "Installed apps:"
+            xcrun simctl listapps "${{ env.DEVICE_UDID }}"
+            exit 1
+          fi
+          
+          echo "🎯 App launched successfully and ready for testing"
 
   test-ios:
     needs: verify-and-install-ios

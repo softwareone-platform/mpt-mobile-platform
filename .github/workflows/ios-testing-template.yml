@@ -165,8 +165,8 @@ jobs:
           echo "=== Pre-test Debug Information ==="
           echo "Environment Variables:"
           echo "DEVICE_UDID: ${{ env.DEVICE_UDID }}"
-          echo "DEVICE_NAME: ${{ env.DEVICE_NAME }}"
-          echo "PLATFORM_VERSION: ${{ env.PLATFORM_VERSION }}"
+          echo "DEVICE_NAME: ${{ env.DEVICE_NAME }} (fallback: ${{ inputs.device_name }})"
+          echo "PLATFORM_VERSION: ${{ env.PLATFORM_VERSION }} (fallback: ${{ inputs.ios_version }})"
           echo "APP_BUNDLE_ID: ${{ env.APP_BUNDLE_ID }}"
           echo "APPIUM_HOST: ${{ env.APPIUM_HOST }}"
           echo "APPIUM_PORT: ${{ env.APPIUM_PORT }}"
@@ -175,7 +175,11 @@ jobs:
           xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" || echo "Device not found"
           
           echo "App Installation Status:"
-          xcrun simctl listapps ${{ env.DEVICE_UDID }} | grep -i "${{ env.APP_BUNDLE_ID }}" || echo "App not found"
+          if xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" | grep -q "(Booted)"; then
+            xcrun simctl listapps ${{ env.DEVICE_UDID }} | grep -i "${{ env.APP_BUNDLE_ID }}" || echo "App not found"
+          else
+            echo "Cannot check app status - simulator not booted"
+          fi
           
           echo "Appium Server Status:"
           curl -s "http://${{ env.APPIUM_HOST }}:${{ env.APPIUM_PORT }}/status" | jq '.' || echo "Appium server not reachable"

@@ -62,7 +62,7 @@ exports.config = {
     capabilities: [{
         // capabilities for local Appium web tests on iOS
         platformName: process.env.PLATFORM_NAME || 'iOS',
-        'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16e',
+        'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
         'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
         'appium:automationName': process.env.AUTOMATION_NAME || 'XCUITest',
         'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
