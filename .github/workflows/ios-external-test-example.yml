@@ -1,0 +1,54 @@
+name: iOS Testing with External Build
+
+# Example workflow showing how to use the iOS install template 
+# with an external build download URL
+
+on:
+  # Trigger on pull requests to main branch
+  pull_request:
+      branches:
+        - main
+      types:
+        - opened
+        - synchronize
+        - reopened
+        - ready_for_review
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      artifact_name:
+        description: 'Name of the iOS app artifact to download from a previous pipeline run'
+        required: true
+        type: string
+        default: 'ios-app-Debug-4.0.0-build-5657d643b068403ce39b824ab25c9a708751afad'
+      ios_version:
+        description: 'iOS platform version for simulator'
+        required: false
+        type: string
+        default: '26.0'
+      device_name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16'
+
+jobs:
+  install-external-ios:
+    name: Install External iOS Build
+    uses: ./.github/workflows/ios-install-template.yml
+    with:
+      artifact_name: ${{ inputs.artifact_name }}
+      ios_version: ${{ inputs.ios_version }}
+      device_name: ${{ inputs.device_name }}
+
+  test-external-ios:
+    needs: install-external-ios
+    uses: ./.github/workflows/ios-testing-template.yml
+    with:
+      device_uuid: ${{ needs.install-external-ios.outputs.device_udid }}
+      ios_version: ${{ inputs.ios_version }}
+      device_name: ${{ inputs.device_name }}
+      node_version: '20'
+      appium_version: '3.1.1'
+    secrets:
+      APP_BUNDLE_ID: com.softwareone.marketplaceMobile

@@ -243,178 +243,20 @@ jobs:
             echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
           fi
 
-  verify-and-install-ios:
-    name: Verify and install iOS App
+  install-ios:
+    name: Install iOS App
     needs: build-ios
-    runs-on: macos-latest
-
-    env:
-      APP_PATH: ${{ needs.build-ios.outputs.app_path }}
-      PLATFORM_VERSION: ${{ github.event.inputs.platform-version || '26.0' }}
-      DEVICE_NAME: ${{ github.event.inputs.device-name || 'iPhone 16' }}
-
-    outputs:
-      device_udid: ${{ steps.boot-simulator.outputs.device_udid }}
-      bundle_id: ${{ steps.install-app.outputs.bundle_id }}
-
-    steps:
-      - name: Download iOS app
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build-ios.outputs.artifact_name }}
-          path: ./downloaded-app
-      
-      - name: Unzip .app bundle
-        run: |
-          unzip ./downloaded-app/app_bundle.zip -d ./downloaded-app/
-
-      - name: Verify .app bundle from previous step
-        id: verify-app
-        run: |
-          echo "📦 Verifying .app bundle in ./downloaded-app"
-
-          APP_PATH=$(find ./downloaded-app -name "*.app" -type d -maxdepth 2 | head -n 1)
-          ls -la .
-          ls -la ./downloaded-app
-
-          if [ -z "$APP_PATH" ]; then
-            echo "❌ Error: .app bundle not found in ./downloaded-app"
-            exit 1
-          fi
-
-          if [ ! -f "$APP_PATH/Info.plist" ]; then
-            echo "❌ Error: Invalid .app bundle - missing Info.plist"
-            exit 1
-          fi
-
-          echo "✅ Valid .app bundle confirmed at $APP_PATH"
-          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
-
-      - name: List available iOS simulators
-        run: |
-          echo "Available iOS Simulators:"
-          xcrun simctl list devices available
-
-      - name: Find and boot iOS Simulator
-        id: boot-simulator
-        run: |
-          set -e
-          DEVICE_NAME="${{ env.DEVICE_NAME }}"
-          PLATFORM_VERSION="${{ env.PLATFORM_VERSION }}"
-          
-          echo "🔍 Looking for: $DEVICE_NAME with iOS $PLATFORM_VERSION"
-          
-          # Use Python with JSON output for reliable parsing
-          UDID=$(xcrun simctl list devices available -j | python3 -c "
-            import json
-            import sys
-
-            data = json.load(sys.stdin)
-            target_device = '$DEVICE_NAME'
-            target_version = '$PLATFORM_VERSION'
-
-            # Format the version for comparison (e.g., '26.0' -> 'iOS-26-0')
-            formatted_version = 'iOS-' + target_version.replace(' ', '-').replace('.', '-')
-
-            for runtime_key, devices in data.get('devices', {}).items():
-                # Extract and format the runtime version from the key
-                # Runtime keys look like: 'com.apple.CoreSimulator.SimRuntime.iOS-26-0'
-                if formatted_version in runtime_key:
-                    for device in devices:
-                        if device.get('name') == target_device and device.get('isAvailable', False):
-                            print(device['udid'])
-                            sys.exit(0)
-
-            # If we get here, device wasn't found
-            sys.exit(1)
-            " 2>/dev/null)
-                
-                if [ -z "$UDID" ]; then
-                  echo "❌ Error: Could not find $DEVICE_NAME with iOS $PLATFORM_VERSION"
-                  echo ""
-                  echo "Available simulators:"
-                  xcrun simctl list devices available
-                  echo ""
-                  echo "Debugging - Runtime keys:"
-                  xcrun simctl list devices available -j | python3 -c "
-            import json
-            import sys
-            data = json.load(sys.stdin)
-            for key in data.get('devices', {}).keys():
-                print(key)
-            "
-            exit 1
-          fi
-          
-          echo "DEVICE_UDID=$UDID" >> $GITHUB_ENV
-          echo "device_udid=$UDID" >> $GITHUB_OUTPUT
-          echo "✅ Found simulator: $DEVICE_NAME ($UDID)"
-          
-          # Boot the simulator
-          echo "🚀 Booting simulator..."
-          xcrun simctl boot $UDID 2>/dev/null || echo "Simulator already booted"
-          
-          # Wait for boot to complete
-          echo "⏳ Waiting for simulator to boot..."
-          xcrun simctl bootstatus $UDID -b
-          
-          # Double-check simulator status and ensure it's ready for testing
-          echo "🔍 Final verification that simulator is ready..."
-          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
-          echo "Simulator status: $SIMULATOR_STATUS"
-          
-          if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
-            echo "✅ Simulator is booted and ready for testing"
-          else
-            echo "❌ ERROR: Simulator failed to boot properly"
-            echo "Current status: $SIMULATOR_STATUS"
-            exit 1
-          fi
-
-      - name: Install app on simulator
-        id: install-app
-        run: |
-          echo "📲 Installing app on simulator..."
-          echo "Device UDID: ${{ env.DEVICE_UDID }}"
-          echo "App path: ${{ env.APP_PATH }}"
-          
-          # Install the app
-          xcrun simctl install "${{ env.DEVICE_UDID }}" "${{ env.APP_PATH }}"
-          
-          # Extract and output bundle ID
-          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${{ env.APP_PATH }}/Info.plist")
-          echo "BUNDLE_ID=${BUNDLE_ID}" >> $GITHUB_ENV
-          echo "bundle_id=${BUNDLE_ID}" >> $GITHUB_OUTPUT
-          
-          echo "✅ App installed successfully"
-          echo "Bundle ID: ${BUNDLE_ID}"
-
-      - name: Launch and verify app
-        run: |
-          echo "🚀 Launching app..."
-          xcrun simctl launch "${{ env.DEVICE_UDID }}" "${{ env.BUNDLE_ID }}"
-          
-          echo "⏳ Waiting for app to initialize..."
-          sleep 5
-          
-          # Verify app is installed and accessible for testing
-          echo "🔍 Final app verification before testing..."
-          if xcrun simctl listapps "${{ env.DEVICE_UDID }}" | grep -q "${{ env.BUNDLE_ID }}"; then
-            echo "✅ App ${{ env.BUNDLE_ID }} is installed and available for Appium testing"
-          else
-            echo "❌ ERROR: App not found after installation"
-            echo "Installed apps:"
-            xcrun simctl listapps "${{ env.DEVICE_UDID }}"
-            exit 1
-          fi
-          
-          echo "🎯 App launched successfully and ready for testing"
+    uses: ./.github/workflows/ios-install-template.yml
+    with:
+      artifact_name: ${{ needs.build-ios.outputs.artifact_name }}
+      ios_version: ${{ inputs.platform-version }}
+      device_name: ${{ inputs.device-name }}
 
   test-ios:
-    needs: verify-and-install-ios
+    needs: install-ios
     uses: ./.github/workflows/ios-testing-template.yml
     with:
-      device_uuid: ${{ needs.verify-and-install-ios.outputs.device_udid }}
+      device_uuid: ${{ needs.install-ios.outputs.device_udid }}
       ios_version: ${{ inputs.platform-version }}
       device_name: ${{ inputs.device-name }}
       node_version: '20'
