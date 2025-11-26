@@ -1,9 +1,17 @@
 name: iOS Testing with External Build
 
+permissions:
+  contents: read
+  actions: read    # Required for downloading artifacts
+
 # Example workflow showing how to use the iOS install template 
 # with an external build download URL
 
 on:
+  # Trigger on pushes to feature branch (for development/testing)
+  push:
+    branches:
+      - feature/MPT-15220_appium_tests
   # Trigger on pull requests to main branch
   pull_request:
       branches:
@@ -18,9 +26,9 @@ on:
     inputs:
       download_url:
         description: 'Direct download URL for the iOS app bundle'
-        required: true
+        required: false
         type: string
-        default: 'https://productionresultssa13.blob.core.windows.net/actions-results/00c40a20-3d7a-4e25-8222-dc855900d351/workflow-job-run-acbec018-d8a4-5e0e-b3bf-5d16122c147c/artifacts/7fffab548faf1e177fac2bff09815a07a51f7c3c001511451cbe805a17b4cf95.zip'
+        default: 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-6882ca3543f95469e2def1018c8b44e3c59d16fc-59/iOS-App-Debug.zip'
       ios_version:
         description: 'iOS platform version for simulator'
         required: false
@@ -47,8 +55,8 @@ jobs:
         id: install-ios
         uses: ./.github/actions/ios-install
         with:
-          # Use URL-specific default when triggered by pull_request, otherwise use manual input
-          download_url: ${{ github.event_name == 'pull_request' && 'https://productionresultssa13.blob.core.windows.net/actions-results/00c40a20-3d7a-4e25-8222-dc855900d351/workflow-job-run-acbec018-d8a4-5e0e-b3bf-5d16122c147c/artifacts/7fffab548faf1e177fac2bff09815a07a51f7c3c001511451cbe805a17b4cf95.zip' || inputs.download_url }}
+          # Use specific release when triggered automatically, otherwise use manual input
+          download_url: ${{ inputs.download_url || 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-6882ca3543f95469e2def1018c8b44e3c59d16fc-59/iOS-App-Debug.zip' }}
           ios_version: ${{ inputs.ios_version || '26.0' }}
           device_name: ${{ inputs.device_name || 'iPhone 16' }}
           

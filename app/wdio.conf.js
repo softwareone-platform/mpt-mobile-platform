@@ -69,10 +69,13 @@ exports.config = {
         'appium:udid': process.env.DEVICE_UDID,
         'appium:noReset': true,
         'appium:fullReset': false,
-        'appium:newCommandTimeout': 600,
-        'appium:launchTimeout': 120000,
-        'appium:wdaLaunchTimeout': 120000,
-        'appium:wdaConnectionTimeout': 120000
+        'appium:newCommandTimeout': 900,
+        'appium:launchTimeout': 180000,
+        'appium:wdaLaunchTimeout': 180000,
+        'appium:wdaConnectionTimeout': 180000,
+        'appium:wdaStartupRetries': 3,
+        'appium:wdaStartupRetryInterval': 20000,
+        'appium:shouldUseSingletonTestManager': false
     }],
 
     //
