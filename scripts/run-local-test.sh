@@ -18,7 +18,7 @@ fi
 TEST_TARGET="$1"
 
 # Set required environment variables for local testing
-export DEVICE_UDID="6AF2014D-BAB3-4E5E-821B-1D908B9BDCA8"  # Use your actual simulator UDID
+export DEVICE_UDID="963A992A-A208-4EF4-B7F9-7B2A569EC133"  # iPhone 16e (currently booted)
 export DEVICE_NAME="iPhone 16"
 export PLATFORM_VERSION="26.0" 
 export APP_BUNDLE_ID="com.softwareone.marketplaceMobile"
@@ -39,6 +39,32 @@ echo ""
 echo "📱 Available simulators:"
 xcrun simctl list devices | grep iPhone | grep Booted || echo "No booted simulators found"
 
+# Check if Appium is running
+echo ""
+echo "🚀 Checking Appium server status..."
+if ! curl -s "http://$APPIUM_HOST:$APPIUM_PORT/status" > /dev/null 2>&1; then
+    echo "⚠️  Appium server not running. Starting Appium..."
+    appium --log-level warn > /tmp/appium.log 2>&1 &
+    APPIUM_PID=$!
+    echo "📝 Appium PID: $APPIUM_PID"
+    
+    # Wait for Appium to start
+    echo "⏳ Waiting for Appium to start..."
+    for i in {1..30}; do
+        if curl -s "http://$APPIUM_HOST:$APPIUM_PORT/status" > /dev/null 2>&1; then
+            echo "✅ Appium server is ready!"
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            echo "❌ Appium failed to start after 30 seconds"
+            exit 1
+        fi
+        sleep 1
+    done
+else
+    echo "✅ Appium server is already running"
+fi
+
 # Determine if target is a suite or spec file
 if [[ "$TEST_TARGET" == *.js ]]; then
     TEST_ARGS="--spec $TEST_TARGET"
@@ -50,6 +76,16 @@ else
     echo "🚀 Starting WebDriver tests with suite: $TEST_TARGET"
 fi
 
-# Change to app directory and run the test
-cd app
+# Change to app directory and run tests
+cd "$(dirname "$0")/../app"
 npx wdio run wdio.conf.js $TEST_ARGS
+TEST_EXIT_CODE=$?
+
+# Stop Appium if we started it
+if [ ! -z "$APPIUM_PID" ]; then
+    echo ""
+    echo "🛑 Stopping Appium server..."
+    kill $APPIUM_PID 2>/dev/null || true
+fi
+
+exit $TEST_EXIT_CODE

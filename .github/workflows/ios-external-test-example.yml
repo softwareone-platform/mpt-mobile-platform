@@ -60,8 +60,8 @@ jobs:
         id: install-ios
         uses: ./.github/actions/ios-install
         with:
-          # Use the provided download URL
-          download_url: ${{ inputs.download_url }}
+          # Use the provided download URL, or default for automatic triggers
+          download_url: ${{ inputs.download_url || 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-bcd19e4375bfe63b520d4df0fb3a15a5d76383f8-60/app_bundle.zip' }}
           ios_version: ${{ inputs.ios_version || '26.0' }}
           device_name: ${{ inputs.device_name || 'iPhone 16' }}
           
