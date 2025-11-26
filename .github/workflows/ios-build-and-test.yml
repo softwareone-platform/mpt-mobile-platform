@@ -289,19 +289,20 @@ jobs:
       - name: Create downloadable release asset (for cross-workflow access)
         if: steps.find-artifacts.outputs.app_path != '' && github.event_name != 'pull_request'
         id: create-release
+        working-directory: ./app
         run: |
           # Create a pre-release with the build artifact for easy download
           TAG_NAME="build-${{ env.BUILD_MODE }}-${{ github.sha }}-${{ github.run_number }}"
           RELEASE_NAME="iOS Build ${{ env.BUILD_MODE }} - ${{ steps.version.outputs.version }}"
           
           echo "🚀 Creating release: $RELEASE_NAME"
-          echo "📁 Using zip file: app/${{ steps.package-app.outputs.zip_path }}"
+          echo "📁 Using zip file: ${{ steps.package-app.outputs.zip_path }}"
           
           # Verify the zip file exists before creating release
-          if [ ! -f "app/${{ steps.package-app.outputs.zip_path }}" ]; then
-            echo "❌ ERROR: Zip file not found at app/${{ steps.package-app.outputs.zip_path }}"
+          if [ ! -f "${{ steps.package-app.outputs.zip_path }}" ]; then
+            echo "❌ ERROR: Zip file not found at ${{ steps.package-app.outputs.zip_path }}"
             echo "🔍 Searching for app_bundle.zip files:"
-            find app -name "app_bundle.zip" -type f 2>/dev/null || true
+            find . -name "app_bundle.zip" -type f 2>/dev/null || true
             exit 1
           fi
           
@@ -310,7 +311,7 @@ jobs:
             --title "$RELEASE_NAME" \
             --notes "Automated iOS build for commit ${{ github.sha }}" \
             --prerelease \
-            "app/${{ steps.package-app.outputs.zip_path }}#iOS-App-${{ env.BUILD_MODE }}.zip"
+            "${{ steps.package-app.outputs.zip_path }}#iOS-App-${{ env.BUILD_MODE }}.zip"
           
           # Get the release asset download URL
           ASSET_URL=$(gh release view "$TAG_NAME" --json assets --jq '.assets[0].url')
