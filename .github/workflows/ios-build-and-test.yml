@@ -4,6 +4,10 @@ permissions:
   contents: read
 
 on:
+  # Trigger on pushes to feature branch (for development/testing)
+  push:
+    branches:
+      - feature/MPT-15220_appium_tests
   # Trigger on pull requests to main branch
   pull_request:
       branches:
