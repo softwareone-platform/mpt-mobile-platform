@@ -168,6 +168,23 @@ runs:
           sleep 1
         done
         
+        # Extract working URLs from Appium logs for WebDriver connection
+        echo "🔍 Extracting Appium connection URLs from logs..."
+        NETWORK_URL=$(grep -E "http://[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:${APPIUM_PORT}/" appium.log | head -1 | sed 's/.*\(http:\/\/[0-9\.]*:[0-9]*\)\/.*/\1/')
+        LOCALHOST_URL="http://127.0.0.1:${APPIUM_PORT}"
+        
+        if [ -n "$NETWORK_URL" ]; then
+          echo "✅ Found network URL: $NETWORK_URL"
+          echo "VERIFIED_APPIUM_URL=$NETWORK_URL" >> $GITHUB_ENV
+        else
+          echo "⚠️ Network URL not found, using localhost"
+          echo "VERIFIED_APPIUM_URL=$LOCALHOST_URL" >> $GITHUB_ENV
+        fi
+        
+        echo "📋 Available Appium URLs for WebDriver:"
+        echo "  - Localhost: $LOCALHOST_URL"
+        [ -n "$NETWORK_URL" ] && echo "  - Network: $NETWORK_URL"
+        
     - name: Verify Appium Server
       shell: bash
       env:
@@ -195,6 +212,7 @@ runs:
         echo "APP_BUNDLE_ID: ${{ env.APP_BUNDLE_ID }}"
         echo "APPIUM_HOST: ${{ env.APPIUM_HOST }}"
         echo "APPIUM_PORT: ${{ env.APPIUM_PORT }}"
+        echo "VERIFIED_APPIUM_URL: ${VERIFIED_APPIUM_URL:-'Not set'}"
         
         echo "Current Simulator Status:"
         xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" || echo "Device not found"
@@ -206,14 +224,62 @@ runs:
           echo "Cannot check app status - simulator not booted"
         fi
         
-        echo "Appium Server Status:"
-        curl -s "http://${{ env.APPIUM_HOST }}:${{ env.APPIUM_PORT }}/status" | jq '.' || echo "Appium server not reachable"
+        echo "Appium Server Status Check:"
+        echo "  Testing default URL: http://${{ env.APPIUM_HOST }}:${{ env.APPIUM_PORT }}/status"
+        curl -s "http://${{ env.APPIUM_HOST }}:${{ env.APPIUM_PORT }}/status" | jq '.' || echo "Default URL not reachable"
+        
+        if [ -n "$VERIFIED_APPIUM_URL" ]; then
+          echo "  Testing verified URL: ${VERIFIED_APPIUM_URL}/status"
+          curl -s "${VERIFIED_APPIUM_URL}/status" | jq '.' || echo "Verified URL not reachable"
+        fi
         
     - name: Run Appium Tests
       shell: bash
       working-directory: ./app
       continue-on-error: false
-      run: npx wdio run wdio.conf.js --suite welcome
+      env:
+        DEVICE_UDID: ${{ inputs.device_uuid }}
+        DEVICE_NAME: ${{ inputs.device_name }}
+        PLATFORM_VERSION: ${{ inputs.ios_version }}
+        APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+        # Use the verified URL components for WebDriver connection
+        APPIUM_HOST: ${{ inputs.appium_host }}
+        APPIUM_PORT: ${{ inputs.appium_port }}
+      run: |
+        echo "🚀 Starting WebDriver tests with verified Appium connection..."
+        
+        # Extract host and port from verified URL if available
+        if [ -n "$VERIFIED_APPIUM_URL" ]; then
+          EXTRACTED_HOST=$(echo "$VERIFIED_APPIUM_URL" | sed 's|http://\([^:]*\):.*|\1|')
+          EXTRACTED_PORT=$(echo "$VERIFIED_APPIUM_URL" | sed 's|.*:\([0-9]*\)|\1|')
+          
+          echo "📡 Using verified connection: $VERIFIED_APPIUM_URL"
+          echo "   Host: $EXTRACTED_HOST"
+          echo "   Port: $EXTRACTED_PORT"
+          
+          export APPIUM_HOST="$EXTRACTED_HOST"
+          export APPIUM_PORT="$EXTRACTED_PORT"
+        fi
+        
+        # Test the connection before running tests
+        echo "🔧 Testing WebDriver connection..."
+        WEBDRIVER_URL="http://${APPIUM_HOST}:${APPIUM_PORT}"
+        if curl -s "$WEBDRIVER_URL/status" > /dev/null; then
+          echo "✅ WebDriver connection test successful: $WEBDRIVER_URL"
+        else
+          echo "❌ WebDriver connection test failed: $WEBDRIVER_URL"
+          echo "Trying localhost fallback..."
+          export APPIUM_HOST="localhost"
+          if curl -s "http://localhost:${APPIUM_PORT}/status" > /dev/null; then
+            echo "✅ Localhost fallback successful"
+          else
+            echo "❌ All connection attempts failed"
+            exit 1
+          fi
+        fi
+        
+        echo "🎯 Running tests with APPIUM_HOST=$APPIUM_HOST APPIUM_PORT=$APPIUM_PORT"
+        npx wdio run wdio.conf.js --suite welcome
         
     - name: Upload Appium logs
       if: always()
