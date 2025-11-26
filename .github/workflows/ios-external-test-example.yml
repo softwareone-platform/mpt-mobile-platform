@@ -6,6 +6,11 @@ permissions:
 
 # Example workflow showing how to use the iOS install template 
 # with an external build download URL
+#
+# To get the download URL from the main build workflow:
+# 1. Run the 'iOS Build and Appium Tests' workflow 
+# 2. Check the build job summary for the release asset URL
+# 3. Use that URL as the download_url input for this workflow
 
 on:
   # Trigger on pushes to feature branch (for development/testing)
@@ -25,10 +30,10 @@ on:
   workflow_dispatch:
     inputs:
       download_url:
-        description: 'Direct download URL for the iOS app bundle'
-        required: false
+        description: 'Direct download URL for the iOS app bundle (example: from GitHub releases or external URL)'
+        required: true
         type: string
-        default: 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-6882ca3543f95469e2def1018c8b44e3c59d16fc-59/iOS-App-Debug.zip'
+        default: 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-bcd19e4375bfe63b520d4df0fb3a15a5d76383f8-60/app_bundle.zip'
       ios_version:
         description: 'iOS platform version for simulator'
         required: false
@@ -55,8 +60,8 @@ jobs:
         id: install-ios
         uses: ./.github/actions/ios-install
         with:
-          # Use specific release when triggered automatically, otherwise use manual input
-          download_url: ${{ inputs.download_url || 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-6882ca3543f95469e2def1018c8b44e3c59d16fc-59/iOS-App-Debug.zip' }}
+          # Use the provided download URL
+          download_url: ${{ inputs.download_url }}
           ios_version: ${{ inputs.ios_version || '26.0' }}
           device_name: ${{ inputs.device_name || 'iPhone 16' }}
           

@@ -70,12 +70,15 @@ exports.config = {
         'appium:noReset': true,
         'appium:fullReset': false,
         'appium:newCommandTimeout': 900,
-        'appium:launchTimeout': 180000,
-        'appium:wdaLaunchTimeout': 180000,
-        'appium:wdaConnectionTimeout': 180000,
-        'appium:wdaStartupRetries': 3,
-        'appium:wdaStartupRetryInterval': 20000,
-        'appium:shouldUseSingletonTestManager': false
+        'appium:launchTimeout': 240000,
+        'appium:wdaLaunchTimeout': 240000,
+        'appium:wdaConnectionTimeout': 240000,
+        'appium:wdaStartupRetries': 4,
+        'appium:wdaStartupRetryInterval': 30000,
+        'appium:shouldUseSingletonTestManager': false,
+        'appium:simpleIsVisibleCheck': true,
+        'appium:usePrebuiltWDA': false,
+        'appium:derivedDataPath': '/tmp/wda-derived-data'
     }],
 
     //

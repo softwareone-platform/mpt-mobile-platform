@@ -108,6 +108,36 @@ runs:
       run: |
         appium driver install xcuitest || echo "Driver already installed"
         appium driver list --installed
+        
+    - name: Pre-build WebDriverAgent for CI
+      shell: bash
+      env:
+        DEVICE_UDID: ${{ inputs.device_uuid }}
+      run: |
+        echo "🔧 Pre-building WebDriverAgent to avoid CI connection issues..."
+        
+        # Get WebDriverAgent path
+        WDA_PATH=$(find ~/.appium/node_modules -name "WebDriverAgent.xcodeproj" 2>/dev/null | head -1)
+        
+        if [ -n "$WDA_PATH" ]; then
+          echo "📁 Found WebDriverAgent at: $WDA_PATH"
+          WDA_DIR=$(dirname "$WDA_PATH")
+          
+          # Pre-build WebDriverAgent for the target simulator
+          echo "🔨 Building WebDriverAgent for simulator..."
+          cd "$WDA_DIR"
+          
+          xcodebuild build-for-testing \
+            -project WebDriverAgent.xcodeproj \
+            -scheme WebDriverAgentRunner \
+            -destination "platform=iOS Simulator,id=${{ env.DEVICE_UDID }}" \
+            -derivedDataPath /tmp/wda-derived-data \
+            -quiet || echo "⚠️ WebDriverAgent pre-build failed, continuing anyway"
+          
+          echo "✅ WebDriverAgent pre-build completed"
+        else
+          echo "⚠️ WebDriverAgent not found, skipping pre-build"
+        fi
 
     - name: Prepare simulator for XCUITest
       shell: bash
@@ -156,6 +186,19 @@ runs:
         # Additional delay for UI services to stabilize
         echo "⏳ Allowing UI services to stabilize..."
         sleep 5
+        
+        # CI-specific: Ensure Simulator UI is visible for WebDriverAgent
+        echo "📺 Ensuring Simulator UI is visible for WebDriverAgent..."
+        open -a Simulator.app --args -CurrentDeviceUDID "${{ env.DEVICE_UDID }}" || true
+        sleep 3
+        
+        # Verify simulator UI is properly visible
+        echo "🔍 Verifying Simulator UI state..."
+        if pgrep -f "Simulator.app" > /dev/null; then
+          echo "✅ Simulator UI is running"
+        else
+          echo "⚠️ WARNING: Simulator UI may not be visible"
+        fi
         
         # Verify app is still installed after reset
         if xcrun simctl listapps "${{ env.DEVICE_UDID }}" 2>/dev/null | grep -q "${{ env.APP_BUNDLE_ID }}"; then
@@ -309,6 +352,13 @@ runs:
         fi
         
         echo "🎯 Running tests with APPIUM_HOST=$APPIUM_HOST APPIUM_PORT=$APPIUM_PORT"
+        echo "📋 WebDriverIO Environment Variables:"
+        echo "   DEVICE_UDID: $DEVICE_UDID"
+        echo "   DEVICE_NAME: $DEVICE_NAME"
+        echo "   PLATFORM_VERSION: $PLATFORM_VERSION"
+        echo "   APP_BUNDLE_ID: $APP_BUNDLE_ID"
+        echo "   APPIUM_HOST: $APPIUM_HOST"
+        echo "   APPIUM_PORT: $APPIUM_PORT"
         npx wdio run wdio.conf.js --suite welcome
         
     - name: Upload Appium logs
