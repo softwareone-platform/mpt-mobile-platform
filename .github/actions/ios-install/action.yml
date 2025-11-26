@@ -181,13 +181,69 @@ runs:
         echo "device_udid=$UDID" >> $GITHUB_OUTPUT
         echo "✅ Found simulator: $DEVICE_NAME ($UDID)"
         
-        # Boot the simulator
+        # Boot the simulator with timeout protection
         echo "🚀 Booting simulator..."
-        xcrun simctl boot $UDID 2>/dev/null || echo "Simulator already booted"
+        xcrun simctl boot $UDID 2>/dev/null || echo "Simulator already booted or boot command completed"
         
-        # Wait for boot to complete
-        echo "⏳ Waiting for simulator to boot..."
-        xcrun simctl bootstatus $UDID -b
+        # Wait for boot to complete with timeout and fallback strategy
+        echo "⏳ Waiting for simulator to boot (timeout: 180 seconds)..."
+        
+        BOOT_TIMEOUT=180
+        BOOT_SUCCESS=false
+        
+        for i in $(seq 1 $BOOT_TIMEOUT); do
+          # Check if simulator is booted
+          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
+          if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+            BOOT_SUCCESS=true
+            echo "✅ Simulator booted successfully after ${i} seconds"
+            break
+          fi
+          
+          # Progress indicator every 10 seconds
+          if [ $((i % 10)) -eq 0 ]; then
+            echo "⏳ Still waiting... (${i}/${BOOT_TIMEOUT} seconds)"
+            echo "Current status: $SIMULATOR_STATUS"
+          fi
+          
+          sleep 1
+        done
+        
+        if [ "$BOOT_SUCCESS" = false ]; then
+          echo "❌ ERROR: Simulator failed to boot within $BOOT_TIMEOUT seconds"
+          echo "Final status: $(xcrun simctl list devices | grep "$UDID" | head -1)"
+          echo ""
+          echo "🔧 Attempting recovery..."
+          
+          # Try to shutdown and reboot once
+          echo "🔄 Shutting down simulator..."
+          xcrun simctl shutdown $UDID || true
+          sleep 5
+          
+          echo "🚀 Attempting second boot..."
+          xcrun simctl boot $UDID
+          
+          # Give it one more chance with shorter timeout
+          echo "⏳ Final boot attempt (60 seconds timeout)..."
+          FINAL_TIMEOUT=60
+          FINAL_SUCCESS=false
+          
+          for i in $(seq 1 $FINAL_TIMEOUT); do
+            SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$UDID" | head -1)
+            if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+              FINAL_SUCCESS=true
+              echo "✅ Simulator recovered and booted after ${i} seconds"
+              break
+            fi
+            sleep 1
+          done
+          
+          if [ "$FINAL_SUCCESS" = false ]; then
+            echo "❌ FATAL: Simulator boot failed completely"
+            echo "This might be a CI environment issue with iOS simulators"
+            exit 1
+          fi
+        fi
         
         # Double-check simulator status and ensure it's ready for testing
         echo "🔍 Final verification that simulator is ready..."
@@ -197,7 +253,7 @@ runs:
         if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
           echo "✅ Simulator is booted and ready for testing"
         else
-          echo "❌ ERROR: Simulator failed to boot properly"
+          echo "❌ ERROR: Simulator failed to reach booted state"
           echo "Current status: $SIMULATOR_STATUS"
           exit 1
         fi
