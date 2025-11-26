@@ -226,6 +226,8 @@ jobs:
           APP_DIR=$(basename "${{ steps.find-artifacts.outputs.app_path }}")
           
           echo "📦 Creating app bundle zip from: $APP_DIR"
+          echo "📍 Current directory: $(pwd)"
+          echo "📍 Full BUILD_DIR path: $(realpath .)"
           zip -r app_bundle.zip "$APP_DIR"
           
           echo "✅ App bundle created at: $(pwd)/app_bundle.zip"
@@ -234,6 +236,7 @@ jobs:
           # Verify the zip file was created
           if [ -f app_bundle.zip ]; then
             echo "🎯 Zip file verified: $(ls -lh app_bundle.zip)"
+            echo "🎯 Absolute path: $(realpath app_bundle.zip)"
           else
             echo "❌ ERROR: app_bundle.zip was not created"
             exit 1
@@ -297,6 +300,8 @@ jobs:
           # Verify the zip file exists before creating release
           if [ ! -f "app/${{ steps.package-app.outputs.zip_path }}" ]; then
             echo "❌ ERROR: Zip file not found at app/${{ steps.package-app.outputs.zip_path }}"
+            echo "🔍 Searching for app_bundle.zip files:"
+            find app -name "app_bundle.zip" -type f 2>/dev/null || true
             exit 1
           fi
           
