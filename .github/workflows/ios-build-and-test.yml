@@ -1,7 +1,8 @@
 name: iOS Build and Appium Tests
 
 permissions:
-  contents: read
+  contents: write  # Required for creating releases
+  actions: read    # Required for downloading artifacts
 
 on:
   # Trigger on pushes to feature branch (for development/testing)
