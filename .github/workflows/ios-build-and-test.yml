@@ -256,7 +256,7 @@ jobs:
       # Install phase using composite action template
       - name: Install iOS App
         id: install-ios
-        uses: ./.github/workflows/ios-install-template.yml
+        uses: ./.github/actions/ios-install
         with:
           artifact_name: ${{ needs.build-ios.outputs.artifact_name }}
           ios_version: ${{ inputs.platform-version || '26.0' }}
@@ -264,7 +264,7 @@ jobs:
           
       # Test phase using composite action template  
       - name: Test iOS App
-        uses: ./.github/workflows/ios-testing-template.yml
+        uses: ./.github/actions/ios-test
         with:
           device_uuid: ${{ steps.install-ios.outputs.device_udid }}
           ios_version: ${{ inputs.platform-version || '26.0' }}

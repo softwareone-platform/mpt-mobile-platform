@@ -33,23 +33,32 @@ on:
         default: 'iPhone 16'
 
 jobs:
-  install-external-ios:
-    name: Install External iOS Build
-    uses: ./.github/workflows/ios-install-template.yml
-    with:
-      # Use URL-specific default when triggered by pull_request, otherwise use manual input
-      download_url: ${{ github.event_name == 'pull_request' && 'https://productionresultssa13.blob.core.windows.net/actions-results/00c40a20-3d7a-4e25-8222-dc855900d351/workflow-job-run-acbec018-d8a4-5e0e-b3bf-5d16122c147c/artifacts/7fffab548faf1e177fac2bff09815a07a51f7c3c001511451cbe805a17b4cf95.zip' || inputs.download_url }}
-      ios_version: ${{ inputs.ios_version || '26.0' }}
-      device_name: ${{ inputs.device_name || 'iPhone 16' }}
-
-  test-external-ios:
-    needs: install-external-ios
-    uses: ./.github/workflows/ios-testing-template.yml
-    with:
-      device_uuid: ${{ needs.install-external-ios.outputs.device_udid }}
-      ios_version: ${{ inputs.ios_version }}
-      device_name: ${{ inputs.device_name }}
-      node_version: '20'
-      appium_version: '3.1.1'
-    secrets:
-      APP_BUNDLE_ID: com.softwareone.marketplaceMobile
+  install-and-test-external-ios:
+    name: Install and Test External iOS Build
+    runs-on: macos-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Install phase using composite action template
+      - name: Install External iOS App
+        id: install-ios
+        uses: ./.github/actions/ios-install
+        with:
+          # Use URL-specific default when triggered by pull_request, otherwise use manual input
+          download_url: ${{ github.event_name == 'pull_request' && 'https://productionresultssa13.blob.core.windows.net/actions-results/00c40a20-3d7a-4e25-8222-dc855900d351/workflow-job-run-acbec018-d8a4-5e0e-b3bf-5d16122c147c/artifacts/7fffab548faf1e177fac2bff09815a07a51f7c3c001511451cbe805a17b4cf95.zip' || inputs.download_url }}
+          ios_version: ${{ inputs.ios_version || '26.0' }}
+          device_name: ${{ inputs.device_name || 'iPhone 16' }}
+          
+      # Test phase using composite action template  
+      - name: Test External iOS App
+        uses: ./.github/actions/ios-test
+        with:
+          device_uuid: ${{ steps.install-ios.outputs.device_udid }}
+          ios_version: ${{ inputs.ios_version || '26.0' }}
+          device_name: ${{ inputs.device_name || 'iPhone 16' }}
+          node_version: '20'
+          appium_version: '3.1.1'
+          app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
