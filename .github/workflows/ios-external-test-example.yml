@@ -33,7 +33,7 @@ on:
         description: 'Direct download URL for the iOS app bundle (example: from GitHub releases or external URL)'
         required: true
         type: string
-        default: 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-bcd19e4375bfe63b520d4df0fb3a15a5d76383f8-60/app_bundle.zip'
+        default: 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Release-95c0d81527e369c3acfda2bc040cf7a400d5e3f9-64/app_bundle.zip'
       ios_version:
         description: 'iOS platform version for simulator'
         required: false
@@ -61,7 +61,7 @@ jobs:
         uses: ./.github/actions/ios-install
         with:
           # Use the provided download URL, or default for automatic triggers
-          download_url: ${{ inputs.download_url || 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Debug-bcd19e4375bfe63b520d4df0fb3a15a5d76383f8-60/app_bundle.zip' }}
+          download_url: ${{ inputs.download_url || 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Release-95c0d81527e369c3acfda2bc040cf7a400d5e3f9-64/app_bundle.zip' }}
           ios_version: ${{ inputs.ios_version || '26.0' }}
           device_name: ${{ inputs.device_name || 'iPhone 16' }}
           
