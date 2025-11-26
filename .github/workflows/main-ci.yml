@@ -27,9 +27,14 @@ jobs:
       build-mode: 'Debug'
       create-archive: false
 
+  build-android:
+    name: Build Android
+    needs: validate
+    uses: ./.github/workflows/android-build.yml
+
   build-summary:
     name: Build Summary
-    needs: [validate, build-ios]
+    needs: [validate, build-ios, build-android]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -52,16 +57,25 @@ jobs:
             echo "❌ **iOS Build:** Failed" >> $GITHUB_STEP_SUMMARY
           fi
 
+          # Android build status
+          if [ "${{ needs.build-android.result }}" == "success" ]; then
+            echo "✅ **Android Build:** Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Android Build:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Completed Steps:" >> $GITHUB_STEP_SUMMARY
           echo "- Code linting (ESLint)" >> $GITHUB_STEP_SUMMARY
           echo "- Unit tests (Jest)" >> $GITHUB_STEP_SUMMARY
           echo "- Dependencies validation" >> $GITHUB_STEP_SUMMARY
           echo "- iOS build verification (Debug mode)" >> $GITHUB_STEP_SUMMARY
+          echo "- Android build verification (Debug APK)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "- 🚀 To deploy to TestFlight, trigger the **iOS TestFlight Deployment** workflow manually" >> $GITHUB_STEP_SUMMARY
           echo "- 📱 iOS .app artifact available for download (7 days)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🤖 Android .apk artifact available for download (7 days)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY

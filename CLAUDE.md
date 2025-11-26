@@ -11,6 +11,21 @@ MPT Mobile Platform is a React Native Expo mobile application for iOS and Androi
 - React 19.1.0 with New Architecture enabled
 - TypeScript 5.9.2 (strict mode)
 - Jest for testing
+- React Navigation v7 for navigation
+- Axios for API calls
+- i18next for internationalization
+- Auth0 for authentication
+
+**Key Dependencies:**
+- **Navigation**: `@react-navigation/native`, `@react-navigation/bottom-tabs`, `@react-navigation/stack`
+- **Authentication**: `react-native-auth0`, `expo-secure-store`, `jwt-decode`
+- **API**: `axios`
+- **State Management**: React Context API (built-in)
+- **i18n**: `i18next`, `react-i18next`
+- **Environment**: `dotenv`, `react-native-dotenv`
+- **UI**: `@expo/vector-icons`, `expo-linear-gradient`, `react-native-svg`, `jdenticon`
+- **Storage**: `@react-native-async-storage/async-storage`
+- **Development**: `@typescript-eslint/*`, `eslint-plugin-react*`, `babel-jest`
 
 ## Project Structure
 
@@ -19,13 +34,63 @@ All source code lives in the `app/` directory:
 ```
 app/
 ├── src/
-│   ├── config/feature-flags/    # Feature flag system (JSON-based, type-safe)
-│   ├── utils/                   # Utility functions
-│   └── __tests__/               # Test files (colocated with source)
-├── assets/                      # Static assets (icons, splash screens)
-├── App.tsx                      # Root component
-├── index.ts                     # Expo entry point
-└── [config files]               # babel, jest, eslint, tsconfig, metro
+│   ├── components/              # Reusable UI components
+│   │   ├── auth/               # Authentication components (AuthButton, OTPInput, etc.)
+│   │   ├── navigation/         # Navigation components (stacks, tabs)
+│   │   ├── common/             # Common components (DynamicIcon, Avatar, etc.)
+│   │   ├── tabs/               # Tab components
+│   │   ├── tab-item/           # Tab item components
+│   │   ├── navigation-item/    # Navigation item components
+│   │   ├── list-item/          # List item components
+│   │   ├── avatar/             # Avatar components
+│   │   └── account-summary/    # Account summary components
+│   ├── config/                 # Configuration files
+│   │   ├── feature-flags/      # Feature flag system (JSON-based, type-safe)
+│   │   └── env.config.ts       # Environment configuration service
+│   ├── context/                # React Context providers
+│   │   ├── AuthContext.tsx     # Authentication state management
+│   │   └── NavigationContext.tsx # Navigation state management
+│   ├── screens/                # Screen components
+│   │   ├── auth/               # Auth screens (Welcome, OTP verification)
+│   │   ├── account/            # Account screens (Profile, Settings)
+│   │   ├── spotlight/          # Spotlight screen
+│   │   ├── loading/            # Loading screen
+│   │   ├── agreements/         # Agreements screen
+│   │   ├── invoices/           # Invoices screen
+│   │   ├── orders/             # Orders screen
+│   │   ├── credit-memos/       # Credit memos screen
+│   │   ├── statements/         # Statements screen
+│   │   └── subscriptions/      # Subscriptions screen
+│   ├── services/               # API and business logic services
+│   │   ├── authService.ts      # Auth0 authentication service
+│   │   └── accountService.ts   # Account management service
+│   ├── lib/                    # Core libraries
+│   │   ├── apiClient.ts        # Axios API client
+│   │   └── tokenProvider.ts    # Token management
+│   ├── hooks/                  # Custom React hooks
+│   │   └── useApi.ts           # API hook for data fetching
+│   ├── styles/                 # Design system and styles
+│   │   ├── tokens/             # Design tokens (colors, typography, spacing, shadows)
+│   │   ├── components/         # Component styles
+│   │   └── theme/              # Theme configuration
+│   ├── i18n/                   # Internationalization
+│   │   ├── en.json             # English translations
+│   │   └── index.js            # i18next configuration
+│   ├── types/                  # TypeScript type definitions
+│   │   ├── navigation.ts       # Navigation types
+│   │   └── api.ts              # API types
+│   ├── constants/              # App constants
+│   │   ├── auth.ts             # Auth constants
+│   │   └── api.ts              # API constants
+│   ├── utils/                  # Utility functions
+│   │   ├── validation.ts       # Input validation
+│   │   ├── apiError.ts         # API error handling
+│   │   └── image.ts            # Image utilities
+│   └── __tests__/              # Test files (colocated with source)
+├── assets/                     # Static assets (icons, splash screens)
+├── App.tsx                     # Root component
+├── index.ts                    # Expo entry point
+└── [config files]              # babel, jest, eslint, tsconfig, metro
 ```
 
 ## Development Commands
@@ -189,10 +254,11 @@ The project uses GitHub Actions for continuous integration and deployment.
 **Main Branch Workflow** (`.github/workflows/main-ci.yml`)
 - Triggers on push to `main` branch
 - Runs validation (lint + tests) on Ubuntu runners
-- **Automatically builds iOS app** after validation succeeds
-- Ensures main branch always has working iOS build
+- **Automatically builds iOS and Android apps in parallel** after validation succeeds
+- Ensures main branch always has working builds for both platforms
 - Creates iOS .app artifact (7-day retention)
-- Uses Ubuntu for validation, macOS-14 for iOS build
+- Creates Android .apk artifact (7-day retention)
+- Uses Ubuntu for validation and Android build, macOS-14 for iOS build
 
 **iOS Build Workflow** (`.github/workflows/ios-build.yml`)
 - **Triggers:** Manual dispatch OR called by main-ci.yml
@@ -203,7 +269,19 @@ The project uses GitHub Actions for continuous integration and deployment.
 - Uploads .app artifact (7-day retention)
 - Does NOT deploy to TestFlight
 - Does NOT increment version numbers
-- **Automatically runs on main branch** after validation passes
+- **Automatically runs on main branch** after validation passes (in parallel with Android)
+- Can also be triggered manually for testing
+
+**Android Build Workflow** (`.github/workflows/android-build.yml`)
+- **Triggers:** Manual dispatch OR called by main-ci.yml
+- Uses Ubuntu runners (cost-effective)
+- **Purpose:** Build verification only
+- Builds Android APK in Debug mode
+- Creates unsigned Debug APK for verification
+- Uploads .apk artifact (7-day retention)
+- Does NOT build Release or AAB (App Bundle)
+- Does NOT sign for production
+- **Automatically runs on main branch** after validation passes (in parallel with iOS)
 - Can also be triggered manually for testing
 
 **iOS TestFlight Workflow** (`.github/workflows/ios-testflight.yml`)
@@ -225,15 +303,16 @@ The project uses GitHub Actions for continuous integration and deployment.
 - Jest tests with coverage
 - Coverage artifact upload
 
-### Running iOS Builds
+### Running Builds
 
-**When iOS Build runs automatically:**
+**When builds run automatically:**
 - **Every push to `main` branch** (after validation passes)
-- Ensures main branch always has working iOS build
-- Creates .app artifact for every main branch commit
+- iOS and Android builds run **in parallel** to save time
+- Ensures main branch always has working builds for both platforms
+- Creates .app artifact (iOS) and .apk artifact (Android) for every main branch commit
 
-**When to trigger iOS Build manually:**
-- Testing if code compiles for iOS on feature branches
+**When to trigger builds manually:**
+- Testing if code compiles for iOS/Android on feature branches
 - Verifying build succeeds before creating PR
 - Creating test artifacts without deployment
 - Testing build configuration changes
@@ -246,6 +325,13 @@ The project uses GitHub Actions for continuous integration and deployment.
 5. Choose whether to create archive
 6. Monitor progress (~20-30 minutes on macOS runners)
 7. Download .app artifact from workflow run
+
+**To manually trigger an Android build:**
+1. Go to GitHub Actions tab
+2. Select "Android Build" workflow
+3. Click "Run workflow"
+4. Monitor progress (~15-20 minutes on Ubuntu runners)
+5. Download .apk artifact from workflow run
 
 **When to use iOS TestFlight workflow (deployment):**
 - Ready to deploy to testers
@@ -261,20 +347,23 @@ The project uses GitHub Actions for continuous integration and deployment.
 6. Monitor progress (~30-45 minutes on macOS runners)
 7. Check App Store Connect for the build after 10-15 minutes
 
-**Key Differences:**
+**Build Comparison:**
 
-| Feature | iOS Build | iOS TestFlight |
-|---------|-----------|----------------|
-| **Trigger** | Auto on `main` + Manual | Manual only |
-| **Purpose** | Verification only | Full deployment |
-| **Code Signing** | No (unsigned) | Yes (App Store) |
-| **TestFlight Upload** | No | Yes |
-| **Version Bump** | No | Yes |
-| **Git Tag** | No | Yes |
-| **Artifact Retention** | 7 days | 30 days |
-| **Requires Secrets** | No | Yes (TestFlight env) |
-| **Duration** | ~20-30 min | ~30-45 min |
-| **Runs on Main** | ✅ Always | ❌ Never |
+| Feature | iOS Build | Android Build | iOS TestFlight |
+|---------|-----------|---------------|----------------|
+| **Trigger** | Auto on `main` + Manual | Auto on `main` + Manual | Manual only |
+| **Purpose** | Verification only | Verification only | Full deployment |
+| **Runner** | macOS-14 | Ubuntu (cost-effective) | macOS-14 |
+| **Build Mode** | Debug or Release | Debug only | Release |
+| **Code Signing** | No (unsigned) | No (unsigned) | Yes (App Store) |
+| **Artifact** | .app file | .apk file | .ipa + dSYMs |
+| **Deployment** | No | No | Yes (TestFlight) |
+| **Version Bump** | No | No | Yes |
+| **Git Tag** | No | No | Yes |
+| **Artifact Retention** | 7 days | 7 days | 30 days |
+| **Requires Secrets** | No | No | Yes (TestFlight env) |
+| **Duration** | ~20-30 min | ~15-20 min | ~30-45 min |
+| **Runs on Main** | ✅ Parallel | ✅ Parallel | ❌ Never |
 
 ### Caching Strategy
 
@@ -287,6 +376,11 @@ The project uses GitHub Actions for continuous integration and deployment.
 - Cache key: `${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}`
 - Cached paths: `ios/Pods`, `~/Library/Caches/CocoaPods`
 - Reduces iOS build time
+
+**Gradle (Android builds):**
+- Cache key: `${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}`
+- Cached paths: `~/.gradle/caches`, `~/.gradle/wrapper`, `./app/android/.gradle`
+- Reduces Android build time significantly
 
 ### TestFlight Deployment
 
@@ -389,6 +483,44 @@ import something from '@config';                // src/config
 import '@env';                                  // .env file access
 ```
 
+### Design System
+
+The project uses a comprehensive design system with design tokens and component styles:
+
+**Design Tokens** (`app/src/styles/tokens/`):
+- **Colors**: Brand colors, text colors, background colors, status colors
+- **Typography**: Font families, sizes, weights, line heights
+- **Spacing**: Consistent spacing scale (xs, sm, md, lg, xl, etc.)
+- **Shadows**: Elevation shadows for depth
+- **Border Radius**: Consistent corner rounding
+
+**Component Styles** (`app/src/styles/components/`):
+- Button styles (primary, secondary, disabled states)
+- Input styles (text inputs, OTP input)
+- Card styles
+- Common layout styles
+- OTP verification screen styles
+
+**Usage:**
+```typescript
+import { colors, typography, spacing } from '@/styles';
+import { buttonStyles } from '@/styles/components';
+
+// Use design tokens in StyleSheet
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.background.primary,
+    padding: spacing.md,
+  },
+  title: {
+    ...typography.heading1,
+    color: colors.text.primary,
+  },
+});
+```
+
+See `app/src/styles/README.md` for comprehensive design system documentation.
+
 ### Feature Flags
 
 Feature flags are type-safe and JSON-configured:
@@ -404,20 +536,177 @@ if (isFeatureEnabled('FEATURE_TEST')) {
 
 Add new flags in `app/src/config/feature-flags/featureFlags.json`.
 
-### State Management (Planned)
+### State Management
 
-React Context API will be used for global state:
-- **AuthContext**: Authentication state, tokens, user profile
-- **AppContext**: App-wide settings (theme, language)
+React Context API for global state management:
 
-No Redux/MobX - keeping it simple with built-in Context.
+**AuthContext** (`app/src/context/AuthContext.tsx`):
+- Authentication state (logged in/out)
+- User credentials and tokens
+- Login/logout methods
+- Token refresh handling
+- Auth0 integration
 
-### Navigation (Planned)
+**NavigationContext** (`app/src/context/NavigationContext.tsx`):
+- Current tab state
+- Navigation helpers
+- Tab switching logic
 
-React Navigation v7 with tab-based structure:
-- 5 main tabs: Spotlight, Search, Chat, Service Desk, Analytics
-- Stack navigators within tabs for nested screens
-- Auth flow guards (logged-out vs. logged-in screens)
+**Usage:**
+```typescript
+import { useAuth } from '@/context/AuthContext';
+
+function MyComponent() {
+  const { user, isAuthenticated, login, logout } = useAuth();
+  // Use auth state and methods
+}
+```
+
+No Redux/MobX - keeping it simple with built-in Context API.
+
+### Navigation
+
+React Navigation v7 with stack and tab-based navigation structure:
+
+**AuthStack** (`app/src/components/navigation/AuthStack.tsx`):
+- Welcome screen (email input)
+- OTP verification screen
+- Handles unauthenticated user flow
+
+**MainTabs** (`app/src/components/navigation/MainTabs.tsx`):
+- Bottom tab navigation for authenticated users
+- Currently: Spotlight tab (more tabs planned)
+
+**SecondaryTabs** (`app/src/components/navigation/SecondaryTabs.tsx`):
+- Nested tabs within Spotlight screen
+- Tabs: Agreements, Invoices, Orders, Credit Memos, Statements, Subscriptions
+- Top tab bar with Material-style design
+
+**ProfileStack** (`app/src/components/navigation/ProfileStack.tsx`):
+- Profile screen
+- User settings screen
+- Account management flow
+
+**Navigation Flow:**
+1. Unauthenticated users → AuthStack (Welcome → OTP)
+2. Authenticated users → MainTabs → Spotlight → SecondaryTabs
+3. Profile access via AccountToolbarButton → ProfileStack
+
+**Type-Safe Navigation:**
+```typescript
+// Define navigation types in app/src/types/navigation.ts
+type RootStackParamList = {
+  Auth: undefined;
+  Main: undefined;
+};
+
+// Use typed navigation
+import { useNavigation } from '@react-navigation/native';
+const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+```
+
+### API Integration
+
+Axios-based API client with authentication and error handling:
+
+**API Client** (`app/src/lib/apiClient.ts`):
+- Axios instance with base configuration
+- Request/response interceptors
+- Automatic token injection
+- Error handling and transformation
+
+**Token Provider** (`app/src/lib/tokenProvider.ts`):
+- Retrieves access tokens from AuthContext
+- Handles token refresh
+- Secure token storage
+
+**useApi Hook** (`app/src/hooks/useApi.ts`):
+- Custom hook for API calls
+- Handles loading states
+- Error handling
+- Type-safe responses
+
+**API Services** (`app/src/services/`):
+- `authService.ts`: Auth0 authentication methods
+- `accountService.ts`: Account management API calls
+
+**Usage:**
+```typescript
+import { useApi } from '@/hooks/useApi';
+import { getAccounts } from '@/services/accountService';
+
+function MyComponent() {
+  const { data, loading, error } = useApi(getAccounts);
+
+  if (loading) return <LoadingScreen />;
+  if (error) return <ErrorView error={error} />;
+
+  return <AccountList accounts={data} />;
+}
+```
+
+**API Types** (`app/src/types/api.ts`):
+- Type definitions for API requests/responses
+- Error types
+- Account types
+
+### Internationalization (i18n)
+
+i18next integration for multi-language support:
+
+**Configuration** (`app/src/i18n/index.js`):
+- i18next setup with react-i18next
+- Language detection
+- Resource loading
+
+**Translations** (`app/src/i18n/`):
+- `en.json`: English translations (default)
+- Organized by feature/screen
+
+**Usage:**
+```typescript
+import { useTranslation } from 'react-i18next';
+
+function MyComponent() {
+  const { t } = useTranslation();
+
+  return (
+    <Text>{t('welcome.title')}</Text>
+  );
+}
+```
+
+**Adding Translations:**
+1. Add key-value pairs to `app/src/i18n/en.json`
+2. Use the `t()` function to access translations
+3. Support for interpolation, pluralization, and formatting
+
+### Environment Configuration
+
+Type-safe environment configuration service:
+
+**Config Service** (`app/src/config/env.config.ts`):
+- Centralized environment variable access
+- Type-safe configuration getters
+- Validation of required variables
+- Default values for optional variables
+
+**Usage:**
+```typescript
+import { getAuth0Config, getApiConfig } from '@/config/env.config';
+
+const auth0Config = getAuth0Config();
+// { domain, clientId, audience, scope, apiUrl, otpDigits, scheme }
+
+const apiConfig = getApiConfig();
+// { baseUrl, timeout }
+```
+
+**Environment Variables** (`.env`):
+- Auth0 configuration
+- API endpoints
+- Feature flags
+- See `.env.example` for all available variables
 
 ### Platform-Specific Code
 
@@ -442,20 +731,92 @@ import { isLiquidGlassSupported } from '@/utils/platformUtils';
 - Utilities/helpers: camelCase (`platformUtils.ts`)
 - Test files: `*.test.ts` or `*.test.tsx`
 - Config files: kebab-case (`feature-flags.json`)
+- Context files: PascalCase with `Context` suffix (`AuthContext.tsx`)
+- Service files: camelCase with `Service` suffix (`authService.ts`)
+- Hook files: camelCase with `use` prefix (`useApi.ts`)
 
 ### Import Order
 1. React/React Native imports
-2. Third-party libraries
-3. Local imports (use aliases)
+2. Third-party libraries (navigation, i18n, etc.)
+3. Local imports using aliases (@config, @components, etc.)
 4. Types/interfaces
-5. Styles
+5. Styles (design tokens and component styles)
+
+Example:
+```typescript
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+
+import { useAuth } from '@/context/AuthContext';
+import { AuthButton } from '@/components/auth';
+import { colors, spacing, typography } from '@/styles';
+
+import type { NavigationProp } from '@/types/navigation';
+```
+
+### Component Structure
+
+Follow this structure for React components:
+
+```typescript
+// 1. Imports
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+// 2. Types/Interfaces
+interface Props {
+  title: string;
+  onPress: () => void;
+}
+
+// 3. Component
+export function MyComponent({ title, onPress }: Props) {
+  // Hooks
+  const { t } = useTranslation();
+
+  // State
+  const [loading, setLoading] = React.useState(false);
+
+  // Effects
+  React.useEffect(() => {
+    // Effect logic
+  }, []);
+
+  // Handlers
+  const handlePress = () => {
+    onPress();
+  };
+
+  // Render
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{title}</Text>
+    </View>
+  );
+}
+
+// 4. Styles
+const styles = StyleSheet.create({
+  container: {
+    padding: spacing.md,
+  },
+  title: {
+    ...typography.heading1,
+    color: colors.text.primary,
+  },
+});
+```
 
 ### ESLint Rules
 - No unused variables (warning)
 - React hooks rules enforced
-- No inline styles (warning) - prefer StyleSheet
-- No color literals (warning) - use design tokens/constants
+- No inline styles (warning) - prefer StyleSheet with design tokens
+- No color literals (warning) - use design tokens from `@/styles`
+- No hardcoded strings (warning) - use i18n translations
 - TypeScript over PropTypes
+- Prefer named exports over default exports
 
 ## Bundle Identifiers
 
@@ -467,10 +828,18 @@ These must match Auth0 dashboard configuration.
 ## Important Notes
 
 1. **New Architecture Enabled**: React 19 with New Architecture (`newArchEnabled: true` in `app.json`)
-3. **Zscaler Users**: Ensure Zscaler policies are up-to-date for corporate environments
-4. **Node Version**: Use Node.js LTS (20.19.4+)
-5. **Android Emulator**: Must be running before `npm run android`
-6. **iOS Builds**: Require Xcode and iOS Simulator
+2. **Design System**: Always use design tokens from `@/styles` instead of hardcoded values
+3. **Internationalization**: Use i18n translations (`t()` function) instead of hardcoded strings
+4. **Environment Variables**: Use the config service (`@/config/env.config`) for type-safe environment access
+5. **API Calls**: Use the `useApi` hook or API client from `@/lib/apiClient` for all HTTP requests
+6. **Authentication**: Auth0 is fully integrated - use `useAuth` hook for auth state and methods
+7. **Navigation**: Use typed navigation helpers from `@/types/navigation` for type safety
+8. **Testing**: Write tests for all new components, utilities, and services
+9. **Zscaler Users**: Ensure Zscaler policies are up-to-date for corporate environments
+10. **Node Version**: Use Node.js LTS (20.19.4+)
+11. **Android Emulator**: Must be running before `npm run android`
+12. **iOS Builds**: Require Xcode and iOS Simulator
+13. **Version**: Current app version is 4.0.0 (see `app/package.json`)
 
 ## Git Workflow
 
@@ -489,24 +858,99 @@ See `.github/CODEOWNERS` for code review assignments.
 ## Current Development Status
 
 **Completed:**
+
+*Infrastructure & Tooling:*
 - Project foundation with Expo & React Native
-- TypeScript, ESLint, Jest configuration
-- Feature flag system
-- Environment setup
+- TypeScript, ESLint, Jest configuration with coverage reporting
+- Feature flag system (JSON-based, type-safe)
+- Environment configuration service
 - Path aliases and module resolution
 - Local development scripts (deploy-ios.sh, hot-reload.sh, cleanup.sh)
-- CI/CD workflows (PR build, main branch CI, iOS build)
+- CI/CD workflows (PR build, main branch CI, iOS build, iOS TestFlight)
 - Dependency caching for npm and CocoaPods
 
+*Design System:*
+- Design tokens (colors, typography, spacing, shadows, border radius)
+- Component styles (buttons, inputs, cards, OTP input)
+- Theme system with comprehensive documentation
+
+*Authentication & Authorization:*
+- Auth0 integration with passwordless authentication
+- OTP verification flow
+- Welcome screen with email input
+- Loading states for auth flow
+- Auth0 error handling and user feedback
+- Token management and refresh
+- Secure token storage with expo-secure-store
+
+*Navigation:*
+- React Navigation v7 setup
+- AuthStack (Welcome → OTP verification)
+- MainTabs (bottom tab navigation)
+- SecondaryTabs (nested tabs in Spotlight)
+- ProfileStack (Profile and User Settings)
+- NavigationContext for state management
+- Type-safe navigation with TypeScript
+
+*State Management:*
+- AuthContext (authentication state, tokens, user profile)
+- NavigationContext (tab state and helpers)
+- Context-based architecture (no Redux/MobX)
+
+*API Integration:*
+- Axios-based API client with interceptors
+- Token provider for authentication
+- useApi custom hook for data fetching
+- API error handling utilities
+- Account service for account management
+- Type-safe API types
+
+*Screens:*
+- Authentication: Welcome, OTP Verification, Loading
+- Account: Profile, User Settings
+- Spotlight: Main screen with nested tabs
+- Spotlight Tabs: Agreements, Invoices, Orders, Credit Memos, Statements, Subscriptions
+
+*Components:*
+- Auth components: AuthButton, AuthInput, AuthLayout, OTPInput
+- Navigation components: MainTabs, SecondaryTabs, stacks, AccountToolbarButton
+- Common components: DynamicIcon, JdenticonIcon, LinearGradient, OutlinedIcon, Avatar
+- Tab components: Tabs, TabItem
+- List components: ListItemWithImage
+- Account components: AccountSummary
+
+*Utilities & Services:*
+- Input validation utilities
+- API error handling utilities
+- Image utilities
+- Auth service (Auth0 integration)
+- Account service (API integration)
+
+*Internationalization:*
+- i18next integration
+- English translations (en.json)
+- Translation utilities and hooks
+
+*Testing:*
+- Jest configuration with coverage reporting
+- Test utilities and mocks
+- Component tests (OTPInput, screens)
+- Service tests (API client, token provider, auth service)
+- Utility tests (validation, API errors, image utilities)
+
 **In Progress:**
-- Auth0 integration
-- Navigation implementation
-- Core screens and components
+- Additional main tabs (Search, Chat, Service Desk, Analytics)
+- API integration for all services
+- Enhanced error handling and retry logic
+- Deep linking support
 
 **Planned:**
-- State management (Context API)
-- API service layer
 - Multi-account support
 - Real-time data sync
-- SonarCloud integration
-- App Store Connect deployment automation
+- SonarCloud integration and quality gates
+- Android build and deployment workflows
+- Additional language translations
+- Offline mode support
+- Push notifications
+- Biometric authentication
+- App analytics and monitoring

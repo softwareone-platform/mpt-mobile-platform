@@ -1,0 +1,153 @@
+name: Android Build
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+
+  # Reusable workflow (called from other workflows)
+  workflow_call:
+
+jobs:
+  build-android:
+    name: Build Android App
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: ./app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            ./app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        id: gradle-cache
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ./app/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env file
+        run: |
+          cat > .env <<EOF
+          # Auth0 Configuration (Build Verification)
+          AUTH0_DOMAIN=login-test.pyracloud.com
+          AUTH0_CLIENT_ID=placeholder-for-build
+          AUTH0_AUDIENCE=https://api-test.pyracloud.com/
+          AUTH0_SCOPE=openid profile email offline_access
+          AUTH0_API_URL=https://api.s1.show/public/
+          AUTH0_OTP_DIGITS=6
+          AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          TEMPORARY_AUTH0_TOKEN=
+          EOF
+
+      - name: Get version info
+        id: version
+        working-directory: ./app
+        run: |
+          # Create a temporary script to read from app.config.js with proper environment
+          cat > read_version.mjs << 'EOF'
+          import config from './app.config.js';
+          console.log(config.expo.version);
+          EOF
+          VERSION=$(node read_version.mjs)
+          rm read_version.mjs
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📱 Building version $VERSION"
+
+      - name: Expo prebuild (generate native Android project)
+        working-directory: ./app
+        run: |
+          echo "📦 Generating native Android project with Expo..."
+          npx expo prebuild --platform android --clean
+          echo "✅ Native Android project generated"
+
+      - name: Make Gradle wrapper executable
+        working-directory: ./app/android
+        run: chmod +x ./gradlew
+
+      - name: Build Android APK (Debug)
+        working-directory: ./app/android
+        run: |
+          echo "🔨 Building Android APK in Debug mode..."
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          echo "✅ Debug APK build completed"
+
+      - name: Find APK artifacts
+        id: find-apk
+        working-directory: ./app
+        run: |
+          # Find the built Debug APK
+          APK_PATH=$(find android/app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
+
+          if [ -n "$APK_PATH" ]; then
+            echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+            echo "✅ Found APK at: $APK_PATH"
+            ls -lah "$APK_PATH"
+          else
+            echo "⚠️ APK not found"
+          fi
+
+      - name: Upload APK artifact
+        if: steps.find-apk.outputs.apk_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-debug-${{ steps.version.outputs.version }}-${{ github.sha }}
+          path: app/${{ steps.find-apk.outputs.apk_path }}
+          retention-days: 7
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## Android Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Mode:** Debug" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ steps.find-apk.outputs.apk_path }}" ]; then
+            echo "✅ **Build Status:** Success" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Artifacts:" >> $GITHUB_STEP_SUMMARY
+            echo "- Android Debug APK (.apk) uploaded" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build Status:** Failed or artifact not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Purpose:" >> $GITHUB_STEP_SUMMARY
+          echo "This workflow builds Android app for **verification only**." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This is a Debug build, NOT signed for production." >> $GITHUB_STEP_SUMMARY
