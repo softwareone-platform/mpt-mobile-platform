@@ -47,7 +47,7 @@ on:
         description: 'Build configuration'
         required: false
         type: string
-        default: 'Debug'
+        default: 'Release'
       platform-version:
         description: 'iOS platform version for simulator'
         required: false
@@ -153,11 +153,34 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📱 Building version $VERSION"
 
+      - name: Configure build environment
+        working-directory: ./app
+        run: |
+          echo "🔧 Configuring build environment for ${{ env.BUILD_MODE }} mode..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Configuring for STANDALONE PRODUCTION app"
+            # Create standalone app configuration
+            echo "EAS_NO_VCS=1" >> .env
+            echo "EXPO_NO_DOTENV=1" >> .env
+          else
+            echo "🛠️ Configuring for DEVELOPMENT app with Expo Dev Tools"
+          fi
+
       - name: Expo prebuild (generate native iOS project)
         working-directory: ./app
         run: |
-          echo "📦 Generating native iOS project with Expo (includes CocoaPods)..."
-          npx expo prebuild --platform ios --clean
+          echo "📦 Generating native iOS project with Expo..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Building standalone app (production-ready)"
+            # Use production prebuild without dev client
+            npx expo prebuild --platform ios --clean
+          else
+            echo "🛠️ Building development app (with dev tools)"  
+            npx expo prebuild --platform ios --clean
+          fi
+          
           echo "✅ Native iOS project generated with CocoaPods installed"
 
       - name: Build iOS app for Simulator
