@@ -28,7 +28,7 @@ on:
         options:
           - Debug
           - Release
-        default: 'Debug'
+        default: 'Release'
       platform-version:
         description: 'iOS platform version for simulator'
         required: false
@@ -60,7 +60,7 @@ on:
         default: 'iPhone 16'
 
 env:
-  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Debug' }}
+  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
   PLATFORM_VERSION: ${{ github.event.inputs.platform-version || '26.0' }}
   DEVICE_NAME: ${{ github.event.inputs.device-name || 'iPhone 16' }}
 
