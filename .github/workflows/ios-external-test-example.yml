@@ -62,3 +62,5 @@ jobs:
           node_version: '20'
           appium_version: '3.1.1'
           app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
+          appium_host: 'localhost'
+          appium_port: '4723'

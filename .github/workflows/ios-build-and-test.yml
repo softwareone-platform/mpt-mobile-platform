@@ -216,21 +216,36 @@ jobs:
             echo "Bundle ID: $BUNDLE_ID"
           fi
 
-      - name: Zip .app bundle
+      - name: Package app for artifact upload
         if: steps.find-artifacts.outputs.app_path != ''
+        id: package-app
         working-directory: ./app
         run: |
-          cd $(dirname "${{ steps.find-artifacts.outputs.app_path }}")
+          BUILD_DIR="ios/build/DerivedData/Build/Products/${{ env.BUILD_MODE }}-iphonesimulator"
+          cd "$BUILD_DIR"
           APP_DIR=$(basename "${{ steps.find-artifacts.outputs.app_path }}")
+          
+          echo "📦 Creating app bundle zip from: $APP_DIR"
           zip -r app_bundle.zip "$APP_DIR"
+          
+          echo "✅ App bundle created at: $(pwd)/app_bundle.zip"
+          echo "zip_path=$BUILD_DIR/app_bundle.zip" >> $GITHUB_OUTPUT
+          
+          # Verify the zip file was created
+          if [ -f app_bundle.zip ]; then
+            echo "🎯 Zip file verified: $(ls -lh app_bundle.zip)"
+          else
+            echo "❌ ERROR: app_bundle.zip was not created"
+            exit 1
+          fi
 
       - name: Upload iOS Simulator app artifact
         if: steps.find-artifacts.outputs.app_path != ''
         id: upload-artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}
-          path: app/ios/build/DerivedData/Build/Products/${{ env.BUILD_MODE }}-iphonesimulator/app_bundle.zip
+          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build-${{ github.sha }}
+          path: app/${{ steps.package-app.outputs.zip_path }}
           retention-days: 30
           if-no-files-found: error
 
@@ -239,7 +254,7 @@ jobs:
         id: artifact-url
         run: |
           # Get the artifact ID from the upload
-          ARTIFACT_NAME="ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ github.sha }}"
+          ARTIFACT_NAME="ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build-${{ github.sha }}"
           
           # Create download URL that can be used in other workflows
           DOWNLOAD_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
@@ -276,12 +291,21 @@ jobs:
           TAG_NAME="build-${{ env.BUILD_MODE }}-${{ github.sha }}-${{ github.run_number }}"
           RELEASE_NAME="iOS Build ${{ env.BUILD_MODE }} - ${{ steps.version.outputs.version }}"
           
+          echo "🚀 Creating release: $RELEASE_NAME"
+          echo "📁 Using zip file: app/${{ steps.package-app.outputs.zip_path }}"
+          
+          # Verify the zip file exists before creating release
+          if [ ! -f "app/${{ steps.package-app.outputs.zip_path }}" ]; then
+            echo "❌ ERROR: Zip file not found at app/${{ steps.package-app.outputs.zip_path }}"
+            exit 1
+          fi
+          
           # Create release
           gh release create "$TAG_NAME" \
             --title "$RELEASE_NAME" \
             --notes "Automated iOS build for commit ${{ github.sha }}" \
             --prerelease \
-            "app/ios/build/DerivedData/Build/Products/${{ env.BUILD_MODE }}-iphonesimulator/app_bundle.zip#iOS-App-${{ env.BUILD_MODE }}.zip"
+            "app/${{ steps.package-app.outputs.zip_path }}#iOS-App-${{ env.BUILD_MODE }}.zip"
           
           # Get the release asset download URL
           ASSET_URL=$(gh release view "$TAG_NAME" --json assets --jq '.assets[0].url')

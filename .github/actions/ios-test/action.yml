@@ -242,23 +242,25 @@ runs:
         DEVICE_NAME: ${{ inputs.device_name }}
         PLATFORM_VERSION: ${{ inputs.ios_version }}
         APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
-        # Use the verified URL components for WebDriver connection
-        APPIUM_HOST: ${{ inputs.appium_host }}
-        APPIUM_PORT: ${{ inputs.appium_port }}
       run: |
         echo "🚀 Starting WebDriver tests with verified Appium connection..."
         
-        # Extract host and port from verified URL if available
+        # Priority: Use verified network URL if available, otherwise use input values
         if [ -n "$VERIFIED_APPIUM_URL" ]; then
           EXTRACTED_HOST=$(echo "$VERIFIED_APPIUM_URL" | sed 's|http://\([^:]*\):.*|\1|')
           EXTRACTED_PORT=$(echo "$VERIFIED_APPIUM_URL" | sed 's|.*:\([0-9]*\)|\1|')
           
-          echo "📡 Using verified connection: $VERIFIED_APPIUM_URL"
+          echo "📡 Using verified network connection: $VERIFIED_APPIUM_URL"
           echo "   Host: $EXTRACTED_HOST"
           echo "   Port: $EXTRACTED_PORT"
           
           export APPIUM_HOST="$EXTRACTED_HOST"
           export APPIUM_PORT="$EXTRACTED_PORT"
+        else
+          # Fall back to input values
+          export APPIUM_HOST="${{ inputs.appium_host }}"
+          export APPIUM_PORT="${{ inputs.appium_port }}"
+          echo "⚠️  Using input values: http://$APPIUM_HOST:$APPIUM_PORT"
         fi
         
         # Test the connection before running tests
