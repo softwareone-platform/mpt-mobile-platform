@@ -67,6 +67,11 @@ yarn-error.log
 .nyc_output
 test-results/
 
+# Appium
+appium.log
+**/appium.log
+appium*.log
+
 # Yarn
 .yarn/*
 !.yarn/patches

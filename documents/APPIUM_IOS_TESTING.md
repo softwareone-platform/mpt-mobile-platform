@@ -6,6 +6,29 @@ This guide covers how to run Appium tests locally and explains the CI/CD setup f
 
 This project uses Appium with WebDriverIO for automated iOS testing. Tests can be run locally during development or automatically in GitHub Actions CI/CD pipelines.
 
+## Quick Start Guide
+
+For the fastest testing workflow, use these three approaches based on your needs:
+
+### 🚀 **Recommended Workflow**
+
+```bash
+# 1. First time: Build fresh Release app
+./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+
+# 2. Iteration: Reuse last build for fast testing
+./scripts/run-local-test.sh --skip-build welcome
+
+# 3. Quick runs: Test with currently installed app
+./scripts/run-local-test.sh welcome
+```
+
+### ⚡ **Development Workflow**
+
+1. **Initial build**: Use `--build` when you change app code or Auth0 configuration
+2. **Fast iteration**: Use `--skip-build` for repeated testing without rebuilding  
+3. **Debug mode**: Add `--verbose` to see detailed logs for troubleshooting
+
 ## Local Development Setup
 
 ### Prerequisites
@@ -128,8 +151,12 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 # Full workflow - build Release app and test (recommended for production validation)
 ./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
 
+# Fast workflow - reuse last build and test (recommended for iteration)
+./scripts/run-local-test.sh --skip-build welcome
+
 # Available options:
 #   --build, -b           Build release version of the app before testing
+#   --skip-build, -s      Skip build and install existing app from last build
 #   --client-id, -c ID    Set Auth0 client ID for build (required with --build)
 #   --verbose, -v         Enable verbose output for debugging
 #   --help, -h            Show help message
@@ -137,11 +164,44 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 
 **Script Features:**
 - ✅ **Automatic build** (optional): Builds Release configuration using Expo prebuild + xcodebuild
+- ✅ **Fast iteration** (new): Reuses last build for quick testing cycles with `--skip-build`
 - ✅ **Simulator management**: Boots simulator and installs app automatically
 - ✅ **Appium lifecycle**: Starts/stops Appium server as needed
 - ✅ **Flexible execution**: Run from project root or scripts directory
 - ✅ **Production parity**: Uses same build process as CI/CD pipeline
 - ✅ **Environment setup**: Handles Auth0 configuration for builds
+
+**Performance Comparison:**
+- **Full build** (`--build`): ~6-8 minutes (build + test)
+- **Skip build** (`--skip-build`): ~10 seconds (install + test) 
+- **No flags**: ~5 seconds (test only)
+
+### Workflow Strategies
+
+#### 🏗️ **Development Cycle**
+```bash
+# 1. Make code changes
+# 2. Build once with new changes
+./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+
+# 3. Iterate quickly without rebuilding
+./scripts/run-local-test.sh --skip-build welcome
+./scripts/run-local-test.sh --skip-build orders  
+./scripts/run-local-test.sh --skip-build --verbose invoices  # Debug a failing test
+```
+
+#### 🧪 **Test-Driven Development**
+```bash
+# Quick test runs during TDD
+./scripts/run-local-test.sh welcome                    # Fastest option
+./scripts/run-local-test.sh ./test/specs/new.e2e.js  # Test specific new spec
+```
+
+#### 🚀 **Production Validation**
+```bash
+# Always use fresh builds for production testing
+./scripts/run-local-test.sh --build --client-id PROD_CLIENT_ID welcome
+```
 
 ### 4. Manual Appium Testing (Alternative)
 
@@ -178,11 +238,11 @@ exports.config = {
 };
 ```
 
-### 5. Run Tests
+### 5. Running Tests with Manual Setup
 
 #### Standard Testing Flow
 
-After deploying your app using either method above:
+After setting up your app using the deploy script or manual method:
 
 ```bash
 # Navigate to app directory
@@ -198,19 +258,19 @@ npx wdio run wdio.conf.js --suite welcome
 npx wdio run wdio.conf.js --spec test/specs/welcome.spec.js
 ```
 
-#### Complete Testing Workflow (Recommended)
+#### Complete Manual Workflow
 
-For a complete end-to-end testing workflow:
+For complete control over the testing process:
 
 ```bash
 # 1. Deploy app to simulator (from project root)
-./scripts/deploy-ios.sh
+./scripts/deploy-ios.sh --client-id YOUR_AUTH0_CLIENT_ID
 
 # 2. Start Appium server in background
 cd app
 appium --log-level info --log appium.log &
 
-# 3. Wait a moment for Appium to start, then run tests
+# 3. Wait for Appium to start, then run tests
 sleep 3
 npx wdio run wdio.conf.js --suite welcome
 
@@ -218,13 +278,15 @@ npx wdio run wdio.conf.js --suite welcome
 pkill -f appium
 ```
 
-#### Alternative Manual Flow
+#### Alternative: Manual Setup with Deploy Script
 
-If using the manual setup method:
+If you want to use the deploy script separately:
 
 ```bash
-# 1. Manually build and install app (see Method 2 above)
-# 2. Start Appium server
+# 1. Build and deploy app manually
+./scripts/deploy-ios.sh --client-id YOUR_AUTH0_CLIENT_ID
+
+# 2. Start Appium server  
 cd app
 appium --log-level info --log appium.log &
 
@@ -235,12 +297,34 @@ npx wdio run wdio.conf.js --suite welcome
 pkill -f appium
 ```
 
-### 6. Debugging Tests
+### 6. Debugging and Troubleshooting
 
+#### Common Debugging Resources
 - **Appium logs**: Check `appium.log` for server-side issues
 - **Test results**: Results are saved to `app/test-results/`
 - **Screenshots**: Automatic screenshots on failure in `app/screenshots/`
 - **Simulator logs**: Use `xcrun simctl spawn <device_udid> log stream`
+
+#### Script Debugging
+- Use `--verbose` flag with `run-local-test.sh` for detailed logging
+- Check script exit codes and error messages
+- Verify Auth0 client ID is properly set when using `--build` option
+
+#### Build and Installation Issues
+- **No existing build error**: If `--skip-build` fails, run with `--build` first or use `./scripts/deploy-ios.sh`
+- **Build conflicts**: Cannot use `--build` and `--skip-build` together
+- **Missing client ID**: `--build` requires `--client-id` parameter
+- **Stale builds**: Use `--build` to rebuild if app behavior seems outdated
+
+#### Simulator Issues
+- If simulator boot fails, try manually booting: `xcrun simctl boot "iPhone 16"`
+- Clean simulator data if needed: `xcrun simctl erase "iPhone 16"`
+- Check available simulators: `xcrun simctl list devices available`
+
+#### Performance Optimization Tips
+- Use `--skip-build` for test development and debugging  
+- Use `--build` only when app code or configuration changes
+- Keep simulator running between test sessions for faster startup
 
 ## Environment Variables
 

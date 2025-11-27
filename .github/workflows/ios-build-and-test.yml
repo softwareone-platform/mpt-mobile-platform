@@ -5,20 +5,7 @@ permissions:
   actions: read    # Required for downloading artifacts
 
 on:
-  # Trigger on pushes to feature branch (for development/testing)
-  push:
-    branches:
-      - feature/MPT-15220_appium_tests
-  # Trigger on pull requests to main branch
-  pull_request:
-      branches:
-        - main
-      types:
-        - opened
-        - synchronize
-        - reopened
-        - ready_for_review
-  # Manual trigger
+  # Manual trigger only
   workflow_dispatch:
     inputs:
       build-mode:

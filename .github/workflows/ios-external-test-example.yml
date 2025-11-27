@@ -13,20 +13,7 @@ permissions:
 # 3. Use that URL as the download_url input for this workflow
 
 on:
-  # Trigger on pushes to feature branch (for development/testing)
-  push:
-    branches:
-      - feature/MPT-15220_appium_tests
-  # Trigger on pull requests to main branch
-  pull_request:
-      branches:
-        - main
-      types:
-        - opened
-        - synchronize
-        - reopened
-        - ready_for_review
-  # Manual trigger
+  # Manual trigger only
   workflow_dispatch:
     inputs:
       download_url:

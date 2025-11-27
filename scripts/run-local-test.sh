@@ -10,6 +10,7 @@
 
 # Configuration
 BUILD_APP=false
+SKIP_BUILD=false
 CLIENT_ID=""
 VERBOSE=false
 
@@ -18,6 +19,10 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --build|-b)
             BUILD_APP=true
+            shift
+            ;;
+        --skip-build|-s)
+            SKIP_BUILD=true
             shift
             ;;
         --client-id|-c)
@@ -33,6 +38,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --build, -b           Build release version of the app before testing"
+            echo "  --skip-build, -s      Skip build and install existing app from last build"
             echo "  --client-id, -c ID    Set Auth0 client ID for build (required with --build)"
             echo "  --verbose, -v         Enable verbose output"
             echo "  --help, -h            Show this help message"
@@ -41,6 +47,7 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 welcome                                    # Run welcome suite with existing app"
             echo "  $0 ./test/specs/welcome.e2e.js              # Run specific spec file"
             echo "  $0 --build welcome                          # Build release app first, then run tests"
+            echo "  $0 --skip-build welcome                     # Install last build and run tests"
             echo "  $0 --build --client-id abc123 welcome       # Build with Auth0 client ID"
             exit 0
             ;;
@@ -67,6 +74,12 @@ fi
 if [ "$BUILD_APP" = true ] && [ -z "$CLIENT_ID" ]; then
     echo "Error: --client-id is required when using --build option"
     echo "Example: $0 --build --client-id your_auth0_client_id welcome"
+    exit 1
+fi
+
+if [ "$BUILD_APP" = true ] && [ "$SKIP_BUILD" = true ]; then
+    echo "Error: --build and --skip-build cannot be used together"
+    echo "Use --build to build fresh, or --skip-build to reuse last build"
     exit 1
 fi
 
@@ -99,7 +112,7 @@ log() {
 build_release_app() {
     log "🔨 Building Release version of the iOS app..." "info"
     
-    # Get absolute paths
+    # Get absolute paths at the start
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
     APP_DIR="$PROJECT_ROOT/app"
@@ -109,6 +122,9 @@ build_release_app() {
         log "Make sure you're running this script from the project root or scripts directory"
         exit 1
     fi
+    
+    # Store original working directory to return to it later
+    ORIGINAL_DIR="$(pwd)"
     
     # Change to app directory for build
     cd "$APP_DIR"
@@ -227,13 +243,64 @@ EOF
     xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
     log "✅ App installed on simulator" "info"
     
-    # Return to original directory
-    cd "$APP_DIR"
+    # Return to original directory to avoid path resolution issues
+    cd "$ORIGINAL_DIR"
 }
 
-# Build app if requested
+# Function to install existing app from last build
+install_existing_app() {
+    log "📲 Installing existing app from last build..." "info"
+    
+    # Get absolute paths
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    APP_DIR="$PROJECT_ROOT/app"
+    
+    if [ ! -d "$APP_DIR" ]; then
+        log "❌ ERROR: App directory not found at $APP_DIR"
+        exit 1
+    fi
+    
+    # Look for the most recent build
+    BUILD_DIR="$APP_DIR/ios/build/DerivedData/Build/Products/Release-iphonesimulator"
+    APP_PATH=$(find "$BUILD_DIR" -name "*.app" -type d 2>/dev/null | head -1)
+    
+    if [ -z "$APP_PATH" ]; then
+        log "❌ No existing app build found in $BUILD_DIR"
+        log "💡 Run with --build to build the app first, or use the deploy script:"
+        log "   ./scripts/deploy-ios.sh --client-id YOUR_CLIENT_ID"
+        exit 1
+    fi
+    
+    log "📱 Found existing app: $APP_PATH" "verbose"
+    
+    # Check if simulator is booted
+    SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$DEVICE_UDID" | head -1 || echo "Not found")
+    if ! echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+        log "🚀 Booting simulator..." "info"
+        xcrun simctl boot "$DEVICE_UDID"
+        
+        # Wait for simulator to boot
+        log "⏳ Waiting for simulator to boot..." "verbose"
+        for i in {1..30}; do
+            if xcrun simctl list devices | grep "$DEVICE_UDID" | grep -q "(Booted)"; then
+                log "✅ Simulator booted" "verbose"
+                break
+            fi
+            sleep 1
+        done
+    fi
+    
+    # Install the app
+    xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
+    log "✅ Existing app installed on simulator" "info"
+}
+
+# Handle build options
 if [ "$BUILD_APP" = true ]; then
     build_release_app
+elif [ "$SKIP_BUILD" = true ]; then
+    install_existing_app
 fi
 
 # Debug output
