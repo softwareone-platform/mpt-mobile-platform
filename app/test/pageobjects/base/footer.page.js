@@ -3,7 +3,7 @@ const BasePage = require('./base.page');
 
 
 class FooterPage extends BasePage {
-    get spotlightTab () {
+    get spotlightsTab () {
         return $('//*[contains(@name, "Spotlight, tab, 1 of 4")]');
     }
 
@@ -19,8 +19,8 @@ class FooterPage extends BasePage {
         return $('//*[contains(@name, "More, tab, 4 of 4")]');
     }
 
-    async clickSpotlightTab() {
-        await this.click(this.spotlightTab);
+    async clickspotlightsTab() {
+        await this.click(this.spotlightsTab);
     }
 
     async clickOrdersTab() {

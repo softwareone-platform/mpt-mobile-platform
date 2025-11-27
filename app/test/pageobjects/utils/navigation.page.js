@@ -5,7 +5,7 @@ async function ensureHomePage() {
     const isHomeVisible = await homePage.defaultText.isDisplayed().catch(() => false);
     if (isHomeVisible)
         return
-    await footerPage.clickSpotlightTab();
+    await footerPage.clickspotlightsTab();
 }
 
 module.exports = { ensureHomePage };

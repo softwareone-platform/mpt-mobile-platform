@@ -13,13 +13,13 @@ describe('Home page of application', () => {
     })
 
     it('to display footer with tabs', async () => {
-        await expect(homePage.footer.spotlightTab).toBeDisplayed()
+        await expect(homePage.footer.spotlightsTab).toBeDisplayed()
         await expect(homePage.footer.ordersTab).toBeDisplayed()
         await expect(homePage.footer.subscriptionsTab).toBeDisplayed()
         await expect(homePage.footer.moreTab).toBeDisplayed()
     })
 
-    it('to display footer with tabs', async () => {
+    it('to display default text', async () => {
         await expect(homePage.defaultText).toBeDisplayed()
         await expect(homePage.defaultText).toHaveText('Spotlight Screen')
     })
