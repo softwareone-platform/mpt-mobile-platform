@@ -165,22 +165,45 @@ runs:
         echo "🚀 Booting simulator with fresh state..."
         xcrun simctl boot "${{ env.DEVICE_UDID }}"
         
-        # Wait for simulator to be fully ready (not just "Booted")
+        # Wait for simulator to be fully ready - use multiple readiness indicators
         echo "⏳ Waiting for simulator to be fully operational..."
         WAIT_COUNT=0
         MAX_WAIT=30
+        BOOT_READY=false
+        
         while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-          if xcrun simctl bootstatus "${{ env.DEVICE_UDID }}" 2>/dev/null | grep -q "Boot status is ready"; then
-            echo "✅ Simulator boot status is ready"
-            break
+          # Check if simulator is booted (primary indicator)
+          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" | head -1 || echo "Not found")
+          if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+            echo "✅ Simulator is booted"
+            
+            # Try boot status check with timeout - if it hangs, skip it
+            echo "🔍 Checking boot status readiness (with timeout)..."
+            if timeout 5 xcrun simctl bootstatus "${{ env.DEVICE_UDID }}" 2>/dev/null | grep -q "Boot status is ready" 2>/dev/null; then
+              echo "✅ Simulator boot status is ready"
+              BOOT_READY=true
+              break
+            elif [ $? -eq 124 ]; then
+              echo "⚠️ Boot status check timed out (5s), but simulator is booted - proceeding"
+              BOOT_READY=true
+              break
+            else
+              echo "📱 Simulator booted but boot status not ready yet, waiting..."
+            fi
+          else
+            echo "⏳ Simulator not yet booted, waiting... (${WAIT_COUNT}/${MAX_WAIT})"
           fi
-          echo "Waiting for boot status... ($((WAIT_COUNT + 1))/$MAX_WAIT)"
+          
           sleep 2
           WAIT_COUNT=$((WAIT_COUNT + 1))
         done
         
-        if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
-          echo "⚠️ WARNING: Boot status check timed out, proceeding anyway"
+        if [ "$BOOT_READY" = false ]; then
+          if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
+            echo "⚠️ WARNING: Simulator readiness check timed out, but proceeding anyway"
+          else
+            echo "⚠️ WARNING: Could not verify simulator readiness, but proceeding anyway"
+          fi
         fi
         
         # Additional delay for UI services to stabilize

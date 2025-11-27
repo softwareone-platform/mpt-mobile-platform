@@ -37,27 +37,60 @@ appium driver list --installed
 
 ### 2. iOS Simulator Setup and App Deployment
 
-#### Method 1: Using Deploy Script (Recommended)
+#### Method 1: Using Local Test Script (Recommended)
 
-The easiest way to build and deploy the app to a simulator is using the provided deployment script:
+The easiest way to build, deploy, and test the app is using the integrated local test script:
+
+```bash
+# Navigate to project root
+cd /path/to/mpt-mobile-platform
+
+# Run tests with existing app (fastest)
+./scripts/run-local-test.sh welcome
+
+# Build fresh Release app and run tests (production-like testing)
+./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+
+# Run with verbose output for debugging
+./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID --verbose welcome
+
+# Run specific test file
+./scripts/run-local-test.sh ./test/specs/welcome.e2e.js
+
+# Get help and see all options
+./scripts/run-local-test.sh --help
+```
+
+The `run-local-test.sh` script provides a complete testing solution:
+- **Builds** Release version of the app (optional with `--build`)
+- **Sets up** iOS simulator and installs the app
+- **Starts** Appium server automatically
+- **Runs** your specified test suite or spec file
+- **Cleans up** Appium processes when done
+
+This is the **recommended approach** for local development as it handles the entire workflow automatically.
+
+#### Method 2: Using Deploy Script Only
+
+If you only want to build and deploy without running tests:
 
 ```bash
 # Make sure you're in the project root directory
 cd /path/to/mpt-mobile-platform
 
 # Run the iOS deployment script
-./scripts/deploy-ios.sh
+./scripts/deploy-ios.sh --client-id YOUR_AUTH0_CLIENT_ID
 
 # The script will:
 # 1. Build the iOS app for simulator
-# 2. Boot an available iOS simulator
+# 2. Boot an available iOS simulator  
 # 3. Install the app on the simulator
 # 4. Launch the app
 ```
 
 The `deploy-ios.sh` script handles all the complexity of building, installing, and launching your app automatically. Once it completes successfully, your app will be ready for Appium testing.
 
-#### Method 2: Manual Setup (Alternate)
+#### Method 3: Manual Setup (Advanced)
 
 If you prefer manual control or need to troubleshoot, you can set up the simulator manually:
 
@@ -84,7 +117,37 @@ If you prefer manual control or need to troubleshoot, you can set up the simulat
    xcrun simctl install booted path/to/your/app.app
    ```
 
-### 3. Start Appium Server
+### 3. Automated Testing with Local Script
+
+The `run-local-test.sh` script provides the most streamlined testing experience:
+
+```bash
+# Basic usage - run tests with existing app
+./scripts/run-local-test.sh welcome
+
+# Full workflow - build Release app and test (recommended for production validation)
+./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+
+# Available options:
+#   --build, -b           Build release version of the app before testing
+#   --client-id, -c ID    Set Auth0 client ID for build (required with --build)
+#   --verbose, -v         Enable verbose output for debugging
+#   --help, -h            Show help message
+```
+
+**Script Features:**
+- ✅ **Automatic build** (optional): Builds Release configuration using Expo prebuild + xcodebuild
+- ✅ **Simulator management**: Boots simulator and installs app automatically
+- ✅ **Appium lifecycle**: Starts/stops Appium server as needed
+- ✅ **Flexible execution**: Run from project root or scripts directory
+- ✅ **Production parity**: Uses same build process as CI/CD pipeline
+- ✅ **Environment setup**: Handles Auth0 configuration for builds
+
+### 4. Manual Appium Testing (Alternative)
+
+If you need more control over the testing process:
+
+#### Start Appium Server
 
 ```bash
 # Start Appium server with logging
@@ -96,7 +159,7 @@ appium --log-level info --log appium.log &
 
 The server will start on `http://localhost:4723` by default.
 
-### 4. Configure WebDriverIO
+#### WebDriverIO Configuration
 
 The project includes a pre-configured `wdio.conf.js` file with iOS-specific settings. Key configuration:
 

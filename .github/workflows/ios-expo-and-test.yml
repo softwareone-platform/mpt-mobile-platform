@@ -1,0 +1,206 @@
+name: iOS Expo Build and Test
+
+permissions:
+  contents: read
+  actions: read
+
+# Complete workflow using deploy-ios.sh to build fresh with Expo and run tests
+# This workflow demonstrates building from source using Expo, deploying to simulator, and testing
+
+on:
+  # Manual trigger with customization options
+  workflow_dispatch:
+    inputs:
+      client_id:
+        description: 'Auth0 Client ID for test environment'
+        required: true
+        type: string
+      build_mode:
+        description: 'Build configuration'
+        required: false
+        type: choice
+        options:
+          - debug
+          - release
+        default: 'debug'
+      ios_version:
+        description: 'iOS platform version for simulator'
+        required: false
+        type: string
+        default: '26.0'
+      device_name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16'
+      run_tests:
+        description: 'Run Appium tests after deployment'
+        required: false
+        type: boolean
+        default: true
+      show_logs:
+        description: 'Show app logs during deployment'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  expo-build-and-test-ios:
+    name: Expo Build and Test iOS App
+    runs-on: macos-latest
+    timeout-minutes: 90
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+          
+      - name: Install Node.js dependencies
+        working-directory: ./app
+        run: npm ci
+        
+      # Deploy fresh app using the deploy-ios.sh script
+      - name: Expo Build and Deploy iOS App
+        id: expo-deploy-ios
+        run: |
+          echo "🚀 Starting iOS Expo build and deployment using deploy-ios.sh..."
+          
+          # Set deployment parameters
+          DEPLOY_ARGS=""
+          DEPLOY_ARGS="$DEPLOY_ARGS --client-id '${{ inputs.client_id }}'"
+          DEPLOY_ARGS="$DEPLOY_ARGS --simulator '${{ inputs.device_name || 'iPhone 16' }}'"
+          
+          if [ "${{ inputs.build_mode }}" = "release" ]; then
+            DEPLOY_ARGS="$DEPLOY_ARGS --release"
+          fi
+          
+          if [ "${{ inputs.show_logs }}" = "true" ]; then
+            DEPLOY_ARGS="$DEPLOY_ARGS --logs"
+          fi
+          
+          # Run deployment with verbose output for CI
+          eval "./scripts/deploy-ios.sh $DEPLOY_ARGS --verbose"
+          
+          echo "✅ iOS app built and deployed successfully with Expo"
+          
+          # Get the deployed simulator details for testing
+          SIMULATOR_ID=$(xcrun simctl list devices | grep "${{ inputs.device_name || 'iPhone 16' }}" | grep "Booted" | head -1 | grep -E -o '\([A-F0-9\-]+\)' | tr -d '()')
+          echo "device_udid=$SIMULATOR_ID" >> $GITHUB_OUTPUT
+          echo "bundle_id=com.softwareone.marketplaceMobile" >> $GITHUB_OUTPUT
+          
+          echo "📱 Deployed to simulator: ${{ inputs.device_name || 'iPhone 16' }} ($SIMULATOR_ID)"
+          
+      # Wait for app to be fully ready
+      - name: Wait for App Startup
+        run: |
+          echo "⏳ Waiting for app to fully initialize..."
+          sleep 10
+          
+          # Verify app is installed and running
+          SIMULATOR_ID="${{ steps.expo-deploy-ios.outputs.device_udid }}"
+          BUNDLE_ID="${{ steps.expo-deploy-ios.outputs.bundle_id }}"
+          
+          echo "🔍 Verifying app installation..."
+          xcrun simctl listapps "$SIMULATOR_ID" | grep -q "$BUNDLE_ID" && echo "✅ App is installed" || echo "❌ App not found"
+          
+          echo "🔍 Checking app state..."
+          xcrun simctl spawn "$SIMULATOR_ID" launchctl list | grep -q "$BUNDLE_ID" && echo "✅ App is running" || echo "⚠️ App may not be running"
+      
+      # Run tests using our existing ios-test action (optional)
+      - name: Run Appium Tests
+        if: ${{ inputs.run_tests == true }}
+        uses: ./.github/actions/ios-test
+        with:
+          device_uuid: ${{ steps.expo-deploy-ios.outputs.device_udid }}
+          ios_version: ${{ inputs.ios_version || '26.0' }}
+          device_name: ${{ inputs.device_name || 'iPhone 16' }}
+          node_version: '20'
+          appium_version: '3.1.1'
+          app_bundle_id: ${{ steps.expo-deploy-ios.outputs.bundle_id }}
+          appium_host: 'localhost'
+          appium_port: '4723'
+          
+      # Alternative: Run specific test suite manually
+      - name: Run Custom Test Suite
+        if: ${{ inputs.run_tests == true }}
+        working-directory: ./app
+        env:
+          DEVICE_UDID: ${{ steps.expo-deploy-ios.outputs.device_udid }}
+          DEVICE_NAME: ${{ inputs.device_name || 'iPhone 16' }}
+          PLATFORM_VERSION: ${{ inputs.ios_version || '26.0' }}
+          APP_BUNDLE_ID: ${{ steps.expo-deploy-ios.outputs.bundle_id }}
+          APPIUM_HOST: 'localhost'
+          APPIUM_PORT: '4723'
+        run: |
+          echo "🧪 Running custom test suite with deployed app..."
+          
+          # Start Appium server
+          echo "🚀 Starting Appium server..."
+          npx appium --log-level warn > /tmp/appium.log 2>&1 &
+          APPIUM_PID=$!
+          echo "Appium PID: $APPIUM_PID"
+          
+          # Wait for Appium to start
+          for i in {1..30}; do
+            if curl -s http://localhost:4723/status > /dev/null 2>&1; then
+              echo "✅ Appium server is ready!"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ Appium failed to start"
+              cat /tmp/appium.log
+              exit 1
+            fi
+            sleep 1
+          done
+          
+          # Run WebDriverIO tests
+          echo "🧪 Running WebDriverIO test suite..."
+          npx wdio run wdio.conf.js --suite welcome
+          
+          # Cleanup
+          echo "🛑 Stopping Appium server..."
+          kill $APPIUM_PID 2>/dev/null || true
+          
+      # Collect logs and artifacts
+      - name: Collect App Logs
+        if: always()
+        run: |
+          echo "📋 Collecting app logs and system information..."
+          
+          SIMULATOR_ID="${{ steps.expo-deploy-ios.outputs.device_udid }}"
+          
+          echo "=== iOS Simulator Information ===" >> deployment_logs.txt
+          xcrun simctl list devices | grep -A 5 -B 5 "$SIMULATOR_ID" >> deployment_logs.txt
+          
+          echo -e "\n=== App Installation Status ===" >> deployment_logs.txt
+          xcrun simctl listapps "$SIMULATOR_ID" | grep -A 3 -B 3 "com.softwareone" >> deployment_logs.txt || echo "No app info found" >> deployment_logs.txt
+          
+          echo -e "\n=== Recent App Logs ===" >> deployment_logs.txt
+          xcrun simctl spawn "$SIMULATOR_ID" log show --predicate 'subsystem contains "com.softwareone"' --last 5m >> deployment_logs.txt 2>&1 || echo "No recent logs found" >> deployment_logs.txt
+          
+      - name: Upload Deployment Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-deployment-logs-${{ github.run_id }}
+          path: |
+            deployment_logs.txt
+            /tmp/appium.log
+          retention-days: 7
+          
+      # Screenshots from failed tests (if any)
+      - name: Upload Test Screenshots
+        if: failure() && inputs.run_tests == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots-${{ github.run_id }}
+          path: app/screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
