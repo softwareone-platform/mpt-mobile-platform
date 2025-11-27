@@ -42,6 +42,7 @@
     "@babel/core": "^7.28.4",
     "@reportportal/agent-js-webdriverio": "^5.4.1",
     "@types/jest": "^30.0.0",
+    "@types/node": "^20.17.10",
     "@types/react": "~19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
