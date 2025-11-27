@@ -71,15 +71,15 @@ describe('getImageHeaders', () => {
     });
   });
 
-  it('should return null if token is empty', () => {
+  it('should return undefined if token is empty', () => {
     const imageHeaders = getImageHeaders('', HttpMethod.GET);
     
-    expect(imageHeaders).toBeNull();
+    expect(imageHeaders).toBeUndefined();
   });
 
-  it('should return null if token is null', () => {
+  it('should return undefined if token is null', () => {
     const imageHeaders = getImageHeaders(null as unknown as string, HttpMethod.GET);
 
-    expect(imageHeaders).toBeNull();
+    expect(imageHeaders).toBeUndefined();
   });
 });
