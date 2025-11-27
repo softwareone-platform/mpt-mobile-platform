@@ -1,11 +1,11 @@
 import Auth0 from 'react-native-auth0';
 import { jwtDecode } from 'jwt-decode';
-import {
-  AUTH0_DOMAIN,
-  AUTH0_CLIENT_ID,
-  AUTH0_AUDIENCE,
-  AUTH0_SCOPE,
-} from '@env';
+import { configService } from '@/config/env.config';
+
+const AUTH0_DOMAIN = configService.get('AUTH0_DOMAIN');
+const AUTH0_CLIENT_ID = configService.get('AUTH0_CLIENT_ID');
+const AUTH0_AUDIENCE = configService.get('AUTH0_AUDIENCE');
+const AUTH0_SCOPE = configService.get('AUTH0_SCOPE');
 
 export interface AuthTokens {
     accessToken: string;
@@ -82,11 +82,10 @@ class AuthenticationService {
 
             return { success: true };
         } catch (error) {
-            throw new Error(
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to send authentication email'
-            );
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Failed to send authentication email');
         }
     }
 
@@ -108,11 +107,10 @@ class AuthenticationService {
                 expiresAt,
             };
         } catch (error) {
-            throw new Error(
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to verify authentication code'
-            );
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Failed to verify authentication code');
         }
     }
 
@@ -127,7 +125,10 @@ class AuthenticationService {
                 tokenType: result.tokenType || 'Bearer',
                 expiresAt,
             };
-        } catch {
+        } catch (error) {
+            if (error instanceof Error) {
+                throw error;
+            }
             throw new Error('Failed to refresh authentication');
         }
     }
@@ -137,7 +138,10 @@ class AuthenticationService {
             const userData = await this.auth0.auth.userInfo({ token: accessToken });
 
             return userData;
-        } catch {
+        } catch (error) {
+            if (error instanceof Error) {
+                throw error;
+            }
             throw new Error('Failed to get user profile');
         }
     }

@@ -36,9 +36,12 @@ const styles = StyleSheet.create({
   container: listItemStyle.container,
   lastItem: listItemStyle.lastItem,
   avatarWrapper: listItemStyle.textAndImage.avatarWrapper,
-  contentWrapper:listItemStyle.textAndImage.contentWrapper,
-  textContainer: listItemStyle.textAndImage.textContainer,
-  title: listItemStyle.textAndImage.title,
+  contentWrapper:{
+    ...listItemStyle.contentWrapper,
+    ...listItemStyle.textAndImage.contentWrapper,
+  },
+  textContainer: listItemStyle.textContainer,
+  title: listItemStyle.title,
   subtitle: listItemStyle.textAndImage.subtitle,
 });
 

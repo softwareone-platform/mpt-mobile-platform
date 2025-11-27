@@ -4,6 +4,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { cardStyle, screenStyle, Spacing } from '@/styles';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
+import { StackNavigationProp } from '@react-navigation/stack';
+import type { ProfileStackParamList } from '@/types/navigation';
+import { useNavigation } from '@react-navigation/native';
 
 {/* TODO: Replace hardcoded data with actual accounts when auth is implemented */}
 const accountsData = [
@@ -39,22 +42,32 @@ const accountsData = [
   },
 ];
 
+type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
 const ProfileScreen = () => {
   const [selectedId, setSelectedId] = useState<string | null>('234');
+
   const { t } = useTranslation();
+
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   return (
     <View style={styles.containerMain}>
       <View>
-        <Text style={styles.sectionHeader}>{t('profile.yourProfile')}</Text>
+        <Text style={styles.sectionHeader}>{t('profileScreen.yourProfile')}</Text>
         <View style={styles.containerCard}>
           {/* TODO: Replace hardcoded id with actual user id when auth is implemented */}
-          <NavigationItemWithImage id="123" title="Sarah Sanderson" subtitle="USR-1234-1234" isLast={true} />
+          <NavigationItemWithImage 
+            id="123"
+            title="Sarah Sanderson"
+            subtitle="USR-1234-1234"
+            isLast={true}
+            onPress={() => navigation.navigate("userSettings")}
+          />
         </View>
       </View>
       <View>
-        <Text style={styles.sectionHeader}>{t('profile.switchAccount')}</Text>
+        <Text style={styles.sectionHeader}>{t('profileScreen.switchAccount')}</Text>
         <View style={styles.containerCard}>
           {accountsData.map((account, index) => (
             <ListItemWithImage

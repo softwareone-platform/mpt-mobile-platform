@@ -3,7 +3,7 @@ import type { NavigationProp, RouteProp } from '@react-navigation/native';
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
-  Profile: undefined;
+  ProfileRoot: undefined;
 };
 
 export type AuthStackParamList = {
@@ -35,4 +35,14 @@ export type TabItem<RouteName extends keyof TabParamList = keyof TabParamList> =
   name: RouteName;
   icon: string;
   component?: ScreenComponent<TabParamList, RouteName>;
+};
+
+export type ProfileStackParamList = {
+  profile: undefined;
+  userSettings: undefined;
+  personalInformation: undefined;
+  regionalSettings: undefined;
+  security: undefined;
+  notificationSettings: undefined;
+  emailSettings: undefined;
 };

@@ -127,6 +127,18 @@ If you're working in a corporate environment with Zscaler, please make sure that
 
 ## Development Workflow
 
+### Environment Variables
+
+> **⚠️ Important:** After changing values in the `.env` file, you must clear Metro's cache and restart:
+> ```bash
+> # Stop any running Metro process
+> npx expo start --clear #(shut it down after ready Ctrl+C)
+> # Then rebuild your app
+> npx expo run:ios   
+> npx expo run:android
+> ```
+> This is required because environment variables are injected at bundle time by Babel, not at runtime.
+
 ### iOS Simulator Deployment (Recommended)
 
 We provide automated scripts for building and deploying to the iOS Simulator. These scripts handle the complete build cycle: cleaning, building, and deploying.

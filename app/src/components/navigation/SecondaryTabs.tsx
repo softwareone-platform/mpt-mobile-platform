@@ -9,7 +9,7 @@ import { TabParamList } from '@/types/navigation';
 import { OutlinedIcons } from '@assets/icons';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { Color, navigationStyle } from '@/styles';
-import AccountToolbarButton from './AccontToolbarButton';
+import AccountToolbarButton from './AccountToolbarButton';
 
 const Stack = createStackNavigator<TabParamList>();
 
