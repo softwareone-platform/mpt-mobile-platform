@@ -1,0 +1,66 @@
+name: iOS Testing with External Build
+
+permissions:
+  contents: read
+  actions: read    # Required for downloading artifacts
+
+# Example workflow showing how to use the iOS install template 
+# with an external build download URL
+#
+# To get the download URL from the main build workflow:
+# 1. Run the 'iOS Build and Appium Tests' workflow 
+# 2. Check the build job summary for the release asset URL
+# 3. Use that URL as the download_url input for this workflow
+
+on:
+  # Manual trigger only
+  workflow_dispatch:
+    inputs:
+      download_url:
+        description: 'Direct download URL for the iOS app bundle (example: from GitHub releases or external URL)'
+        required: true
+        type: string
+        default: 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Release-95c0d81527e369c3acfda2bc040cf7a400d5e3f9-64/app_bundle.zip'
+      ios_version:
+        description: 'iOS platform version for simulator'
+        required: false
+        type: string
+        default: '26.0'
+      device_name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16'
+
+jobs:
+  install-and-test-external-ios:
+    name: Install and Test External iOS Build
+    runs-on: macos-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Install phase using composite action template
+      - name: Install External iOS App
+        id: install-ios
+        uses: ./.github/actions/ios-install
+        with:
+          # Use the provided download URL, or default for automatic triggers
+          download_url: ${{ inputs.download_url || 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/build-Release-95c0d81527e369c3acfda2bc040cf7a400d5e3f9-64/app_bundle.zip' }}
+          ios_version: ${{ inputs.ios_version || '26.0' }}
+          device_name: ${{ inputs.device_name || 'iPhone 16' }}
+          
+      # Test phase using composite action template  
+      - name: Test External iOS App
+        uses: ./.github/actions/ios-test
+        with:
+          device_uuid: ${{ steps.install-ios.outputs.device_udid }}
+          ios_version: ${{ inputs.ios_version || '26.0' }}
+          device_name: ${{ inputs.device_name || 'iPhone 16' }}
+          node_version: '20'
+          appium_version: '3.1.1'
+          app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
+          appium_host: 'localhost'
+          appium_port: '4723'

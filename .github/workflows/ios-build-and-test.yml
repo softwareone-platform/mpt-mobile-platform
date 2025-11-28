@@ -1,0 +1,390 @@
+name: iOS Build and Appium Tests
+
+permissions:
+  contents: write  # Required for creating releases
+  actions: read    # Required for downloading artifacts
+
+on:
+  # Manual trigger only
+  workflow_dispatch:
+    inputs:
+      build-mode:
+        description: 'Build configuration'
+        required: true
+        type: choice
+        options:
+          - Debug
+          - Release
+        default: 'Release'
+      platform-version:
+        description: 'iOS platform version for simulator'
+        required: false
+        type: string
+        default: '26.0'
+      device-name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16'
+
+  # Reusable workflow (called from other workflows)
+  workflow_call:
+    inputs:
+      build-mode:
+        description: 'Build configuration'
+        required: false
+        type: string
+        default: 'Release'
+      platform-version:
+        description: 'iOS platform version for simulator'
+        required: false
+        type: string
+        default: '26.0'
+      device-name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16'
+
+env:
+  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
+  PLATFORM_VERSION: ${{ github.event.inputs.platform-version || '26.0' }}
+  DEVICE_NAME: ${{ github.event.inputs.device-name || 'iPhone 16' }}
+
+jobs:
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: ./app
+  
+    outputs:
+      app_path: ${{ steps.find-artifacts.outputs.app_path }}
+      artifact_name: ${{ steps.artifact-url.outputs.artifact_name }}
+      download_url: ${{ steps.artifact-url.outputs.download_url }}
+      api_url: ${{ steps.artifact-url.outputs.api_url }}
+      release_tag: ${{ steps.create-release.outputs.release_tag }}
+      asset_url: ${{ steps.create-release.outputs.asset_url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: |
+          echo "📋 Selecting Xcode 16.0"
+          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/*-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: |
+            app/ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock', '**/*.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests before build
+        run: npm test
+
+      - name: Create .env file
+        run: |
+          cat > .env <<EOF
+          # Auth0 Configuration (Build Verification)
+          AUTH0_DOMAIN=login-test.pyracloud.com
+          AUTH0_CLIENT_ID=placeholder-for-build
+          AUTH0_AUDIENCE=https://api-test.pyracloud.com/
+          AUTH0_SCOPE=openid profile email offline_access
+          AUTH0_API_URL=https://api.s1.show/public/
+          AUTH0_OTP_DIGITS=6
+          AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          TEMPORARY_AUTH0_TOKEN=
+          EOF
+
+      - name: Get version info
+        id: version
+        working-directory: ./app
+        run: |
+          # Create a temporary script to read from app.config.js with proper environment
+          cat > read_version.mjs << 'EOF'
+          import config from './app.config.js';
+          console.log(config.expo.version);
+          EOF
+          VERSION=$(node read_version.mjs)
+          rm read_version.mjs
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📱 Building version $VERSION"
+
+      - name: Configure build environment
+        working-directory: ./app
+        run: |
+          echo "🔧 Configuring build environment for ${{ env.BUILD_MODE }} mode..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Configuring for STANDALONE PRODUCTION app"
+            # Create standalone app configuration
+            echo "EAS_NO_VCS=1" >> .env
+            echo "EXPO_NO_DOTENV=1" >> .env
+          else
+            echo "🛠️ Configuring for DEVELOPMENT app with Expo Dev Tools"
+          fi
+
+      - name: Expo prebuild (generate native iOS project)
+        working-directory: ./app
+        run: |
+          echo "📦 Generating native iOS project with Expo..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Building standalone app (production-ready)"
+            # Use production prebuild without dev client
+            npx expo prebuild --platform ios --clean
+          else
+            echo "🛠️ Building development app (with dev tools)"  
+            npx expo prebuild --platform ios --clean
+          fi
+          
+          echo "✅ Native iOS project generated with CocoaPods installed"
+
+      - name: Build iOS app for Simulator
+        working-directory: ./app
+        run: |
+          echo "🔨 Building for iOS SIMULATOR in ${{ env.BUILD_MODE }} mode..."
+          cd ios
+          WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" -type d | head -1 | xargs basename)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+
+          echo "Using workspace: $WORKSPACE"
+          echo "Using scheme: $SCHEME"
+
+          # Build for iOS Simulator (not generic device!)
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration ${{ env.BUILD_MODE }} \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+          echo "SCHEME=$SCHEME" >> $GITHUB_ENV
+          echo "✅ Simulator build completed"
+
+      - name: Find and prepare .app artifact
+        id: find-artifacts
+        working-directory: ./app
+        run: |
+          # The simulator build outputs to Debug-iphonesimulator or Release-iphonesimulator
+          BUILD_DIR="ios/build/DerivedData/Build/Products/${{ env.BUILD_MODE }}-iphonesimulator"
+          
+          echo "Looking for .app in: $BUILD_DIR"
+          ls -la "$BUILD_DIR" || true
+          
+          # Find the .app bundle
+          APP_PATH=$(find "$BUILD_DIR" -name "*.app" -type d -maxdepth 1 | head -n 1)
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ No .app found in expected location"
+            echo "Searching entire build directory..."
+            find ios/build -name "*.app" -type d
+            exit 1
+          fi
+          
+          APP_NAME=$(basename "$APP_PATH")
+          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "✅ Found app: $APP_PATH"
+          
+          # Verify it's a valid .app bundle
+          if [ -f "$APP_PATH/Info.plist" ]; then
+            BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+            echo "Bundle ID: $BUNDLE_ID"
+          fi
+
+      - name: Package app for artifact upload
+        if: steps.find-artifacts.outputs.app_path != ''
+        id: package-app
+        working-directory: ./app
+        run: |
+          BUILD_DIR="ios/build/DerivedData/Build/Products/${{ env.BUILD_MODE }}-iphonesimulator"
+          cd "$BUILD_DIR"
+          APP_DIR=$(basename "${{ steps.find-artifacts.outputs.app_path }}")
+          
+          echo "📦 Creating app bundle zip from: $APP_DIR"
+          echo "📍 Current directory: $(pwd)"
+          echo "📍 Full BUILD_DIR path: $(realpath .)"
+          zip -r app_bundle.zip "$APP_DIR"
+          
+          echo "✅ App bundle created at: $(pwd)/app_bundle.zip"
+          echo "zip_path=$BUILD_DIR/app_bundle.zip" >> $GITHUB_OUTPUT
+          
+          # Verify the zip file was created
+          if [ -f app_bundle.zip ]; then
+            echo "🎯 Zip file verified: $(ls -lh app_bundle.zip)"
+            echo "🎯 Absolute path: $(realpath app_bundle.zip)"
+          else
+            echo "❌ ERROR: app_bundle.zip was not created"
+            exit 1
+          fi
+
+      - name: Upload iOS Simulator app artifact
+        if: steps.find-artifacts.outputs.app_path != ''
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build-${{ github.sha }}
+          path: app/${{ steps.package-app.outputs.zip_path }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Generate artifact download URL
+        if: steps.find-artifacts.outputs.app_path != ''
+        id: artifact-url
+        run: |
+          # Get the artifact ID from the upload
+          ARTIFACT_NAME="ios-app-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-build-${{ github.sha }}"
+          
+          # Create download URL that can be used in other workflows
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          # Also create a direct API URL for programmatic access
+          API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "download_url=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          
+          echo "## 📦 Artifact Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact Name:** \`$ARTIFACT_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Download URL:** [$DOWNLOAD_URL]($DOWNLOAD_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "**API URL:** \`$API_URL\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Use in Other Workflows:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
+          echo "- name: Download Build Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "  uses: actions/download-artifact@v4" >> $GITHUB_STEP_SUMMARY
+          echo "  with:" >> $GITHUB_STEP_SUMMARY
+          echo "    name: $ARTIFACT_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "    github-token: \${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_STEP_SUMMARY
+          echo "    repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "    run-id: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create downloadable release asset (for cross-workflow access)
+        if: steps.find-artifacts.outputs.app_path != '' && github.event_name != 'pull_request'
+        id: create-release
+        working-directory: ./app
+        run: |
+          # Create a pre-release with the build artifact for easy download
+          TAG_NAME="build-${{ env.BUILD_MODE }}-${{ github.sha }}-${{ github.run_number }}"
+          RELEASE_NAME="iOS Build ${{ env.BUILD_MODE }} - ${{ steps.version.outputs.version }}"
+          
+          echo "🚀 Creating release: $RELEASE_NAME"
+          echo "📁 Using zip file: ${{ steps.package-app.outputs.zip_path }}"
+          
+          # Verify the zip file exists before creating release
+          if [ ! -f "${{ steps.package-app.outputs.zip_path }}" ]; then
+            echo "❌ ERROR: Zip file not found at ${{ steps.package-app.outputs.zip_path }}"
+            echo "🔍 Searching for app_bundle.zip files:"
+            find . -name "app_bundle.zip" -type f 2>/dev/null || true
+            exit 1
+          fi
+          
+          # Create release
+          gh release create "$TAG_NAME" \
+            --title "$RELEASE_NAME" \
+            --notes "Automated iOS build for commit ${{ github.sha }}" \
+            --prerelease \
+            "${{ steps.package-app.outputs.zip_path }}#iOS-App-${{ env.BUILD_MODE }}.zip"
+          
+          # Get the release asset download URL
+          ASSET_URL=$(gh release view "$TAG_NAME" --json assets --jq '.assets[0].url')
+          
+          echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "asset_url=$ASSET_URL" >> $GITHUB_OUTPUT
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Release Asset Created:" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Tag:** \`$TAG_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Asset URL:** [$ASSET_URL]($ASSET_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Copy-Paste for External Workflows:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
+          echo "download_url: \"$ASSET_URL\"" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## iOS Simulator Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Mode:** ${{ env.BUILD_MODE }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** iOS Simulator" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.find-artifacts.outputs.app_path }}" ]; then
+            echo "✅ **Build Status:** Success" >> $GITHUB_STEP_SUMMARY
+            echo "**App:** ${{ steps.find-artifacts.outputs.app_name }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  install-and-test-ios:
+    name: Install and Test iOS App
+    needs: build-ios
+    runs-on: macos-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Install phase using composite action template
+      - name: Install iOS App
+        id: install-ios
+        uses: ./.github/actions/ios-install
+        with:
+          artifact_name: ${{ needs.build-ios.outputs.artifact_name }}
+          ios_version: ${{ inputs.platform-version || '26.0' }}
+          device_name: ${{ inputs.device-name || 'iPhone 16' }}
+          
+      # Test phase using composite action template  
+      - name: Test iOS App
+        uses: ./.github/actions/ios-test
+        with:
+          device_uuid: ${{ steps.install-ios.outputs.device_udid }}
+          ios_version: ${{ inputs.platform-version || '26.0' }}
+          device_name: ${{ inputs.device-name || 'iPhone 16' }}
+          node_version: '20'
+          appium_version: '3.1.1'
+          app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}

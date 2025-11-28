@@ -65,6 +65,12 @@ yarn-error.log
 **/coverage
 *.lcov
 .nyc_output
+test-results/
+
+# Appium
+appium.log
+**/appium.log
+appium*.log
 
 # Yarn
 .yarn/*
