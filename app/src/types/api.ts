@@ -23,9 +23,13 @@ export interface SwitchAccountBody {
 }
 
 export interface UserData {
+  id?: string,
+  icon?: string,
+  avatar?: string,
   currentAccount?: {
     icon?: string;
-  };
+  }
+  data?: { [key: string]: unknown }[];
 }
 
 export interface FullUserData {

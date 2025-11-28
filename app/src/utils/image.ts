@@ -1,9 +1,12 @@
 import { HttpMethod } from '@/types/api';
 
 export function getImageUrl(baseUrl: string, imagePath: string): string | null {
-
-   if (!baseUrl || !imagePath) {
+  if (!baseUrl || !imagePath) {
     return null;
+  }
+
+  if(imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
   }
 
   return `${baseUrl.replace(/\/+$/, "")}/${imagePath.replace(/^\/+/, "")}`;
@@ -12,8 +15,8 @@ export function getImageUrl(baseUrl: string, imagePath: string): string | null {
 export function getImageHeaders(
   accessToken: string,
   method: HttpMethod = HttpMethod.GET
-): { [key: string]: string } | null {
-  if (!accessToken) return null;
+): { [key: string]: string } | undefined {
+  if (!accessToken) return undefined;
 
   const headers: { [key: string]: string } = {
     Authorization: `Bearer ${accessToken}`,

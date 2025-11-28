@@ -1,4 +1,4 @@
-import { BorderRadius } from '../tokens';
+import { BorderRadius, Color } from '../tokens';
 
 export const avatarStyle = {
   container: {
@@ -12,6 +12,20 @@ export const avatarStyle = {
     overflow: 'hidden',
   },
   topBarIconContainer: {
-    marginRight: 8,
+    marginRight: 16,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Color.fills.tertiary,
+  },
+  imageStyle: {
+    width: '100%',
+    height: '100%',
   },
 } as const;

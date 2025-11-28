@@ -1,25 +1,17 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '@/types/navigation';
 import Avatar from '@/components/avatar/Avatar';
 import { avatarStyle } from '@/styles';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
-import { RootStackParamList } from '@/types/navigation';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useAccount } from '@/context/AccountContext';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileRoot'>;
 
 const AccountToolbarButton: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-
-  // TODO: replace with actual user data fetching logic
-  const user = {
-    id: '123',
-    icon: undefined,
-    avatar: undefined,
-    currentAccount: {
-      icon: undefined,
-    },
-  };
+  const { userData } = useAccount();
 
   const handlePress = () => {
     navigation.navigate('ProfileRoot');
@@ -33,8 +25,8 @@ const AccountToolbarButton: React.FC = () => {
     >
       <View style={[styles.iconContainer, styles.topBarIconContainer]}>
         <Avatar
-          id={user?.id || ''}
-          imagePath={user?.icon || user?.avatar || user?.currentAccount?.icon}
+          id={userData?.id || ''}
+          imagePath={userData?.currentAccount?.icon}
           size={DEFAULT_AVATAR_SIZE}
         />
       </View>

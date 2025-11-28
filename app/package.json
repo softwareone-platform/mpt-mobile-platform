@@ -23,6 +23,7 @@
     "dotenv": "^17.2.3",
     "expo": "~54.0.13",
     "expo-dev-client": "~6.0.15",
+    "expo-image": "~3.0.10",
     "expo-linear-gradient": "~15.0.7",
     "expo-secure-store": "^15.0.7",
     "expo-status-bar": "~3.0.8",
