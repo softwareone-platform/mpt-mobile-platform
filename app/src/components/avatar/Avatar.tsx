@@ -60,7 +60,7 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
   return (
     <View style={styles.container}>
       {imageSource ? (
-        <>
+        <View style={styles.iconContainer}>
           <Image
             source={{ uri: imageSource.uri, headers: imageSource.headers }}
             style={styles.imageStyle}
@@ -76,7 +76,7 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
               <ActivityIndicator size="small" color={Color.brand.primary} />
             </View>
           )}
-        </>
+        </View>
       ) : (
         <Jdenticon value={id} size={size} />
       )}
@@ -86,6 +86,7 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
 
 const styles = StyleSheet.create({
   container: avatarStyle.container,
+  iconContainer: avatarStyle.iconContainer,
   loadingOverlay: avatarStyle.loadingOverlay,
   imageStyle: avatarStyle.imageStyle,
 });

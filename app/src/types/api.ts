@@ -16,6 +16,14 @@ export interface UserAccount {
   };
 }
 
+export interface PaginatedUserAccounts {
+  $meta: {
+    pagination: { offset: number; limit: number; total: number };
+    omitted: string[];
+  };
+  data: UserAccount[];
+}
+
 export interface SwitchAccountBody {
   currentAccount: {
     id: string;
@@ -23,17 +31,22 @@ export interface SwitchAccountBody {
 }
 
 export interface UserData {
-  id?: string,
+  id: string,
+  name: string,
   icon?: string,
   avatar?: string,
   currentAccount?: {
+    id?: string;
+    name?: string;
+    type?: string;
     icon?: string;
   }
   data?: { [key: string]: unknown }[];
 }
 
 export interface FullUserData {
-  id?: string;
+  id: string;
+  name?: string;
   email?: string;
   currentAccount?: {
     id?: string;

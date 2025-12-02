@@ -2,6 +2,8 @@ import { getImageUrl, getImageHeaders } from '@/utils/image';
 import { HttpMethod } from '@/types/api';
 
 const baseUrlMock = 'https://example.com';
+const httpUrlMock = 'http://example.com/images/photo.png';
+const httpsUrlMock = 'https://example.com/images/photo.png';
 const imagePathMock = '/path/to/image.png';
 const accessTokenMock = 'abc123';
 
@@ -34,6 +36,17 @@ describe('getImageUrl', () => {
     const imageUrl = getImageUrl('', '');
 
     expect(imageUrl).toBeNull();
+  });
+  it('should return the same URL if imagePath is already a full https URL', () => {
+    const imageUrl = getImageUrl(baseUrlMock, httpsUrlMock);
+
+    expect(imageUrl).toBe(httpsUrlMock);
+  });
+
+  it('should return the same URL if imagePath is already a full http URL', () => {
+    const imageUrl = getImageUrl(baseUrlMock, httpUrlMock);
+
+    expect(imageUrl).toBe(httpUrlMock);
   });
 });
 
