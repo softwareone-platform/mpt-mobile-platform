@@ -23,8 +23,13 @@ interface AuthenticatedImageSource {
 const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SIZE }) => {
   const [imageSource, setImageSource] = useState<AuthenticatedImageSource | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const BASE_URL = configService.get('AUTH0_API_URL');
+
+  useEffect(() => {
+    setHasError(false);
+  }, [imagePath]);
 
   useEffect(() => {
     const fetchImageSource = async () => {
@@ -57,9 +62,17 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
     fetchImageSource();
   }, [imagePath, BASE_URL]);
 
+  const handleImageLoadError = () => {
+    console.warn('Failed to load avatar image');
+
+    setHasError(true);
+    setIsLoading(false);
+    setImageSource(null);
+  }
+
   return (
     <View style={styles.container}>
-      {imageSource ? (
+      {imageSource && !hasError ? (
         <View style={styles.iconContainer}>
           <Image
             source={{ uri: imageSource.uri, headers: imageSource.headers }}
@@ -67,9 +80,7 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
             contentFit="cover"
             onLoadStart={() => setIsLoading(true)}
             onLoadEnd={() => setIsLoading(false)}
-            onError={() =>
-              console.warn('Failed to load avatar image')
-            }
+            onError={handleImageLoadError}
           />
           {isLoading && (
             <View style={styles.loadingOverlay}>
