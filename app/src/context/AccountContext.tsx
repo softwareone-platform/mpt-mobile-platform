@@ -40,25 +40,21 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     if (!userId) return;
 
     try {
-      const response = await getUserAccountsData(userId, DEFAULT_OFFSET, DEFAULT_PAGE_SIZE);
-      
-      const accounts = response?.data || [];
+      const { data } = await getUserAccountsData(userId);
 
-      setUserAccountsData(accounts);
+      setUserAccountsData(data);
     } catch (error) {
       console.error('Error fetching user accounts:', error);
       setUserAccountsData([]);
     }
   }, [userId, getUserAccountsData]);
 
-  // New method to switch account and refresh userData
   const switchAccount = useCallback(
     async (accountId: string) => {
       if (!userId) return;
 
       try {
         await apiSwitchAccount(userId, accountId);
-        // Refresh user data after switch
         await fetchUserData();
       } catch (error) {
         console.error("Error switching account:", error);
