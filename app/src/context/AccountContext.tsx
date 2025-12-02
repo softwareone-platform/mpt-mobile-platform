@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { useAccountApi } from '@/services/accountService';
 import { useAuth } from '@/context/AuthContext';
 import { UserData, UserAccount } from '@/types/api';
-import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 
 interface AccountContextValue {
   userData: UserData | null;
