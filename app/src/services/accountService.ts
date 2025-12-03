@@ -14,7 +14,7 @@ import type {
 
 export function useAccountApi() {
   const api = useApi();
-  const { getAccessToken } = useAuth();
+  const { refreshAuth } = useAuth();
 
   const getUserData = useCallback(
     async (userId: string): Promise<UserData> => {
@@ -46,7 +46,7 @@ export function useAccountApi() {
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE
     ): Promise<PaginatedUserAccounts> => {
-      const endpoint =`/v1/accounts/users/${userId}/accounts` +
+      const endpoint = `/v1/accounts/users/${userId}/accounts` +
         `?select=id,name,type,icon,-*` +
         `&eq(invitation.status,"Active")` +
         `&order=name` +
@@ -98,14 +98,13 @@ export function useAccountApi() {
       const endpoint = `/v1/accounts/users/${userId}`;
 
       await api.put<void, SwitchAccountBody>(endpoint, body);
-
       try {
-        await getAccessToken();
+        await refreshAuth();
       } catch (error) {
         console.warn('Failed to refresh token after account switch', error);
       }
     },
-    [api, getAccessToken]
+    [api, refreshAuth]
   );
 
   return useMemo(
