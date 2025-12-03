@@ -4,8 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET } from '@/constants/api';
 import type {
   UserAccount,
-  SwitchAccountBody,
   UserData,
+  PaginatedUserAccounts,
+  SwitchAccountBody,
   FullUserData,
   SpotlightItem,
   SubscriptionItem,
@@ -13,12 +14,12 @@ import type {
 
 export function useAccountApi() {
   const api = useApi();
-  const { getAccessToken } = useAuth();
+  const { refreshAuth } = useAuth();
 
   const getUserData = useCallback(
     async (userId: string): Promise<UserData> => {
       const endpoint = `/v1/accounts/users/${userId}`;
-      return api.get<FullUserData>(endpoint);
+      return api.get<UserData>(endpoint);
     },
     [api]
   );
@@ -44,15 +45,15 @@ export function useAccountApi() {
       userId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE
-    ): Promise<UserAccount[]> => {
-      const endpoint =`/v1/accounts/users/${userId}/accounts` +
+    ): Promise<PaginatedUserAccounts> => {
+      const endpoint = `/v1/accounts/users/${userId}/accounts` +
         `?select=id,name,type,icon,-*` +
         `&eq(invitation.status,"Active")` +
         `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<UserAccount[]>(endpoint);
+      return api.get<PaginatedUserAccounts>(endpoint);
     },
     [api]
   );
@@ -97,14 +98,13 @@ export function useAccountApi() {
       const endpoint = `/v1/accounts/users/${userId}`;
 
       await api.put<void, SwitchAccountBody>(endpoint, body);
-
       try {
-        await getAccessToken();
+        await refreshAuth();
       } catch (error) {
         console.warn('Failed to refresh token after account switch', error);
       }
     },
-    [api, getAccessToken]
+    [api, refreshAuth]
   );
 
   return useMemo(

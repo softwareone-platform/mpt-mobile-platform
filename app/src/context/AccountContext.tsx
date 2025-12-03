@@ -1,22 +1,22 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useAccountApi } from '@/services/accountService';
 import { useAuth } from '@/context/AuthContext';
-import { UserData } from '@/types/api';
+import { UserData, UserAccount } from '@/types/api';
 
 interface AccountContextValue {
   userData: UserData | null;
-  isLoading: boolean;
-  refreshUserData: () => Promise<void>;
+  userAccountsData: UserAccount[];
+  switchAccount: (accountId: string) => Promise<void>;
 }
 
 const AccountContext = createContext<AccountContextValue | undefined>(undefined);
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [userAccountsData, setUserAccountsData] = useState<UserAccount[]>([]);
 
   const { user } = useAuth();
-  const { getUserData } = useAccountApi();
+  const { getUserData, getUserAccountsData, switchAccount: apiSwitchAccount } = useAccountApi();
 
   const userId = user?.["https://claims.softwareone.com/userId"];
 
@@ -24,30 +24,55 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     if (!userId) return;
 
     try {
-      setIsLoading(true);
-      const res = await getUserData(userId);
+      const response = await getUserData(userId);
 
-      setUserData(res);
+      setUserData(response);
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error fetching full user data:", error.message);
       }
       setUserData(null);
-    } finally {
-      setIsLoading(false);
     }
   }, [userId, getUserData]);
 
+  const fetchUserAccountsData = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const { data } = await getUserAccountsData(userId);
+
+      setUserAccountsData(data);
+    } catch (error) {
+      console.error('Error fetching user accounts:', error);
+      setUserAccountsData([]);
+    }
+  }, [userId, getUserAccountsData]);
+
+  const switchAccount = useCallback(
+    async (accountId: string) => {
+      if (!userId) return;
+
+      try {
+        await apiSwitchAccount(userId, accountId);
+        await fetchUserData();
+      } catch (error) {
+        console.error("Error switching account:", error);
+      }
+    },
+    [userId, apiSwitchAccount, fetchUserData]
+  );
+
   useEffect(() => {
     fetchUserData();
-  }, [fetchUserData]);
+    fetchUserAccountsData();
+  }, [fetchUserData, fetchUserAccountsData]);
 
   return (
     <AccountContext.Provider
       value={{
         userData,
-        isLoading,
-        refreshUserData: fetchUserData,
+        userAccountsData,
+        switchAccount,
       }}
     >
       {children}

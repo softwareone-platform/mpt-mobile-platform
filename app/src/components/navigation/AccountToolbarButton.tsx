@@ -25,7 +25,7 @@ const AccountToolbarButton: React.FC = () => {
     >
       <View style={[styles.iconContainer, styles.topBarIconContainer]}>
         <Avatar
-          id={userData?.id || ''}
+          id={userData?.currentAccount?.id || ''}
           imagePath={userData?.currentAccount?.icon}
           size={DEFAULT_AVATAR_SIZE}
         />
