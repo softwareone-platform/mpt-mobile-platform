@@ -8,8 +8,8 @@ import type {
   PaginatedUserAccounts,
   SwitchAccountBody,
   FullUserData,
-  SpotlightItem,
   SubscriptionItem,
+  SpotlightData,
 } from '@/types/api';
 
 export function useAccountApi() {
@@ -59,9 +59,9 @@ export function useAccountApi() {
   );
 
   const getSpotlightData = useCallback(
-    async (limit: number = DEFAULT_PAGE_SIZE): Promise<SpotlightItem[]> => {
-      const endpoint = `/v1/spotlight/objects?Select=top&limit=${limit}`;
-      return api.get<SpotlightItem[]>(endpoint);
+    async (limit: number = DEFAULT_PAGE_SIZE): Promise<SpotlightData> => {
+      const endpoint = `/v1/spotlight/objects?select=top&limit=${limit}`;
+      return api.get<SpotlightData>(endpoint);
     },
     [api]
   );
