@@ -73,11 +73,11 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
   return (
     <View style={styles.container}>
       {imageSource && !hasError ? (
-        <View style={styles.iconContainer}>
+        <View style={[styles.iconContainer, styles.commonIconContainer]}>
           <Image
             source={{ uri: imageSource.uri, headers: imageSource.headers }}
             style={styles.imageStyle}
-            contentFit="cover"
+            contentFit="contain"
             onLoadStart={() => setIsLoading(true)}
             onLoadEnd={() => setIsLoading(false)}
             onError={handleImageLoadError}
@@ -97,6 +97,7 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
 
 const styles = StyleSheet.create({
   container: avatarStyle.container,
+  commonIconContainer: avatarStyle.commonIconContainer,
   iconContainer: avatarStyle.iconContainer,
   loadingOverlay: avatarStyle.loadingOverlay,
   imageStyle: avatarStyle.imageStyle,

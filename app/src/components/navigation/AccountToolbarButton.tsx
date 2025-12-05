@@ -23,7 +23,7 @@ const AccountToolbarButton: React.FC = () => {
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <View style={[styles.iconContainer, styles.topBarIconContainer]}>
+      <View style={[styles.topBarIconContainer, styles.commonIconContainer ]}>
         <Avatar
           id={userData?.currentAccount?.id || ''}
           imagePath={userData?.currentAccount?.icon}
@@ -36,7 +36,7 @@ const AccountToolbarButton: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: avatarStyle.container,
-  iconContainer: avatarStyle.iconContainer,
+  commonIconContainer: avatarStyle.commonIconContainer,
   topBarIconContainer: avatarStyle.topBarIconContainer,
 });
 

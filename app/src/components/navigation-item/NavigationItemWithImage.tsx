@@ -23,7 +23,7 @@ const NavigationItemWithImage = ({ id, imagePath, title, subtitle, isLast, onPre
     </View>
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
       <View style={styles.textContainer}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
       <NavigationItemChevron />

@@ -1,11 +1,14 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useAccountApi } from '@/services/accountService';
 import { useAuth } from '@/context/AuthContext';
-import { UserData, UserAccount } from '@/types/api';
+import { UserData, UserAccount, SpotlightItem } from '@/types/api';
+import { arrangeSpotlightData } from '@/utils/spotlight';
+import { SPOTLIGHT_CATEGORY } from '@/constants/spotlight';
 
 interface AccountContextValue {
   userData: UserData | null;
   userAccountsData: UserAccount[];
+  spotlightData: Record<string, SpotlightItem[]>;
   switchAccount: (accountId: string) => Promise<void>;
 }
 
@@ -14,9 +17,15 @@ const AccountContext = createContext<AccountContextValue | undefined>(undefined)
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userAccountsData, setUserAccountsData] = useState<UserAccount[]>([]);
+  const [spotlightData, setSpotlightData] = useState<Record<string, SpotlightItem[]>>({});
 
   const { user } = useAuth();
-  const { getUserData, getUserAccountsData, switchAccount: apiSwitchAccount } = useAccountApi();
+  const {
+    getUserData,
+    getUserAccountsData,
+    getSpotlightData,
+    switchAccount: apiSwitchAccount 
+  } = useAccountApi();
 
   const userId = user?.["https://claims.softwareone.com/userId"];
 
@@ -62,6 +71,27 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     [userId, apiSwitchAccount, fetchUserData]
   );
 
+  const fetchSpotlightData = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const { data } = await getSpotlightData(userId);
+      const arrangedData = arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
+      
+      setSpotlightData(arrangedData);
+    } catch (error) {
+      console.error("Error fetching spotlight data:", error);
+      setSpotlightData({});
+    }
+  }, [userId, getSpotlightData]);
+
+  useEffect(() => {
+    if (!userData) return;
+
+    fetchSpotlightData();
+  }, [userData, fetchSpotlightData]);
+
+
   useEffect(() => {
     fetchUserData();
     fetchUserAccountsData();
@@ -72,6 +102,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
       value={{
         userData,
         userAccountsData,
+        spotlightData,
         switchAccount,
       }}
     >
