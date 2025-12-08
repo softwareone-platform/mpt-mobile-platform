@@ -13,7 +13,6 @@
       "subtitle": "We have sent a verification code to {{email}}.",
       "otpPlaceholder": "Enter verification code",
       "verifyButton": "Verify",
-      "didntGetCode": "Didn't get a code?",
       "resendCode": "Resend Code"
     },
     "validation": {

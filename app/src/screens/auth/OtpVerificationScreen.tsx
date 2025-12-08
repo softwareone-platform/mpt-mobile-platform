@@ -170,9 +170,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
                 />
 
                 <View style={otpVerificationScreenStyle.resendSection}>
-                    <Text style={otpVerificationScreenStyle.didntGetCodeText}>
-                        {t('auth.otpVerification.didntGetCode')}{' '}
-                    </Text>
                     <TouchableOpacity onPress={handleResendCode} disabled={!canResend}>
                         <Text style={[
                             otpVerificationScreenStyle.resendText,

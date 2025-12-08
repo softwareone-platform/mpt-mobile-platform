@@ -25,11 +25,6 @@ export const otpVerificationScreenStyle = {
         justifyContent: 'center' as const,
         flexWrap: 'wrap' as const,
     },
-    didntGetCodeText: {
-        fontSize: Typography.fontSize.font2,
-        color: Color.gray.gray4,
-        fontWeight: Typography.fontWeight.regular,
-    },
     resendText: {
         fontSize: Typography.fontSize.font2,
         color: Color.brand.primary,
