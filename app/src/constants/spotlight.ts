@@ -53,13 +53,3 @@ export const SPOTLIGHT_CATEGORY: Array<{ name: string; templates: SpotlightTempl
   { name: 'journals', templates: JOURNALS_SPOTLIGHTS },
   { name: 'buyers', templates: BUYERS_SPOTLIGHTS },
 ];
-
-export const SPOTLIGHT_ORDER = [
-  'orders',
-  'subscriptions',
-  'users',
-  'invoices',
-  'enrollments',
-  'journals',
-  'buyers',
-];

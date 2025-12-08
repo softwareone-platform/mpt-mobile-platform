@@ -1,7 +1,5 @@
 import { Color, Spacing, Typography } from '../tokens';
 
-const bottomNavigationHeight = 80;
-
 export const screenStyle = {
   container: {
     flex: 1,
@@ -12,7 +10,6 @@ export const screenStyle = {
   },
   containerMain: {
     padding: Spacing.spacing2,
-    // marginBottom: bottomNavigationHeight,
   },
   sectionHeader: {
     fontSize: Typography.fontSize.font2,

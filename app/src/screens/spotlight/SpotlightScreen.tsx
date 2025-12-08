@@ -34,6 +34,7 @@ const SpotlightScreen = () => {
               <View key={section.id} style={styles.containerCard}>
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardHeaderText}>
+                    {/* TODO: remove the below line and add text from i18n file, no support for plural for now */}
                     {section.total} {section.total > 1 ? section.query?.name.toLowerCase() : section.query?.name?.slice(0, -1).toLowerCase()}
                   </Text>
                 </View>
@@ -52,6 +53,7 @@ const SpotlightScreen = () => {
                       title={itemName}
                       subtitle={itemId}
                       isLast={itemIndex === section.top.length - 1}
+                      // TODO: Implement navigation on press of each spotlight item
                       onPress={() => {}}
                     />
                   );

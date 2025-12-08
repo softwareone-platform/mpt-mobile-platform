@@ -1,4 +1,3 @@
-import { t } from 'i18next';
 import { Color, BorderRadius, Spacing, Shadow, Typography } from '../tokens';
 import { separatorStyle } from './separator';
 

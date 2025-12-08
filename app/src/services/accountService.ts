@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useApi } from '@/hooks/useApi';
 import { useAuth } from '@/context/AuthContext';
-import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET } from '@/constants/api';
+import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import type {
   UserAccount,
   UserData,
@@ -59,7 +59,7 @@ export function useAccountApi() {
   );
 
   const getSpotlightData = useCallback(
-    async (limit: number = DEFAULT_PAGE_SIZE): Promise<SpotlightData> => {
+    async (limit: number = DEFAULT_SPOTLIGHT_LIMIT): Promise<SpotlightData> => {
       const endpoint = `/v1/spotlight/objects?select=top&limit=${limit}`;
       return api.get<SpotlightData>(endpoint);
     },

@@ -144,6 +144,7 @@ module.exports = [
       'prefer-const': 'warn',
       'no-var': 'error',
       'no-undef': 'off', // TypeScript handles this
+      "eol-last": ["error", "always"],
     },
   },
 ];
