@@ -1,6 +1,5 @@
 import { BorderRadius, Color, Typography } from '../tokens';
 
-//TODO: Restyle after Figma design of OTP input is ready
 export const otpInputStyle = {
     container: {
         alignItems: 'center',
@@ -8,20 +7,19 @@ export const otpInputStyle = {
     },
     digitsContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        maxWidth: 300,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     digitContainer: {
-        width: 45,
-        height: 55,
+        width: 39,
+        height: 36,
         borderWidth: 1,
         borderColor: Color.gray.gray3,
         borderRadius: BorderRadius.md,
         backgroundColor: Color.brand.white,
         justifyContent: 'center',
         alignItems: 'center',
-        marginHorizontal: 4,
+        marginHorizontal: 8,
     },
     digitContainerFilled: {
         borderColor: Color.brand.primary,
@@ -46,5 +44,8 @@ export const otpInputStyle = {
         width: 0,
         height: 0,
         opacity: 0,
+    },
+    digitContainerGroupGap: {
+        marginRight: 24,
     },
 } as const;

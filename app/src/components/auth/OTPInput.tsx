@@ -84,11 +84,15 @@ const OTPInput: React.FC<OTPInputProps> = ({
         const digit = value[index] || '';
         const isFilled = Boolean(digit);
         const isActive = focused && index === value.length;
+        const isLastInFirstGroup = index === 2;
         
         return (
             <TouchableOpacity
                 key={index}
-                style={createDigitStyles(isFilled, isActive)}
+                style={[
+                    createDigitStyles(isFilled, isActive),
+                    isLastInFirstGroup && otpInputStyle.digitContainerGroupGap
+                ]}
                 onPress={focusInput}
                 activeOpacity={0.8}
             >

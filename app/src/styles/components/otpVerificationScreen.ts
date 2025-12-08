@@ -20,17 +20,33 @@ export const otpVerificationScreenStyle = {
     },
     resendSection: {
         marginTop: Spacing.spacing3,
-        flexDirection: 'row' as const,
-        alignItems: 'center' as const,
-        justifyContent: 'center' as const,
-        flexWrap: 'wrap' as const,
+        alignItems: 'flex-start' as const,
     },
     resendText: {
         fontSize: Typography.fontSize.font2,
-        color: Color.brand.primary,
-        fontWeight: Typography.fontWeight.medium,
+        fontWeight: Typography.fontWeight.regular,
+        color: Color.brand.type,
     },
-    resendTextDisabled: {
-        opacity: 0.5,
+    resendTextActive: {
+        color: Color.brand.primary,
+    },
+    footer: {
+        marginTop: 'auto' as const,
+        paddingBottom: Spacing.spacing10,
+    },
+    footerText: {
+        fontSize: Typography.fontSize.font2,
+        color: Color.brand.primary,
+        fontWeight: Typography.fontWeight.regular,
+    },
+    footerSeparator: {
+        color: Color.brand.primary,
+    },
+    contentWrapper: {
+        flex: 1,
+    },
+    footerLinksContainer: {
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
     },
 };

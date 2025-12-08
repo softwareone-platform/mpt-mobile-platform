@@ -149,38 +149,61 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         <AuthLayout
             title={t('auth.otpVerification.title')}
             subtitle={t('auth.otpVerification.subtitle', { email })}
+            paddingTopOffset={-64}
+            logoTopPadding={0}
         >
-            <View style={otpVerificationScreenStyle.form}>
-                <View style={otpVerificationScreenStyle.otpContainer}>
-                    <OTPInput
-                        value={otp}
-                        onChangeText={handleOTPChange}
-                        error={!!otpError}
-                        autoFocus
+            <View style={otpVerificationScreenStyle.contentWrapper}>
+                <View style={otpVerificationScreenStyle.form}>
+                    <View style={otpVerificationScreenStyle.otpContainer}>
+                        <OTPInput
+                            value={otp}
+                            onChangeText={handleOTPChange}
+                            error={!!otpError}
+                            autoFocus
+                        />
+                        {otpError && (
+                            <Text style={otpVerificationScreenStyle.errorText}>{otpError}</Text>
+                        )}
+                    </View>
+
+                    <AuthButton
+                        title={t('auth.otpVerification.verifyButton')}
+                        onPress={handleVerify}
+                        loading={loading}
                     />
-                    {otpError && (
-                        <Text style={otpVerificationScreenStyle.errorText}>{otpError}</Text>
-                    )}
+
+                    <View style={otpVerificationScreenStyle.resendSection}>
+                        {canResend ? (
+                            <TouchableOpacity onPress={handleResendCode}>
+                                <Text style={[
+                                    otpVerificationScreenStyle.resendText,
+                                    otpVerificationScreenStyle.resendTextActive
+                                ]}>
+                                    {t('auth.otpVerification.resendCode')}
+                                </Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <Text style={otpVerificationScreenStyle.resendText}>
+                                {t('auth.otpVerification.resendCodeIn', { time: displayTimer(resendTimer) })}
+                            </Text>
+                        )}
+                    </View>
                 </View>
 
-                <AuthButton
-                    title={t('auth.otpVerification.verifyButton')}
-                    onPress={handleVerify}
-                    loading={loading}
-                />
-
-                <View style={otpVerificationScreenStyle.resendSection}>
-                    <TouchableOpacity onPress={handleResendCode} disabled={!canResend}>
-                        <Text style={[
-                            otpVerificationScreenStyle.resendText,
-                            !canResend && otpVerificationScreenStyle.resendTextDisabled
-                        ]}>
-                            {canResend
-                                ? t('auth.otpVerification.resendCode')
-                                : displayTimer(resendTimer)
-                            }
-                        </Text>
-                    </TouchableOpacity>
+                <View style={otpVerificationScreenStyle.footer}>
+                    <View style={otpVerificationScreenStyle.footerLinksContainer}>
+                        <TouchableOpacity>
+                            <Text style={otpVerificationScreenStyle.footerText}>
+                                Trouble signing in?
+                            </Text>
+                        </TouchableOpacity>
+                        <Text style={otpVerificationScreenStyle.footerSeparator}> • </Text>
+                        <TouchableOpacity>
+                            <Text style={otpVerificationScreenStyle.footerText}>
+                                T&Cs & Privacy
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </AuthLayout>
