@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -123,10 +123,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
         try {
             await sendPasswordlessEmail(email);
-            Alert.alert(
-                t('auth.otpVerification.resendCode'),
-                t('auth.otpVerification.subtitle', { email })
-            );
         } catch (error) {
             console.error('Resend OTP error:', error instanceof Error ? error.message : 'Unknown error');
 
