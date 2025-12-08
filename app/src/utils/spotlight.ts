@@ -34,7 +34,7 @@ export const groupSpotlightData = (
   const groupedData: Record<string, SpotlightItem[]> = {};
 
   spotlightData.forEach((item) => {
-    if (item.total === 0) {
+    if (!item || item.total === 0) {
       return;
     }
 

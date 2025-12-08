@@ -61,10 +61,10 @@ export interface SpotlightItem {
   id: string;
   total: number;
   top: SpotlightTopItem[];
-  query: {
+  query?: {
     id: string;
     name: string;
-    template: string;
+    template?: string;
   };
 }
 

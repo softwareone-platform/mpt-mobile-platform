@@ -77,7 +77,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await getSpotlightData(userId);
       const arrangedData = arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
-      
+      console.log("Arranged Spotlight Data:", JSON.stringify(arrangedData, null, 2));
       setSpotlightData(arrangedData);
     } catch (error) {
       console.error("Error fetching spotlight data:", error);
