@@ -8,6 +8,13 @@ on:
   # Manual trigger only
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: choice
+        options:
+          - test
+        default: 'test'
       build-mode:
         description: 'Build configuration'
         required: true
@@ -30,6 +37,11 @@ on:
   # Reusable workflow (called from other workflows)
   workflow_call:
     inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: string
+        default: 'test'
       build-mode:
         description: 'Build configuration'
         required: false
@@ -364,6 +376,7 @@ jobs:
     needs: build-ios
     runs-on: macos-latest
     timeout-minutes: 60
+    environment: ${{ inputs.environment || 'test' }}
     
     steps:
       - name: Checkout code

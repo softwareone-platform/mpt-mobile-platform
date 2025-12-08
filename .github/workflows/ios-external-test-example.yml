@@ -16,6 +16,13 @@ on:
   # Manual trigger only
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: choice
+        options:
+          - test
+        default: 'test'
       download_url:
         description: 'Direct download URL for the iOS app bundle (example: from GitHub releases or external URL)'
         required: true
@@ -37,6 +44,7 @@ jobs:
     name: Install and Test External iOS Build
     runs-on: macos-latest
     timeout-minutes: 60
+    environment: ${{ inputs.environment || 'test' }}
     
     steps:
       - name: Checkout code
