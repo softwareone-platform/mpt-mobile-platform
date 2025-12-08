@@ -74,12 +74,23 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     }, [otp, login, email, t]);
 
+    const resetOtpState = () => {
+        setOtp('');
+        setOtpError('');
+        setHasAutoSubmitted(false);
+    };
+
     useEffect(() => {
         if (otp.length === AUTH_CONSTANTS.OTP_LENGTH && validateOTP(otp) && !loading && !hasAutoSubmitted) {
             setHasAutoSubmitted(true);
             handleVerify();
         }
     }, [otp, loading, hasAutoSubmitted, handleVerify]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', resetOtpState);
+        return unsubscribe;
+    }, [navigation]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null;
@@ -128,13 +139,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     };
 
-    const handleChangeEmail = () => {
-        setOtp('');
-        setOtpError('');
-        setHasAutoSubmitted(false);
-        navigation.goBack();
-    };
-
     const displayTimer = (seconds: number): string => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
@@ -164,14 +168,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
                     onPress={handleVerify}
                     loading={loading}
                 />
-
-                <View style={otpVerificationScreenStyle.changeEmailButton}>
-                    <AuthButton
-                        title={t('auth.otpVerification.changeEmail')}
-                        onPress={handleChangeEmail}
-                        variant="secondary"
-                    />
-                </View>
 
                 <View style={otpVerificationScreenStyle.resendSection}>
                     <Text style={otpVerificationScreenStyle.didntGetCodeText}>

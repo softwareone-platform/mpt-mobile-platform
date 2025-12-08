@@ -14,8 +14,7 @@
       "otpPlaceholder": "Enter verification code",
       "verifyButton": "Verify",
       "didntGetCode": "Didn't get a code?",
-      "resendCode": "Resend Code",
-      "changeEmail": "Change email"
+      "resendCode": "Resend Code"
     },
     "validation": {
       "emailRequired": "Email is required",
