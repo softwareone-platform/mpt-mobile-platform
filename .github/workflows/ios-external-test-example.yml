@@ -64,3 +64,8 @@ jobs:
           app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
           appium_host: 'localhost'
           appium_port: '4723'
+          airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
+          airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
+          airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
+          airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
