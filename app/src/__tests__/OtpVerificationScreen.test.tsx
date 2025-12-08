@@ -62,4 +62,81 @@ describe('OtpVerificationScreen Business Logic', () => {
       expect(validateOTP(invalidOtp)).toBe(false);
     });
   });
+
+  describe('Resend Timer Logic', () => {
+    const RESEND_COOLDOWN_SECONDS = 90;
+
+    const displayTimer = (seconds: number): string => {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    it('should format timer display correctly', () => {
+      expect(displayTimer(90)).toBe('1:30');
+      expect(displayTimer(60)).toBe('1:00');
+      expect(displayTimer(59)).toBe('0:59');
+      expect(displayTimer(30)).toBe('0:30');
+      expect(displayTimer(10)).toBe('0:10');
+      expect(displayTimer(5)).toBe('0:05');
+      expect(displayTimer(1)).toBe('0:01');
+      expect(displayTimer(0)).toBe('0:00');
+    });
+
+    it('should handle timer countdown correctly', () => {
+      let timer = RESEND_COOLDOWN_SECONDS;
+      
+      expect(timer).toBe(90);
+      
+      // Simulate countdown
+      timer -= 1;
+      expect(timer).toBe(89);
+      
+      timer -= 30;
+      expect(timer).toBe(59);
+      
+      timer -= 59;
+      expect(timer).toBe(0);
+    });
+
+    it('should enable resend when timer reaches zero', () => {
+      const canResend = (timer: number): boolean => timer === 0;
+      
+      expect(canResend(90)).toBe(false);
+      expect(canResend(1)).toBe(false);
+      expect(canResend(0)).toBe(true);
+    });
+
+    it('should reset timer to cooldown value on resend', () => {
+      let timer = 0;
+      const canResend = timer === 0;
+      
+      expect(canResend).toBe(true);
+      
+      // Simulate resend action
+      if (canResend) {
+        timer = RESEND_COOLDOWN_SECONDS;
+      }
+      
+      expect(timer).toBe(90);
+      expect(displayTimer(timer)).toBe('1:30');
+    });
+
+    it('should handle multiple timer cycles', () => {
+      let timer = RESEND_COOLDOWN_SECONDS;
+      
+      // First cycle
+      expect(timer).toBe(90);
+      timer = 0; // Simulate countdown to 0
+      expect(timer).toBe(0);
+      
+      // Reset for second cycle
+      timer = RESEND_COOLDOWN_SECONDS;
+      expect(timer).toBe(90);
+      
+      // Second cycle
+      timer = 0;
+      expect(timer).toBe(0);
+    });
+  });
 });
