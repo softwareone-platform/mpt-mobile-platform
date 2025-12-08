@@ -466,9 +466,36 @@ The following secrets must be configured in the `TestFlight` GitHub environment 
 13. Creates git tag for the release
 14. Uploads IPA and dSYMs as artifacts (30-day retention)
 
-### Future: SonarCloud Integration
+### SonarCloud Integration
 
-Test coverage thresholds will be enforced via SonarCloud (planned).
+SonarCloud is integrated for code quality analysis and test coverage tracking.
+
+**Configuration:**
+- **Organization:** `softwareone-pc`
+- **Project Key:** `softwareone-pc_mpt-mobile-platform`
+- **Dashboard:** https://sonarcloud.io/project/overview?id=softwareone-pc_mpt-mobile-platform
+
+**How It Works:**
+- SonarCloud scan runs automatically on every PR and main branch push
+- Analysis includes code quality, bugs, vulnerabilities, code smells, and test coverage
+- Results are available in the SonarCloud dashboard
+- Configuration is defined in `sonar-project.properties` at the repository root
+
+**Required Secrets:**
+- `SONAR_TOKEN`: SonarCloud authentication token (already configured in repository secrets)
+
+**Local Analysis (Optional):**
+```bash
+# Install sonar-scanner CLI
+brew install sonar-scanner
+
+# Run local analysis (requires SONAR_TOKEN environment variable)
+SONAR_TOKEN=your-token sonar-scanner
+```
+
+**Quality Gate:**
+- Quality gate status can be configured as a required check for PR merges
+- Configure in GitHub branch protection rules after first successful scan
 
 ## Architecture
 
@@ -847,6 +874,11 @@ These must match Auth0 dashboard configuration.
 - Feature branches: `feature/MPT-XXXX/description`
 - Infrastructure branches: `infra/mpt-XXXX-description`
 
+**Commit Guidelines:**
+- Do NOT include Claude/AI attribution in commit messages (no "Generated with Claude Code" or "Co-Authored-By: Claude")
+- Write clear, concise commit messages describing the changes
+- Use conventional commit format when appropriate
+
 See `.github/CODEOWNERS` for code review assignments.
 
 ## Documentation
@@ -947,8 +979,7 @@ See `.github/CODEOWNERS` for code review assignments.
 **Planned:**
 - Multi-account support
 - Real-time data sync
-- SonarCloud integration and quality gates
-- Android build and deployment workflows
+- SonarCloud quality gates enforcement
 - Additional language translations
 - Offline mode support
 - Push notifications
