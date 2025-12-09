@@ -13,6 +13,10 @@ on:
         required: false
         type: string
         default: './app'
+    secrets:
+      SONAR_TOKEN:
+        description: 'SonarCloud authentication token'
+        required: true
 
 jobs:
   build-and-test:
@@ -26,6 +30,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full git history for SonarCloud analysis
 
       - name: Setup Node.js ${{ inputs.node-version }}
         uses: actions/setup-node@v4
@@ -60,6 +66,21 @@ jobs:
           path: ${{ inputs.working-directory }}/coverage
           retention-days: 7
 
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: app
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: SonarCloud Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        with:
+          scanMetadataReportFile: app/.scannerwork/report-task.txt
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Test Summary
         if: always()
         run: |
@@ -91,6 +112,18 @@ jobs:
             echo "⚠️ No coverage reports generated (no tests found)" >> $GITHUB_STEP_SUMMARY
           fi
 
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 SonarCloud Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Analysis completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "📊 **[View Full Report for PR #${{ github.event.pull_request.number }}](https://sonarcloud.io/summary/new_code?id=softwareone-pc_mpt-mobile-platform&pullRequest=${{ github.event.pull_request.number }})**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "📊 **[View Full Report](https://sonarcloud.io/summary/overall?id=softwareone-pc_mpt-mobile-platform)**" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
