@@ -145,8 +145,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         <AuthLayout
             title={t('auth.otpVerification.title')}
             subtitle={t('auth.otpVerification.subtitle', { email })}
-            paddingTopOffset={-64}
-            logoTopPadding={0}
+            hasHeader
         >
             <View style={otpVerificationScreenStyle.contentWrapper}>
                 <View style={otpVerificationScreenStyle.form}>
