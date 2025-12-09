@@ -105,9 +105,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const fetchAndSetPortalVersion = useCallback(async () => {
         const version = await fetchPortalVersion();
-        if (version) {
-            console.log(`Portal version: ${version.fullVersion} (major: ${version.majorVersion})`);
-        }
         dispatch({ type: AUTH_ACTIONS.SET_PORTAL_VERSION, payload: version });
     }, []);
 
@@ -175,7 +172,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }, [REFRESH_BUFFER_MS]);
 
     useEffect(() => {
-        console.log('Setting up token refresh effect');
         if (!authState.tokens || authState.status !== 'authenticated') {
             return;
         }
