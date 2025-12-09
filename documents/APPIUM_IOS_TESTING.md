@@ -328,16 +328,53 @@ pkill -f appium
 
 ## Environment Variables
 
-Create a `.env` file in the `app` directory if needed:
+Create a `.env` file in the `app` directory with the following configuration:
 
 ```bash
 # app/.env
+
+# Auth0 Configuration (required for app builds)
+AUTH0_DOMAIN=login-test.pyracloud.com
+AUTH0_CLIENT_ID=your_client_id_here
+AUTH0_AUDIENCE=https://api-test.pyracloud.com/
+AUTH0_SCOPE=openid profile email offline_access
+AUTH0_API_URL=https://api.s1.show/public/
+AUTH0_OTP_DIGITS=6
+AUTH0_SCHEME=com.softwareone.marketplaceMobile
+
+# Airtable Configuration for OTP Testing (required for OTP automation)
+AIRTABLE_EMAIL=marketplaceplatformemailtest@gmail.com
+AIRTABLE_API_TOKEN=your_airtable_personal_access_token
+AIRTABLE_BASE_ID=your_airtable_base_id
+AIRTABLE_TABLE_NAME=your_airtable_table_id
+AIRTABLE_FROM_EMAIL=no-reply.test@softwareone.com
+
+# Optional Appium Configuration (auto-detected if not set)
 APPIUM_HOST=localhost
 APPIUM_PORT=4723
 DEVICE_NAME=iPhone 16
 PLATFORM_VERSION=26.0
 APP_BUNDLE_ID=com.softwareone.marketplaceMobile
 ```
+
+### Environment Setup Script
+
+Use the automated environment setup script for easy configuration:
+
+```bash
+# Load configuration from .env file and set up test environment
+source ./scripts/setup-test-env.sh
+
+# Save configuration to .env.test file for later use
+./scripts/setup-test-env.sh --save
+```
+
+The setup script will automatically:
+- Load values from `app/.env` 
+- Detect booted iOS simulators
+- Configure Appium variables
+- Set up Airtable OTP testing variables
+- Display current configuration
 
 ## CI/CD Setup
 

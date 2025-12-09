@@ -31,6 +31,21 @@ inputs:
     description: 'Appium server port'
     required: false
     default: '4723'
+  airtable_email:
+    description: 'Airtable email for OTP testing'
+    required: true
+  airtable_api_token:
+    description: 'Airtable API token'
+    required: true
+  airtable_base_id:
+    description: 'Airtable base ID'
+    required: true
+  airtable_table_name:
+    description: 'Airtable table name'
+    required: true
+  airtable_from_email:
+    description: 'Airtable from email filter'
+    required: true
 
 runs:
   using: 'composite'
@@ -336,6 +351,11 @@ runs:
         DEVICE_NAME: ${{ inputs.device_name }}
         PLATFORM_VERSION: ${{ inputs.ios_version }}
         APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+        AIRTABLE_EMAIL: ${{ inputs.airtable_email }}
+        AIRTABLE_API_TOKEN: ${{ inputs.airtable_api_token }}
+        AIRTABLE_BASE_ID: ${{ inputs.airtable_base_id }}
+        AIRTABLE_TABLE_NAME: ${{ inputs.airtable_table_name }}
+        AIRTABLE_FROM_EMAIL: ${{ inputs.airtable_from_email }}
       run: |
         echo "🚀 Starting WebDriver tests with verified Appium connection..."
         
@@ -382,6 +402,13 @@ runs:
         echo "   APP_BUNDLE_ID: $APP_BUNDLE_ID"
         echo "   APPIUM_HOST: $APPIUM_HOST"
         echo "   APPIUM_PORT: $APPIUM_PORT"
+        echo ""
+        echo "📧 Airtable Configuration:"
+        echo "   AIRTABLE_EMAIL: ${AIRTABLE_EMAIL}"
+        echo "   AIRTABLE_API_TOKEN: ${AIRTABLE_API_TOKEN:+<configured (${#AIRTABLE_API_TOKEN} chars)>}"
+        echo "   AIRTABLE_BASE_ID: ${AIRTABLE_BASE_ID}"
+        echo "   AIRTABLE_TABLE_NAME: ${AIRTABLE_TABLE_NAME}"
+        echo "   AIRTABLE_FROM_EMAIL: ${AIRTABLE_FROM_EMAIL}"
         npx wdio run wdio.conf.js --suite welcome
         
     - name: Upload Appium logs
