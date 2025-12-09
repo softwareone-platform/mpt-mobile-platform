@@ -10,6 +10,7 @@ import { AuthStackParamList } from '@/types/navigation';
 import { otpVerificationScreenStyle } from '@/styles/components';
 import { AUTH_CONSTANTS } from '@/constants';
 import { validateOTP } from '@/utils/validation';
+import { formatTimer } from '@/utils/timer';
 import { auth0ErrorParsingService } from '@/services/auth0ErrorParsingService';
 
 interface OTPVerificationScreenProps {
@@ -89,7 +90,10 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', resetOtpState);
-        return unsubscribe;
+
+        return () => {
+            unsubscribe();
+        };
     }, [navigation]);
 
     useEffect(() => {
@@ -135,12 +139,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     };
 
-    const displayTimer = (seconds: number): string => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
-
     return (
         <AuthLayout
             title={t('auth.otpVerification.title')}
@@ -179,7 +177,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
                             </TouchableOpacity>
                         ) : (
                             <Text style={otpVerificationScreenStyle.resendText}>
-                                {t('auth.otpVerification.resendCodeIn', { time: displayTimer(resendTimer) })}
+                                {t('auth.otpVerification.resendCodeIn', { time: formatTimer(resendTimer) })}
                             </Text>
                         )}
                     </View>

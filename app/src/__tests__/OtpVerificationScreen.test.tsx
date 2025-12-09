@@ -1,4 +1,5 @@
 import { AUTH_CONSTANTS } from '@/constants';
+import { formatTimer } from '@/utils/timer';
 
 describe('OtpVerificationScreen Business Logic', () => {
   describe('Input Sanitization', () => {
@@ -66,21 +67,15 @@ describe('OtpVerificationScreen Business Logic', () => {
   describe('Resend Timer Logic', () => {
     const RESEND_COOLDOWN_SECONDS = 90;
 
-    const displayTimer = (seconds: number): string => {
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = seconds % 60;
-      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
-
     it('should format timer display correctly', () => {
-      expect(displayTimer(90)).toBe('1:30');
-      expect(displayTimer(60)).toBe('1:00');
-      expect(displayTimer(59)).toBe('0:59');
-      expect(displayTimer(30)).toBe('0:30');
-      expect(displayTimer(10)).toBe('0:10');
-      expect(displayTimer(5)).toBe('0:05');
-      expect(displayTimer(1)).toBe('0:01');
-      expect(displayTimer(0)).toBe('0:00');
+      expect(formatTimer(90)).toBe('1:30');
+      expect(formatTimer(60)).toBe('1:00');
+      expect(formatTimer(59)).toBe('0:59');
+      expect(formatTimer(30)).toBe('0:30');
+      expect(formatTimer(10)).toBe('0:10');
+      expect(formatTimer(5)).toBe('0:05');
+      expect(formatTimer(1)).toBe('0:01');
+      expect(formatTimer(0)).toBe('0:00');
     });
 
     it('should handle timer countdown correctly', () => {
@@ -119,7 +114,7 @@ describe('OtpVerificationScreen Business Logic', () => {
       }
       
       expect(timer).toBe(90);
-      expect(displayTimer(timer)).toBe('1:30');
+      expect(formatTimer(timer)).toBe('1:30');
     });
 
     it('should handle multiple timer cycles', () => {
