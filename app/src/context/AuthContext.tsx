@@ -210,7 +210,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     const login = async (email: string, otp: string) => {
 
         const tokens = await authService.verifyPasswordlessOtp(email, otp);
-        const user = await authService.getUserProfile(tokens.accessToken);
+        const user = authService.getUserFromToken(tokens.accessToken);
 
         await Promise.all([
             credentialStorageService.storeTokens(tokens),
