@@ -56,6 +56,7 @@ class AuthenticationService {
         this.auth0 = new Auth0({
             domain: this.domain,
             clientId: this.clientId,
+            useDPoP: false,
         });
     }
 

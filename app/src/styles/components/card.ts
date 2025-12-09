@@ -1,4 +1,5 @@
-import { Color, BorderRadius, Spacing, Shadow } from '../tokens';
+import { Color, BorderRadius, Spacing, Shadow, Typography } from '../tokens';
+import { separatorStyle } from './separator';
 
 export const cardStyle = {
   container: {
@@ -16,5 +17,27 @@ export const cardStyle = {
   containerRounded: {
     backgroundColor: Color.brand.white,
     borderRadius: BorderRadius.xl,
+  },
+  header: {
+    borderBottomWidth: 1,
+    borderBottomColor: separatorStyle.nonOpaque.borderColor,
+    paddingVertical: Spacing.spacing1,
+    paddingHorizontal: Spacing.spacing2,
+  },
+  headerText: {
+    fontSize: Typography.fontSize.font4,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Color.labels.secondary,
+  },
+  footer: {
+    borderTopWidth: 1,
+    borderTopColor: separatorStyle.nonOpaque.borderColor,
+    paddingVertical: Spacing.spacing2,
+    paddingHorizontal: Spacing.spacing2,
+  },
+  footerText: {
+    fontSize: Typography.fontSize.font4,
+    color: Color.brand.primary,
+    textAlign: 'center',
   },
 } as const;

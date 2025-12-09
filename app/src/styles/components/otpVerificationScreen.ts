@@ -1,39 +1,53 @@
 import { Color, Spacing, Typography } from '../tokens';
 
-//TODO: Restyle after Figma design of OTP input is ready
 export const otpVerificationScreenStyle = {
     form: {
-        width: '100%',
+        width: '100%' as const,
     },
     otpContainer: {
         marginBottom: Spacing.spacing4,
-        alignItems: 'center',
+        alignItems: 'center' as const,
     },
     errorText: {
         color: Color.brand.danger,
         fontSize: Typography.fontSize.font2,
         fontWeight: Typography.fontWeight.regular,
         marginTop: Spacing.spacing1,
-        textAlign: 'center',
+        textAlign: 'center' as const,
     },
     changeEmailButton: {
         marginTop: Spacing.spacing2,
     },
     resendSection: {
         marginTop: Spacing.spacing3,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexWrap: 'wrap',
-    },
-    didntGetCodeText: {
-        fontSize: Typography.fontSize.font2,
-        color: Color.gray.gray4,
-        fontWeight: Typography.fontWeight.regular,
+        alignItems: 'flex-start' as const,
     },
     resendText: {
         fontSize: Typography.fontSize.font2,
-        color: Color.brand.primary,
-        fontWeight: Typography.fontWeight.medium,
+        fontWeight: Typography.fontWeight.regular,
+        color: Color.brand.type,
     },
-} as const;
+    resendTextActive: {
+        color: Color.brand.primary,
+    },
+    footer: {
+        marginTop: 'auto' as const,
+        paddingBottom: Spacing.spacing10,
+    },
+    footerText: {
+        fontSize: Typography.fontSize.font2,
+        color: Color.brand.primary,
+        fontWeight: Typography.fontWeight.regular,
+    },
+    footerSeparator: {
+        color: Color.brand.primary,
+    },
+    contentWrapper: {
+        flex: 1,
+    },
+    footerLinksContainer: {
+        flexDirection: 'row' as const,
+        alignItems: 'center' as const,
+    },
+};
+
