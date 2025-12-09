@@ -1,18 +1,25 @@
-import { BorderRadius, Color } from '../tokens';
+import { BorderRadius, Color, Spacing } from '../tokens';
 
 export const avatarStyle = {
   container: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  commonIconContainer: {
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+  },
+  topBarIconContainer: {
     width: 32,
     height: 32,
     borderRadius: BorderRadius.round,
-    overflow: 'hidden',
-  },
-  topBarIconContainer: {
-    marginRight: 16,
+    marginRight: Spacing.spacing2,
   },
   loadingOverlay: {
     position: 'absolute',

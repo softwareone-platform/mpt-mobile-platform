@@ -59,11 +59,51 @@ export interface FullUserData {
 
 export interface SpotlightItem {
   id: string;
-  title: string;
+  total: number;
+  top: SpotlightTopItem[];
+  query?: {
+    id: string;
+    name: string;
+    template?: string;
+  };
+}
+
+export interface SpotlightTopItem {
+  id: string;
+  name?: string;
   icon?: string;
-  url?: string;
-  description?: string;
-  [key: string]: unknown;
+  program?: {
+    id?: string;
+    name: string;
+    icon: string;
+  };
+  product?: {
+    id?: string;
+    name: string;
+    icon: string;
+  };
+  buyer?: {
+    id?: string;
+    name: string;
+    icon: string;
+    account: {
+      id: string;
+      type: string;
+    };
+  };
+  user?: {
+    id?: string;
+    name: string;
+    icon: string;
+  };
+}
+
+export interface SpotlightData {
+  $meta: {
+    pagination: { offset: number; limit: number; total: number };
+    omitted: string[];
+  };
+  data: SpotlightItem[];
 }
 
 export interface SubscriptionItem {
