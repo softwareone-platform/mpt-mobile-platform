@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -10,6 +10,7 @@ import { AuthStackParamList } from '@/types/navigation';
 import { otpVerificationScreenStyle } from '@/styles/components';
 import { AUTH_CONSTANTS } from '@/constants';
 import { validateOTP } from '@/utils/validation';
+import { formatTimer } from '@/utils/timer';
 import { auth0ErrorParsingService } from '@/services/auth0ErrorParsingService';
 
 interface OTPVerificationScreenProps {
@@ -26,9 +27,14 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     const [loading, setLoading] = useState(false);
     const [otpError, setOtpError] = useState('');
     const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
+    const [resendTimer, setResendTimer] = useState(0);
+    const [canResend, setCanResend] = useState(true);
 
     const { login, sendPasswordlessEmail } = useAuth();
     const { t } = useTranslation();
+
+    const RESEND_COOLDOWN_SECONDS = 90;
+    const TIMER_INTERVAL_MS = 1000;
 
     const handleOTPChange = (text: string) => {
         setOtp(text);
@@ -69,6 +75,12 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     }, [otp, login, email, t]);
 
+    const resetOtpState = () => {
+        setOtp('');
+        setOtpError('');
+        setHasAutoSubmitted(false);
+    };
+
     useEffect(() => {
         if (otp.length === AUTH_CONSTANTS.OTP_LENGTH && validateOTP(otp) && !loading && !hasAutoSubmitted) {
             setHasAutoSubmitted(true);
@@ -76,15 +88,46 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     }, [otp, loading, hasAutoSubmitted, handleVerify]);
 
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', resetOtpState);
+
+        return () => {
+            unsubscribe();
+        };
+    }, [navigation]);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+
+        if (resendTimer > 0) {
+            interval = setInterval(() => {
+                setResendTimer((prev) => {
+                    if (prev <= 1) {
+                        setCanResend(true);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, TIMER_INTERVAL_MS);
+        }
+
+        return () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
+    }, [resendTimer]);
+
     const handleResendCode = async () => {
+        if (!canResend) return;
+
+        setOtp('');
         setOtpError('');
+        setCanResend(false);
+        setResendTimer(RESEND_COOLDOWN_SECONDS);
 
         try {
             await sendPasswordlessEmail(email);
-            Alert.alert(
-                t('auth.otpVerification.resendCode'),
-                t('auth.otpVerification.subtitle', { email })
-            );
         } catch (error) {
             console.error('Resend OTP error:', error instanceof Error ? error.message : 'Unknown error');
 
@@ -97,54 +140,64 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     };
 
-    const handleChangeEmail = () => {
-        setOtp('');
-        setOtpError('');
-        setHasAutoSubmitted(false);
-        navigation.goBack();
-    };
-
     return (
         <AuthLayout
             title={t('auth.otpVerification.title')}
             subtitle={t('auth.otpVerification.subtitle', { email })}
+            hasHeader
         >
-            <View style={otpVerificationScreenStyle.form}>
-                <View style={otpVerificationScreenStyle.otpContainer}>
-                    <OTPInput
-                        value={otp}
-                        onChangeText={handleOTPChange}
-                        error={!!otpError}
-                        autoFocus
-                    />
-                    {otpError && (
-                        <Text style={otpVerificationScreenStyle.errorText}>{otpError}</Text>
-                    )}
-                </View>
+            <View style={otpVerificationScreenStyle.contentWrapper}>
+                <View style={otpVerificationScreenStyle.form}>
+                    <View style={otpVerificationScreenStyle.otpContainer}>
+                        <OTPInput
+                            value={otp}
+                            onChangeText={handleOTPChange}
+                            error={!!otpError}
+                            autoFocus
+                        />
+                        {otpError && (
+                            <Text style={otpVerificationScreenStyle.errorText}>{otpError}</Text>
+                        )}
+                    </View>
 
-                <AuthButton
-                    title={t('auth.otpVerification.verifyButton')}
-                    onPress={handleVerify}
-                    loading={loading}
-                />
-
-                <View style={otpVerificationScreenStyle.changeEmailButton}>
                     <AuthButton
-                        title={t('auth.otpVerification.changeEmail')}
-                        onPress={handleChangeEmail}
-                        variant="secondary"
+                        title={t('auth.otpVerification.verifyButton')}
+                        onPress={handleVerify}
+                        loading={loading}
                     />
+
+                    <View style={otpVerificationScreenStyle.resendSection}>
+                        {canResend ? (
+                            <TouchableOpacity onPress={handleResendCode}>
+                                <Text style={[
+                                    otpVerificationScreenStyle.resendText,
+                                    otpVerificationScreenStyle.resendTextActive
+                                ]}>
+                                    {t('auth.otpVerification.resendCode')}
+                                </Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <Text style={otpVerificationScreenStyle.resendText}>
+                                {t('auth.otpVerification.resendCodeIn', { time: formatTimer(resendTimer) })}
+                            </Text>
+                        )}
+                    </View>
                 </View>
 
-                <View style={otpVerificationScreenStyle.resendSection}>
-                    <Text style={otpVerificationScreenStyle.didntGetCodeText}>
-                        {t('auth.otpVerification.didntGetCode')}{' '}
-                    </Text>
-                    <TouchableOpacity onPress={handleResendCode}>
-                        <Text style={otpVerificationScreenStyle.resendText}>
-                            {t('auth.otpVerification.resendCode')}
-                        </Text>
-                    </TouchableOpacity>
+                <View style={otpVerificationScreenStyle.footer}>
+                    <View style={otpVerificationScreenStyle.footerLinksContainer}>
+                        <TouchableOpacity>
+                            <Text style={otpVerificationScreenStyle.footerText}>
+                                Trouble signing in?
+                            </Text>
+                        </TouchableOpacity>
+                        <Text style={otpVerificationScreenStyle.footerSeparator}> • </Text>
+                        <TouchableOpacity>
+                            <Text style={otpVerificationScreenStyle.footerText}>
+                                T&Cs & Privacy
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </AuthLayout>

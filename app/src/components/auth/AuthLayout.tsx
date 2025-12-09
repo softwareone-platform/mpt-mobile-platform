@@ -7,14 +7,23 @@ interface AuthLayoutProps {
     children: React.ReactNode;
     title?: string;
     subtitle?: string;
+    hasHeader?: boolean;
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) => {
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle, hasHeader = false }) => {
+    const containerStyle = hasHeader 
+        ? [styles.container, { paddingTop: 0 }] 
+        : styles.container;
+    
+    const logoSectionStyle = hasHeader
+        ? [styles.logoSection, { paddingTop: 0 }]
+        : styles.logoSection;
+    
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
+            <View style={containerStyle}>
                 <View style={styles.content}>
-                    <View style={styles.logoSection}>
+                    <View style={logoSectionStyle}>
                         <Image
                             source={require('@assets/icon.png')}
                             style={styles.logo}
