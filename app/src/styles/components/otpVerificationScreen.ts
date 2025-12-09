@@ -50,3 +50,4 @@ export const otpVerificationScreenStyle = {
         alignItems: 'center' as const,
     },
 };
+

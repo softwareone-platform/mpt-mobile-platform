@@ -121,6 +121,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     const handleResendCode = async () => {
         if (!canResend) return;
 
+        setOtp('');
         setOtpError('');
         setCanResend(false);
         setResendTimer(RESEND_COOLDOWN_SECONDS);
