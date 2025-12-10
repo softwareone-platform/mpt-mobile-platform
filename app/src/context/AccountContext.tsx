@@ -79,7 +79,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await getSpotlightData(userId);
       const arrangedData = arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
-     
+    
       setSpotlightData(arrangedData);
       setSpotlightError(false); 
     } catch (error) {
