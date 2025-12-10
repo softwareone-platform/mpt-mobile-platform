@@ -20,7 +20,7 @@ class WelcomePage extends BasePage {
     }
 
     get emailInput () {
-        return $('//*[@value="Enter your email"]');
+        return $('//XCUIElementTypeTextField');
     }
 
     get continueButton () {

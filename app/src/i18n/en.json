@@ -9,12 +9,13 @@
     },
     "otpVerification": {
       "title": "Verify your identity",
-      "subtitle": "We have sent a verification code to {{email}}.",
+      "subtitle": "We have sent a verification code to {{email}}.\nEnter the code below to continue.",
       "otpPlaceholder": "Enter verification code",
       "verifyButton": "Verify",
-      "didntGetCode": "Didn't get a code?",
       "resendCode": "Resend Code",
-      "changeEmail": "Change email"
+      "resendCodeIn": "Resend code in {{time}}",
+      "troubleSigningIn": "Trouble signing in?",
+      "termsAndPrivacy": "T&Cs & Privacy"
     },
     "validation": {
       "emailRequired": "Email is required",

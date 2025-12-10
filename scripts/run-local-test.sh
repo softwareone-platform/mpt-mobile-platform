@@ -1,16 +1,18 @@
 #!/bin/bash
 
 # Local testing script for Appium tests with optional build step
-# Usage: ./scripts/run-local-test.sh [options] [suite_name|spec_file]
+# Usage: ./scripts/run-local-test.sh [options] [suite_name|spec_file|all]
 # Examples:
 #   ./scripts/run-local-test.sh welcome
+#   ./scripts/run-local-test.sh all
 #   ./scripts/run-local-test.sh ./test/specs/welcome.e2e.js
 #   ./scripts/run-local-test.sh --build welcome                    # Build release app first
-#   ./scripts/run-local-test.sh --build --client-id abc123 welcome # Build with Auth0 client ID
+#   ./scripts/run-local-test.sh --build --client-id abc123 all     # Build with Auth0 client ID
 
 # Configuration
 BUILD_APP=false
 SKIP_BUILD=false
+ENVIRONMENT=""
 CLIENT_ID=""
 VERBOSE=false
 
@@ -29,26 +31,38 @@ while [[ $# -gt 0 ]]; do
             CLIENT_ID="$2"
             shift 2
             ;;
+        --auth0-domain|-d)
+            AUTH0_DOMAIN_OVERRIDE="$2"
+            shift 2
+            ;;
+        --env|-e)
+            ENVIRONMENT="$2"
+            shift 2
+            ;;
         --verbose|-v)
             VERBOSE=true
             shift
             ;;
         --help|-h)
-            echo "Usage: $0 [options] [suite_name|spec_file]"
+            echo "Usage: $0 [options] [suite_name|spec_file|all]"
             echo ""
             echo "Options:"
             echo "  --build, -b           Build release version of the app before testing"
             echo "  --skip-build, -s      Skip build and install existing app from last build"
-            echo "  --client-id, -c ID    Set Auth0 client ID for build (required with --build)"
+            echo "  --env, -e ENV         Set environment preset: dev, test, or qa (required with --build)"
+            echo "  --client-id, -c ID    Set Auth0 client ID (required with --build)"
+            echo "  --auth0-domain, -d    Override Auth0 domain (optional, uses preset default)"
             echo "  --verbose, -v         Enable verbose output"
             echo "  --help, -h            Show this help message"
             echo ""
             echo "Examples:"
             echo "  $0 welcome                                    # Run welcome suite with existing app"
+            echo "  $0 all                                        # Run all tests"
             echo "  $0 ./test/specs/welcome.e2e.js              # Run specific spec file"
-            echo "  $0 --build welcome                          # Build release app first, then run tests"
-            echo "  $0 --skip-build welcome                     # Install last build and run tests"
-            echo "  $0 --build --client-id abc123 welcome       # Build with Auth0 client ID"
+            echo "  $0 --build --env dev --client-id abc123 welcome     # Build for dev environment and run tests"
+            echo "  $0 --skip-build all                         # Install last build and run all tests"
+            echo "  $0 --build --env test --client-id def456 all        # Build for test environment and run all"
+            echo "  $0 --build --env qa --client-id ghi789 all          # Build for qa with client ID"
             exit 0
             ;;
         -*)
@@ -65,16 +79,68 @@ done
 
 # Validate arguments
 if [ -z "$TEST_TARGET" ]; then
-    echo "Error: Test target (suite name or spec file) is required"
-    echo "Usage: $0 [options] [suite_name|spec_file]"
+    echo "Error: Test target (suite name, spec file, or 'all') is required"
+    echo "Usage: $0 [options] [suite_name|spec_file|all]"
     echo "Use --help for more information"
+    exit 1
+fi
+
+if [ "$BUILD_APP" = true ] && [ -z "$ENVIRONMENT" ]; then
+    echo "Error: --env is required when using --build option"
+    echo "Available environments: dev, test, qa"
+    echo "Example: $0 --build --env dev --client-id YOUR_CLIENT_ID welcome"
     exit 1
 fi
 
 if [ "$BUILD_APP" = true ] && [ -z "$CLIENT_ID" ]; then
     echo "Error: --client-id is required when using --build option"
-    echo "Example: $0 --build --client-id your_auth0_client_id welcome"
+    echo "Example: $0 --build --env dev --client-id YOUR_CLIENT_ID welcome"
     exit 1
+fi
+
+# Function to configure environment variables based on preset
+configure_environment() {
+    case "$ENVIRONMENT" in
+        dev)
+            AUTH0_DOMAIN="login-dev.pyracloud.com"
+            AUTH0_AUDIENCE="https://api-dev.pyracloud.com/"
+            AUTH0_SCOPE="openid profile email offline_access"
+            AUTH0_API_URL="https://api.s1.today/public/"
+            AUTH0_OTP_DIGITS="6"
+            AUTH0_SCHEME="com.softwareone.marketplaceMobile"
+            ;;
+        test)
+            AUTH0_DOMAIN="login-test.pyracloud.com"
+            AUTH0_AUDIENCE="https://api-test.pyracloud.com/"
+            AUTH0_SCOPE="openid profile email offline_access"
+            AUTH0_API_URL="https://api.s1.show/public/"
+            AUTH0_OTP_DIGITS="6"
+            AUTH0_SCHEME="com.softwareone.marketplaceMobile"
+            ;;
+        qa)
+            AUTH0_DOMAIN="login-qa.pyracloud.com"
+            AUTH0_AUDIENCE="https://api-qa.pyracloud.com/"
+            AUTH0_SCOPE="openid profile email offline_access"
+            AUTH0_API_URL="https://api.s1.live/public/"
+            AUTH0_OTP_DIGITS="6"
+            AUTH0_SCHEME="com.softwareone.marketplaceMobile"
+            ;;
+        *)
+            echo "Error: Invalid environment '$ENVIRONMENT'"
+            echo "Available environments: dev, test, qa"
+            exit 1
+            ;;
+    esac
+    
+    # Allow domain override if provided
+    if [ -n "$AUTH0_DOMAIN_OVERRIDE" ]; then
+        AUTH0_DOMAIN="$AUTH0_DOMAIN_OVERRIDE"
+    fi
+}
+
+# Configure environment if building
+if [ "$BUILD_APP" = true ]; then
+    configure_environment
 fi
 
 if [ "$BUILD_APP" = true ] && [ "$SKIP_BUILD" = true ]; then
@@ -139,9 +205,18 @@ build_release_app() {
     log "🎯 Configuring for STANDALONE PRODUCTION app" "verbose"
     
     # Create .env file for production configuration
+    log "🎯 Configuring for $ENVIRONMENT environment" "verbose"
+    log "   Domain: $AUTH0_DOMAIN" "verbose"
+    log "   Client ID: $CLIENT_ID" "verbose"
+    
     cat > .env << EOF
-AUTH0_DOMAIN=softwareone-dev.eu.auth0.com
+AUTH0_DOMAIN=${AUTH0_DOMAIN}
 AUTH0_CLIENT_ID=${CLIENT_ID}
+AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+AUTH0_SCOPE=${AUTH0_SCOPE}
+AUTH0_API_URL=${AUTH0_API_URL}
+AUTH0_OTP_DIGITS=${AUTH0_OTP_DIGITS}
+AUTH0_SCHEME=${AUTH0_SCHEME}
 EAS_NO_VCS=1
 EXPO_NO_DOTENV=1
 EOF
@@ -343,8 +418,12 @@ else
     log "✅ Appium server is already running"
 fi
 
-# Determine if target is a suite or spec file
-if [[ "$TEST_TARGET" == *.js ]]; then
+# Determine if target is a suite, spec file, or all tests
+if [[ "$TEST_TARGET" == "all" ]]; then
+    TEST_ARGS=""
+    log ""
+    log "🚀 Starting WebDriver tests - Running ALL tests"
+elif [[ "$TEST_TARGET" == *.js ]]; then
     TEST_ARGS="--spec $TEST_TARGET"
     log ""
     log "🚀 Starting WebDriver tests with spec: $TEST_TARGET"

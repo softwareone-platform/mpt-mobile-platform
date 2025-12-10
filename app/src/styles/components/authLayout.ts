@@ -12,7 +12,8 @@ export const authLayoutStyle = {
 	},
 	logoSection: {
 		alignItems: 'center' as const,
-		paddingBottom: Spacing.spacing3,
+		paddingTop: Spacing.spacing4,
+		paddingBottom: Spacing.spacing4,
 	},
 	logo: {
 		width: 76,
@@ -33,6 +34,6 @@ export const authLayoutStyle = {
 		color: Color.brand.type,
 		textAlign: 'left' as const,
 		lineHeight: Typography.fontSize.font3 * Typography.lineHeight.relaxed,
-		marginBottom: Spacing.spacing3,
+		marginBottom: Spacing.spacing4,
 	},
 } as const;
