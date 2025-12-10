@@ -31,6 +31,12 @@ describe('portalVersionService', () => {
         it('should parse double digit major version', () => {
             expect(parseMajorVersion('12.3.456')).toBe(12);
         });
+
+        it('should return 0 for invalid version strings', () => {
+            expect(parseMajorVersion('invalid')).toBe(0);
+            expect(parseMajorVersion('abc.1.2')).toBe(0);
+            expect(parseMajorVersion('')).toBe(0);
+        });
     });
 
     describe('fetchPortalVersion', () => {
@@ -95,6 +101,67 @@ describe('portalVersionService', () => {
             expect(console.warn).toHaveBeenCalledWith(
                 expect.stringContaining('Portal version "invalid-version" could not be parsed')
             );
+        });
+
+        it('should return default values when AUTH0_API_URL is not configured', async () => {
+            mockConfigService.get.mockReturnValue('');
+
+            const result = await fetchPortalVersion();
+
+            expect(result).toEqual({
+                fullVersion: '',
+                majorVersion: 0,
+            });
+            expect(console.warn).toHaveBeenCalledWith(
+                'Portal version fetch skipped: Api url not configured'
+            );
+            expect(mockApiClient.get).not.toHaveBeenCalled();
+        });
+
+        it('should return default values when API call fails', async () => {
+            mockConfigService.get.mockReturnValue(mockBaseUrl);
+            mockApiClient.get.mockRejectedValue(new Error('Network error'));
+
+            const result = await fetchPortalVersion();
+
+            expect(result).toEqual({
+                fullVersion: '',
+                majorVersion: 0,
+            });
+        });
+
+        it('should handle URL with trailing slash correctly', async () => {
+            mockConfigService.get.mockReturnValue('https://api.example.com/');
+            mockApiClient.get.mockResolvedValue({
+                data: {
+                    product: 'marketplace',
+                    components: {},
+                    version: '6.1.0',
+                },
+            } as any);
+
+            await fetchPortalVersion();
+
+            expect(mockApiClient.get).toHaveBeenCalledWith(
+                'https://api.example.com/manifest.json'
+            );
+        });
+
+        it('should handle missing version field in response', async () => {
+            mockConfigService.get.mockReturnValue(mockBaseUrl);
+            mockApiClient.get.mockResolvedValue({
+                data: {
+                    product: 'marketplace',
+                    components: {},
+                },
+            } as any);
+
+            const result = await fetchPortalVersion();
+
+            expect(result).toEqual({
+                fullVersion: '',
+                majorVersion: 0,
+            });
         });
     });
 });
