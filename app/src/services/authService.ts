@@ -134,16 +134,13 @@ class AuthenticationService {
         }
     }
 
-    async getUserProfile(accessToken: string): Promise<User> {
+    getUserFromToken(accessToken: string): User {
         try {
-            const userData = await this.auth0.auth.userInfo({ token: accessToken });
-
-            return userData;
+            const decoded = jwtDecode<User>(accessToken);
+            return decoded;
         } catch (error) {
-            if (error instanceof Error) {
-                throw error;
-            }
-            throw new Error('Failed to get user profile');
+            console.error('Failed to decode user from token:', error instanceof Error ? error.message : error);
+            throw new Error('Failed to decode user from token');
         }
     }
 

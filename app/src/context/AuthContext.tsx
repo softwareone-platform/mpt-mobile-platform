@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, PropsWithChildren } from 'react';
+import { fetchPortalVersion, PortalVersionInfo } from '@/services/portalVersionService';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
 import { tokenProvider } from '@/lib/tokenProvider';
@@ -10,12 +11,14 @@ const AUTH_ACTIONS = {
     SET_AUTHENTICATED: 'SET_AUTHENTICATED',
     SET_UNAUTHENTICATED: 'SET_UNAUTHENTICATED',
     UPDATE_TOKENS: 'UPDATE_TOKENS',
+    SET_PORTAL_VERSION: 'SET_PORTAL_VERSION',
 } as const;
 
 interface AuthContextType {
     status: AuthState;
     user: User | null;
     tokens: AuthTokens | null;
+    portalVersion: PortalVersionInfo;
     login: (email: string, otp: string) => Promise<void>;
     logout: () => Promise<void>;
     sendPasswordlessEmail: (email: string) => Promise<void>;
@@ -28,12 +31,14 @@ type AuthAction =
     | { type: typeof AUTH_ACTIONS.SET_LOADING }
     | { type: typeof AUTH_ACTIONS.SET_AUTHENTICATED; payload: { user: User; tokens: AuthTokens } }
     | { type: typeof AUTH_ACTIONS.SET_UNAUTHENTICATED }
-    | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens };
+    | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens }
+    | { type: typeof AUTH_ACTIONS.SET_PORTAL_VERSION; payload: PortalVersionInfo };
 
 interface AuthReducerState {
     status: AuthState;
     user: User | null;
     tokens: AuthTokens | null;
+    portalVersion: PortalVersionInfo;
 }
 
 const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerState => {
@@ -48,17 +53,24 @@ const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerSt
                 status: 'authenticated',
                 user: action.payload.user,
                 tokens: action.payload.tokens,
+                portalVersion: state.portalVersion,
             };
         case AUTH_ACTIONS.SET_UNAUTHENTICATED:
             return {
                 status: 'unauthenticated',
                 user: null,
                 tokens: null,
+                portalVersion: state.portalVersion,
             };
         case AUTH_ACTIONS.UPDATE_TOKENS:
             return {
                 ...state,
                 tokens: action.payload,
+            };
+        case AUTH_ACTIONS.SET_PORTAL_VERSION:
+            return {
+                ...state,
+                portalVersion: action.payload,
             };
         default:
             return state;
@@ -69,6 +81,7 @@ const initialState: AuthReducerState = {
     status: 'loading',
     user: null,
     tokens: null,
+    portalVersion: { fullVersion: '', majorVersion: 0 },
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -90,6 +103,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         });
     }, []);
 
+    const fetchAndSetPortalVersion = useCallback(async () => {
+        const version = await fetchPortalVersion();
+        dispatch({ type: AUTH_ACTIONS.SET_PORTAL_VERSION, payload: version });
+    }, []);
+
     const loadStoredAuth = useCallback(async () => {
         try {
             const { refreshToken, user } = await credentialStorageService.loadStoredCredentials();
@@ -101,11 +119,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             const newTokens = await authService.refreshAccessToken(refreshToken);
             await credentialStorageService.storeTokens(newTokens);
             setAuthenticated(user, newTokens);
+            await fetchAndSetPortalVersion();
         } catch (error) {
             console.error('Failed to load stored auth:', error instanceof Error ? error.message : error);
             await setUnauthenticated();
         }
-    }, [setUnauthenticated, setAuthenticated]);
+    }, [setUnauthenticated, setAuthenticated, fetchAndSetPortalVersion]);
 
     useEffect(() => {
         loadStoredAuth();
@@ -153,7 +172,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }, [REFRESH_BUFFER_MS]);
 
     useEffect(() => {
-        console.log('Setting up token refresh effect');
         if (!authState.tokens || authState.status !== 'authenticated') {
             return;
         }
@@ -188,7 +206,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     const login = async (email: string, otp: string) => {
 
         const tokens = await authService.verifyPasswordlessOtp(email, otp);
-        const user = await authService.getUserProfile(tokens.accessToken);
+        const user = authService.getUserFromToken(tokens.accessToken);
 
         await Promise.all([
             credentialStorageService.storeTokens(tokens),
@@ -202,7 +220,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
                 tokens,
             },
         });
-    };
+
+        await fetchAndSetPortalVersion();
+    }
 
     const resendPasswordlessEmail = async (email: string) => {
         try {
@@ -235,6 +255,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         status: authState.status,
         user: authState.user,
         tokens: authState.tokens,
+        portalVersion: authState.portalVersion,
         login,
         logout,
         sendPasswordlessEmail,
