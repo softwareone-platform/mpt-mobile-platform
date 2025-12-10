@@ -27,7 +27,7 @@ export const cardStyle = {
   headerText: {
     fontSize: Typography.fontSize.font4,
     fontWeight: Typography.fontWeight.semibold,
-    color: Color.labels.secondary,
+    color: Color.gray.gray4,
   },
   footer: {
     borderTopWidth: 1,

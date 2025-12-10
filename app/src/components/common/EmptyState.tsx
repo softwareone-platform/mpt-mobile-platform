@@ -1,0 +1,56 @@
+import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import DynamicIcon from '@/components/common/DynamicIcon';
+import { Color } from '@/styles/tokens';
+import { screenStyle, emptyStateStyle } from '@/styles';
+
+type EmptyStateProps = {
+  icon?: {
+    name: string;
+    variant?: 'filled' | 'outlined';
+    size?: number;
+    color?: string;
+  };
+  title: string;
+  description?: string;
+};
+
+const EmptyState = ({ icon, title, description }: EmptyStateProps) => {
+  const { t } = useTranslation();
+
+  const DEFAULT_ICON_NAME = 'how-to-reg';
+  const DEFAULT_ICON_VARIANT = 'outlined';
+  const DEFAULT_ICON_SIZE = 48;
+  const DEFAULT_ICON_COLOR = Color.brand.primary;
+  const DEFAULT_TITLE = t('common.noDataAvailable');
+
+  return (
+    <View style={styles.container}>
+
+      {icon && (
+        <View style={styles.iconWrapper}>
+          <DynamicIcon
+            name={icon.name || DEFAULT_ICON_NAME}
+            variant={icon.variant || DEFAULT_ICON_VARIANT}
+            size={icon.size || DEFAULT_ICON_SIZE}
+            color={icon.color || DEFAULT_ICON_COLOR}
+          />
+        </View>
+      )}
+
+      <Text style={styles.title}>{title || DEFAULT_TITLE}</Text>
+      {description && (
+        <Text style={styles.description}>{description}</Text>
+      )}
+    </View>
+  );
+};
+
+export default EmptyState;
+
+const styles = StyleSheet.create({
+  container: screenStyle.containerCenterContent,
+  iconWrapper: emptyStateStyle.iconWrapper,
+  title: emptyStateStyle.title,
+  description: emptyStateStyle.description,  
+});

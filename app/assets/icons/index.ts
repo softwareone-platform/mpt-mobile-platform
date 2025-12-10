@@ -11,6 +11,7 @@ import LanguageOutlined from './language';
 import LockOutlined from './lock';
 import NotificationsOutlined from './notifications';
 import EmailOutlined from './email';
+import HowToRegOutlined from './how-to-reg';
 
 // Export all outlined icons with keys matching the names of filled Material Icons
 export const OutlinedIcons = {
@@ -27,4 +28,5 @@ export const OutlinedIcons = {
   'lock': LockOutlined,
   'notifications': NotificationsOutlined,
   'email': EmailOutlined,
+  'how-to-reg': HowToRegOutlined,
 } as const;

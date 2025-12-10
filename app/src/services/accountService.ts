@@ -84,11 +84,7 @@ export function useAccountApi() {
   const switchAccount = useCallback(
     async (userId: string, accountId: string): Promise<void> => {
       if (!userId) {
-        throw {
-          name: 'API Error',
-          status: null,
-          message: 'User ID missing',
-        };
+        throw new Error('User ID is required to switch accounts');
       }
 
       const body: SwitchAccountBody = {
