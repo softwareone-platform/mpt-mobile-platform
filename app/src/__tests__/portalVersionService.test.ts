@@ -50,14 +50,14 @@ describe('portalVersionService', () => {
 
             expect(mockConfigService.get).toHaveBeenCalledWith('AUTH0_API_URL');
             expect(mockApiClient.get).toHaveBeenCalledWith(
-                'https://api.example.com//manifest.json'
+                'https://api.example.com/manifest.json'
             );
             expect(result).toEqual({
                 fullVersion: '5.0.2494-g4c551809',
                 majorVersion: 5,
             });
         });
-        it('should handle missing version in manifest', async () => {
+        it('should return object with majorVersion 0 when version is empty', async () => {
             mockConfigService.get.mockReturnValue(mockBaseUrl);
             mockApiClient.get.mockResolvedValue({
                 data: {
@@ -73,8 +73,27 @@ describe('portalVersionService', () => {
                 fullVersion: '',
                 majorVersion: 0,
             });
-            expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining('Failed to parse portal version from ""')
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        it('should return object with majorVersion 0 and warn when version cannot be parsed', async () => {
+            mockConfigService.get.mockReturnValue(mockBaseUrl);
+            mockApiClient.get.mockResolvedValue({
+                data: {
+                    product: 'marketplace',
+                    components: {},
+                    version: 'invalid-version',
+                },
+            } as any);
+
+            const result = await fetchPortalVersion();
+
+            expect(result).toEqual({
+                fullVersion: 'invalid-version',
+                majorVersion: 0,
+            });
+            expect(console.warn).toHaveBeenCalledWith(
+                expect.stringContaining('Portal version "invalid-version" could not be parsed')
             );
         });
     });

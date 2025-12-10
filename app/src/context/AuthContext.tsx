@@ -18,7 +18,7 @@ interface AuthContextType {
     status: AuthState;
     user: User | null;
     tokens: AuthTokens | null;
-    portalVersion: PortalVersionInfo | null;
+    portalVersion: PortalVersionInfo;
     login: (email: string, otp: string) => Promise<void>;
     logout: () => Promise<void>;
     sendPasswordlessEmail: (email: string) => Promise<void>;
@@ -32,13 +32,13 @@ type AuthAction =
     | { type: typeof AUTH_ACTIONS.SET_AUTHENTICATED; payload: { user: User; tokens: AuthTokens } }
     | { type: typeof AUTH_ACTIONS.SET_UNAUTHENTICATED }
     | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens }
-    | { type: typeof AUTH_ACTIONS.SET_PORTAL_VERSION; payload: PortalVersionInfo | null };
+    | { type: typeof AUTH_ACTIONS.SET_PORTAL_VERSION; payload: PortalVersionInfo };
 
 interface AuthReducerState {
     status: AuthState;
     user: User | null;
     tokens: AuthTokens | null;
-    portalVersion: PortalVersionInfo | null;
+    portalVersion: PortalVersionInfo;
 }
 
 const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerState => {
@@ -81,7 +81,7 @@ const initialState: AuthReducerState = {
     status: 'loading',
     user: null,
     tokens: null,
-    portalVersion: null,
+    portalVersion: { fullVersion: '', majorVersion: 0 },
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

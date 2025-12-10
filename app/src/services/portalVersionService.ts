@@ -19,28 +19,28 @@ const parseMajorVersion = (version: string): number => {
   return match ? Number(match[1]) : 0;
 };
 
-export async function fetchPortalVersion(): Promise<PortalVersionInfo | null> {
+export async function fetchPortalVersion(): Promise<PortalVersionInfo> {
   const baseUrl = configService.get('AUTH0_API_URL');
   if (!baseUrl) {
-    console.warn('Portal version fetch skipped: Url Api not configured');
-    return null;
+    console.warn('Portal version fetch skipped: Api url not configured');
+    return { fullVersion: '', majorVersion: 0 };
   }
 
-  const url = `${baseUrl.replace(/\/+$/, '')}/${MANIFEST_PATH}`;
+  const url = `${baseUrl.replace(/\/+$/, '')}${MANIFEST_PATH}`;
 
   try {
     const { data } = await apiClient.get<PortalManifest>(url);
     const fullVersion = data.version || '';
     const majorVersion = parseMajorVersion(fullVersion);
     
-    if (majorVersion === 0) {
-      console.error(`Failed to parse portal version from "${fullVersion}" at ${url}`);
+    if (majorVersion === 0 && fullVersion) {
+      console.warn(`Portal version "${fullVersion}" could not be parsed to a valid major version`);
     }
     
     return { fullVersion, majorVersion };
   } catch (error) {
     console.error('Failed to fetch portal manifest:', error);
-    return null;
+    return { fullVersion: '', majorVersion: 0 };
   }
 }
 
