@@ -8,6 +8,13 @@ on:
   # Manual trigger only
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: choice
+        options:
+          - test
+        default: 'test'
       build-mode:
         description: 'Build configuration'
         required: true
@@ -30,6 +37,11 @@ on:
   # Reusable workflow (called from other workflows)
   workflow_call:
     inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: string
+        default: 'test'
       build-mode:
         description: 'Build configuration'
         required: false
@@ -364,6 +376,7 @@ jobs:
     needs: build-ios
     runs-on: macos-latest
     timeout-minutes: 60
+    environment: ${{ inputs.environment || 'test' }}
     
     steps:
       - name: Checkout code
@@ -388,3 +401,8 @@ jobs:
           node_version: '20'
           appium_version: '3.1.1'
           app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
+          airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
+          airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
+          airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
+          airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}

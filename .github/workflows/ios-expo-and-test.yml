@@ -43,12 +43,20 @@ on:
         required: false
         type: boolean
         default: false
+      environment:
+        description: 'Environment for secrets (test, staging, production)'
+        required: false
+        type: choice
+        options:
+          - test
+        default: 'test'
 
 jobs:
   expo-build-and-test-ios:
     name: Expo Build and Test iOS App
     runs-on: macos-latest
     timeout-minutes: 90
+    environment: ${{ inputs.environment || 'test' }}
     
     steps:
       - name: Checkout code
@@ -125,6 +133,11 @@ jobs:
           app_bundle_id: ${{ steps.expo-deploy-ios.outputs.bundle_id }}
           appium_host: 'localhost'
           appium_port: '4723'
+          airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
+          airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
+          airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
+          airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
           
       # Alternative: Run specific test suite manually
       - name: Run Custom Test Suite
@@ -137,6 +150,11 @@ jobs:
           APP_BUNDLE_ID: ${{ steps.expo-deploy-ios.outputs.bundle_id }}
           APPIUM_HOST: 'localhost'
           APPIUM_PORT: '4723'
+          AIRTABLE_EMAIL: ${{ secrets.AIRTABLE_EMAIL }}
+          AIRTABLE_API_TOKEN: ${{ secrets.AIRTABLE_API_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TABLE_NAME: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          AIRTABLE_FROM_EMAIL: ${{ secrets.AIRTABLE_FROM_EMAIL }}
         run: |
           echo "🧪 Running custom test suite with deployed app..."
           
