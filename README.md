@@ -158,8 +158,9 @@ We provide automated scripts for building and deploying to the iOS Simulator. Th
 ./scripts/deploy-ios.sh --release
 ```
 
+**Prerequisites:** .env file must exist in app/ directory with Auth0 configuration
+
 **Script Options:**
-- `-c, --client-id ID`: Auth0 client ID (if not configured in .env)
 - `-r, --release`: Build in release mode (default: debug)
 - `-s, --simulator NAME`: Specify simulator (default: iPhone 16 Pro)
 - `-f, --force-boot`: Force boot simulator

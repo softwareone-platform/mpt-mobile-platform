@@ -4,8 +4,15 @@ const ordersPage = require('../pageobjects/orders.page')
 const subscriptionsPage = require('../pageobjects/subscriptions.page')
 const morePage = require('../pageobjects/more.page')
 const navigation = require('../pageobjects/utils/navigation.page')
+const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper')
 
 describe('Navigation via footer', () => {
+    before(async function() {
+        // Set timeout for login flow
+        this.timeout(150000);
+        await ensureLoggedIn();
+    })
+
     beforeEach(async () => {
         await navigation.ensureHomePage();
     })

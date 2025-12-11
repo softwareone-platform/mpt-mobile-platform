@@ -2,51 +2,86 @@
 
 This guide explains how to extend the Appium test framework with new page objects, test files, and testing strategies for different app states and user flows.
 
-> 📖 **See also:** [Comprehensive Appium iOS Testing Guide](./APPIUM_IOS_TESTING.md) for complete setup, workflow strategies, and troubleshooting.
+> 📖 **See also:** 
+> - [iOS Testing Guide](./APPIUM_IOS_TESTING.md) - Complete iOS setup, workflow strategies, and troubleshooting
+> - [Android Testing Guide](./APPIUM_ANDROID_TESTING.md) - Complete Android setup for macOS/Linux
+> - [Test Element Identification Strategy](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) - TestID strategy for cross-platform testing
 
 ## Configuration Overview
 
 > 📚 **Official Docs:** [WebDriverIO Configuration](https://webdriver.io/docs/configuration/) | [Appium Capabilities](https://appium.io/docs/en/writing-running-appium/caps/)
 
-Before creating tests, ensure your `wdio.conf.js` and environment are properly configured:
+Before creating tests, ensure your `wdio.conf.js` and environment are properly configured. The framework supports both iOS and Android platforms with automatic capability selection.
 
 ### Key Configuration Settings
 
 **In `wdio.conf.js`:**
 ```javascript
-capabilities: [{
+// Platform detection (case-insensitive, defaults to iOS)
+const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
+
+// iOS capabilities
+const iosCapabilities = {
     'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
     'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
     'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
     'appium:udid': process.env.DEVICE_UDID,
-}]
+};
+
+// Android capabilities
+const androidCapabilities = {
+    'appium:appPackage': process.env.APP_PACKAGE || 'com.softwareone.marketplaceMobile',
+    'appium:appActivity': process.env.APP_ACTIVITY || '.MainActivity',
+    'appium:deviceName': process.env.DEVICE_NAME || 'Android Emulator',
+    'appium:platformVersion': process.env.PLATFORM_VERSION || '14.0',
+    'appium:automationName': 'UiAutomator2',
+    'appium:udid': process.env.DEVICE_UDID,
+};
+
+// Select capabilities based on platform
+capabilities: [isAndroid() ? androidCapabilities : iosCapabilities]
 ```
 
-**Required Environment Variables:**
-- `APP_BUNDLE_ID`: iOS app bundle identifier (e.g., `com.softwareone.marketplaceMobile`)
-- `DEVICE_NAME`: Target iOS simulator name (e.g., `iPhone 16`)
-- `PLATFORM_VERSION`: iOS version (e.g., `26.0` for iOS 18.0)
+> ⚠️ **Important:** Always use case-insensitive checks for `PLATFORM_NAME`. The framework normalizes to lowercase (e.g., `'android'`, `'ios'`) to avoid casing bugs. Use the `isAndroid()` and `isIOS()` helper functions from `selectors.js` in tests and page objects.
+
+**Required Environment Variables by Platform:**
+
+**iOS:**
+- `PLATFORM_NAME`: Set to `iOS` or `ios` (case-insensitive, or omit for default)
+- `APP_BUNDLE_ID`: iOS app bundle identifier (default: `com.softwareone.marketplaceMobile`)
+- `DEVICE_NAME`: Target iOS simulator name (default: `iPhone 16`)
+- `PLATFORM_VERSION`: iOS version (default: `26.0` for iOS 18.0)
 - `DEVICE_UDID`: Simulator UUID (auto-detected by test script)
+
+**Android:**
+- `PLATFORM_NAME`: Set to `Android` or `android` (case-insensitive)
+- `APP_PACKAGE`: Android package name (default: `com.softwareone.marketplaceMobile`)
+- `APP_ACTIVITY`: Main activity (default: `.MainActivity`)
+- `DEVICE_NAME`: Emulator or device name (default: `Android Emulator`)
+- `PLATFORM_VERSION`: Android version (default: `14.0`)
+- `DEVICE_UDID`: Device serial (auto-detected by test script)
+
+**Common:**
 - `APPIUM_HOST`: Appium server host (default: `127.0.0.1`)
 - `APPIUM_PORT`: Appium server port (default: `4723`)
 
-The framework runs tests successfully against the configured `appium:bundleId`, allowing Appium to interact with your installed app.
+The framework automatically selects the correct capabilities based on `PLATFORM_NAME`.
 
 ## Build and Deployment Scripts
 
-> 📚 **Official Docs:** [Expo CLI](https://docs.expo.dev/workflow/expo-cli/) | [React Native iOS Guide](https://reactnative.dev/docs/running-on-device)
+> 📚 **Official Docs:** [Expo CLI](https://docs.expo.dev/workflow/expo-cli/) | [React Native iOS Guide](https://reactnative.dev/docs/running-on-device) | [React Native Android Guide](https://reactnative.dev/docs/running-on-device-android)
 
-### Release Build for Testing
+### iOS Release Build for Testing
 Use the testing script for production-like builds:
 ```bash
-./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+./scripts/run-local-test.sh --platform ios --build --client-id YOUR_AUTH0_CLIENT_ID welcome
 ```
 - Builds **Release** configuration
 - Optimized for performance testing  
 - **Requires `--client-id`** for Auth0 configuration
 - Suitable for comprehensive test suites
 
-### Development Build and Deployment
+### iOS Development Build and Deployment
 Use the deployment script for complete development cycles:
 ```bash
 # With client ID (creates/updates .env file)
@@ -63,19 +98,50 @@ This script performs a complete deployment cycle:
 5. Deploys to iOS simulator
 6. Launches the app
 
-**Deploy Script Options:**
+**iOS Deploy Script Options:**
 - `--client-id`: Auth0 client ID (required if `.env` not configured)
 - `--release`: Build in release mode (default: debug)
 - `--simulator`: Specify simulator name
 - `--logs`: Show app logs after launch
 - `--verbose`: Show detailed output
 
-> **Note:** The deploy script can use an existing `.env` file with `AUTH0_CLIENT_ID` configured, making the `--client-id` parameter optional when the environment is already set up.
+### Android Build and Deployment
+Use the deployment script for Android:
+```bash
+# With client ID
+./scripts/deploy-android.sh --env dev --client-id YOUR_AUTH0_CLIENT_ID
+
+# With existing .env file
+./scripts/deploy-android.sh --env dev
+```
+This script performs a complete Android deployment:
+1. Validates environment (Android SDK, JDK)
+2. Checks for running emulator or connected device
+3. Configures Auth0 environment
+4. Uninstalls existing app
+5. Builds Android app with Expo
+6. Installs on emulator/device
+7. Launches the app
+
+**Android Deploy Script Options:**
+- `--env`: Environment (dev, test, prod) - required
+- `--client-id`: Auth0 client ID (required if `.env` not configured)
+- `--emulator`: Specify emulator name to auto-start
+- `--verbose`: Show detailed output
+
+> **Note:** Both deploy scripts can use an existing `.env` file with `AUTH0_CLIENT_ID` configured, making the `--client-id` parameter optional when the environment is already set up.
 
 ### Fast Iteration Testing
 For repeated test runs without rebuilding:
+
+**iOS:**
 ```bash
-./scripts/run-local-test.sh --skip-build welcome
+./scripts/run-local-test.sh --platform ios --skip-build welcome
+```
+
+**Android:**
+```bash
+./scripts/run-local-test.sh --platform android --skip-build welcome
 ```
 - Reuses last built app (~10 seconds vs 6-8 minutes)
 - Ideal for test development and debugging
@@ -113,34 +179,134 @@ To test authenticated flows:
 
 > 📚 **Official Docs:** [Page Object Model](https://webdriver.io/docs/pageobjects/) | [WebDriverIO Element Selectors](https://webdriver.io/docs/selectors/)
 
-### Base Page Inheritance
+### Cross-Platform Page Objects
 
-All page objects should inherit from the base page class for consistent functionality:
+All page objects should use the platform-agnostic selector utility for cross-platform compatibility. Here's a real example from `welcome.page.js`:
 
 ```javascript
+const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
+const { getSelector, selectors } = require('./utils/selectors');
 
-class NewPage extends BasePage {
-    constructor() {
+class WelcomePage extends BasePage {
+    constructor () {
         super();
     }
 
-    // Page-specific locators
-    get mainHeader() {
-        return $('//*[@name="Page Title"]');
+    // Using getSelector for platform-specific XPath when needed
+    get logoImage () {
+        return $(getSelector({
+            ios: '//*[contains(@name, "FIXME!")]',
+            android: '(//android.widget.ImageView)[1]'
+        }));
     }
 
-    get actionButton() {
-        return $('//*[@name="Action Button"]');
+    // Using built-in selector helpers (recommended)
+    get welcomeTitle () {
+        return $(selectors.byText('Welcome'));
     }
 
-    // Page-specific actions
-    async performPageAction() {
-        await this.click(this.actionButton);
+    get enterEmailSubTitle () {
+        return $(selectors.byContainsText('Existing Marketplace users'));
+    }
+
+    get emailInput () {
+        return $(selectors.textField());
+    }
+
+    get continueButton () {
+        return $(selectors.button('Continue'));
+    }
+
+    get emailRequiredErrorLabel () {
+        return $(selectors.byText('Email is required'));
     }
 }
 
-module.exports = new NewPage();
+module.exports = new WelcomePage();
+```
+
+### Selector Utility Functions
+
+The framework provides a `selectors.js` utility (`app/test/pageobjects/utils/selectors.js`) with cross-platform helpers:
+
+```javascript
+// Text-based selectors:
+selectors.byText(text)              // Find by exact text (@name on iOS, @text on Android)
+selectors.byContainsText(text)      // Find by partial text match
+selectors.staticText(text)          // Find static text element (TextView/StaticText)
+
+// Element type selectors:
+selectors.textField()               // Find text input field (no params)
+selectors.secureTextField()         // Find password field (no params)
+selectors.button(name)              // Find button by text/label
+selectors.image()                   // Find image element (no params)
+selectors.scrollView()              // Find scroll container (no params)
+selectors.switchElement()           // Find toggle switch (no params)
+
+// ID-based selectors:
+selectors.byAccessibilityId(id)     // Find by accessibility ID (works with testID)
+selectors.byResourceId(id)          // Find by resource ID (accessibility ID on iOS, resource-id on Android)
+selectors.accessibleByIndex(index)  // Find accessible/clickable element by 1-based index
+
+// Low-level helper functions:
+isAndroid()                         // Returns true if running on Android
+isIOS()                             // Returns true if running on iOS
+getSelector({ ios, android })       // Returns platform-specific selector string
+```
+
+**Example Usage (from actual page objects):**
+```javascript
+const { getSelector, selectors } = require('./utils/selectors');
+
+// Text-based selectors
+get welcomeTitle () { return $(selectors.byText('Welcome')); }
+get subtitle () { return $(selectors.byContainsText('Existing Marketplace users')); }
+
+// Element type selectors  
+get emailInput () { return $(selectors.textField()); }
+get continueButton () { return $(selectors.button('Continue')); }
+get logoImage () { return $(selectors.image()); }
+get mainScrollView () { return $(selectors.scrollView()); }
+
+// Using getSelector for complex platform-specific XPath
+get otpInput1 () {
+    return $(getSelector({
+        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
+        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+    }));
+}
+```
+
+### Platform Detection in Page Objects
+
+The `BasePage` class provides platform detection and cross-platform scroll helpers:
+
+```javascript
+// Platform detection (inherited from BasePage)
+this.isAndroid()  // Returns true if running on Android
+this.isIOS()      // Returns true if running on iOS
+
+// Cross-platform scroll helpers (already implemented in BasePage)
+await this.scrollDown();  // Scrolls down on both platforms
+await this.scrollUp();    // Scrolls up on both platforms
+await this.swipe('left'); // Swipes in direction: 'left', 'right', 'up', 'down'
+```
+
+**Custom platform-specific handling:**
+```javascript
+async scrollToElement(element) {
+    if (this.isAndroid()) {
+        // Android-specific implementation
+        await browser.execute('mobile: scrollGesture', {
+            left: 100, top: 500, width: 200, height: 500,
+            direction: 'down', percent: 0.75
+        });
+    } else {
+        // iOS-specific implementation
+        await browser.execute('mobile: scroll', { direction: 'down' });
+    }
+}
 ```
 
 ### Page Object Structure
@@ -149,30 +315,60 @@ module.exports = new NewPage();
 
 **Required Elements:**
 1. **Constructor**: Call `super()` to inherit base functionality
-2. **Locators**: Use getter methods for UI element selectors
+2. **Locators**: Use getter methods with platform-agnostic selectors
 3. **Actions**: Page-specific interaction methods
 4. **Export**: Export instantiated page object
 
-### Locator Strategy
+### Locator Strategy Best Practices
 
-Use iOS accessibility identifiers and names for robust element targeting:
-
+**Recommended: Built-in Selector Helpers:**
 ```javascript
-// Preferred: Accessibility name
-get elementByName() {
-    return $('//*[@name="Exact Element Name"]');
+// Text-based - most common pattern in the codebase
+get welcomeTitle () { return $(selectors.byText('Welcome')); }
+get subtitle () { return $(selectors.byContainsText('Existing Marketplace users')); }
+
+// Button by label
+get continueButton () { return $(selectors.button('Continue')); }
+get verifyButton () { return $(selectors.button('Verify')); }
+
+// Input fields
+get emailInput () { return $(selectors.textField()); }
+get passwordInput () { return $(selectors.secureTextField()); }
+
+// Other element types
+get logoImage () { return $(selectors.image()); }
+get mainScrollView () { return $(selectors.scrollView()); }
+```
+
+**For Complex Elements: Platform-Specific XPath with getSelector:**
+```javascript
+// When elements need different selectors per platform (from verify.page.js)
+get otpInput1 () {
+    return $(getSelector({
+        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
+        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+    }));
 }
 
-// Alternative: Value attribute
-get elementByValue() {
-    return $'//*[@value="Input Placeholder"]');
-}
-
-// Fallback: Contains for partial matches
-get elementByPartialName() {
-    return $('//*[contains(@name, "Partial Text")]');
+// Image by index (from welcome.page.js)
+get logoImage () {
+    return $(getSelector({
+        ios: '//*[contains(@name, "logo")]',
+        android: '(//android.widget.ImageView)[1]'
+    }));
 }
 ```
+
+**Using Accessibility IDs (when testID is set in React Native):**
+```javascript
+// App component:
+<Button testID="submit-button" />
+
+// Page object:
+get submitButton () { return $(selectors.byAccessibilityId('submit-button')); }
+```
+
+> **See:** [TEST_ELEMENT_IDENTIFICATION_STRATEGY.md](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) for comprehensive testID implementation guidance.
 
 ## Creating Test Suites
 
@@ -182,57 +378,67 @@ get elementByPartialName() {
 
 **File Location:** `app/test/specs/[feature-name].e2e.js`
 
-**Template Structure:**
+**Example (from `welcome.e2e.js`):**
 ```javascript
 const { expect } = require('@wdio/globals')
-const newPage = require('../pageobjects/new.page')
-const homePage = require('../pageobjects/home.page')
+const welcomePage = require('../pageobjects/welcome.page')
+const verifyPage = require('../pageobjects/verify.page')
+const homePage = require('../pageobjects/spotlights.page')
 
-describe('New Feature Tests', () => {
-    beforeEach(async () => {
-        // Reset to home screen before each test
-        await homePage.navigateToHome();
-        await newPage.navigateToNewPage();
-    });
+describe('Welcome page of application', () => {
+    it('to display welcome title', async () => {
+        await expect(welcomePage.welcomeTitle).toBeDisplayed()
+        await expect(welcomePage.welcomeTitle).toHaveText('Welcome')
+        await expect(welcomePage.enterEmailSubTitle).toBeDisplayed()
+    })
 
-    it('should display main elements', async () => {
-        await expect(newPage.mainHeader).toBeDisplayed();
-        await expect(newPage.mainHeader).toHaveText('Expected Title');
-    });
+    it('to display email input and submit button', async () => {
+        await expect(welcomePage.emailInput).toBeDisplayed()
+        await expect(welcomePage.continueButton).toBeDisplayed()
+    })
 
-    it('should handle user interactions', async () => {
-        await newPage.performPageAction();
-        await expect(newPage.successMessage).toBeDisplayed();
-    });
+    it('to show email required error when progressing without entering one', async () => {
+        await welcomePage.click(welcomePage.continueButton)
+        await expect(welcomePage.emailRequiredErrorLabel).toBeDisplayed()
+        await expect(welcomePage.emailRequiredErrorLabel).toHaveText('Email is required')
+    })
 
-    it('should validate error states', async () => {
-        await newPage.triggerError();
-        await expect(newPage.errorMessage).toBeDisplayed();
-        await expect(newPage.errorMessage).toHaveText('Expected Error Message');
-    });
-});
+    it('to show invalid email error when progressing with invalid one', async () => {
+        await welcomePage.typeText(welcomePage.emailInput, 'invalid-email')
+        await welcomePage.click(welcomePage.continueButton)
+        await expect(welcomePage.validEmailErrorLabel).toBeDisplayed()
+    })
+})
 ```
+
+**Key Patterns:**
+- Use `welcomePage.click(element)` and `welcomePage.typeText(element, text)` from `BasePage`
+- Use `await expect(element).toBeDisplayed()` for visibility assertions
+- Use `await expect(element).toHaveText('text')` for text assertions
 
 ### Test Reset Logic
 
-**Critical**: Each test should start from a known state to ensure reliability.
+**Note**: The current test suite (`welcome.e2e.js`) does not use `beforeEach` for reset - tests run sequentially from app launch. For more complex test suites, you may need:
 
-**For Unauthenticated Tests:**
+**For Unauthenticated Tests (app starts fresh):**
 ```javascript
-beforeEach(async () => {
-    // App automatically starts at welcome screen
-    await expect(welcomePage.welcomeTitle).toBeDisplayed();
-});
+// Tests run from fresh app install - no beforeEach needed
+// The welcome screen is automatically displayed on app launch
+describe('Welcome page of application', () => {
+    it('to display welcome title', async () => {
+        await expect(welcomePage.welcomeTitle).toBeDisplayed()
+    })
+})
 ```
 
-**For Authenticated Tests:**
+**For Navigation Between Screens (using footer tabs):**
 ```javascript
-beforeEach(async () => {
-    // Navigate back to home screen
-    await homePage.navigateToHome();
-    // Verify home state
-    await expect(homePage.homeTitle).toBeDisplayed();
-});
+const footerPage = require('../pageobjects/base/footer.page')
+
+// Use footer navigation to switch between tabs
+await footerPage.clickOrdersTab()
+await footerPage.clickSubscriptionsTab()
+await footerPage.clickspotlightsTab()
 ```
 
 ### Suite Configuration (Optional)
@@ -247,6 +453,78 @@ suites: {
 ```
 
 ## Running Tests
+
+> 📚 **Official Docs:** [WebDriverIO CLI](https://webdriver.io/docs/clioptions/) | [Running Specific Tests](https://webdriver.io/docs/organizingsuites/)
+
+### Cross-Platform Test Execution
+
+The unified test script supports both iOS and Android:
+
+**iOS Tests:**
+```bash
+# Run specific suite
+./scripts/run-local-test.sh --platform ios welcome
+
+# Run all tests
+./scripts/run-local-test.sh --platform ios all
+
+# Run specific file
+./scripts/run-local-test.sh --platform ios ./test/specs/welcome.e2e.js
+
+# Build and run
+./scripts/run-local-test.sh --platform ios --build --env dev --client-id YOUR_ID welcome
+```
+
+**Android Tests:**
+```bash
+# Run specific suite
+./scripts/run-local-test.sh --platform android welcome
+
+# Run all tests
+./scripts/run-local-test.sh --platform android all
+
+# Run specific file
+./scripts/run-local-test.sh --platform android ./test/specs/welcome.e2e.js
+
+# Build and run
+./scripts/run-local-test.sh --platform android --build --env dev --client-id YOUR_ID welcome
+```
+
+**Using NPM Scripts:**
+```bash
+cd app
+
+# iOS tests
+npm run test:e2e:ios
+
+# Android tests
+npm run test:e2e:android
+
+# Specific suite on iOS
+PLATFORM_NAME=iOS npx wdio run wdio.conf.js --suite welcome
+
+# Specific suite on Android
+PLATFORM_NAME=Android npx wdio run wdio.conf.js --suite welcome
+```
+
+### Test Suite Configuration
+
+Add new test suites to `wdio.conf.js`:
+
+```javascript
+suites: {
+    welcome: ['./test/specs/welcome.e2e.js'],
+    home: ['./test/specs/home.e2e.js'],
+    navigation: ['./test/specs/navigation.e2e.js'],
+    newFeature: ['./test/specs/new-feature.e2e.js'],  // Add your suite here
+}
+```
+
+Then run with:
+```bash
+./scripts/run-local-test.sh --platform ios newFeature
+./scripts/run-local-test.sh --platform android newFeature
+```
 
 > 📚 **Official Docs:** [WebDriverIO CLI](https://webdriver.io/docs/clioptions/) | [Test Execution](https://webdriver.io/docs/organizingsuites/)
 
@@ -355,41 +633,81 @@ For comprehensive Appium Inspector documentation:
 - **Appium Inspector**: Use for element identification and debugging
 - **Console Logging**: Add strategic console.log statements for debugging
 
-## Example: Creating a Profile Page Test
+## Example: Creating a New Page Object and Test
+
+This example shows how to create a new page object following the patterns used in the existing codebase.
 
 ### 1. Create Page Object
 
 **File:** `app/test/pageobjects/profile.page.js`
+
+This is the actual implementation from the codebase:
 ```javascript
+const { $, $$ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
+const { getSelector, selectors } = require('./utils/selectors');
 
 class ProfilePage extends BasePage {
-    constructor() {
+    constructor () {
         super();
     }
 
-    get profileTitle() {
-        return $('//*[@name="Profile"]');
+    // ========== Header Elements ==========
+    get goBackButton () {
+        return $(getSelector({
+            ios: '~Go back',
+            android: '//android.widget.Button[@content-desc="Go back"]'
+        }));
     }
 
-    get userNameDisplay() {
-        return $('//*[@name="User Name"]');
+    get profileHeaderTitle () {
+        return $(getSelector({
+            ios: '~Profile',
+            android: '//android.view.View[@text="Profile"]'
+        }));
     }
 
-    get editButton() {
-        return $('//*[@name="Edit Profile"]');
+    // ========== Your Profile Section ==========
+    get yourProfileLabel () {
+        return $(selectors.byText('YOUR PROFILE'));
     }
 
-    get logoutButton() {
-        return $('//*[@name="Logout"]');
+    get currentUserCard () {
+        return $(getSelector({
+            ios: '//*[contains(@name, "USR-")]',
+            android: '//android.view.ViewGroup[contains(@content-desc, "USR-")][@clickable="true"]'
+        }));
     }
 
-    async editProfile() {
-        await this.click(this.editButton);
+    // ========== Switch Account Section ==========
+    get switchAccountLabel () {
+        return $(selectors.byText('SWITCH ACCOUNT'));
     }
 
-    async logout() {
-        await this.click(this.logoutButton);
+    // First account item (can be used as reference for pattern)
+    get firstAccountItem () {
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[contains(@name, "ACC-")])[1]',
+            android: '(//android.view.ViewGroup[contains(@content-desc, "ACC-") and not(contains(@content-desc, "USR-"))][@clickable="true"])[1]'
+        }));
+    }
+
+    // Get account item by index (1-based)
+    getAccountItemByIndex (index) {
+        return $(getSelector({
+            ios: `(//XCUIElementTypeOther[contains(@name, "ACC-")])[${index}]`,
+            android: `(//android.view.ViewGroup[contains(@content-desc, "ACC-") and not(contains(@content-desc, "USR-"))][@clickable="true"])[${index}]`
+        }));
+    }
+
+    // ========== Helper Methods ==========
+    async goBack () {
+        await this.click(this.goBackButton);
+    }
+
+    async selectAccountByIndex (index) {
+        const account = this.getAccountItemByIndex(index);
+        await this.click(account);
     }
 }
 
@@ -402,33 +720,33 @@ module.exports = new ProfilePage();
 ```javascript
 const { expect } = require('@wdio/globals')
 const profilePage = require('../pageobjects/profile.page')
-const homePage = require('../pageobjects/home.page')
 
 describe('User Profile Tests', () => {
-    beforeEach(async () => {
-        // Ensure we start from home screen
-        await homePage.navigateToHome();
-        // Navigate to profile
-        await homePage.navigateToProfile();
-        await expect(profilePage.profileTitle).toBeDisplayed();
-    });
+    it('should display profile header', async () => {
+        await expect(profilePage.profileHeaderTitle).toBeDisplayed()
+        await expect(profilePage.goBackButton).toBeDisplayed()
+    })
 
-    it('should display user profile information', async () => {
-        await expect(profilePage.userNameDisplay).toBeDisplayed();
-        await expect(profilePage.editButton).toBeDisplayed();
-        await expect(profilePage.logoutButton).toBeDisplayed();
-    });
+    it('should display your profile section', async () => {
+        await expect(profilePage.yourProfileLabel).toHaveText('YOUR PROFILE')
+        await expect(profilePage.currentUserCard).toBeDisplayed()
+    })
 
-    it('should open edit profile screen', async () => {
-        await profilePage.editProfile();
-        // Add assertions for edit screen
-    });
+    it('should display switch account section', async () => {
+        await expect(profilePage.switchAccountLabel).toHaveText('SWITCH ACCOUNT')
+        await expect(profilePage.firstAccountItem).toBeDisplayed()
+    })
 
-    it('should handle logout functionality', async () => {
-        await profilePage.logout();
-        // Verify return to welcome screen
-    });
-});
+    it('should allow selecting an account', async () => {
+        await profilePage.selectAccountByIndex(1)
+        // Add assertions for account selection result
+    })
+
+    it('should navigate back', async () => {
+        await profilePage.goBack()
+        // Add assertions for previous screen
+    })
+})
 ```
 
 ### 3. Update Suite Configuration
@@ -448,11 +766,14 @@ suites: {
 ### 4. Run the Tests
 
 ```bash
-# Run profile tests specifically
-./scripts/run-local-test.sh profile
+# Run profile tests specifically (iOS)
+./scripts/run-local-test.sh --platform ios profile
+
+# Run profile tests specifically (Android)
+./scripts/run-local-test.sh --platform android profile
 
 # Run all authenticated tests
-./scripts/run-local-test.sh authenticated
+./scripts/run-local-test.sh --platform ios authenticated
 ```
 
 ## Troubleshooting
@@ -461,18 +782,35 @@ suites: {
 - **Element Not Found**: Verify locators using Appium Inspector
 - **Timing Issues**: Add appropriate wait conditions
 - **App State**: Ensure proper test reset logic
-- **Authentication**: Manually complete login before running authenticated tests
+- **Authentication**: Complete OTP flow or manually login before running authenticated tests
+- **Platform Differences**: Check that selectors work on both iOS and Android
 
 ### Debug Commands
+
+**iOS:**
 ```bash
 # Run with verbose logging
-./scripts/run-local-test.sh --verbose profile
+./scripts/run-local-test.sh --platform ios --verbose welcome
 
 # Check Appium server logs
 tail -f appium.log
 
-# Verify device state
+# Verify iOS simulator state
 xcrun simctl list devices
 ```
+
+**Android:**
+```bash
+# Run with verbose logging
+./scripts/run-local-test.sh --platform android --verbose welcome
+
+# Check connected Android devices
+adb devices
+
+# View device logs
+adb logcat | grep -i "ReactNative\|Appium"
+```
+
+This framework provides a robust foundation for comprehensive cross-platform mobile app testing. Follow these patterns to create maintainable, reliable tests that work on both iOS and Android.
 
 This framework provides a robust foundation for comprehensive iOS app testing. Follow these patterns to create maintainable, reliable tests that cover both unauthenticated and authenticated user journeys.

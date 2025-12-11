@@ -1,24 +1,29 @@
 #!/bin/bash
 
 # Local testing script for Appium tests with optional build step
+# Supports both iOS and Android platforms
 # Usage: ./scripts/run-local-test.sh [options] [suite_name|spec_file|all]
 # Examples:
 #   ./scripts/run-local-test.sh welcome
+#   ./scripts/run-local-test.sh --platform android welcome
 #   ./scripts/run-local-test.sh all
 #   ./scripts/run-local-test.sh ./test/specs/welcome.e2e.js
 #   ./scripts/run-local-test.sh --build welcome                    # Build release app first
-#   ./scripts/run-local-test.sh --build --client-id abc123 all     # Build with Auth0 client ID
+#   ./scripts/run-local-test.sh --platform android --build welcome # Build Android and run tests
 
 # Configuration
 BUILD_APP=false
 SKIP_BUILD=false
-ENVIRONMENT=""
-CLIENT_ID=""
 VERBOSE=false
+PLATFORM="ios"  # Default platform
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --platform|-p)
+            PLATFORM="$2"
+            shift 2
+            ;;
         --build|-b)
             BUILD_APP=true
             shift
@@ -27,18 +32,6 @@ while [[ $# -gt 0 ]]; do
             SKIP_BUILD=true
             shift
             ;;
-        --client-id|-c)
-            CLIENT_ID="$2"
-            shift 2
-            ;;
-        --auth0-domain|-d)
-            AUTH0_DOMAIN_OVERRIDE="$2"
-            shift 2
-            ;;
-        --env|-e)
-            ENVIRONMENT="$2"
-            shift 2
-            ;;
         --verbose|-v)
             VERBOSE=true
             shift
@@ -46,23 +39,25 @@ while [[ $# -gt 0 ]]; do
         --help|-h)
             echo "Usage: $0 [options] [suite_name|spec_file|all]"
             echo ""
+            echo "Prerequisites:"
+            echo "  - .env file must exist in app/ directory with Auth0 configuration"
+            echo "  - For --build: Xcode (iOS) or Android SDK (Android) must be installed"
+            echo ""
             echo "Options:"
-            echo "  --build, -b           Build release version of the app before testing"
-            echo "  --skip-build, -s      Skip build and install existing app from last build"
-            echo "  --env, -e ENV         Set environment preset: dev, test, or qa (required with --build)"
-            echo "  --client-id, -c ID    Set Auth0 client ID (required with --build)"
-            echo "  --auth0-domain, -d    Override Auth0 domain (optional, uses preset default)"
-            echo "  --verbose, -v         Enable verbose output"
-            echo "  --help, -h            Show this help message"
+            echo "  --platform, -p PLATFORM  Target platform: ios or android (default: ios)"
+            echo "  --build, -b              Build release version of the app before testing"
+            echo "  --skip-build, -s         Skip build and install existing app from last build"
+            echo "  --verbose, -v            Enable verbose output"
+            echo "  --help, -h               Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0 welcome                                    # Run welcome suite with existing app"
-            echo "  $0 all                                        # Run all tests"
-            echo "  $0 ./test/specs/welcome.e2e.js              # Run specific spec file"
-            echo "  $0 --build --env dev --client-id abc123 welcome     # Build for dev environment and run tests"
-            echo "  $0 --skip-build all                         # Install last build and run all tests"
-            echo "  $0 --build --env test --client-id def456 all        # Build for test environment and run all"
-            echo "  $0 --build --env qa --client-id ghi789 all          # Build for qa with client ID"
+            echo "  $0 welcome                                # Run welcome suite on iOS"
+            echo "  $0 --platform android welcome             # Run welcome suite on Android"
+            echo "  $0 all                                    # Run all tests"
+            echo "  $0 ./test/specs/welcome.e2e.js           # Run specific spec file"
+            echo "  $0 --build welcome                        # Build iOS and run tests"
+            echo "  $0 --platform android --build welcome     # Build Android and run"
+            echo "  $0 --skip-build all                       # Install last build and run all tests"
             exit 0
             ;;
         -*)
@@ -77,6 +72,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Normalize platform name
+PLATFORM=$(echo "$PLATFORM" | tr '[:upper:]' '[:lower:]')
+
+# Validate platform
+if [ "$PLATFORM" != "ios" ] && [ "$PLATFORM" != "android" ]; then
+    echo "Error: Invalid platform '$PLATFORM'"
+    echo "Supported platforms: ios, android"
+    exit 1
+fi
+
 # Validate arguments
 if [ -z "$TEST_TARGET" ]; then
     echo "Error: Test target (suite name, spec file, or 'all') is required"
@@ -85,75 +90,45 @@ if [ -z "$TEST_TARGET" ]; then
     exit 1
 fi
 
-if [ "$BUILD_APP" = true ] && [ -z "$ENVIRONMENT" ]; then
-    echo "Error: --env is required when using --build option"
-    echo "Available environments: dev, test, qa"
-    echo "Example: $0 --build --env dev --client-id YOUR_CLIENT_ID welcome"
-    exit 1
-fi
-
-if [ "$BUILD_APP" = true ] && [ -z "$CLIENT_ID" ]; then
-    echo "Error: --client-id is required when using --build option"
-    echo "Example: $0 --build --env dev --client-id YOUR_CLIENT_ID welcome"
-    exit 1
-fi
-
-# Function to configure environment variables based on preset
-configure_environment() {
-    case "$ENVIRONMENT" in
-        dev)
-            AUTH0_DOMAIN="login-dev.pyracloud.com"
-            AUTH0_AUDIENCE="https://api-dev.pyracloud.com/"
-            AUTH0_SCOPE="openid profile email offline_access"
-            AUTH0_API_URL="https://api.s1.today/public/"
-            AUTH0_OTP_DIGITS="6"
-            AUTH0_SCHEME="com.softwareone.marketplaceMobile"
-            ;;
-        test)
-            AUTH0_DOMAIN="login-test.pyracloud.com"
-            AUTH0_AUDIENCE="https://api-test.pyracloud.com/"
-            AUTH0_SCOPE="openid profile email offline_access"
-            AUTH0_API_URL="https://api.s1.show/public/"
-            AUTH0_OTP_DIGITS="6"
-            AUTH0_SCHEME="com.softwareone.marketplaceMobile"
-            ;;
-        qa)
-            AUTH0_DOMAIN="login-qa.pyracloud.com"
-            AUTH0_AUDIENCE="https://api-qa.pyracloud.com/"
-            AUTH0_SCOPE="openid profile email offline_access"
-            AUTH0_API_URL="https://api.s1.live/public/"
-            AUTH0_OTP_DIGITS="6"
-            AUTH0_SCHEME="com.softwareone.marketplaceMobile"
-            ;;
-        *)
-            echo "Error: Invalid environment '$ENVIRONMENT'"
-            echo "Available environments: dev, test, qa"
-            exit 1
-            ;;
-    esac
-    
-    # Allow domain override if provided
-    if [ -n "$AUTH0_DOMAIN_OVERRIDE" ]; then
-        AUTH0_DOMAIN="$AUTH0_DOMAIN_OVERRIDE"
-    fi
-}
-
-# Configure environment if building
-if [ "$BUILD_APP" = true ]; then
-    configure_environment
-fi
-
 if [ "$BUILD_APP" = true ] && [ "$SKIP_BUILD" = true ]; then
     echo "Error: --build and --skip-build cannot be used together"
     echo "Use --build to build fresh, or --skip-build to reuse last build"
     exit 1
 fi
 
-# Set required environment variables for local testing
-export DEVICE_UDID="963A992A-A208-4EF4-B7F9-7B2A569EC133"  # iPhone 16e (currently booted)
-export DEVICE_NAME="iPhone 16"
-export PLATFORM_VERSION="26.0" 
-export APP_BUNDLE_ID="com.softwareone.marketplaceMobile"
+# Platform-specific configuration
+if [ "$PLATFORM" = "android" ]; then
+    # Android configuration
+    export PLATFORM_NAME="Android"
+    export AUTOMATION_NAME="UiAutomator2"
+    export APP_PACKAGE="com.softwareone.marketplaceMobile"
+    export APP_ACTIVITY=".MainActivity"
+    
+    # Get Android device UDID (first connected device/emulator)
+    DEVICE_UDID=$(adb devices | grep -v "List" | grep "device$" | head -1 | awk '{print $1}')
+    
+    if [ -z "$DEVICE_UDID" ]; then
+        echo "❌ ERROR: No Android devices or emulators connected"
+        echo "Please connect a device or start an emulator"
+        echo "To list available emulators: emulator -list-avds"
+        echo "To start an emulator: emulator -avd <avd-name>"
+        exit 1
+    fi
+    
+    export DEVICE_UDID
+    export DEVICE_NAME="${DEVICE_NAME:-Pixel 8}"
+    export PLATFORM_VERSION="${PLATFORM_VERSION:-14}"
+else
+    # iOS configuration (default)
+    export PLATFORM_NAME="iOS"
+    export AUTOMATION_NAME="XCUITest"
+    export APP_BUNDLE_ID="com.softwareone.marketplaceMobile"
+    export DEVICE_UDID="${DEVICE_UDID:-963A992A-A208-4EF4-B7F9-7B2A569EC133}"
+    export DEVICE_NAME="${DEVICE_NAME:-iPhone 16}"
+    export PLATFORM_VERSION="${PLATFORM_VERSION:-26.0}"
+fi
+
+# Common Appium configuration
 export APPIUM_HOST="127.0.0.1"
 export APPIUM_PORT="4723"
 
@@ -204,22 +179,20 @@ build_release_app() {
     # Set up environment for release build
     log "🎯 Configuring for STANDALONE PRODUCTION app" "verbose"
     
-    # Create .env file for production configuration
-    log "🎯 Configuring for $ENVIRONMENT environment" "verbose"
-    log "   Domain: $AUTH0_DOMAIN" "verbose"
-    log "   Client ID: $CLIENT_ID" "verbose"
+    # Backup existing .env file before modifying
+    if [ -f .env ]; then
+        log "💾 Backing up existing .env file" "verbose"
+        cp .env .env.backup
+    fi
     
-    cat > .env << EOF
-AUTH0_DOMAIN=${AUTH0_DOMAIN}
-AUTH0_CLIENT_ID=${CLIENT_ID}
-AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
-AUTH0_SCOPE=${AUTH0_SCOPE}
-AUTH0_API_URL=${AUTH0_API_URL}
-AUTH0_OTP_DIGITS=${AUTH0_OTP_DIGITS}
-AUTH0_SCHEME=${AUTH0_SCHEME}
-EAS_NO_VCS=1
-EXPO_NO_DOTENV=1
-EOF
+    # Validate .env file exists
+    if [ ! -f ".env" ]; then
+        log "❌ No .env file found" "error"
+        log "Please create a .env file in app directory with required configuration" "error"
+        exit 1
+    fi
+    
+    log "🎯 Using .env configuration" "verbose"
     
     log "📦 Generating native iOS project with Expo (Release mode)..." "info"
     
@@ -373,24 +346,141 @@ install_existing_app() {
 
 # Handle build options
 if [ "$BUILD_APP" = true ]; then
-    build_release_app
+    if [ "$PLATFORM" = "android" ]; then
+        # Build standalone Android APK for testing
+        log "🤖 Building standalone Android APK for testing..." "info"
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+        APP_DIR="$PROJECT_ROOT/app"
+        
+        cd "$APP_DIR"
+        
+        # Validate .env file exists
+        if [ ! -f ".env" ]; then
+            log "❌ No .env file found" "error"
+            log "Please create a .env file in app directory with required configuration" "error"
+            exit 1
+        fi
+        
+        log "Using .env file for standalone build..." "verbose"
+        
+        # Uninstall existing app
+        PACKAGE_NAME="com.softwareone.marketplaceMobile"
+        log "Uninstalling existing app if present..." "verbose"
+        adb -s "$DEVICE_UDID" uninstall "$PACKAGE_NAME" > /dev/null 2>&1 || true
+        
+        # Clean previous builds
+        log "Cleaning previous builds..." "verbose"
+        rm -rf android/app/build/outputs/apk > /dev/null 2>&1 || true
+        
+        # Prebuild native Android project
+        log "📦 Generating native Android project with Expo prebuild..." "info"
+        if [ "$VERBOSE" = true ]; then
+            npx expo prebuild --platform android --clean
+        else
+            npx expo prebuild --platform android --clean > /dev/null 2>&1
+        fi
+        
+        if [ $? -ne 0 ]; then
+            log "❌ Prebuild failed" "info"
+            exit 1
+        fi
+        
+        log "✅ Native Android project generated" "verbose"
+        
+        # Build standalone APK using Gradle
+        log "🔨 Building standalone APK in Release mode..." "info"
+        cd android
+        
+        GRADLE_TASK="assembleRelease"
+        APK_PATH="app/build/outputs/apk/release/app-release.apk"
+        
+        log "Running: ./gradlew $GRADLE_TASK" "verbose"
+        
+        if [ "$VERBOSE" = true ]; then
+            ./gradlew $GRADLE_TASK
+        else
+            ./gradlew $GRADLE_TASK 2>&1 | grep -E "(BUILD|SUCCESS|FAILURE|WARNING|Error|Failed)" || true
+        fi
+        
+        if [ $? -ne 0 ]; then
+            log "❌ Build failed" "info"
+            cd "$PROJECT_ROOT"
+            exit 1
+        fi
+        
+        cd ..
+        
+        # Verify APK was created
+        if [ ! -f "android/$APK_PATH" ]; then
+            log "❌ APK not found at android/$APK_PATH" "info"
+            exit 1
+        fi
+        
+        log "✅ APK built successfully: android/$APK_PATH" "info"
+        
+        # Install the APK
+        log "📲 Installing APK on device $DEVICE_UDID..." "info"
+        adb -s "$DEVICE_UDID" install -r "android/$APK_PATH"
+        
+        if [ $? -ne 0 ]; then
+            log "❌ APK installation failed" "info"
+            exit 1
+        fi
+        
+        log "✅ APK installed successfully" "info"
+        
+        # Launch the app
+        log "🚀 Launching app..." "verbose"
+        adb -s "$DEVICE_UDID" shell am start -n "$PACKAGE_NAME/.MainActivity"
+        sleep 2
+        
+        log "✅ Android app built and deployed" "info"
+        
+        # Return to project root
+        cd "$PROJECT_ROOT"
+    else
+        # Build iOS app
+        build_release_app
+    fi
 elif [ "$SKIP_BUILD" = true ]; then
-    install_existing_app
+    if [ "$PLATFORM" = "android" ]; then
+        log "⚠️  --skip-build not implemented for Android yet" "info"
+        log "💡 App should already be installed on your device/emulator" "info"
+    else
+        install_existing_app
+    fi
 fi
 
 # Debug output
-log "🔍 Environment variables for WebDriverIO:"
-log "   DEVICE_UDID: $DEVICE_UDID"
-log "   DEVICE_NAME: $DEVICE_NAME" 
-log "   PLATFORM_VERSION: $PLATFORM_VERSION"
-log "   APP_BUNDLE_ID: $APP_BUNDLE_ID"
-log "   APPIUM_HOST: $APPIUM_HOST"
-log "   APPIUM_PORT: $APPIUM_PORT"
+log "🔍 Environment variables for WebDriverIO:" "verbose"
+log "   PLATFORM_NAME: $PLATFORM_NAME" "verbose"
+log "   AUTOMATION_NAME: $AUTOMATION_NAME" "verbose"
+log "   DEVICE_UDID: $DEVICE_UDID" "verbose"
+log "   DEVICE_NAME: $DEVICE_NAME" "verbose"
+log "   PLATFORM_VERSION: $PLATFORM_VERSION" "verbose"
 
-# Get available simulators
-log ""
-log "📱 Available simulators:"
-xcrun simctl list devices | grep iPhone | grep Booted || log "No booted simulators found"
+if [ "$PLATFORM" = "android" ]; then
+    log "   APP_PACKAGE: $APP_PACKAGE" "verbose"
+    log "   APP_ACTIVITY: $APP_ACTIVITY" "verbose"
+else
+    log "   APP_BUNDLE_ID: $APP_BUNDLE_ID" "verbose"
+fi
+
+log "   APPIUM_HOST: $APPIUM_HOST" "verbose"
+log "   APPIUM_PORT: $APPIUM_PORT" "verbose"
+
+# Platform-specific device checks
+if [ "$PLATFORM" = "android" ]; then
+    log ""
+    log "🤖 Connected Android devices:"
+    adb devices
+else
+    # Get available simulators
+    log ""
+    log "📱 Available simulators:"
+    xcrun simctl list devices | grep iPhone | grep Booted || log "No booted simulators found"
+fi
 
 # Check if Appium is running
 log ""
@@ -447,6 +537,12 @@ fi
 cd "$APP_DIR"
 npx wdio run wdio.conf.js $TEST_ARGS
 TEST_EXIT_CODE=$?
+
+# Restore original .env file if we backed it up
+if [ -f .env.backup ]; then
+    log "♻️  Restoring original .env file" "verbose"
+    mv .env.backup .env
+fi
 
 # Stop Appium if we started it
 if [ ! -z "$APPIUM_PID" ]; then

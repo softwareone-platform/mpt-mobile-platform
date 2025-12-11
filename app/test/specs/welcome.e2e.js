@@ -1,10 +1,12 @@
 const { expect } = require('@wdio/globals')
+const { isAndroid } = require('../pageobjects/utils/selectors')
 const welcomePage = require('../pageobjects/welcome.page')
 const verifyPage = require('../pageobjects/verify.page')
 const homePage = require('../pageobjects/spotlights.page')
+const { AIRTABLE_EMAIL } = require('../pageobjects/utils/auth.helper')
 
-const otpTimeoutMs = 120000
-const pollIntervalMs = 10000
+const otpTimeoutMs = 260000
+const pollIntervalMs = 13000
 
 describe('Welcome page of application', () => {
     it('to display welcome title', async () => {
@@ -40,19 +42,23 @@ describe('Welcome page of application', () => {
         await welcomePage.clearText(welcomePage.emailInput)
         
         // Use the Gmail account hooked up to automation
-        const testEmail = 'marketplaceplatformemailtest@gmail.com'
+        const testEmail = AIRTABLE_EMAIL
         
         // Enter valid test email
         await welcomePage.typeText(welcomePage.emailInput, testEmail)
-        // Verify the email was entered correctly using getAttribute instead of property
-        const enteredValue = await welcomePage.emailInput.getAttribute('value')
+        // Verify the email was entered correctly
+        // Android uses 'text' attribute, iOS uses 'value'
+        const enteredValue = await welcomePage.emailInput.getAttribute(isAndroid() ? 'text' : 'value')
         expect(enteredValue).toBe(testEmail)
         
         // Record timestamp before requesting OTP to avoid picking up old emails
         const beforeOTPRequest = new Date()
+        console.log(`🕐 Timestamp BEFORE OTP request: ${beforeOTPRequest.toISOString()}`)
         
         // Click continue to trigger OTP request
         await welcomePage.click(welcomePage.continueButton)
+        const afterOTPRequest = new Date()
+        console.log(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`)
         
         // Wait for navigation to verify screen
         await expect(verifyPage.verifyTitle).toBeDisplayed()
@@ -61,15 +67,18 @@ describe('Welcome page of application', () => {
         let result = null
         try {
             // Wait for OTP to arrive in Airtable
-            console.log('Waiting for OTP to arrive via Airtable...')
+            console.log('⏳ Waiting for OTP to arrive via Airtable...')
             result = await global.getOTPFromAirtable(
                 testEmail, 
                 beforeOTPRequest,
                 otpTimeoutMs,
                 pollIntervalMs
             )
-            console.log(`Retrieved OTP: ${result.otp}`)
-            console.log(`Email subject: ${result.record.fields.Subject}`)
+            const otpRetrievedTime = new Date()
+            console.log(`✅ Retrieved OTP: ${result.otp} at ${otpRetrievedTime.toISOString()}`)
+            console.log(`📧 Email subject: ${result.record.fields.Subject}`)
+            console.log(`📧 Email created at: ${result.record.fields['Created At']}`)
+            console.log(`⏱️  Time from request to retrieval: ${(otpRetrievedTime - afterOTPRequest) / 1000}s`)
             
             // Verify we got a valid 6-digit OTP
             expect(result.otp).toMatch(/^\d{6}$/)
@@ -80,12 +89,17 @@ describe('Welcome page of application', () => {
         }
             
         // Enter OTP into the verification screen
+        console.log(`⌨️  Entering OTP into verification screen...`)
+        const beforeSubmit = new Date()
+        console.log(`🚀 Starting OTP entry at: ${beforeSubmit.toISOString()}`)
+        console.log(`⏱️  Time from OTP creation to entry start: ${(beforeSubmit - new Date(result.record.fields['Created At'])) / 1000}s`)
         await verifyPage.enterOTP(result.otp)
-
-        // Submit the verification
-        await verifyPage.click(verifyPage.verifyButton)
         
-        // After clicking verify button, check for successful login
+        // Note: The app auto-submits when 6 digits are entered (via useEffect)
+        // So we DON'T need to click the verify button - just wait for navigation
+        console.log(`⏳ Waiting for auto-submission to complete...`)
+        
+        // After OTP entry, check for successful login (app auto-submits)
         await expect(homePage.header.logoTitle).toBeDisplayed()
     })
 })

@@ -1,5 +1,6 @@
 const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
+const { selectors, getSelector } = require('./utils/selectors');
 
 class VerifyPage extends BasePage {
     constructor () {
@@ -7,40 +8,60 @@ class VerifyPage extends BasePage {
     }
 
     get logoImage () {
-        return $('//XCUIElementTypeImage');
+        return $(selectors.image());
     }
 
     get verifyTitle () {
-        return $('//*[@name="Verify your identity"]');
+        return $(selectors.byText('Verify your identity'));
     }
 
     get verificationCodeMessage () {
-        return $('//*[contains(@name, "We have sent a verification code to")]');
+        return $(selectors.byContainsText('We have sent a verification code to'));
     }
 
     // OTP input fields (6 digits)
+    // On Android: clickable ViewGroup elements with content-desc
+    // On iOS: accessible elements
     get otpInput1 () {
-        return $('(//XCUIElementTypeOther[@accessible="true"])[1]');
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
+            android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+        }));
     }
 
     get otpInput2 () {
-        return $('(//XCUIElementTypeOther[@accessible="true"])[2]');
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[@accessible="true"])[2]',
+            android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[4]'
+        }));
     }
 
     get otpInput3 () {
-        return $('(//XCUIElementTypeOther[@accessible="true"])[3]');
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[@accessible="true"])[3]',
+            android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[5]'
+        }));
     }
 
     get otpInput4 () {
-        return $('(//XCUIElementTypeOther[@accessible="true"])[4]');
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[@accessible="true"])[4]',
+            android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[6]'
+        }));
     }
 
     get otpInput5 () {
-        return $('(//XCUIElementTypeOther[@accessible="true"])[5]');
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[@accessible="true"])[5]',
+            android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[7]'
+        }));
     }
 
     get otpInput6 () {
-        return $('(//XCUIElementTypeOther[@accessible="true"])[6]');
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[@accessible="true"])[6]',
+            android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[8]'
+        }));
     }
 
     // Get all OTP input fields as an array
@@ -56,19 +77,19 @@ class VerifyPage extends BasePage {
     }
 
     get verifyButton () {
-        return $('//*[@name="Verify"]');
+        return $(selectors.button('Verify'));
     }
 
     get changeEmailButton () {
-        return $('//*[@name="Change email"]');
+        return $(selectors.button('Change email'));
     }
 
     get didntGetCodeText () {
-        return $('//*[@name="Didn\'t get a code? "]');
+        return $(selectors.byText("Didn't get a code? "));
     }
 
     get resendCodeButton () {
-        return $('//*[@name="Resend Code"]');
+        return $(selectors.button('Resend Code'));
     }
 
     // Method to enter OTP code
@@ -81,7 +102,22 @@ class VerifyPage extends BasePage {
         const inputs = this.otpInputs;
 
         for (let i = 0; i < digits.length; i++) {
-            await this.typeText(inputs[i], digits[i]);
+            const input = inputs[i];
+            await input.waitForDisplayed({ timeout: 5000 });
+            
+            // Click to focus the field first (important for Android ViewGroups)
+            if (i === 0) {
+                await this.click(input);
+            }
+            
+            // Small delay to ensure field is focused
+            await browser.pause(350);
+            
+            // Type the digit
+            await browser.keys(digits[i]);
+            
+            // Small delay before moving to next field
+            await browser.pause(350);
         }
     }
 

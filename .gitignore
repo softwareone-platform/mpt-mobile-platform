@@ -72,6 +72,9 @@ appium.log
 **/appium.log
 appium*.log
 
+# Screenshots
+screenshots/
+
 # Yarn
 .yarn/*
 !.yarn/patches

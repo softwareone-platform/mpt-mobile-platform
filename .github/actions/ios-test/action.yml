@@ -427,7 +427,7 @@ runs:
         name: test-results-${{ github.run_number }}
         path: |
           app/test-results/
-          app/screenshots/
+          screenshots/
         retention-days: 7
         if-no-files-found: ignore
         

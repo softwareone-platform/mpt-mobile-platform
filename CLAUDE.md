@@ -123,8 +123,9 @@ app/
 - Builds and deploys to simulator
 - Launches app
 
+**Prerequisites:** .env file must exist in app/ directory with Auth0 configuration
+
 **Available Options:**
-- `-c, --client-id ID`: Auth0 client ID (if not in .env)
 - `-r, --release`: Release mode build
 - `-s, --simulator NAME`: Target simulator (default: iPhone 16 Pro)
 - `-f, --force-boot`: Force boot simulator
@@ -191,6 +192,83 @@ npm test -- path/to/file.test.ts
 ```
 
 Test files are located in `__tests__` directories alongside source code and use `.test.ts` or `.test.tsx` extensions.
+
+### E2E Testing (Appium)
+
+End-to-end tests use Appium with WebDriverIO. Tests are located in `app/test/specs/`.
+
+**Cross-Platform Testing with Platform Flag:**
+
+The unified test script supports both iOS and Android via the `--platform` flag.
+
+**Prerequisites:** .env file must exist in app/ directory with Auth0 configuration
+
+**iOS Testing (macOS only):**
+```bash
+# Run tests with existing app
+./scripts/run-local-test.sh --platform ios welcome
+
+# Build and run tests
+./scripts/run-local-test.sh --platform ios --build welcome
+
+# Run all tests
+./scripts/run-local-test.sh --platform ios all
+
+# Run specific spec file
+./scripts/run-local-test.sh --platform ios ./test/specs/welcome.e2e.js
+```
+
+**Android Testing (macOS/Linux):**
+```bash
+# Run tests with existing app
+./scripts/run-local-test.sh --platform android welcome
+
+# Build and run tests
+./scripts/run-local-test.sh --platform android --build welcome
+
+# Run all tests
+./scripts/run-local-test.sh --platform android all
+
+# Run specific spec file
+./scripts/run-local-test.sh --platform android ./test/specs/welcome.e2e.js
+```
+
+**Android Testing (Windows):**
+```batch
+REM Check environment setup
+scripts\windows\setup-android-env.bat
+
+REM Run tests with existing app
+scripts\windows\run-local-test-android.bat welcome
+
+REM Build and run tests
+scripts\windows\run-local-test-android.bat --build welcome
+
+REM Run all tests
+scripts\windows\run-local-test-android.bat all
+```
+
+**Using NPM Scripts (from `app` directory):**
+```bash
+cd app
+
+# Run iOS tests
+npm run test:e2e:ios
+
+# Run Android tests
+npm run test:e2e:android
+
+# Run specific suite on Android
+PLATFORM_NAME=Android npx wdio run wdio.conf.js --suite welcome
+```
+
+**Available test suites:** `welcome`, `home`, `navigation`, `failing`
+
+**Documentation:**
+- iOS setup: `documents/APPIUM_IOS_TESTING.md`
+- Android setup (macOS/Linux): `documents/APPIUM_ANDROID_TESTING.md`
+- Android setup (Windows): `documents/APPIUM_ANDROID_TESTING_WINDOWS.md`
+- Writing tests: `documents/EXTENDING_TEST_FRAMEWORK.md`
 
 ### Linting
 

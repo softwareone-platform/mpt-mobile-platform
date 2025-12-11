@@ -1,9 +1,9 @@
 const { $ } = require('@wdio/globals');
-
+const { selectors } = require('../utils/selectors');
 
 class HeadingPage {
     get logoTitle () {
-        return $('//*[contains(@name, "Spotlight")]');
+        return $(selectors.byContainsText('Spotlight'));
     }
 }
 

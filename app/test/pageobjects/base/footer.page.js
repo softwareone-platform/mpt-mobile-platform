@@ -1,22 +1,22 @@
 const { $ } = require('@wdio/globals');
 const BasePage = require('./base.page');
-
+const { selectors } = require('../utils/selectors');
 
 class FooterPage extends BasePage {
     get spotlightsTab () {
-        return $('//*[contains(@name, "Spotlight, tab, 1 of 4")]');
+        return $(selectors.byContainsText('Spotlight'));
     }
 
     get ordersTab () {
-        return $('//*[contains(@name, "Orders, tab, 2 of 4")]');
+        return $(selectors.byContainsText('Orders'));
     }
 
     get subscriptionsTab () {
-        return $('//*[contains(@name, "Subscriptions, tab, 3 of 4")]');
+        return $(selectors.byContainsText('Subscriptions'));
     }
 
     get moreTab () {
-        return $('//*[contains(@name, "More, tab, 4 of 4")]');
+        return $(selectors.byContainsText('More'));
     }
 
     async clickspotlightsTab() {

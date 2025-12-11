@@ -1,7 +1,47 @@
 const fs = require('fs');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
 
-const SCREENSHOT_FOLDER = './screenshots';
+const SCREENSHOT_FOLDER = '../screenshots';
+
+// Platform detection helpers
+const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
+
+// Define platform-specific capabilities
+const iosCapabilities = {
+    platformName: 'iOS',
+    'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
+    'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
+    'appium:automationName': 'XCUITest',
+    'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
+    'appium:udid': process.env.DEVICE_UDID,
+    'appium:noReset': true,
+    'appium:fullReset': false,
+    'appium:newCommandTimeout': 900,
+    'appium:launchTimeout': 240000,
+    'appium:wdaLaunchTimeout': 240000,
+    'appium:wdaConnectionTimeout': 240000,
+    'appium:wdaStartupRetries': 4,
+    'appium:wdaStartupRetryInterval': 30000,
+    'appium:shouldUseSingletonTestManager': false,
+    'appium:simpleIsVisibleCheck': true,
+    'appium:usePrebuiltWDA': false,
+    'appium:derivedDataPath': '/tmp/wda-derived-data'
+};
+
+const androidCapabilities = {
+    platformName: 'Android',
+    'appium:deviceName': process.env.DEVICE_NAME || 'Pixel 8',
+    'appium:platformVersion': process.env.PLATFORM_VERSION || '14',
+    'appium:automationName': 'UiAutomator2',
+    'appium:appPackage': process.env.APP_PACKAGE || 'com.softwareone.marketplaceMobile',
+    'appium:appActivity': process.env.APP_ACTIVITY || '.MainActivity',
+    'appium:udid': process.env.DEVICE_UDID,
+    'appium:noReset': true,
+    'appium:fullReset': false,
+    'appium:newCommandTimeout': 900,
+    'appium:autoGrantPermissions': true,
+    'appium:ignoreHiddenApiPolicyError': true
+};
 
 exports.config = {
     //
@@ -28,6 +68,8 @@ exports.config = {
     // of the config file unless it's absolute.
     //
     specs: [
+        // Welcome tests must run first to establish authentication
+        './test/specs/welcome.e2e.js',
         './test/specs/**/*.js'
     ],
     // Patterns to exclude.
@@ -35,7 +77,10 @@ exports.config = {
         // 'path/to/excluded/files'
     ],
     suites: {
-        welcome: ['./test/specs/welcome.e2e.js']
+        welcome: ['./test/specs/welcome.e2e.js'],
+        home: ['./test/specs/home.e2e.js'],
+        navigation: ['./test/specs/navigation.e2e.js'],
+        failing: ['./test/specs/failing.e2e.js']
     },
     //
     // ============
@@ -59,27 +104,7 @@ exports.config = {
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
-    capabilities: [{
-        // capabilities for local Appium web tests on iOS
-        platformName: process.env.PLATFORM_NAME || 'iOS',
-        'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
-        'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
-        'appium:automationName': process.env.AUTOMATION_NAME || 'XCUITest',
-        'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
-        'appium:udid': process.env.DEVICE_UDID,
-        'appium:noReset': true,
-        'appium:fullReset': false,
-        'appium:newCommandTimeout': 900,
-        'appium:launchTimeout': 240000,
-        'appium:wdaLaunchTimeout': 240000,
-        'appium:wdaConnectionTimeout': 240000,
-        'appium:wdaStartupRetries': 4,
-        'appium:wdaStartupRetryInterval': 30000,
-        'appium:shouldUseSingletonTestManager': false,
-        'appium:simpleIsVisibleCheck': true,
-        'appium:usePrebuiltWDA': false,
-        'appium:derivedDataPath': '/tmp/wda-derived-data'
-    }],
+    capabilities: [isAndroid() ? androidCapabilities : iosCapabilities],
 
     //
     // ===================
@@ -200,13 +225,15 @@ exports.config = {
      */
     reporterSyncInterval: 1000,
     onPrepare: function () {
-        fs.mkdir(SCREENSHOT_FOLDER, function (err) {
-        if (err) {
-            console.log(err);
+        const path = require('path');
+        const screenshotDir = path.resolve(__dirname, SCREENSHOT_FOLDER);
+        
+        if (!fs.existsSync(screenshotDir)) {
+            fs.mkdirSync(screenshotDir, { recursive: true });
+            console.log(`Created screenshot directory: ${screenshotDir}`);
         } else {
-            console.log('New directory successfully created.');
+            console.log(`Screenshot directory ready: ${screenshotDir}`);
         }
-        });
     },
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
@@ -289,17 +316,26 @@ exports.config = {
      */
     afterTest: async function(test, context, { passed }) {
         if (!passed) {
-            const timestamp = new Date()
-                .toISOString()
-                .replace(/[^0-9]/g, '')
-                .slice(0, -5)
-            const fileName = `${timestamp}_${test.parent.replace(/ /g, '-')}_${test.title.replace(/ /g, '-')}.png`
-            const filePath = `${SCREENSHOT_FOLDER}/${fileName}`
-            const screenshot = await browser.saveScreenshot(filePath)
-            ReportingApi.error(
-                `Screenshot "${fileName}" captured for failing test: ${test.parent} / ${test.title}`,
-                {name: fileName, type: 'image/png', content: screenshot.toString('base64')}
-            );
+            try {
+                const path = require('path');
+                const timestamp = new Date()
+                    .toISOString()
+                    .replace(/[^0-9]/g, '')
+                    .slice(0, -5)
+                const fileName = `${timestamp}_${test.parent.replace(/ /g, '-')}_${test.title.replace(/ /g, '-')}.png`
+                const filePath = path.resolve(__dirname, SCREENSHOT_FOLDER, fileName)
+                
+                console.log(`📸 Capturing screenshot: ${filePath}`)
+                const screenshot = await browser.saveScreenshot(filePath)
+                console.log(`✅ Screenshot saved: ${fileName}`)
+                
+                ReportingApi.error(
+                    `Screenshot "${fileName}" captured for failing test: ${test.parent} / ${test.title}`,
+                    {name: fileName, type: 'image/png', content: screenshot.toString('base64')}
+                );
+            } catch (error) {
+                console.error('❌ Failed to capture screenshot:', error.message);
+            }
         }
     },
 
