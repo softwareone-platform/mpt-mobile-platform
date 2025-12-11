@@ -106,16 +106,18 @@ class VerifyPage extends BasePage {
             await input.waitForDisplayed({ timeout: 5000 });
             
             // Click to focus the field first (important for Android ViewGroups)
-            await this.click(input);
+            if (i === 0) {
+                await this.click(input);
+            }
             
             // Small delay to ensure field is focused
-            await browser.pause(200);
+            await browser.pause(350);
             
             // Type the digit
             await browser.keys(digits[i]);
             
             // Small delay before moving to next field
-            await browser.pause(200);
+            await browser.pause(350);
         }
     }
 

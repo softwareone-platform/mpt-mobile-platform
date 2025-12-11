@@ -2,7 +2,7 @@ const welcomePage = require('../welcome.page');
 const verifyPage = require('../verify.page');
 const homePage = require('../spotlights.page');
 
-const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'marketplaceplatformemailtest@gmail.com';
+const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'not-set';
 const OTP_TIMEOUT_MS = 120000;
 const POLL_INTERVAL_MS = 10000;
 

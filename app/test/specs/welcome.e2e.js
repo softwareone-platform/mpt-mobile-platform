@@ -3,6 +3,7 @@ const { isAndroid } = require('../pageobjects/utils/selectors')
 const welcomePage = require('../pageobjects/welcome.page')
 const verifyPage = require('../pageobjects/verify.page')
 const homePage = require('../pageobjects/spotlights.page')
+const { AIRTABLE_EMAIL } = require('../pageobjects/utils/auth.helper')
 
 const otpTimeoutMs = 260000
 const pollIntervalMs = 13000
@@ -41,7 +42,7 @@ describe('Welcome page of application', () => {
         await welcomePage.clearText(welcomePage.emailInput)
         
         // Use the Gmail account hooked up to automation
-        const testEmail = 'marketplaceplatformemailtest@gmail.com'
+        const testEmail = AIRTABLE_EMAIL
         
         // Enter valid test email
         await welcomePage.typeText(welcomePage.emailInput, testEmail)
