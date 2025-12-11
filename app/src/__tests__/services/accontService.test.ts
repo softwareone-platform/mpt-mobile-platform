@@ -208,4 +208,29 @@ describe('useAccountApi', () => {
 
     expect(mockPut).not.toHaveBeenCalled();
   });
+
+  it('logs warning when refreshAuth fails after account switch', async () => {
+    const api = setup();
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    
+    mockPut.mockResolvedValueOnce(undefined);
+    mockRefreshAuth.mockRejectedValueOnce(new Error('Refresh failed'));
+
+    await act(async () => {
+      await api.switchAccount('100', '200');
+    });
+
+    expect(mockPut).toHaveBeenCalledWith(
+      '/v1/accounts/users/100',
+      { currentAccount: { id: '200' } }
+    );
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'Failed to refresh token after account switch',
+      expect.any(Error)
+    );
+
+    consoleWarnSpy.mockRestore();
+  });
 });
+

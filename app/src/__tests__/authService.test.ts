@@ -1,7 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 
 jest.mock('jwt-decode');
-jest.mock('react-native-auth0');
 jest.mock('../config/env.config', () => ({
     configService: {
         get: jest.fn((key: string) => {
@@ -134,4 +133,5 @@ describe('authService', () => {
         });
     });
 });
+
 
