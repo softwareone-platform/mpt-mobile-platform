@@ -204,6 +204,12 @@ build_release_app() {
     # Set up environment for release build
     log "🎯 Configuring for STANDALONE PRODUCTION app" "verbose"
     
+    # Backup existing .env file before modifying
+    if [ -f .env ]; then
+        log "💾 Backing up existing .env file" "verbose"
+        cp .env .env.backup
+    fi
+    
     # Create .env file for production configuration
     log "🎯 Configuring for $ENVIRONMENT environment" "verbose"
     log "   Domain: $AUTH0_DOMAIN" "verbose"
@@ -447,6 +453,12 @@ fi
 cd "$APP_DIR"
 npx wdio run wdio.conf.js $TEST_ARGS
 TEST_EXIT_CODE=$?
+
+# Restore original .env file if we backed it up
+if [ -f .env.backup ]; then
+    log "♻️  Restoring original .env file" "verbose"
+    mv .env.backup .env
+fi
 
 # Stop Appium if we started it
 if [ ! -z "$APPIUM_PID" ]; then

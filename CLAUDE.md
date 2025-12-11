@@ -192,6 +192,47 @@ npm test -- path/to/file.test.ts
 
 Test files are located in `__tests__` directories alongside source code and use `.test.ts` or `.test.tsx` extensions.
 
+### E2E Testing (Appium)
+
+End-to-end tests use Appium with WebDriverIO. Tests are located in `app/test/specs/`.
+
+**iOS Testing (macOS only):**
+```bash
+# Run tests with existing app
+./scripts/run-local-test.sh welcome
+
+# Build and run tests
+./scripts/run-local-test.sh --build --env dev --client-id YOUR_ID welcome
+
+# Run all tests
+./scripts/run-local-test.sh all
+```
+
+**Android Testing (Windows):**
+```batch
+REM Check environment setup
+scripts\setup-android-env.bat
+
+REM Run tests with existing app
+scripts\run-local-test-android.bat welcome
+
+REM Build and run tests
+scripts\run-local-test-android.bat --build --env dev --client-id YOUR_ID welcome
+
+REM Run all tests
+scripts\run-local-test-android.bat all
+```
+
+**Android Testing (macOS/Linux):**
+```bash
+# Run Android tests (requires Android SDK)
+PLATFORM_NAME=Android ./scripts/run-local-test.sh welcome
+```
+
+**Available test suites:** `welcome`, `home`, `navigation`, `failing`
+
+See `documents/APPIUM_IOS_TESTING.md` and `documents/APPIUM_ANDROID_TESTING_WINDOWS.md` for detailed setup.
+
 ### Linting
 
 ```bash

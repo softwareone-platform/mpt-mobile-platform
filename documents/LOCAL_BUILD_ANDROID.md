@@ -2,6 +2,23 @@
 
 This guide explains how to run local build and deploy your React Native app directly to an Emulator or a physical Android device for local testing and development.
 
+## Quick Start (Windows)
+
+For Windows users, automated scripts are available:
+
+```batch
+REM Check your environment setup
+scripts\windows\setup-android-env.bat
+
+REM Deploy app to device/emulator
+scripts\windows\deploy-android.bat --env dev --client-id YOUR_ID
+
+REM Build and run E2E tests
+scripts\windows\run-local-test-android.bat --build --env dev --client-id YOUR_ID welcome
+```
+
+See [APPIUM_ANDROID_TESTING_WINDOWS.md](./APPIUM_ANDROID_TESTING_WINDOWS.md) for complete Windows testing guide.
+
 ## Prerequisites
 
 - **Mac/Windows/Linux with Android SDK installed**
