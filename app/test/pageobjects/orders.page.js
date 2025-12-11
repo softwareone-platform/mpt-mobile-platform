@@ -2,6 +2,7 @@ const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
 const headingPage = require('./base/heading.page');
 const footerPage = require('./base/footer.page');
+const { selectors } = require('./utils/selectors');
 
 class OrdersPage extends BasePage {
     constructor () {
@@ -11,7 +12,7 @@ class OrdersPage extends BasePage {
     }
 
     get defaultText () {
-        return $('//*[contains(@name, "Orders Screen")]');
+        return $(selectors.byContainsText('Orders Screen'));
     }
 }
 

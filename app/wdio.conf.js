@@ -3,6 +3,47 @@ const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio')
 
 const SCREENSHOT_FOLDER = './screenshots';
 
+// Platform detection helpers
+const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
+const isIOS = () => !isAndroid();
+
+// Define platform-specific capabilities
+const iosCapabilities = {
+    platformName: 'iOS',
+    'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
+    'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
+    'appium:automationName': 'XCUITest',
+    'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
+    'appium:udid': process.env.DEVICE_UDID,
+    'appium:noReset': true,
+    'appium:fullReset': false,
+    'appium:newCommandTimeout': 900,
+    'appium:launchTimeout': 240000,
+    'appium:wdaLaunchTimeout': 240000,
+    'appium:wdaConnectionTimeout': 240000,
+    'appium:wdaStartupRetries': 4,
+    'appium:wdaStartupRetryInterval': 30000,
+    'appium:shouldUseSingletonTestManager': false,
+    'appium:simpleIsVisibleCheck': true,
+    'appium:usePrebuiltWDA': false,
+    'appium:derivedDataPath': '/tmp/wda-derived-data'
+};
+
+const androidCapabilities = {
+    platformName: 'Android',
+    'appium:deviceName': process.env.DEVICE_NAME || 'Pixel 8',
+    'appium:platformVersion': process.env.PLATFORM_VERSION || '14',
+    'appium:automationName': 'UiAutomator2',
+    'appium:appPackage': process.env.APP_PACKAGE || 'com.softwareone.marketplaceMobile',
+    'appium:appActivity': process.env.APP_ACTIVITY || '.MainActivity',
+    'appium:udid': process.env.DEVICE_UDID,
+    'appium:noReset': true,
+    'appium:fullReset': false,
+    'appium:newCommandTimeout': 900,
+    'appium:autoGrantPermissions': true,
+    'appium:ignoreHiddenApiPolicyError': true
+};
+
 exports.config = {
     //
     // ====================
@@ -28,6 +69,8 @@ exports.config = {
     // of the config file unless it's absolute.
     //
     specs: [
+        // Welcome tests must run first to establish authentication
+        './test/specs/welcome.e2e.js',
         './test/specs/**/*.js'
     ],
     // Patterns to exclude.
@@ -35,7 +78,10 @@ exports.config = {
         // 'path/to/excluded/files'
     ],
     suites: {
-        welcome: ['./test/specs/welcome.e2e.js']
+        welcome: ['./test/specs/welcome.e2e.js'],
+        home: ['./test/specs/home.e2e.js'],
+        navigation: ['./test/specs/navigation.e2e.js'],
+        failing: ['./test/specs/failing.e2e.js']
     },
     //
     // ============
@@ -59,27 +105,7 @@ exports.config = {
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
-    capabilities: [{
-        // capabilities for local Appium web tests on iOS
-        platformName: process.env.PLATFORM_NAME || 'iOS',
-        'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
-        'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
-        'appium:automationName': process.env.AUTOMATION_NAME || 'XCUITest',
-        'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
-        'appium:udid': process.env.DEVICE_UDID,
-        'appium:noReset': true,
-        'appium:fullReset': false,
-        'appium:newCommandTimeout': 900,
-        'appium:launchTimeout': 240000,
-        'appium:wdaLaunchTimeout': 240000,
-        'appium:wdaConnectionTimeout': 240000,
-        'appium:wdaStartupRetries': 4,
-        'appium:wdaStartupRetryInterval': 30000,
-        'appium:shouldUseSingletonTestManager': false,
-        'appium:simpleIsVisibleCheck': true,
-        'appium:usePrebuiltWDA': false,
-        'appium:derivedDataPath': '/tmp/wda-derived-data'
-    }],
+    capabilities: [isAndroid() ? androidCapabilities : iosCapabilities],
 
     //
     // ===================

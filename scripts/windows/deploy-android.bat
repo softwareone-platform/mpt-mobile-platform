@@ -9,8 +9,6 @@ REM This script builds and deploys the Android app to an emulator
 REM or connected device for Appium testing.
 REM ============================================================
 
-set ENVIRONMENT=
-set CLIENT_ID=
 set BUILD_TYPE=debug
 set EMULATOR_NAME=
 set VERBOSE=false
@@ -18,30 +16,6 @@ set VERBOSE=false
 REM Parse command line arguments
 :parse_args
 if "%~1"=="" goto :validate_args
-if /i "%~1"=="--env" (
-    set ENVIRONMENT=%~2
-    shift
-    shift
-    goto :parse_args
-)
-if /i "%~1"=="-e" (
-    set ENVIRONMENT=%~2
-    shift
-    shift
-    goto :parse_args
-)
-if /i "%~1"=="--client-id" (
-    set CLIENT_ID=%~2
-    shift
-    shift
-    goto :parse_args
-)
-if /i "%~1"=="-c" (
-    set CLIENT_ID=%~2
-    shift
-    shift
-    goto :parse_args
-)
 if /i "%~1"=="--release" (
     set BUILD_TYPE=release
     shift
@@ -81,24 +55,22 @@ echo ======================================
 echo.
 echo Usage: deploy-android.bat [options]
 echo.
+echo This script builds and deploys the React Native app to Android.
+echo Prerequisites:
+echo   - .env file must exist in app\ directory with Auth0 configuration
+echo   - Android SDK and emulator/device must be set up
+echo.
 echo Options:
-echo   --env, -e ENV         Set environment (dev, test, qa)
-echo   --client-id, -c ID    Set Auth0 client ID
-echo   --release, -r         Build release version (default: debug)
+echo   --release, -r         Build release version
+echo   --debug, -d           Build debug version (default)
 echo   --emulator NAME       Specify emulator AVD name to start
 echo   --verbose, -v         Enable verbose output
 echo   --help, -h            Show this help message
 echo.
 echo Examples:
 echo   deploy-android.bat
-echo   deploy-android.bat --env dev --client-id abc123
 echo   deploy-android.bat --release --emulator Pixel_8_API_34
-echo   deploy-android.bat --env test --client-id xyz789 --release
-echo.
-echo Environment presets:
-echo   dev   - Uses login-dev.pyracloud.com
-echo   test  - Uses login-test.pyracloud.com
-echo   qa    - Uses login-qa.pyracloud.com
+echo   deploy-android.bat --debug --verbose
 echo.
 exit /b 0
 
@@ -184,43 +156,15 @@ if not exist "node_modules" (
     echo.
 )
 
-REM Configure environment if specified
-if not "%ENVIRONMENT%"=="" (
-    echo [INFO] Configuring environment: %ENVIRONMENT%
-    
-    if "%ENVIRONMENT%"=="dev" (
-        set AUTH0_DOMAIN=login-dev.pyracloud.com
-        set AUTH0_AUDIENCE=https://api-dev.pyracloud.com/
-        set AUTH0_SCOPE=openid profile email offline_access
-        set AUTH0_API_URL=https://api.s1.today/public/
-        set AUTH0_OTP_DIGITS=6
-        set AUTH0_SCHEME=com.softwareone.marketplaceMobile
-    )
-    if "%ENVIRONMENT%"=="test" (
-        set AUTH0_DOMAIN=login-test.pyracloud.com
-        set AUTH0_AUDIENCE=https://api-test.pyracloud.com/
-        set AUTH0_SCOPE=openid profile email offline_access
-        set AUTH0_API_URL=https://api.s1.show/public/
-        set AUTH0_OTP_DIGITS=6
-        set AUTH0_SCHEME=com.softwareone.marketplaceMobile
-    )
-    if "%ENVIRONMENT%"=="qa" (
-        set AUTH0_DOMAIN=login-qa.pyracloud.com
-        set AUTH0_AUDIENCE=https://api-qa.pyracloud.com/
-        set AUTH0_SCOPE=openid profile email offline_access
-        set AUTH0_API_URL=https://api.s1.live/public/
-        set AUTH0_OTP_DIGITS=6
-        set AUTH0_SCHEME=com.softwareone.marketplaceMobile
-    )
-    
-    if not "%CLIENT_ID%"=="" (
-        set AUTH0_CLIENT_ID=%CLIENT_ID%
-    )
-    
-    echo [INFO] Auth0 Domain: !AUTH0_DOMAIN!
-    echo [INFO] Auth0 Client ID: !AUTH0_CLIENT_ID!
-    echo.
+REM Validate .env file exists
+if not exist ".env" (
+    echo [ERROR] No .env file found
+    echo Please create a .env file in app directory with required configuration
+    exit /b 1
 )
+
+echo [INFO] Using .env configuration
+echo.
 
 REM Start emulator if specified
 if not "%EMULATOR_NAME%"=="" (

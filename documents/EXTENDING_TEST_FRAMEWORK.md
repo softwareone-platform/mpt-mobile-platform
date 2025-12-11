@@ -2,51 +2,85 @@
 
 This guide explains how to extend the Appium test framework with new page objects, test files, and testing strategies for different app states and user flows.
 
-> 📖 **See also:** [Comprehensive Appium iOS Testing Guide](./APPIUM_IOS_TESTING.md) for complete setup, workflow strategies, and troubleshooting.
+> 📖 **See also:** 
+> - [iOS Testing Guide](./APPIUM_IOS_TESTING.md) - Complete iOS setup, workflow strategies, and troubleshooting
+> - [Android Testing Guide](./APPIUM_ANDROID_TESTING.md) - Complete Android setup for macOS/Linux
+> - [Test Element Identification Strategy](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) - TestID strategy for cross-platform testing
 
 ## Configuration Overview
 
 > 📚 **Official Docs:** [WebDriverIO Configuration](https://webdriver.io/docs/configuration/) | [Appium Capabilities](https://appium.io/docs/en/writing-running-appium/caps/)
 
-Before creating tests, ensure your `wdio.conf.js` and environment are properly configured:
+Before creating tests, ensure your `wdio.conf.js` and environment are properly configured. The framework supports both iOS and Android platforms with automatic capability selection.
 
 ### Key Configuration Settings
 
 **In `wdio.conf.js`:**
 ```javascript
-capabilities: [{
+// Platform detection
+const isAndroid = process.env.PLATFORM_NAME === 'Android';
+const isIOS = process.env.PLATFORM_NAME === 'iOS' || !process.env.PLATFORM_NAME;
+
+// iOS capabilities
+const iosCapabilities = {
     'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
     'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
     'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
     'appium:udid': process.env.DEVICE_UDID,
-}]
+};
+
+// Android capabilities
+const androidCapabilities = {
+    'appium:appPackage': process.env.APP_PACKAGE || 'com.softwareone.marketplaceMobile',
+    'appium:appActivity': process.env.APP_ACTIVITY || '.MainActivity',
+    'appium:deviceName': process.env.DEVICE_NAME || 'Android Emulator',
+    'appium:platformVersion': process.env.PLATFORM_VERSION || '14.0',
+    'appium:automationName': 'UiAutomator2',
+    'appium:udid': process.env.DEVICE_UDID,
+};
+
+// Select capabilities based on platform
+capabilities: [isAndroid ? androidCapabilities : iosCapabilities]
 ```
 
-**Required Environment Variables:**
-- `APP_BUNDLE_ID`: iOS app bundle identifier (e.g., `com.softwareone.marketplaceMobile`)
-- `DEVICE_NAME`: Target iOS simulator name (e.g., `iPhone 16`)
-- `PLATFORM_VERSION`: iOS version (e.g., `26.0` for iOS 18.0)
+**Required Environment Variables by Platform:**
+
+**iOS:**
+- `PLATFORM_NAME`: Set to `iOS` (or omit for default)
+- `APP_BUNDLE_ID`: iOS app bundle identifier (default: `com.softwareone.marketplaceMobile`)
+- `DEVICE_NAME`: Target iOS simulator name (default: `iPhone 16`)
+- `PLATFORM_VERSION`: iOS version (default: `26.0` for iOS 18.0)
 - `DEVICE_UDID`: Simulator UUID (auto-detected by test script)
+
+**Android:**
+- `PLATFORM_NAME`: Set to `Android`
+- `APP_PACKAGE`: Android package name (default: `com.softwareone.marketplaceMobile`)
+- `APP_ACTIVITY`: Main activity (default: `.MainActivity`)
+- `DEVICE_NAME`: Emulator or device name (default: `Android Emulator`)
+- `PLATFORM_VERSION`: Android version (default: `14.0`)
+- `DEVICE_UDID`: Device serial (auto-detected by test script)
+
+**Common:**
 - `APPIUM_HOST`: Appium server host (default: `127.0.0.1`)
 - `APPIUM_PORT`: Appium server port (default: `4723`)
 
-The framework runs tests successfully against the configured `appium:bundleId`, allowing Appium to interact with your installed app.
+The framework automatically selects the correct capabilities based on `PLATFORM_NAME`.
 
 ## Build and Deployment Scripts
 
-> 📚 **Official Docs:** [Expo CLI](https://docs.expo.dev/workflow/expo-cli/) | [React Native iOS Guide](https://reactnative.dev/docs/running-on-device)
+> 📚 **Official Docs:** [Expo CLI](https://docs.expo.dev/workflow/expo-cli/) | [React Native iOS Guide](https://reactnative.dev/docs/running-on-device) | [React Native Android Guide](https://reactnative.dev/docs/running-on-device-android)
 
-### Release Build for Testing
+### iOS Release Build for Testing
 Use the testing script for production-like builds:
 ```bash
-./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+./scripts/run-local-test.sh --platform ios --build --client-id YOUR_AUTH0_CLIENT_ID welcome
 ```
 - Builds **Release** configuration
 - Optimized for performance testing  
 - **Requires `--client-id`** for Auth0 configuration
 - Suitable for comprehensive test suites
 
-### Development Build and Deployment
+### iOS Development Build and Deployment
 Use the deployment script for complete development cycles:
 ```bash
 # With client ID (creates/updates .env file)
@@ -63,19 +97,50 @@ This script performs a complete deployment cycle:
 5. Deploys to iOS simulator
 6. Launches the app
 
-**Deploy Script Options:**
+**iOS Deploy Script Options:**
 - `--client-id`: Auth0 client ID (required if `.env` not configured)
 - `--release`: Build in release mode (default: debug)
 - `--simulator`: Specify simulator name
 - `--logs`: Show app logs after launch
 - `--verbose`: Show detailed output
 
-> **Note:** The deploy script can use an existing `.env` file with `AUTH0_CLIENT_ID` configured, making the `--client-id` parameter optional when the environment is already set up.
+### Android Build and Deployment
+Use the deployment script for Android:
+```bash
+# With client ID
+./scripts/deploy-android.sh --env dev --client-id YOUR_AUTH0_CLIENT_ID
+
+# With existing .env file
+./scripts/deploy-android.sh --env dev
+```
+This script performs a complete Android deployment:
+1. Validates environment (Android SDK, JDK)
+2. Checks for running emulator or connected device
+3. Configures Auth0 environment
+4. Uninstalls existing app
+5. Builds Android app with Expo
+6. Installs on emulator/device
+7. Launches the app
+
+**Android Deploy Script Options:**
+- `--env`: Environment (dev, test, prod) - required
+- `--client-id`: Auth0 client ID (required if `.env` not configured)
+- `--emulator`: Specify emulator name to auto-start
+- `--verbose`: Show detailed output
+
+> **Note:** Both deploy scripts can use an existing `.env` file with `AUTH0_CLIENT_ID` configured, making the `--client-id` parameter optional when the environment is already set up.
 
 ### Fast Iteration Testing
 For repeated test runs without rebuilding:
+
+**iOS:**
 ```bash
-./scripts/run-local-test.sh --skip-build welcome
+./scripts/run-local-test.sh --platform ios --skip-build welcome
+```
+
+**Android:**
+```bash
+./scripts/run-local-test.sh --platform android --skip-build welcome
 ```
 - Reuses last built app (~10 seconds vs 6-8 minutes)
 - Ideal for test development and debugging
@@ -113,25 +178,48 @@ To test authenticated flows:
 
 > 📚 **Official Docs:** [Page Object Model](https://webdriver.io/docs/pageobjects/) | [WebDriverIO Element Selectors](https://webdriver.io/docs/selectors/)
 
-### Base Page Inheritance
+### Cross-Platform Page Objects
 
-All page objects should inherit from the base page class for consistent functionality:
+All page objects should use the platform-agnostic selector utility for cross-platform compatibility:
 
 ```javascript
 const BasePage = require('./base/base.page');
+const { getSelector, selectors } = require('./utils/selectors');
 
 class NewPage extends BasePage {
     constructor() {
         super();
     }
 
-    // Page-specific locators
+    // Platform-agnostic locators using getSelector
     get mainHeader() {
-        return $('//*[@name="Page Title"]');
+        return $(getSelector({
+            ios: '~Page Title',  // iOS accessibility id
+            android: '~Page Title'  // Android content description
+        }));
     }
 
     get actionButton() {
-        return $('//*[@name="Action Button"]');
+        return $(getSelector({
+            ios: '~Action Button',
+            android: '~Action Button'
+        }));
+    }
+
+    // Using selector utility functions
+    get emailInput() {
+        return $(selectors.textField({
+            ios: '~Email Input',
+            android: '~Email Input'
+        }));
+    }
+
+    // Text-based selectors (when testID is not available)
+    get submitButtonByText() {
+        return $(selectors.byText({
+            ios: 'Submit',
+            android: 'Submit'
+        }));
     }
 
     // Page-specific actions
@@ -143,36 +231,92 @@ class NewPage extends BasePage {
 module.exports = new NewPage();
 ```
 
+### Selector Utility Functions
+
+The framework provides a `selectors.js` utility with cross-platform helpers:
+
+```javascript
+// Available selector functions:
+selectors.byText({ ios, android })           // Find by exact text
+selectors.byContainsText({ ios, android })   // Find by partial text
+selectors.textField({ ios, android })        // Text input fields
+selectors.secureTextField({ ios, android })  // Password fields
+selectors.button({ ios, android })           // Buttons
+selectors.staticText({ ios, android })       // Static text labels
+selectors.image({ ios, android })            // Images
+selectors.scrollView({ ios, android })       // Scroll containers
+selectors.cell({ ios, android })             // List items
+selectors.switch({ ios, android })           // Toggle switches
+selectors.slider({ ios, android })           // Sliders
+selectors.tabBar({ ios, android })           // Tab bars
+selectors.navigationBar({ ios, android })    // Navigation bars
+```
+
+### Platform Detection in Page Objects
+
+Use base page methods to conditionally handle platform differences:
+
+```javascript
+async scrollToElement(element) {
+    if (this.isAndroid()) {
+        // Android-specific scroll implementation
+        await this.scrollDown(5);
+    } else {
+        // iOS-specific scroll implementation
+        await driver.execute('mobile: scroll', { direction: 'down' });
+    }
+}
+```
+
 ### Page Object Structure
 
 **File Location:** `app/test/pageobjects/[page-name].page.js`
 
 **Required Elements:**
 1. **Constructor**: Call `super()` to inherit base functionality
-2. **Locators**: Use getter methods for UI element selectors
+2. **Locators**: Use getter methods with platform-agnostic selectors
 3. **Actions**: Page-specific interaction methods
 4. **Export**: Export instantiated page object
 
-### Locator Strategy
+### Locator Strategy Best Practices
 
-Use iOS accessibility identifiers and names for robust element targeting:
-
+**Recommended Approach (testID):**
 ```javascript
-// Preferred: Accessibility name
-get elementByName() {
-    return $('//*[@name="Exact Element Name"]');
-}
+// App component (preferred):
+<Button testID="submit-button" />
 
-// Alternative: Value attribute
-get elementByValue() {
-    return $'//*[@value="Input Placeholder"]');
-}
-
-// Fallback: Contains for partial matches
-get elementByPartialName() {
-    return $('//*[contains(@name, "Partial Text")]');
+// Page object:
+get submitButton() {
+    return $(getSelector({
+        ios: '~submit-button',
+        android: '~submit-button'
+    }));
 }
 ```
+
+**Text-Based Fallback:**
+```javascript
+// When testID is not available
+get submitButtonByText() {
+    return $(selectors.byText({
+        ios: 'Submit',
+        android: 'Submit'
+    }));
+}
+```
+
+**Platform-Specific XPath (avoid when possible):**
+```javascript
+// Only use when absolutely necessary
+get complexElement() {
+    return $(getSelector({
+        ios: '//XCUIElementTypeButton[@name="Submit"]',
+        android: '//android.widget.Button[@text="Submit"]'
+    }));
+}
+```
+
+> **See:** [TEST_ELEMENT_IDENTIFICATION_STRATEGY.md](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) for comprehensive testID implementation guidance.
 
 ## Creating Test Suites
 
@@ -247,6 +391,78 @@ suites: {
 ```
 
 ## Running Tests
+
+> 📚 **Official Docs:** [WebDriverIO CLI](https://webdriver.io/docs/clioptions/) | [Running Specific Tests](https://webdriver.io/docs/organizingsuites/)
+
+### Cross-Platform Test Execution
+
+The unified test script supports both iOS and Android:
+
+**iOS Tests:**
+```bash
+# Run specific suite
+./scripts/run-local-test.sh --platform ios welcome
+
+# Run all tests
+./scripts/run-local-test.sh --platform ios all
+
+# Run specific file
+./scripts/run-local-test.sh --platform ios ./test/specs/welcome.e2e.js
+
+# Build and run
+./scripts/run-local-test.sh --platform ios --build --env dev --client-id YOUR_ID welcome
+```
+
+**Android Tests:**
+```bash
+# Run specific suite
+./scripts/run-local-test.sh --platform android welcome
+
+# Run all tests
+./scripts/run-local-test.sh --platform android all
+
+# Run specific file
+./scripts/run-local-test.sh --platform android ./test/specs/welcome.e2e.js
+
+# Build and run
+./scripts/run-local-test.sh --platform android --build --env dev --client-id YOUR_ID welcome
+```
+
+**Using NPM Scripts:**
+```bash
+cd app
+
+# iOS tests
+npm run test:e2e:ios
+
+# Android tests
+npm run test:e2e:android
+
+# Specific suite on iOS
+PLATFORM_NAME=iOS npx wdio run wdio.conf.js --suite welcome
+
+# Specific suite on Android
+PLATFORM_NAME=Android npx wdio run wdio.conf.js --suite welcome
+```
+
+### Test Suite Configuration
+
+Add new test suites to `wdio.conf.js`:
+
+```javascript
+suites: {
+    welcome: ['./test/specs/welcome.e2e.js'],
+    home: ['./test/specs/home.e2e.js'],
+    navigation: ['./test/specs/navigation.e2e.js'],
+    newFeature: ['./test/specs/new-feature.e2e.js'],  // Add your suite here
+}
+```
+
+Then run with:
+```bash
+./scripts/run-local-test.sh --platform ios newFeature
+./scripts/run-local-test.sh --platform android newFeature
+```
 
 > 📚 **Official Docs:** [WebDriverIO CLI](https://webdriver.io/docs/clioptions/) | [Test Execution](https://webdriver.io/docs/organizingsuites/)
 

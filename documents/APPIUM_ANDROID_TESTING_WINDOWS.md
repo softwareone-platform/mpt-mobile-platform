@@ -33,22 +33,25 @@ This guide covers how to set up and run Appium tests for Android on Windows. It 
 REM 1. First time: Verify your environment
 scripts\windows\setup-android-env.bat
 
-REM 2. Build and test (first run)
-scripts\windows\run-local-test-android.bat --build --env dev --client-id YOUR_ID welcome
+REM 2. Create .env file in app\ directory with Auth0 configuration
+REM See app\.env for required variables
 
-REM 3. Fast iteration (subsequent runs)
+REM 3. Build and test (first run)
+scripts\windows\run-local-test-android.bat --build welcome
+
+REM 4. Fast iteration (subsequent runs)
 scripts\windows\run-local-test-android.bat --skip-build welcome
 
-REM 4. Run all tests
+REM 5. Run all tests
 scripts\windows\run-local-test-android.bat all
 ```
 
 ### ⚡ Development Workflow
 
 | Scenario | Command |
-|----------|---------||
+|----------|---------|
 | Check environment | `scripts\windows\setup-android-env.bat` |
-| Build + test | `scripts\windows\run-local-test-android.bat --build --env dev --client-id ID welcome` |
+| Build + test | `scripts\windows\run-local-test-android.bat --build welcome` |
 | Reuse last build | `scripts\windows\run-local-test-android.bat --skip-build welcome` |
 | Test specific file | `scripts\windows\run-local-test-android.bat .\test\specs\welcome.e2e.js` |
 | Run all tests | `scripts\windows\run-local-test-android.bat all` |
@@ -244,7 +247,7 @@ REM Run specific spec file
 scripts\windows\run-local-test-android.bat .\test\specs\welcome.e2e.js
 
 REM Build and run (when you've made app changes)
-scripts\windows\run-local-test-android.bat --build --env dev --client-id YOUR_CLIENT_ID welcome
+scripts\windows\run-local-test-android.bat --build welcome
 
 REM Skip build, reuse last APK (fast iteration)
 scripts\windows\run-local-test-android.bat --skip-build welcome
@@ -277,7 +280,7 @@ For more control over the process:
 
 ```batch
 REM 1. Build the APK
-scripts\windows\deploy-android.bat --env dev --client-id YOUR_ID
+scripts\windows\deploy-android.bat
 
 REM 2. Start Appium server (in separate terminal)
 appium --address 127.0.0.1 --port 4723
@@ -296,12 +299,12 @@ npx wdio run wdio.conf.js --suite welcome
 
 Main testing script that handles the complete workflow.
 
+**Prerequisites:** .env file must exist in app\ directory with Auth0 configuration
+
 | Option | Description |
 |--------|-------------|
 | `--build`, `-b` | Build the app before testing |
 | `--skip-build`, `-s` | Install existing APK from last build |
-| `--env`, `-e` | Environment: `dev`, `test`, or `qa` |
-| `--client-id`, `-c` | Auth0 client ID (required with `--build`) |
 | `--emulator` | Specify emulator AVD name to start |
 | `--verbose`, `-v` | Enable verbose output |
 | `--help`, `-h` | Show help message |
@@ -310,11 +313,12 @@ Main testing script that handles the complete workflow.
 
 Builds and deploys the Android app.
 
+**Prerequisites:** .env file must exist in app\ directory with Auth0 configuration
+
 | Option | Description |
 |--------|-------------|
-| `--env`, `-e` | Environment: `dev`, `test`, or `qa` |
-| `--client-id`, `-c` | Auth0 client ID |
-| `--release`, `-r` | Build release version (default: debug) |
+| `--release`, `-r` | Build release version |
+| `--debug`, `-d` | Build debug version (default) |
 | `--emulator` | Specify emulator to start |
 | `--verbose`, `-v` | Enable verbose output |
 

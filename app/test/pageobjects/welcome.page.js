@@ -1,5 +1,6 @@
 const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
+const { getSelector, selectors } = require('./utils/selectors');
 
 class WelcomePage extends BasePage {
     constructor () {
@@ -7,36 +8,38 @@ class WelcomePage extends BasePage {
     }
 
     get logoImage () {
-        // Appium inspector displays iOS specific element locators need to research agnorstic referencing
-        return $('//*[contains(@name, "FIXME!")]');
+        return $(getSelector({
+            ios: '//*[contains(@name, "FIXME!")]',
+            android: '//android.widget.ImageView[contains(@content-desc, "logo")]'
+        }));
     }
 
     get welcomeTitle () {
-        return $('//*[@name="Welcome"]');
+        return $(selectors.byText('Welcome'));
     }
 
     get enterEmailSubTitle () {
-        return $('//*[@name="Existing Marketplace users can now enjoy our mobile experience. Enter your registered email address below to gain access."]');
+        return $(selectors.byContainsText('Existing Marketplace users'));
     }
 
     get emailInput () {
-        return $('//XCUIElementTypeTextField');
+        return $(selectors.textField());
     }
 
     get continueButton () {
-        return $('//*[@name="Continue"]');
+        return $(selectors.button('Continue'));
     }
 
     get troubleSigningInButton () {
-        return $('//*[@name="Trouble signing in?"]');
+        return $(selectors.button('Trouble signing in?'));
     }
 
     get emailRequiredErrorLabel () {
-        return $('//*[@name="Email is required"]');
+        return $(selectors.byText('Email is required'));
     }
 
     get validEmailErrorLabel () {
-        return $('//*[@name="Please enter a valid email address"]');
+        return $(selectors.byText('Please enter a valid email address'));
     }
 }
 

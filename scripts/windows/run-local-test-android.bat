@@ -11,8 +11,6 @@ REM ============================================================
 
 set BUILD_APP=false
 set SKIP_BUILD=false
-set ENVIRONMENT=
-set CLIENT_ID=
 set VERBOSE=false
 set TEST_TARGET=
 set EMULATOR_NAME=
@@ -41,30 +39,6 @@ if /i "%~1"=="-s" (
     shift
     goto :parse_args
 )
-if /i "%~1"=="--env" (
-    set ENVIRONMENT=%~2
-    shift
-    shift
-    goto :parse_args
-)
-if /i "%~1"=="-e" (
-    set ENVIRONMENT=%~2
-    shift
-    shift
-    goto :parse_args
-)
-if /i "%~1"=="--client-id" (
-    set CLIENT_ID=%~2
-    shift
-    shift
-    goto :parse_args
-)
-if /i "%~1"=="-c" (
-    set CLIENT_ID=%~2
-    shift
-    shift
-    goto :parse_args
-)
 if /i "%~1"=="--emulator" (
     set EMULATOR_NAME=%~2
     shift
@@ -89,29 +63,30 @@ set TEST_TARGET=%~1
 shift
 goto :parse_args
 
-:show_help
 echo.
 echo Android Local Test Runner for Windows
 echo ======================================
 echo.
 echo Usage: run-local-test-android.bat [options] [suite_name^|spec_file^|all]
 echo.
+echo Prerequisites:
+echo   - .env file must exist in app\ directory with Auth0 configuration
+echo   - For --build: Android SDK must be installed
+echo.
 echo Options:
 echo   --build, -b           Build the app before testing
 echo   --skip-build, -s      Skip build, install existing APK from last build
-echo   --env, -e ENV         Set environment: dev, test, or qa (required with --build)
-echo   --client-id, -c ID    Set Auth0 client ID (required with --build)
 echo   --emulator NAME       Specify Android emulator AVD name
 echo   --verbose, -v         Enable verbose output
 echo   --help, -h            Show this help message
 echo.
 echo Examples:
-echo   run-local-test-android.bat welcome                              Run welcome suite
-echo   run-local-test-android.bat all                                  Run all tests
-echo   run-local-test-android.bat .\test\specs\welcome.e2e.js         Run specific spec
-echo   run-local-test-android.bat --build --env dev --client-id abc123 welcome
-echo   run-local-test-android.bat --skip-build all                     Reuse last build
-echo   run-local-test-android.bat --emulator Pixel_8_API_34 welcome    Use specific emulator
+echo   run-local-test-android.bat welcome                         Run welcome suite
+echo   run-local-test-android.bat all                             Run all tests
+echo   run-local-test-android.bat .\test\specs\welcome.e2e.js     Run specific spec
+echo   run-local-test-android.bat --build welcome                 Build and run tests
+echo   run-local-test-android.bat --skip-build all                Reuse last build
+echo   run-local-test-android.bat --emulator Pixel_8_API_34 welcome
 echo.
 echo Workflow:
 echo   1. First run: use --build to create fresh APK
@@ -134,23 +109,6 @@ if "%TEST_TARGET%"=="" (
     echo Usage: run-local-test-android.bat [options] ^<test_target^>
     echo Use --help for more information
     exit /b 1
-)
-
-REM Validate build options
-if "%BUILD_APP%"=="true" (
-    if "%ENVIRONMENT%"=="" (
-        echo [ERROR] --env is required when using --build option
-        echo Available environments: dev, test, qa
-        echo.
-        echo Example: run-local-test-android.bat --build --env dev --client-id YOUR_ID welcome
-        exit /b 1
-    )
-    if "%CLIENT_ID%"=="" (
-        echo [ERROR] --client-id is required when using --build option
-        echo.
-        echo Example: run-local-test-android.bat --build --env dev --client-id YOUR_ID welcome
-        exit /b 1
-    )
 )
 
 if "%BUILD_APP%"=="true" if "%SKIP_BUILD%"=="true" (
@@ -182,22 +140,7 @@ set APP_ACTIVITY=.MainActivity
 set APPIUM_HOST=127.0.0.1
 set APPIUM_PORT=4723
 
-REM Set environment-specific Auth0 configuration
-if "%ENVIRONMENT%"=="dev" (
-    set AUTH0_DOMAIN=login-dev.pyracloud.com
-    set AUTH0_AUDIENCE=https://api-dev.pyracloud.com/
-    set AUTH0_SCOPE=openid profile email offline_access
-    set AUTH0_API_URL=https://api.s1.today/public/
-    set AUTH0_OTP_DIGITS=6
-    set AUTH0_SCHEME=com.softwareone.marketplaceMobile
-)
-if "%ENVIRONMENT%"=="test" (
-    set AUTH0_DOMAIN=login-test.pyracloud.com
-    set AUTH0_AUDIENCE=https://api-test.pyracloud.com/
-    set AUTH0_SCOPE=openid profile email offline_access
-    set AUTH0_API_URL=https://api.s1.show/public/
-    set AUTH0_OTP_DIGITS=6
-    set AUTH0_SCHEME=com.softwareone.marketplaceMobile
+REM Get script directory and navigate to app folder
 )
 if "%ENVIRONMENT%"=="qa" (
     set AUTH0_DOMAIN=login-qa.pyracloud.com
@@ -279,7 +222,14 @@ if "%BUILD_APP%"=="true" (
     echo [INFO] Building Android app...
     echo.
     
-    call "%SCRIPT_DIR%deploy-android.bat" --env %ENVIRONMENT% --client-id %CLIENT_ID%
+    REM Validate .env file exists
+    if not exist ".env" (
+        echo [ERROR] No .env file found
+        echo Please create a .env file in app directory with required configuration
+        exit /b 1
+    )
+    
+    call "%SCRIPT_DIR%deploy-android.bat"
     if errorlevel 1 (
         echo [ERROR] Build failed
         exit /b 1
@@ -299,7 +249,7 @@ if "%SKIP_BUILD%"=="true" (
         echo [ERROR] No existing APK found
         echo.
         echo Run with --build first to create an APK:
-        echo   run-local-test-android.bat --build --env dev --client-id YOUR_ID welcome
+        echo   run-local-test-android.bat --build welcome
         exit /b 1
     )
     
