@@ -19,6 +19,8 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.d.ts',
     '!src/**/__tests__/**',
+    '!src/styles/**/*.ts',
+    '!src/types/*.ts',
   ],
   coverageReporters: ['text', 'lcov', 'json-summary'],
 };
