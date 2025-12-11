@@ -114,7 +114,7 @@ const SpotlightScreen = () => {
                   const nestedItem = item?.product || item?.program || item?.user || item?.buyer;
                   const itemImagePath = item?.icon || nestedItem?.icon || '';
                   const itemId = item?.id || `${section.id}-${itemIndex}`;
-                  const itemName = item?.name || nestedItem?.name || '';
+                  const itemName = item?.name || item?.documentNo || nestedItem?.name || '';
 
                   return (
                     <NavigationItemWithImage
