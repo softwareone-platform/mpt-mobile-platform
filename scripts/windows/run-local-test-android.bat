@@ -353,7 +353,7 @@ echo.
 REM Provide next steps based on result
 if %TEST_EXIT_CODE%==0 (
     echo Test results available in: app\test-results\
-    echo Screenshots available in: app\screenshots\
+    echo Screenshots available in: screenshots\
 ) else (
     echo Troubleshooting:
     echo   1. Check test-results folder for detailed logs

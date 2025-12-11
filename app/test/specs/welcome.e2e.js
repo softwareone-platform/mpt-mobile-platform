@@ -1,10 +1,11 @@
 const { expect } = require('@wdio/globals')
+const { isAndroid } = require('../pageobjects/utils/selectors')
 const welcomePage = require('../pageobjects/welcome.page')
 const verifyPage = require('../pageobjects/verify.page')
 const homePage = require('../pageobjects/spotlights.page')
 
-const otpTimeoutMs = 120000
-const pollIntervalMs = 10000
+const otpTimeoutMs = 260000
+const pollIntervalMs = 13000
 
 describe('Welcome page of application', () => {
     it('to display welcome title', async () => {
@@ -46,8 +47,7 @@ describe('Welcome page of application', () => {
         await welcomePage.typeText(welcomePage.emailInput, testEmail)
         // Verify the email was entered correctly
         // Android uses 'text' attribute, iOS uses 'value'
-        const isAndroid = process.env.PLATFORM_NAME === 'Android'
-        const enteredValue = await welcomePage.emailInput.getAttribute(isAndroid ? 'text' : 'value')
+        const enteredValue = await welcomePage.emailInput.getAttribute(isAndroid() ? 'text' : 'value')
         expect(enteredValue).toBe(testEmail)
         
         // Record timestamp before requesting OTP to avoid picking up old emails

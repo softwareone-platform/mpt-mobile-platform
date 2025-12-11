@@ -455,7 +455,7 @@ Write-Host ""
 # Provide next steps
 if ($testExitCode -eq 0) {
     Write-Host "Test results available in: app\test-results\" -ForegroundColor Gray
-    Write-Host "Screenshots available in: app\screenshots\" -ForegroundColor Gray
+    Write-Host "Screenshots available in: screenshots\" -ForegroundColor Gray
 }
 else {
     Write-Host "Troubleshooting:" -ForegroundColor Yellow

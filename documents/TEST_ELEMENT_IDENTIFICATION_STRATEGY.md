@@ -19,42 +19,56 @@ Currently, the test automation framework relies heavily on value-based locators 
 
 ### Existing Locator Patterns
 
-From the current Page Object Model files:
+From the current Page Object Model files, the framework uses a `selectors.js` utility for cross-platform element identification:
 
 ```javascript
-// welcome.page.js - Value-based locators (fragile)
+// welcome.page.js - Using selector utilities
+const { getSelector, selectors } = require('./utils/selectors');
+
 get welcomeTitle () {
-    return $('//*[@name="Welcome"]');
+    return $(selectors.byText('Welcome'));
+}
+
+get enterEmailSubTitle () {
+    return $(selectors.byContainsText('Existing Marketplace users'));
+}
+
+get emailInput () {
+    return $(selectors.textField());
 }
 
 get continueButton () {
-    return $('//*[@name="Continue"]');
+    return $(selectors.button('Continue'));
 }
 
 get emailRequiredErrorLabel () {
-    return $('//*[@name="Email is required"]');
+    return $(selectors.byText('Email is required'));
 }
 
-// verify.page.js - Platform-specific type selectors
+// verify.page.js - Platform-specific selectors for complex elements
 get otpInput1 () {
-    return $('(//XCUIElementTypeOther[@accessible="true"])[1]');
+    return $(getSelector({
+        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
+        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+    }));
 }
 
-// footer.page.js - Accessibility-state dependent
+// footer.page.js - Text-based selectors
 get spotlightsTab () {
-    return $('//*[contains(@name, "Spotlight, tab, 1 of 4")]');
+    return $(selectors.byContainsText('Spotlight'));
 }
 ```
 
 ### Problems with Current Approach
 
+While the selector utilities improve cross-platform compatibility, challenges remain:
+
 | Issue | Impact | Example |
 |-------|--------|---------|
-| Text content changes | Tests break | Changing "Continue" to "Next" breaks button locator |
-| Localization | Tests fail for non-English | Translation changes break all locators |
-| iOS-specific selectors | Android tests fail | `XCUIElementTypeTextField` doesn't exist on Android |
-| Positional indexing | Brittle tests | `[1]`, `[2]` indices break when elements are added/removed |
-| Accessibility state in locators | Unpredictable | Tab position "1 of 4" changes if tabs are added |
+| Text content changes | Tests break | Changing "Continue" to "Next" breaks `selectors.button('Continue')` |
+| Localization | Tests fail for non-English | Translation changes break text-based selectors |
+| Positional indexing | Brittle tests | `[1]`, `[3]` indices in OTP inputs break when elements are added/removed |
+| Element type selectors | May match multiple | `selectors.textField()` may match wrong field if multiple exist |
 
 ---
 
@@ -425,29 +439,33 @@ const TabItem = ({ label, selected, onPress, testID }: Props) => {
 
 #### Example: Updated welcome.page.js
 
-**Before:**
+**Current (using selector utilities):**
 ```javascript
+const { getSelector, selectors } = require('./utils/selectors');
+
 get welcomeTitle () {
-    return $('//*[@name="Welcome"]');
+    return $(selectors.byText('Welcome'));
 }
 
 get continueButton () {
-    return $('//*[@name="Continue"]');
+    return $(selectors.button('Continue'));
 }
 
 get emailInput () {
-    return $('//XCUIElementTypeTextField');
+    return $(selectors.textField());
 }
 ```
 
-**After:**
+**Recommended (using testID):**
 ```javascript
+const { selectors } = require('./utils/selectors');
+
 get welcomeTitle () {
-    return $('~welcome-title-text');
+    return $(selectors.byAccessibilityId('welcome-title-text'));
 }
 
 get welcomeSubtitle () {
-    return $('~welcome-subtitle-text');
+    return $(selectors.byAccessibilityId('welcome-subtitle-text'));
 }
 
 get emailInput () {
@@ -467,7 +485,7 @@ get troubleSigningInLink () {
 }
 
 get logo () {
-    return $('~welcome-logo-image');
+    return $(selectors.byAccessibilityId('welcome-logo-image'));
 }
 ```
 
@@ -475,11 +493,11 @@ get logo () {
 
 | Selector Type | Syntax | Usage |
 |--------------|--------|-------|
-| Accessibility ID (testID) | `~element-id` | Primary method - cross-platform |
-| Resource ID (Android) | `android=new UiSelector().resourceId("element-id")` | Android-specific fallback |
-| XPath with accessibility | `//*[@content-desc="element-id"]` | Last resort |
+| Accessibility ID (testID) | `~element-id` or `selectors.byAccessibilityId('id')` | Primary method - cross-platform |
+| Text-based (current) | `selectors.byText('text')` | Current fallback for elements without testID |
+| Platform-specific XPath | `getSelector({ ios: '...', android: '...' })` | Complex elements needing different selectors |
 
-**Recommendation**: Always use the `~` (accessibility ID) selector as it's the most reliable cross-platform approach.
+**Recommendation**: Migrate from `selectors.byText()` to `selectors.byAccessibilityId()` (which uses `testID`) for stability.
 
 ---
 
@@ -521,6 +539,18 @@ async getAllAccountItems() {
 
 ### OTP Input Fields
 
+**Current implementation (positional, fragile):**
+```javascript
+// verify.page.js - current approach with positional indices
+get otpInput1 () {
+    return $(getSelector({
+        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
+        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+    }));
+}
+```
+
+**Recommended (with testID in React Native component):**
 ```tsx
 // OTPInput.tsx
 {digits.map((digit, index) => (
@@ -534,15 +564,20 @@ async getAllAccountItems() {
 ))}
 ```
 
-Page Object:
+**Recommended Page Object:**
 ```javascript
+get otpInput1 () {
+    return $(selectors.byAccessibilityId('otp-digit-input-1'));
+}
+
 getOtpInput(digit) {
-    return $(`~otp-digit-input-${digit}`);
+    return $(selectors.byAccessibilityId(`otp-digit-input-${digit}`));
 }
 
 get allOtpInputs() {
     return [1, 2, 3, 4, 5, 6].map(i => this.getOtpInput(i));
 }
+```
 ```
 
 ### Conditional Elements
@@ -636,10 +671,13 @@ Create a simple verification test:
 
 ```javascript
 // test/specs/testid-verification.e2e.js
+const { expect } = require('@wdio/globals')
+const { selectors } = require('../pageobjects/utils/selectors')
+
 describe('TestID Verification', () => {
     it('should find welcome screen elements by testID', async () => {
-        const emailInput = await $('~welcome-email-input');
-        const continueButton = await $('~welcome-continue-button');
+        const emailInput = await $(selectors.byAccessibilityId('welcome-email-input'));
+        const continueButton = await $(selectors.byAccessibilityId('welcome-continue-button'));
         
         await expect(emailInput).toBeDisplayed();
         await expect(continueButton).toBeDisplayed();
@@ -685,11 +723,11 @@ describe('TestID Verification', () => {
 
 | Aspect | Current State | Recommended State |
 |--------|--------------|-------------------|
-| Locator Strategy | Text/value-based XPath | Accessibility ID (`testID`) |
-| Platform Support | iOS-specific selectors | Cross-platform unified |
-| Maintainability | Breaks with text changes | Stable identifiers |
-| Test Reliability | Fragile, positional | Robust, semantic |
-| Selector Syntax | `//*[@name="text"]` | `~element-testid` |
+| Locator Strategy | Text-based with `selectors.byText()` utility | Accessibility ID (`testID`) with `selectors.byAccessibilityId()` |
+| Platform Support | Cross-platform via `getSelector()` utility | Unified via `testID` prop |
+| Maintainability | Breaks with text/copy changes | Stable identifiers |
+| Test Reliability | Fragile for OTP (positional indices) | Robust, semantic |
+| Selector Syntax | `selectors.byText('Continue')` | `selectors.byAccessibilityId('continue-button')` |
 
 **Key Benefits:**
 - ✅ Platform-agnostic (iOS & Android)
@@ -698,6 +736,7 @@ describe('TestID Verification', () => {
 - ✅ Follows React Native best practices
 - ✅ Improves test maintenance and reliability
 - ✅ Easy to implement incrementally
+- ✅ Works with existing selector utility infrastructure
 
 ---
 

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
 
-const SCREENSHOT_FOLDER = './screenshots';
+const SCREENSHOT_FOLDER = '../screenshots';
 
 // Platform detection helpers
 const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
@@ -225,13 +225,15 @@ exports.config = {
      */
     reporterSyncInterval: 1000,
     onPrepare: function () {
-        fs.mkdir(SCREENSHOT_FOLDER, function (err) {
-        if (err) {
-            console.log(err);
+        const path = require('path');
+        const screenshotDir = path.resolve(__dirname, SCREENSHOT_FOLDER);
+        
+        if (!fs.existsSync(screenshotDir)) {
+            fs.mkdirSync(screenshotDir, { recursive: true });
+            console.log(`Created screenshot directory: ${screenshotDir}`);
         } else {
-            console.log('New directory successfully created.');
+            console.log(`Screenshot directory ready: ${screenshotDir}`);
         }
-        });
     },
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
@@ -314,17 +316,26 @@ exports.config = {
      */
     afterTest: async function(test, context, { passed }) {
         if (!passed) {
-            const timestamp = new Date()
-                .toISOString()
-                .replace(/[^0-9]/g, '')
-                .slice(0, -5)
-            const fileName = `${timestamp}_${test.parent.replace(/ /g, '-')}_${test.title.replace(/ /g, '-')}.png`
-            const filePath = `${SCREENSHOT_FOLDER}/${fileName}`
-            const screenshot = await browser.saveScreenshot(filePath)
-            ReportingApi.error(
-                `Screenshot "${fileName}" captured for failing test: ${test.parent} / ${test.title}`,
-                {name: fileName, type: 'image/png', content: screenshot.toString('base64')}
-            );
+            try {
+                const path = require('path');
+                const timestamp = new Date()
+                    .toISOString()
+                    .replace(/[^0-9]/g, '')
+                    .slice(0, -5)
+                const fileName = `${timestamp}_${test.parent.replace(/ /g, '-')}_${test.title.replace(/ /g, '-')}.png`
+                const filePath = path.resolve(__dirname, SCREENSHOT_FOLDER, fileName)
+                
+                console.log(`📸 Capturing screenshot: ${filePath}`)
+                const screenshot = await browser.saveScreenshot(filePath)
+                console.log(`✅ Screenshot saved: ${fileName}`)
+                
+                ReportingApi.error(
+                    `Screenshot "${fileName}" captured for failing test: ${test.parent} / ${test.title}`,
+                    {name: fileName, type: 'image/png', content: screenshot.toString('base64')}
+                );
+            } catch (error) {
+                console.error('❌ Failed to capture screenshot:', error.message);
+            }
         }
     },
 

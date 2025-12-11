@@ -17,9 +17,8 @@ Before creating tests, ensure your `wdio.conf.js` and environment are properly c
 
 **In `wdio.conf.js`:**
 ```javascript
-// Platform detection
-const isAndroid = process.env.PLATFORM_NAME === 'Android';
-const isIOS = process.env.PLATFORM_NAME === 'iOS' || !process.env.PLATFORM_NAME;
+// Platform detection (case-insensitive, defaults to iOS)
+const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
 
 // iOS capabilities
 const iosCapabilities = {
@@ -40,20 +39,22 @@ const androidCapabilities = {
 };
 
 // Select capabilities based on platform
-capabilities: [isAndroid ? androidCapabilities : iosCapabilities]
+capabilities: [isAndroid() ? androidCapabilities : iosCapabilities]
 ```
+
+> ⚠️ **Important:** Always use case-insensitive checks for `PLATFORM_NAME`. The framework normalizes to lowercase (e.g., `'android'`, `'ios'`) to avoid casing bugs. Use the `isAndroid()` and `isIOS()` helper functions from `selectors.js` in tests and page objects.
 
 **Required Environment Variables by Platform:**
 
 **iOS:**
-- `PLATFORM_NAME`: Set to `iOS` (or omit for default)
+- `PLATFORM_NAME`: Set to `iOS` or `ios` (case-insensitive, or omit for default)
 - `APP_BUNDLE_ID`: iOS app bundle identifier (default: `com.softwareone.marketplaceMobile`)
 - `DEVICE_NAME`: Target iOS simulator name (default: `iPhone 16`)
 - `PLATFORM_VERSION`: iOS version (default: `26.0` for iOS 18.0)
 - `DEVICE_UDID`: Simulator UUID (auto-detected by test script)
 
 **Android:**
-- `PLATFORM_NAME`: Set to `Android`
+- `PLATFORM_NAME`: Set to `Android` or `android` (case-insensitive)
 - `APP_PACKAGE`: Android package name (default: `com.softwareone.marketplaceMobile`)
 - `APP_ACTIVITY`: Main activity (default: `.MainActivity`)
 - `DEVICE_NAME`: Emulator or device name (default: `Android Emulator`)
@@ -180,90 +181,130 @@ To test authenticated flows:
 
 ### Cross-Platform Page Objects
 
-All page objects should use the platform-agnostic selector utility for cross-platform compatibility:
+All page objects should use the platform-agnostic selector utility for cross-platform compatibility. Here's a real example from `welcome.page.js`:
 
 ```javascript
+const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
 const { getSelector, selectors } = require('./utils/selectors');
 
-class NewPage extends BasePage {
-    constructor() {
+class WelcomePage extends BasePage {
+    constructor () {
         super();
     }
 
-    // Platform-agnostic locators using getSelector
-    get mainHeader() {
+    // Using getSelector for platform-specific XPath when needed
+    get logoImage () {
         return $(getSelector({
-            ios: '~Page Title',  // iOS accessibility id
-            android: '~Page Title'  // Android content description
+            ios: '//*[contains(@name, "FIXME!")]',
+            android: '(//android.widget.ImageView)[1]'
         }));
     }
 
-    get actionButton() {
-        return $(getSelector({
-            ios: '~Action Button',
-            android: '~Action Button'
-        }));
+    // Using built-in selector helpers (recommended)
+    get welcomeTitle () {
+        return $(selectors.byText('Welcome'));
     }
 
-    // Using selector utility functions
-    get emailInput() {
-        return $(selectors.textField({
-            ios: '~Email Input',
-            android: '~Email Input'
-        }));
+    get enterEmailSubTitle () {
+        return $(selectors.byContainsText('Existing Marketplace users'));
     }
 
-    // Text-based selectors (when testID is not available)
-    get submitButtonByText() {
-        return $(selectors.byText({
-            ios: 'Submit',
-            android: 'Submit'
-        }));
+    get emailInput () {
+        return $(selectors.textField());
     }
 
-    // Page-specific actions
-    async performPageAction() {
-        await this.click(this.actionButton);
+    get continueButton () {
+        return $(selectors.button('Continue'));
+    }
+
+    get emailRequiredErrorLabel () {
+        return $(selectors.byText('Email is required'));
     }
 }
 
-module.exports = new NewPage();
+module.exports = new WelcomePage();
 ```
 
 ### Selector Utility Functions
 
-The framework provides a `selectors.js` utility with cross-platform helpers:
+The framework provides a `selectors.js` utility (`app/test/pageobjects/utils/selectors.js`) with cross-platform helpers:
 
 ```javascript
-// Available selector functions:
-selectors.byText({ ios, android })           // Find by exact text
-selectors.byContainsText({ ios, android })   // Find by partial text
-selectors.textField({ ios, android })        // Text input fields
-selectors.secureTextField({ ios, android })  // Password fields
-selectors.button({ ios, android })           // Buttons
-selectors.staticText({ ios, android })       // Static text labels
-selectors.image({ ios, android })            // Images
-selectors.scrollView({ ios, android })       // Scroll containers
-selectors.cell({ ios, android })             // List items
-selectors.switch({ ios, android })           // Toggle switches
-selectors.slider({ ios, android })           // Sliders
-selectors.tabBar({ ios, android })           // Tab bars
-selectors.navigationBar({ ios, android })    // Navigation bars
+// Text-based selectors:
+selectors.byText(text)              // Find by exact text (@name on iOS, @text on Android)
+selectors.byContainsText(text)      // Find by partial text match
+selectors.staticText(text)          // Find static text element (TextView/StaticText)
+
+// Element type selectors:
+selectors.textField()               // Find text input field (no params)
+selectors.secureTextField()         // Find password field (no params)
+selectors.button(name)              // Find button by text/label
+selectors.image()                   // Find image element (no params)
+selectors.scrollView()              // Find scroll container (no params)
+selectors.switchElement()           // Find toggle switch (no params)
+
+// ID-based selectors:
+selectors.byAccessibilityId(id)     // Find by accessibility ID (works with testID)
+selectors.byResourceId(id)          // Find by resource ID (accessibility ID on iOS, resource-id on Android)
+selectors.accessibleByIndex(index)  // Find accessible/clickable element by 1-based index
+
+// Low-level helper functions:
+isAndroid()                         // Returns true if running on Android
+isIOS()                             // Returns true if running on iOS
+getSelector({ ios, android })       // Returns platform-specific selector string
+```
+
+**Example Usage (from actual page objects):**
+```javascript
+const { getSelector, selectors } = require('./utils/selectors');
+
+// Text-based selectors
+get welcomeTitle () { return $(selectors.byText('Welcome')); }
+get subtitle () { return $(selectors.byContainsText('Existing Marketplace users')); }
+
+// Element type selectors  
+get emailInput () { return $(selectors.textField()); }
+get continueButton () { return $(selectors.button('Continue')); }
+get logoImage () { return $(selectors.image()); }
+get mainScrollView () { return $(selectors.scrollView()); }
+
+// Using getSelector for complex platform-specific XPath
+get otpInput1 () {
+    return $(getSelector({
+        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
+        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+    }));
+}
 ```
 
 ### Platform Detection in Page Objects
 
-Use base page methods to conditionally handle platform differences:
+The `BasePage` class provides platform detection and cross-platform scroll helpers:
 
+```javascript
+// Platform detection (inherited from BasePage)
+this.isAndroid()  // Returns true if running on Android
+this.isIOS()      // Returns true if running on iOS
+
+// Cross-platform scroll helpers (already implemented in BasePage)
+await this.scrollDown();  // Scrolls down on both platforms
+await this.scrollUp();    // Scrolls up on both platforms
+await this.swipe('left'); // Swipes in direction: 'left', 'right', 'up', 'down'
+```
+
+**Custom platform-specific handling:**
 ```javascript
 async scrollToElement(element) {
     if (this.isAndroid()) {
-        // Android-specific scroll implementation
-        await this.scrollDown(5);
+        // Android-specific implementation
+        await browser.execute('mobile: scrollGesture', {
+            left: 100, top: 500, width: 200, height: 500,
+            direction: 'down', percent: 0.75
+        });
     } else {
-        // iOS-specific scroll implementation
-        await driver.execute('mobile: scroll', { direction: 'down' });
+        // iOS-specific implementation
+        await browser.execute('mobile: scroll', { direction: 'down' });
     }
 }
 ```
@@ -280,40 +321,51 @@ async scrollToElement(element) {
 
 ### Locator Strategy Best Practices
 
-**Recommended Approach (testID):**
+**Recommended: Built-in Selector Helpers:**
 ```javascript
-// App component (preferred):
+// Text-based - most common pattern in the codebase
+get welcomeTitle () { return $(selectors.byText('Welcome')); }
+get subtitle () { return $(selectors.byContainsText('Existing Marketplace users')); }
+
+// Button by label
+get continueButton () { return $(selectors.button('Continue')); }
+get verifyButton () { return $(selectors.button('Verify')); }
+
+// Input fields
+get emailInput () { return $(selectors.textField()); }
+get passwordInput () { return $(selectors.secureTextField()); }
+
+// Other element types
+get logoImage () { return $(selectors.image()); }
+get mainScrollView () { return $(selectors.scrollView()); }
+```
+
+**For Complex Elements: Platform-Specific XPath with getSelector:**
+```javascript
+// When elements need different selectors per platform (from verify.page.js)
+get otpInput1 () {
+    return $(getSelector({
+        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
+        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+    }));
+}
+
+// Image by index (from welcome.page.js)
+get logoImage () {
+    return $(getSelector({
+        ios: '//*[contains(@name, "logo")]',
+        android: '(//android.widget.ImageView)[1]'
+    }));
+}
+```
+
+**Using Accessibility IDs (when testID is set in React Native):**
+```javascript
+// App component:
 <Button testID="submit-button" />
 
 // Page object:
-get submitButton() {
-    return $(getSelector({
-        ios: '~submit-button',
-        android: '~submit-button'
-    }));
-}
-```
-
-**Text-Based Fallback:**
-```javascript
-// When testID is not available
-get submitButtonByText() {
-    return $(selectors.byText({
-        ios: 'Submit',
-        android: 'Submit'
-    }));
-}
-```
-
-**Platform-Specific XPath (avoid when possible):**
-```javascript
-// Only use when absolutely necessary
-get complexElement() {
-    return $(getSelector({
-        ios: '//XCUIElementTypeButton[@name="Submit"]',
-        android: '//android.widget.Button[@text="Submit"]'
-    }));
-}
+get submitButton () { return $(selectors.byAccessibilityId('submit-button')); }
 ```
 
 > **See:** [TEST_ELEMENT_IDENTIFICATION_STRATEGY.md](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) for comprehensive testID implementation guidance.
@@ -326,57 +378,67 @@ get complexElement() {
 
 **File Location:** `app/test/specs/[feature-name].e2e.js`
 
-**Template Structure:**
+**Example (from `welcome.e2e.js`):**
 ```javascript
 const { expect } = require('@wdio/globals')
-const newPage = require('../pageobjects/new.page')
-const homePage = require('../pageobjects/home.page')
+const welcomePage = require('../pageobjects/welcome.page')
+const verifyPage = require('../pageobjects/verify.page')
+const homePage = require('../pageobjects/spotlights.page')
 
-describe('New Feature Tests', () => {
-    beforeEach(async () => {
-        // Reset to home screen before each test
-        await homePage.navigateToHome();
-        await newPage.navigateToNewPage();
-    });
+describe('Welcome page of application', () => {
+    it('to display welcome title', async () => {
+        await expect(welcomePage.welcomeTitle).toBeDisplayed()
+        await expect(welcomePage.welcomeTitle).toHaveText('Welcome')
+        await expect(welcomePage.enterEmailSubTitle).toBeDisplayed()
+    })
 
-    it('should display main elements', async () => {
-        await expect(newPage.mainHeader).toBeDisplayed();
-        await expect(newPage.mainHeader).toHaveText('Expected Title');
-    });
+    it('to display email input and submit button', async () => {
+        await expect(welcomePage.emailInput).toBeDisplayed()
+        await expect(welcomePage.continueButton).toBeDisplayed()
+    })
 
-    it('should handle user interactions', async () => {
-        await newPage.performPageAction();
-        await expect(newPage.successMessage).toBeDisplayed();
-    });
+    it('to show email required error when progressing without entering one', async () => {
+        await welcomePage.click(welcomePage.continueButton)
+        await expect(welcomePage.emailRequiredErrorLabel).toBeDisplayed()
+        await expect(welcomePage.emailRequiredErrorLabel).toHaveText('Email is required')
+    })
 
-    it('should validate error states', async () => {
-        await newPage.triggerError();
-        await expect(newPage.errorMessage).toBeDisplayed();
-        await expect(newPage.errorMessage).toHaveText('Expected Error Message');
-    });
-});
+    it('to show invalid email error when progressing with invalid one', async () => {
+        await welcomePage.typeText(welcomePage.emailInput, 'invalid-email')
+        await welcomePage.click(welcomePage.continueButton)
+        await expect(welcomePage.validEmailErrorLabel).toBeDisplayed()
+    })
+})
 ```
+
+**Key Patterns:**
+- Use `welcomePage.click(element)` and `welcomePage.typeText(element, text)` from `BasePage`
+- Use `await expect(element).toBeDisplayed()` for visibility assertions
+- Use `await expect(element).toHaveText('text')` for text assertions
 
 ### Test Reset Logic
 
-**Critical**: Each test should start from a known state to ensure reliability.
+**Note**: The current test suite (`welcome.e2e.js`) does not use `beforeEach` for reset - tests run sequentially from app launch. For more complex test suites, you may need:
 
-**For Unauthenticated Tests:**
+**For Unauthenticated Tests (app starts fresh):**
 ```javascript
-beforeEach(async () => {
-    // App automatically starts at welcome screen
-    await expect(welcomePage.welcomeTitle).toBeDisplayed();
-});
+// Tests run from fresh app install - no beforeEach needed
+// The welcome screen is automatically displayed on app launch
+describe('Welcome page of application', () => {
+    it('to display welcome title', async () => {
+        await expect(welcomePage.welcomeTitle).toBeDisplayed()
+    })
+})
 ```
 
-**For Authenticated Tests:**
+**For Navigation Between Screens (using footer tabs):**
 ```javascript
-beforeEach(async () => {
-    // Navigate back to home screen
-    await homePage.navigateToHome();
-    // Verify home state
-    await expect(homePage.homeTitle).toBeDisplayed();
-});
+const footerPage = require('../pageobjects/base/footer.page')
+
+// Use footer navigation to switch between tabs
+await footerPage.clickOrdersTab()
+await footerPage.clickSubscriptionsTab()
+await footerPage.clickspotlightsTab()
 ```
 
 ### Suite Configuration (Optional)
@@ -571,41 +633,81 @@ For comprehensive Appium Inspector documentation:
 - **Appium Inspector**: Use for element identification and debugging
 - **Console Logging**: Add strategic console.log statements for debugging
 
-## Example: Creating a Profile Page Test
+## Example: Creating a New Page Object and Test
+
+This example shows how to create a new page object following the patterns used in the existing codebase.
 
 ### 1. Create Page Object
 
 **File:** `app/test/pageobjects/profile.page.js`
+
+This is the actual implementation from the codebase:
 ```javascript
+const { $, $$ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
+const { getSelector, selectors } = require('./utils/selectors');
 
 class ProfilePage extends BasePage {
-    constructor() {
+    constructor () {
         super();
     }
 
-    get profileTitle() {
-        return $('//*[@name="Profile"]');
+    // ========== Header Elements ==========
+    get goBackButton () {
+        return $(getSelector({
+            ios: '~Go back',
+            android: '//android.widget.Button[@content-desc="Go back"]'
+        }));
     }
 
-    get userNameDisplay() {
-        return $('//*[@name="User Name"]');
+    get profileHeaderTitle () {
+        return $(getSelector({
+            ios: '~Profile',
+            android: '//android.view.View[@text="Profile"]'
+        }));
     }
 
-    get editButton() {
-        return $('//*[@name="Edit Profile"]');
+    // ========== Your Profile Section ==========
+    get yourProfileLabel () {
+        return $(selectors.byText('YOUR PROFILE'));
     }
 
-    get logoutButton() {
-        return $('//*[@name="Logout"]');
+    get currentUserCard () {
+        return $(getSelector({
+            ios: '//*[contains(@name, "USR-")]',
+            android: '//android.view.ViewGroup[contains(@content-desc, "USR-")][@clickable="true"]'
+        }));
     }
 
-    async editProfile() {
-        await this.click(this.editButton);
+    // ========== Switch Account Section ==========
+    get switchAccountLabel () {
+        return $(selectors.byText('SWITCH ACCOUNT'));
     }
 
-    async logout() {
-        await this.click(this.logoutButton);
+    // First account item (can be used as reference for pattern)
+    get firstAccountItem () {
+        return $(getSelector({
+            ios: '(//XCUIElementTypeOther[contains(@name, "ACC-")])[1]',
+            android: '(//android.view.ViewGroup[contains(@content-desc, "ACC-") and not(contains(@content-desc, "USR-"))][@clickable="true"])[1]'
+        }));
+    }
+
+    // Get account item by index (1-based)
+    getAccountItemByIndex (index) {
+        return $(getSelector({
+            ios: `(//XCUIElementTypeOther[contains(@name, "ACC-")])[${index}]`,
+            android: `(//android.view.ViewGroup[contains(@content-desc, "ACC-") and not(contains(@content-desc, "USR-"))][@clickable="true"])[${index}]`
+        }));
+    }
+
+    // ========== Helper Methods ==========
+    async goBack () {
+        await this.click(this.goBackButton);
+    }
+
+    async selectAccountByIndex (index) {
+        const account = this.getAccountItemByIndex(index);
+        await this.click(account);
     }
 }
 
@@ -618,33 +720,33 @@ module.exports = new ProfilePage();
 ```javascript
 const { expect } = require('@wdio/globals')
 const profilePage = require('../pageobjects/profile.page')
-const homePage = require('../pageobjects/home.page')
 
 describe('User Profile Tests', () => {
-    beforeEach(async () => {
-        // Ensure we start from home screen
-        await homePage.navigateToHome();
-        // Navigate to profile
-        await homePage.navigateToProfile();
-        await expect(profilePage.profileTitle).toBeDisplayed();
-    });
+    it('should display profile header', async () => {
+        await expect(profilePage.profileHeaderTitle).toBeDisplayed()
+        await expect(profilePage.goBackButton).toBeDisplayed()
+    })
 
-    it('should display user profile information', async () => {
-        await expect(profilePage.userNameDisplay).toBeDisplayed();
-        await expect(profilePage.editButton).toBeDisplayed();
-        await expect(profilePage.logoutButton).toBeDisplayed();
-    });
+    it('should display your profile section', async () => {
+        await expect(profilePage.yourProfileLabel).toHaveText('YOUR PROFILE')
+        await expect(profilePage.currentUserCard).toBeDisplayed()
+    })
 
-    it('should open edit profile screen', async () => {
-        await profilePage.editProfile();
-        // Add assertions for edit screen
-    });
+    it('should display switch account section', async () => {
+        await expect(profilePage.switchAccountLabel).toHaveText('SWITCH ACCOUNT')
+        await expect(profilePage.firstAccountItem).toBeDisplayed()
+    })
 
-    it('should handle logout functionality', async () => {
-        await profilePage.logout();
-        // Verify return to welcome screen
-    });
-});
+    it('should allow selecting an account', async () => {
+        await profilePage.selectAccountByIndex(1)
+        // Add assertions for account selection result
+    })
+
+    it('should navigate back', async () => {
+        await profilePage.goBack()
+        // Add assertions for previous screen
+    })
+})
 ```
 
 ### 3. Update Suite Configuration
@@ -664,11 +766,14 @@ suites: {
 ### 4. Run the Tests
 
 ```bash
-# Run profile tests specifically
-./scripts/run-local-test.sh profile
+# Run profile tests specifically (iOS)
+./scripts/run-local-test.sh --platform ios profile
+
+# Run profile tests specifically (Android)
+./scripts/run-local-test.sh --platform android profile
 
 # Run all authenticated tests
-./scripts/run-local-test.sh authenticated
+./scripts/run-local-test.sh --platform ios authenticated
 ```
 
 ## Troubleshooting
@@ -677,18 +782,35 @@ suites: {
 - **Element Not Found**: Verify locators using Appium Inspector
 - **Timing Issues**: Add appropriate wait conditions
 - **App State**: Ensure proper test reset logic
-- **Authentication**: Manually complete login before running authenticated tests
+- **Authentication**: Complete OTP flow or manually login before running authenticated tests
+- **Platform Differences**: Check that selectors work on both iOS and Android
 
 ### Debug Commands
+
+**iOS:**
 ```bash
 # Run with verbose logging
-./scripts/run-local-test.sh --verbose profile
+./scripts/run-local-test.sh --platform ios --verbose welcome
 
 # Check Appium server logs
 tail -f appium.log
 
-# Verify device state
+# Verify iOS simulator state
 xcrun simctl list devices
 ```
+
+**Android:**
+```bash
+# Run with verbose logging
+./scripts/run-local-test.sh --platform android --verbose welcome
+
+# Check connected Android devices
+adb devices
+
+# View device logs
+adb logcat | grep -i "ReactNative\|Appium"
+```
+
+This framework provides a robust foundation for comprehensive cross-platform mobile app testing. Follow these patterns to create maintainable, reliable tests that work on both iOS and Android.
 
 This framework provides a robust foundation for comprehensive iOS app testing. Follow these patterns to create maintainable, reliable tests that cover both unauthenticated and authenticated user journeys.

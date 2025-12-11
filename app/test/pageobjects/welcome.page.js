@@ -10,7 +10,7 @@ class WelcomePage extends BasePage {
     get logoImage () {
         return $(getSelector({
             ios: '//*[contains(@name, "FIXME!")]',
-            android: '//android.widget.ImageView[contains(@content-desc, "logo")]'
+            android: '(//android.widget.ImageView)[1]'
         }));
     }
 

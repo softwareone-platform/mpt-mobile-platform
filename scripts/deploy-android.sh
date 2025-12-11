@@ -119,11 +119,23 @@ if [ -n "$EMULATOR_NAME" ]; then
         print_info "Waiting for emulator to boot..."
         adb wait-for-device
         
-        # Wait for boot to complete
-        timeout 300 bash -c 'while [[ -z $(adb shell getprop sys.boot_completed 2>/dev/null) ]]; do sleep 1; done' || {
-            print_error "Emulator failed to boot within 5 minutes"
-            exit 1
-        }
+        # Wait for boot to complete (5 minute timeout)
+        BOOT_TIMEOUT=300
+        BOOT_START=$(date +%s)
+        while true; do
+            BOOT_COMPLETED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [ "$BOOT_COMPLETED" = "1" ]; then
+                break
+            fi
+            
+            BOOT_ELAPSED=$(($(date +%s) - BOOT_START))
+            if [ $BOOT_ELAPSED -ge $BOOT_TIMEOUT ]; then
+                print_error "Emulator failed to boot within 5 minutes"
+                exit 1
+            fi
+            
+            sleep 1
+        done
         
         print_success "Emulator is ready!"
         sleep 5

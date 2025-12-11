@@ -302,7 +302,7 @@ pkill -f appium
 #### Common Debugging Resources
 - **Appium logs**: Check `appium.log` for server-side issues
 - **Test results**: Results are saved to `app/test-results/`
-- **Screenshots**: Automatic screenshots on failure in `app/screenshots/`
+- **Screenshots**: Automatic screenshots on failure in `screenshots/`
 - **Simulator logs**: Use `xcrun simctl spawn <device_udid> log stream`
 
 #### Script Debugging
@@ -328,7 +328,7 @@ pkill -f appium
 
 ## Environment Variables
 
-Create a `.env` file in the `app` directory with the following configuration:
+Create a `.env` file in the `app` directory with the following configuration (see `app/.env.example` for a template):
 
 ```bash
 # app/.env
@@ -469,8 +469,9 @@ app/
 │       ├── welcome.page.js
 │       └── base.page.js
 ├── test-results/        # Test execution results
-├── screenshots/         # Failure screenshots
 └── wdio.conf.js        # WebDriverIO configuration
+
+screenshots/             # Failure screenshots (project root)
 ```
 
 ### Writing Tests

@@ -73,7 +73,7 @@ appium.log
 appium*.log
 
 # Screenshots
-app/screenshots/
+screenshots/
 
 # Yarn
 .yarn/*

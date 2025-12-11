@@ -2,7 +2,7 @@ const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
 const headingPage = require('./base/heading.page');
 const footerPage = require('./base/footer.page');
-const { selectors } = require('./utils/selectors');
+const { selectors, getSelector } = require('./utils/selectors');
 
 class SpotlightsPage extends BasePage {
     constructor () {
@@ -13,7 +13,7 @@ class SpotlightsPage extends BasePage {
 
     // Spotlight Header
     get spotlightHeader () {
-        return $(selectors.staticText('Spotlight'));
+        return $(selectors.byText('Spotlight'));
     }
 
     // Main scroll view
@@ -33,43 +33,45 @@ class SpotlightsPage extends BasePage {
 
     // ========== Expired Invites Section ==========
     get expiredInvitesHeader () {
-        return $('//XCUIElementTypeStaticText[contains(@name, "expired invites") and not(contains(@name, "of my clients"))]');
+        return $(selectors.getSelector({
+            ios: '//XCUIElementTypeStaticText[contains(@name, "expired invites") and not(contains(@name, "of my clients"))]',
+            android: '//android.widget.TextView[contains(@text, "expired invites") and not(contains(@text, "of my clients"))]'
+        }));
     }
 
     // ========== Pending Invites Section ==========
     get pendingInvitesHeader () {
-        return $('//*[contains(@name, "pending invites")]');
+        return $(selectors.byContainsText('pending invites'));
     }
 
     // ========== Expired Invites of My Clients Section ==========
     get expiredInvitesOfMyClientsHeader () {
-        return $('//*[contains(@name, "expired invites of my clients")]');
+        return $(selectors.byContainsText('expired invites of my clients'));
     }
 
     // ========== Invoices Past Due Section ==========
     get invoicesPastDueHeader () {
-        return $('//*[contains(@name, "invoices past due")]');
+        return $(selectors.byContainsText('invoices past due'));
     }
 
     // ========== In-Progress Journals Section ==========
     get inProgressJournalsHeader () {
-        return $('//*[contains(@name, "in-progress journals")]');
+        return $(selectors.byContainsText('in-progress journals'));
     }
 
     // ========== Mismatching Buyers Section ==========
     get mismatchingBuyersHeader () {
-        return $('//*[contains(@name, "mismatching buyers")]');
+        return $(selectors.byContainsText('mismatching buyers'));
     }
 
     // ========== Buyers with Blocked Seller Connections Section ==========
     get buyersWithBlockedConnectionsHeader () {
-        return $('//*[contains(@name, "buyers with blocked seller connections")]');
+        return $(selectors.byContainsText('buyers with blocked seller connections'));
     }
 
     // ========== Helper Methods ==========
     async scrollToSection (sectionName) {
-        const sectionSelector = `//*[contains(@name, "${sectionName}")]`;
-        const section = $(sectionSelector);
+        const section = $(selectors.byContainsText(sectionName));
         await section.scrollIntoView({ direction: 'down' });
         return section;
     }

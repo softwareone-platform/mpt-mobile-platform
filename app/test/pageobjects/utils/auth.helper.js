@@ -2,7 +2,7 @@ const welcomePage = require('../welcome.page');
 const verifyPage = require('../verify.page');
 const homePage = require('../spotlights.page');
 
-const TEST_EMAIL = process.env.TEST_EMAIL || 'marketplaceplatformemailtest@gmail.com';
+const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'marketplaceplatformemailtest@gmail.com';
 const OTP_TIMEOUT_MS = 120000;
 const POLL_INTERVAL_MS = 10000;
 
@@ -35,10 +35,10 @@ async function isLoggedIn() {
 
 /**
  * Performs the complete login flow with OTP verification
- * @param {string} email - Email address to login with (defaults to TEST_EMAIL)
+ * @param {string} email - Email address to login with (defaults to AIRTABLE_EMAIL)
  * @returns {Promise<void>}
  */
-async function loginWithOTP(email = TEST_EMAIL) {
+async function loginWithOTP(email = AIRTABLE_EMAIL) {
     console.log(`🔐 Starting login flow for: ${email}`);
     
     // Check if already logged in
@@ -122,10 +122,10 @@ async function loginWithOTP(email = TEST_EMAIL) {
 /**
  * Ensures the user is logged in before running tests
  * Call this in beforeEach or before hooks
- * @param {string} email - Email address to login with (defaults to TEST_EMAIL)
+ * @param {string} email - Email address to login with (defaults to AIRTABLE_EMAIL)
  * @returns {Promise<void>}
  */
-async function ensureLoggedIn(email = TEST_EMAIL) {
+async function ensureLoggedIn(email = AIRTABLE_EMAIL) {
     const loggedIn = await isLoggedIn();
     if (!loggedIn) {
         await loginWithOTP(email);
@@ -136,5 +136,5 @@ module.exports = {
     isLoggedIn,
     loginWithOTP,
     ensureLoggedIn,
-    TEST_EMAIL
+    AIRTABLE_EMAIL
 };
