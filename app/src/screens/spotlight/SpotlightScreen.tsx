@@ -1,17 +1,48 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useAccount } from '@/context/AccountContext';
 import { Color } from '@/styles/tokens';
 import { screenStyle, cardStyle, Spacing } from '@/styles';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import type { SpotlightItem } from '@/types/api';
-import useSafeBottomPadding from '@/hooks/ui/useSafeBottomPadding';
+import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
+import EmptyState from '@/components/common/EmptyState';
+
+const DEFAULT_FILTER = 'all';
 
 const SpotlightScreen = () => {
-  const { logout } = useAuth();
-  const { spotlightData } = useAccount();
+  const [selectedFilter, setSelectedFilter] = useState<string>(DEFAULT_FILTER);
+  const [filteredData, setFilteredData] = useState<Record<string, SpotlightItem[]>>({});
+  const [filterKeys, setFilterKeys] = useState<string[]>([]);
 
-  const bottomPadding = useSafeBottomPadding();
+  const { logout } = useAuth();
+  const { spotlightData, spotlightError } = useAccount();
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!spotlightData || Object.keys(spotlightData).length === 0) {
+      setFilteredData({});
+      return;
+    }
+
+    const filterKeys = [DEFAULT_FILTER, ...Object.keys(spotlightData)];
+
+    setFilteredData(spotlightData);
+    setFilterKeys(filterKeys);
+    setSelectedFilter(DEFAULT_FILTER);
+  }, [spotlightData]);
+
+  const handleFilterPress = (key: string) => {
+    setSelectedFilter(key);
+
+    if (key === DEFAULT_FILTER) {
+      setFilteredData(spotlightData);
+    } else {
+      setFilteredData({ [key]: spotlightData[key] });
+    }
+  };     
 
   const handleLogout = async () => {
     try {
@@ -21,29 +52,69 @@ const SpotlightScreen = () => {
     }
   };
 
+  if (!spotlightData) {
+    return (
+      <View style={[styles.containerMain, styles.containerCenterContent]}>
+        <ActivityIndicator size="large" color={Color.brand.primary} />
+      </View>
+    );
+  }
+
+  if (spotlightError) {
+    return (
+      <View style={styles.containerCenterContent}>
+        <EmptyState
+          icon={{
+            name: 'block',
+            variant: 'filled',
+            size: 48,
+            color: Color.brand.primary,
+          }}
+          title={t('spotlightScreen.errorFetchingDataTitle')}
+          description={t('spotlightScreen.errorFetchingDataDescription')}
+        />
+      </View>
+    );
+  }
+
+  if (Object.keys(spotlightData)?.length === 0) {
+    return (
+        <EmptyState
+          icon={{
+            name: 'how-to-reg',
+            variant: 'outlined',
+          }}
+        title={t('spotlightScreen.noTaskHeader')}
+        description={t('spotlightScreen.noTaskDescription')}
+      />
+    );
+  }
+
   return (
-    <View>
+    <View style={styles.containerFillScreen}>
       <TouchableOpacity style={styles.button} onPress={handleLogout}>
         <Text style={styles.buttonText}>Logout - dev purpose only</Text>
       </TouchableOpacity>
-
-      <ScrollView style={styles.containerMain} contentContainerStyle={{ paddingBottom: bottomPadding }}>
-        {Object.entries(spotlightData).map(([categoryName, sections]) => (
+      <FiltersHorizontal
+        filterKeys={filterKeys}
+        selectedFilter={selectedFilter}
+        onFilterPress={handleFilterPress}
+      />
+      <ScrollView style={[styles.containerMain, styles.noPaddingTop]} contentContainerStyle={styles.contentFillContainer}>
+        {Object.entries(filteredData).map(([categoryName, sections]) => (
           <View key={categoryName}>
             {(sections as SpotlightItem[]).map((section) => (
               <View key={section.id} style={styles.containerCard}>
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardHeaderText}>
-                    {/* TODO: remove the below line and add text from i18n file, no support for plural for now */}
-                    {section.total} {section.total > 1 ? section.query?.name.toLowerCase() : section.query?.name?.slice(0, -1).toLowerCase()}
+                    { t(`spotlightScreen.${section?.query?.template}.title`, { count: section.total }) }
                   </Text>
                 </View>
-
                 {section.top.map((item, itemIndex) => {
                   const nestedItem = item?.product || item?.program || item?.user || item?.buyer;
                   const itemImagePath = item?.icon || nestedItem?.icon || '';
                   const itemId = item?.id || `${section.id}-${itemIndex}`;
-                  const itemName = item?.name || nestedItem?.name || '';
+                  const itemName = item?.name || item?.documentNo || nestedItem?.name || '';
 
                   return (
                     <NavigationItemWithImage
@@ -61,7 +132,10 @@ const SpotlightScreen = () => {
 
                 <View style={styles.cardFooter}>
                   <Text style={styles.cardFooterText}>
-                    Showing {section.top.length} of {section.total} (view all)
+                    {t('spotlightScreen.viewAll', {
+                      showing: section.top.length,
+                      total: section.total,
+                    })}
                   </Text>
                 </View>
               </View>
@@ -84,6 +158,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   containerMain: screenStyle.containerMain,
+  containerCenterContent: screenStyle.containerCenterContent,
   containerCard: {
     ...cardStyle.containerRounded,
     marginBottom: Spacing.spacing2,
@@ -92,6 +167,9 @@ const styles = StyleSheet.create({
   cardHeaderText: cardStyle.headerText,
   cardFooter: cardStyle.footer,
   cardFooterText: cardStyle.footerText,
+  containerFillScreen: screenStyle.containerFillScreen,
+  contentFillContainer: screenStyle.contentFillContainer,
+  noPaddingTop: screenStyle.noPaddingTop,
 });
 
 export default SpotlightScreen;

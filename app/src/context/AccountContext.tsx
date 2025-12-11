@@ -9,6 +9,7 @@ interface AccountContextValue {
   userData: UserData | null;
   userAccountsData: UserAccount[];
   spotlightData: Record<string, SpotlightItem[]>;
+  spotlightError: boolean;
   switchAccount: (accountId: string) => Promise<void>;
 }
 
@@ -18,6 +19,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userAccountsData, setUserAccountsData] = useState<UserAccount[]>([]);
   const [spotlightData, setSpotlightData] = useState<Record<string, SpotlightItem[]>>({});
+  const [spotlightError, setSpotlightError] = useState<boolean>(false);
 
   const { user } = useAuth();
   const {
@@ -77,10 +79,14 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await getSpotlightData(userId);
       const arrangedData = arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
+      console.log("Arranged Spotlight Data:", JSON.stringify(arrangedData, null, 2));
       setSpotlightData(arrangedData);
+      setSpotlightError(false); 
     } catch (error) {
-      console.error("Error fetching spotlight data:", error);
       setSpotlightData({});
+      setSpotlightError(true);
+
+      console.error("Error fetching spotlight data:", error);
     }
   }, [userId, getSpotlightData]);
 
@@ -102,6 +108,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         userData,
         userAccountsData,
         spotlightData,
+        spotlightError,
         switchAccount,
       }}
     >

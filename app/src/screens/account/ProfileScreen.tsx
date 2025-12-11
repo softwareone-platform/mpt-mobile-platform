@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { cardStyle, screenStyle, Spacing } from '@/styles';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
@@ -16,16 +16,14 @@ const ProfileScreen = () => {
   const [isSwitching, setIsSwitching] = useState(false);
 
   const { userData, userAccountsData, switchAccount } = useAccount();
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (userData?.currentAccount?.id) {
       setSelectedAccountId(userData.currentAccount.id);
     }
   }, [userData]);
-
-  const { t } = useTranslation();
-
-  const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   const handleSwitchAccount = async (accountId: string) => {
     if(accountId === selectedAccountId) return;
@@ -40,7 +38,7 @@ const ProfileScreen = () => {
   };
 
   return (
-    <View style={styles.containerMain}>
+    <ScrollView style={styles.containerMain}>
       <View>
         <Text style={styles.sectionHeader}>{t('profileScreen.yourProfile')}</Text>
         <View style={styles.containerCard}>
@@ -74,7 +72,7 @@ const ProfileScreen = () => {
           ))}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

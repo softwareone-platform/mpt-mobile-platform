@@ -71,6 +71,7 @@ export interface SpotlightItem {
 export interface SpotlightTopItem {
   id: string;
   name?: string;
+  documentNo?: string;
   icon?: string;
   program?: {
     id?: string;
