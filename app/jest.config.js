@@ -16,7 +16,7 @@ module.exports = {
     'node_modules/(?!(expo-secure-store|@react-native-async-storage|react-native-auth0)/)',
   ],
   collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
+    'src/**/*.ts',
     '!src/**/*.d.ts',
     '!src/**/__tests__/**',
   ],
