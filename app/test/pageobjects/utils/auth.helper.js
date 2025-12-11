@@ -27,7 +27,7 @@ async function isLoggedIn() {
         }
         
         return false;
-    } catch (error) {
+    } catch {
         console.log('User is not logged in');
         return false;
     }

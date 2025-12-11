@@ -1,8 +1,8 @@
-const { $, $$ } = require('@wdio/globals');
+const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
 const headingPage = require('./base/heading.page');
 const footerPage = require('./base/footer.page');
-const { getSelector, selectors } = require('./utils/selectors');
+const { selectors } = require('./utils/selectors');
 
 class SpotlightsPage extends BasePage {
     constructor () {

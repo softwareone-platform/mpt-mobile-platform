@@ -5,7 +5,6 @@ const SCREENSHOT_FOLDER = './screenshots';
 
 // Platform detection helpers
 const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
-const isIOS = () => !isAndroid();
 
 // Define platform-specific capabilities
 const iosCapabilities = {
