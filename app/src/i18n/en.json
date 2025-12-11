@@ -1,5 +1,9 @@
 {
-
+  "common": {
+    "message": {
+      "noDataAvailable": "No data available"
+    }
+  },
   "auth": {
     "welcome": {
       "title": "Welcome",
@@ -36,7 +40,6 @@
       "userBlocked": "Your account has been blocked. Please contact support for assistance."
     }
   },
-
   "navigation": {
     "moreMenuTitle": "More",
     "headerBackTitle": "Back",
@@ -65,5 +68,91 @@
     "security": "Security",
     "notificationSettings": "Notification Settings",
     "emailSettings": "Email Settings"
-  } 
+  },
+  "spotlightScreen": {
+    "mismatchingBuyersClient": {
+      "title": "{{count}} mismatching buyers"
+    },
+    "buyersWithBlockedSellerConnectionsOfMyClients": {
+      "title": "{{count}} buyers with blocked seller connections of my clients"
+    },
+    "mismatchingBuyersOfMyClients": {
+      "title": "{{count}} mismatching buyers of my clients"
+    },
+    "queryingEnrollments": {
+      "title": "{{count}} querying enrollments"
+    },
+    "longRunningEnrollmentsOfMyClients": {
+      "title": "{{count}} long-running enrollments of my clients"
+    },
+    "processingEnrollments": {
+      "title": "{{count}} processing enrollments"
+    },
+    "invoicesPastDue": {
+      "title": "{{count}} invoices past due"
+    },
+    "unpaidInvoices": {
+      "title": "{{count}} unpaid invoices"
+    },
+    "invoicesPastDueOfMyClients": {
+      "title": "{{count}} past due invoices of my clients"
+    },
+    "unpaidInvoicesOfMyClients": {
+      "title": "{{count}} unpaid invoices of my clients"
+    },
+    "inProgressJournals": { 
+      "title": "{{count}} in progress journals"
+    },
+    "queryingOrders": {
+      "title": "{{count}} querying orders"
+    },
+    "savedOrdersClient": {
+      "title": "{{count}} quoted orders"
+    },
+    "longRunningOrders": {
+      "title": "{{count}} long running orders"
+    },
+    "savedOrdersOperations": {
+      "title": "{{count}} quoted orders of my clients"
+    },
+    "processingOrders": {
+      "title": "{{count}} processing orders"
+    },
+    "expiringSubscriptions": {
+      "title": "{{count}} expiring subscriptions"
+    },
+    "renewingSubscriptions": {
+      "title": "{{count}} renewing subscriptions"
+    },
+    "expiringSubscriptionsOfMyClients": {
+      "title": "{{count}} expiring subscriptions of my clients"
+    },
+    "expiredInvites": {
+      "title": "{{count}} expired invites"
+    },
+    "pendingInvites": {
+      "title": "{{count}} pending invites"
+    },
+    "expiredInvitesOfMyClients": {
+      "title": "{{count}} expired invites of my clients"
+    },
+    "pendingInvitesOfMyClients": {
+      "title": "{{count}} pending invites of my clients"
+    },
+    "group": {
+      "all": "All",
+      "orders": "Orders",
+      "subscriptions": "Subscriptions",
+      "users": "Users",
+      "invoices": "Invoices",
+      "enrollments": "Enrollments",
+      "journals": "Journals",
+      "buyers": "Buyers"    
+    },
+    "errorFetchingDataDescription": "We couldn't load your Spotlight data. Try refreshing the page or check back later.",
+    "errorFetchingDataTitle": "Something went wrong",
+    "noTaskDescription": "Great job in staying on top of things",
+    "noTaskHeader": "No tasks on your side",
+    "viewAll": "Showing {{showing}} of {{total}} (view all)"
+  }
 }
