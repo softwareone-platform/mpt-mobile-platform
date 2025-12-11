@@ -1,4 +1,9 @@
 {
+  "common": {
+    "message": {
+      "noDataAvailable": "No data available"
+    }
+  },
   "auth": {
     "welcome": {
       "title": "Welcome",
@@ -144,14 +149,10 @@
       "journals": "Journals",
       "buyers": "Buyers"    
     },
-    "common": {
-      "errorFetchingDataDescription": "We couldn't load your Spotlight data. Try refreshing the page or check back later.",
-      "errorFetchingDataTitle": "Something went wrong",
-      "noTaskDescription": "Great job in staying on top of things",
-      "noTaskHeader": "No tasks on your side",
-      "overlayDescription": "Please wait while the data syncs",
-      "overlayTitle": "Syncing data",
-      "viewAll": "Showing {{showing}} of {{total}} (view all)"
-    }
+    "errorFetchingDataDescription": "We couldn't load your Spotlight data. Try refreshing the page or check back later.",
+    "errorFetchingDataTitle": "Something went wrong",
+    "noTaskDescription": "Great job in staying on top of things",
+    "noTaskHeader": "No tasks on your side",
+    "viewAll": "Showing {{showing}} of {{total}} (view all)"
   }
 }

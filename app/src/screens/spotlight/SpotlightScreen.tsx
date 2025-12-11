@@ -7,13 +7,14 @@ import { Color } from '@/styles/tokens';
 import { screenStyle, cardStyle, Spacing } from '@/styles';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import type { SpotlightItem } from '@/types/api';
-import FiltersHorizontal from '@/components/filters/FiltersHorisontal';
+import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import EmptyState from '@/components/common/EmptyState';
+
 const DEFAULT_FILTER = 'all';
 
 const SpotlightScreen = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>(DEFAULT_FILTER);
-  const [filteredData, setFilteredData] = useState<Record<string, SpotlightItem[]> | {}>({});
+  const [filteredData, setFilteredData] = useState<Record<string, SpotlightItem[]>>({});
   const [filterKeys, setFilterKeys] = useState<string[]>([]);
 
   const { logout } = useAuth();
@@ -69,8 +70,8 @@ const SpotlightScreen = () => {
             size: 48,
             color: Color.brand.primary,
           }}
-          title={t('spotlightScreen.common.errorFetchingDataTitle')}
-          description={t('spotlightScreen.common.errorFetchingDataDescription')}
+          title={t('spotlightScreen.errorFetchingDataTitle')}
+          description={t('spotlightScreen.errorFetchingDataDescription')}
         />
       </View>
     );
@@ -83,8 +84,8 @@ const SpotlightScreen = () => {
             name: 'how-to-reg',
             variant: 'outlined',
           }}
-        title={t('spotlightScreen.common.noTaskHeader')}
-        description={t('spotlightScreen.common.noTaskDescription')}
+        title={t('spotlightScreen.noTaskHeader')}
+        description={t('spotlightScreen.noTaskDescription')}
       />
     );
   }
@@ -131,7 +132,7 @@ const SpotlightScreen = () => {
 
                 <View style={styles.cardFooter}>
                   <Text style={styles.cardFooterText}>
-                    {t('spotlightScreen.common.viewAll', {
+                    {t('spotlightScreen.viewAll', {
                       showing: section.top.length,
                       total: section.total,
                     })}

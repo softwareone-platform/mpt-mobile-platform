@@ -6,12 +6,12 @@ import { screenStyle, emptyStateStyle } from '@/styles';
 
 type EmptyStateProps = {
   icon?: {
-    name: string;
+    name?: string;
     variant?: 'filled' | 'outlined';
     size?: number;
     color?: string;
   };
-  title: string;
+  title?: string;
   description?: string;
 };
 
@@ -22,7 +22,7 @@ const EmptyState = ({ icon, title, description }: EmptyStateProps) => {
   const DEFAULT_ICON_VARIANT = 'outlined';
   const DEFAULT_ICON_SIZE = 48;
   const DEFAULT_ICON_COLOR = Color.brand.primary;
-  const DEFAULT_TITLE = t('common.noDataAvailable');
+  const DEFAULT_TITLE = t('common.message.noDataAvailable');
 
   return (
     <View style={styles.container}>

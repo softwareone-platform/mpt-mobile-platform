@@ -1,7 +1,7 @@
 import { BorderRadius, Color, Spacing, Typography } from '../tokens';
 
 export const filterStyle = {
-  containerHorisontal: {
+  containerHorizontal: {
     paddingVertical: Spacing.spacing2,
     flexShrink: 0,
   },

@@ -38,7 +38,7 @@ const FiltersHorizontal = ({ filterKeys, selectedFilter, onFilterPress }: Props)
 };
 
 const styles = StyleSheet.create({
-  container: filterStyle.containerHorisontal,
+  container: filterStyle.containerHorizontal,
   content: filterStyle.pillBarContent,
   chip: filterStyle.chip,
   chipActive: filterStyle.chipActive,
