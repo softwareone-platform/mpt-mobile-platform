@@ -74,7 +74,7 @@ class Auth0ErrorParsingService {
         return 'UNKNOWN_ERROR';
     }
 
-    private isInvalidGrantError(errorName: string, errorMessage: string): boolean {
+    private isInvalidGrantError(errorName: string, _errorMessage: string): boolean {
         return errorName === 'invalid_grant';
     }
 
