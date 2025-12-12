@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import { useAuth } from '@/context/AuthContext';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAccount } from '@/context/AccountContext';
 import { Color } from '@/styles/tokens';
 import { screenStyle, cardStyle, Spacing } from '@/styles';
@@ -18,8 +17,7 @@ const SpotlightScreen = () => {
   const [filteredData, setFilteredData] = useState<Record<string, SpotlightItem[]>>({});
   const [filterKeys, setFilterKeys] = useState<string[]>([]);
 
-  const { logout } = useAuth();
-  const { spotlightData, spotlightError } = useAccount();
+  const { spotlightData, spotlightError, spotlightDataLoading } = useAccount();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -43,17 +41,9 @@ const SpotlightScreen = () => {
     } else {
       setFilteredData({ [key]: spotlightData[key] });
     }
-  };     
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
   };
 
-  if (!spotlightData) {
+  if (spotlightDataLoading) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
         <ActivityIndicator testID={TestIDs.SPOTLIGHT_LOADING_INDICATOR} size="large" color={Color.brand.primary} />
@@ -79,7 +69,7 @@ const SpotlightScreen = () => {
     );
   }
 
-  if (Object.keys(spotlightData)?.length === 0) {
+  if (!spotlightData || Object.keys(spotlightData)?.length === 0) {
     return (
         <EmptyState
           testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
@@ -95,9 +85,6 @@ const SpotlightScreen = () => {
 
   return (
     <View style={styles.containerFillScreen}>
-      <TouchableOpacity testID={TestIDs.SPOTLIGHT_LOGOUT_BUTTON} style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Logout - dev purpose only</Text>
-      </TouchableOpacity>
       <FiltersHorizontal
         filterKeys={filterKeys}
         selectedFilter={selectedFilter}
@@ -153,15 +140,6 @@ const SpotlightScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  button: {
-    backgroundColor: Color.brand.danger,
-    padding: 12,
-    margin: 16,
-  },
-  buttonText: {
-    color: Color.brand.white,
-    textAlign: 'center',
-  },
   containerMain: screenStyle.containerMain,
   containerCenterContent: screenStyle.containerCenterContent,
   containerCard: {

@@ -15,10 +15,17 @@ export const avatarStyle = {
     height: 44,
     borderRadius: BorderRadius.md,
   },
-  topBarIconContainer: {
+  smallIconContainer: {
     width: 32,
     height: 32,
     borderRadius: BorderRadius.round,
+  },
+  largeIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.round,
+  },
+  topBarIconWrapper: {
     marginRight: Spacing.spacing2,
   },
   loadingOverlay: {

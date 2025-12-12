@@ -22,11 +22,13 @@ const Navigation = () => {
       <NavigationContainer>
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {status === 'authenticated' ? (
-            <RootStack.Screen name="Main" component={MainTabs} />
+            <>
+              <RootStack.Screen name="Main" component={MainTabs} />
+              <RootStack.Screen name="ProfileRoot" component={ProfileStack} />
+            </>
           ) : (
             <RootStack.Screen name="Auth" component={AuthStack} />
           )}
-          <RootStack.Screen name="ProfileRoot" component={ProfileStack} />
         </RootStack.Navigator>
       </NavigationContainer>
     </NavigationDataProvider>

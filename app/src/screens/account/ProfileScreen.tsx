@@ -51,7 +51,11 @@ const ProfileScreen = () => {
               title={userData?.name}
               subtitle={userData?.id}
               isLast={true}
-              onPress={() => navigation.navigate("userSettings")}
+              onPress={() => navigation.navigate("userSettings", {
+                id: userData.id,
+                name: userData.name,
+                icon: userData.icon,
+              })}
             />
           )}
         </View>

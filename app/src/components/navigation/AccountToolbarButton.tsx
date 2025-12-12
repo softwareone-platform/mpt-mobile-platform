@@ -23,11 +23,12 @@ const AccountToolbarButton: React.FC = () => {
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <View style={[styles.topBarIconContainer, styles.commonIconContainer ]}>
+      <View style={styles.topBarIconWrapper}>
         <Avatar
           id={userData?.currentAccount?.id || ''}
           imagePath={userData?.currentAccount?.icon}
           size={DEFAULT_AVATAR_SIZE}
+          variant="small"
         />
       </View>
     </TouchableOpacity>
@@ -36,8 +37,7 @@ const AccountToolbarButton: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: avatarStyle.container,
-  commonIconContainer: avatarStyle.commonIconContainer,
-  topBarIconContainer: avatarStyle.topBarIconContainer,
+  topBarIconWrapper: avatarStyle.topBarIconWrapper,
 });
 
 export default AccountToolbarButton; 
