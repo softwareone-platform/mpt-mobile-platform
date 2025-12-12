@@ -8,9 +8,20 @@ interface AuthLayoutProps {
     title?: string;
     subtitle?: string;
     hasHeader?: boolean;
+    titleTestID?: string;
+    subtitleTestID?: string;
+    logoTestID?: string;
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle, hasHeader = false }) => {
+const AuthLayout: React.FC<AuthLayoutProps> = ({ 
+    children, 
+    title, 
+    subtitle, 
+    hasHeader = false,
+    titleTestID,
+    subtitleTestID,
+    logoTestID,
+}) => {
     const containerStyle = hasHeader 
         ? [styles.container, { paddingTop: 0 }] 
         : styles.container;
@@ -25,13 +36,14 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle, hasH
                 <View style={styles.content}>
                     <View style={logoSectionStyle}>
                         <Image
+                            testID={logoTestID}
                             source={require('@assets/icon.png')}
                             style={styles.logo}
                             resizeMode="contain"
                         />
                     </View>
-                    {title && <Text style={styles.title}>{title}</Text>}
-                    {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                    {title && <Text testID={titleTestID} style={styles.title}>{title}</Text>}
+                    {subtitle && <Text testID={subtitleTestID} style={styles.subtitle}>{subtitle}</Text>}
 
                     {children}
                 </View>
