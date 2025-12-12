@@ -135,15 +135,6 @@ const SpotlightScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  button: {
-    backgroundColor: Color.brand.danger,
-    padding: 12,
-    margin: 16,
-  },
-  buttonText: {
-    color: Color.brand.white,
-    textAlign: 'center',
-  },
   containerMain: screenStyle.containerMain,
   containerCenterContent: screenStyle.containerCenterContent,
   containerCard: {
