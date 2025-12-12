@@ -14,15 +14,10 @@ jest.mock('react-native-auth0', () => {
   const revoke = jest.fn();
   const clearCredentials = jest.fn();
   
-  // @ts-ignore
   mockPasswordlessWithEmail = passwordlessWithEmail;
-  // @ts-ignore
   mockLoginWithEmail = loginWithEmail;
-  // @ts-ignore
   mockRefreshToken = refreshToken;
-  // @ts-ignore
   mockRevoke = revoke;
-  // @ts-ignore
   mockClearCredentials = clearCredentials;
   
   return jest.fn().mockImplementation(() => ({
