@@ -7,6 +7,7 @@ import {
   AUTH0_OTP_DIGITS,
   AUTH0_SCHEME,
 } from '@env';
+import { isTestEnvironment, validateRequiredVars, formatValidationError } from '@/utils/configValidation';
 
 type EnvironmentVariable = 
   | 'AUTH0_DOMAIN'
@@ -32,6 +33,7 @@ interface EnvironmentConfig {
   AUTH0_API_URL?: string;
   AUTH0_OTP_DIGITS?: string;
   AUTH0_SCHEME?: string;
+  [key: string]: string | undefined;
 }
 
 class ConfigService {
@@ -52,40 +54,25 @@ class ConfigService {
       AUTH0_SCHEME,
     };
 
-    if (!this.isTestEnvironment()) {
+    if (!isTestEnvironment()) {
       this.validateConfig();
     }
   }
 
-  private isTestEnvironment(): boolean {
-    return process.env.JEST_WORKER_ID !== undefined;
-  }
-
   private validateConfig(): void {
-    const missingVars: string[] = [];
-
-    REQUIRED_VARS.forEach((varName) => {
-      if (!this.config[varName]) {
-        missingVars.push(varName);
-      }
-    });
+    const missingVars = validateRequiredVars(this.config, REQUIRED_VARS);
 
     if (missingVars.length > 0) {
-      const errorMessage = this.formatValidationError(missingVars);
+      const errorMessage = formatValidationError(missingVars);
       console.error(errorMessage);
       throw new Error(errorMessage);
     }
   }
 
-  private formatValidationError(missingVars: string[]): string {
-    const varList = missingVars.map(v => `  - ${v}`).join('\n');
-    return `CONFIGURATION ERROR: Missing required environment variables:\n${varList}\n\nPlease check your .env file and ensure all required variables are set.\nAfter updating .env, you MUST restart Metro: npx expo start --clear`;
-  }
-
   public get(key: EnvironmentVariable): string {
     const value = this.config[key];
     
-    if (!value && REQUIRED_VARS.includes(key) && !this.isTestEnvironment()) {
+    if (!value && REQUIRED_VARS.includes(key) && !isTestEnvironment()) {
       throw new Error(`Required environment variable ${key} is not set`);
     }
     
