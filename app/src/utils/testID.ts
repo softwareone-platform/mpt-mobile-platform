@@ -51,6 +51,17 @@ export const TestIDs = {
     PROFILE_USER_ITEM: 'profile-user-item',
     PROFILE_ACCOUNT_ITEM_PREFIX: 'profile-account-item',
 
+    // Spotlight Screen
+    SPOTLIGHT_LOGOUT_BUTTON: 'spotlight-logout-button',
+    SPOTLIGHT_LOADING_INDICATOR: 'spotlight-loading-indicator',
+    SPOTLIGHT_ERROR_STATE: 'spotlight-error-state',
+    SPOTLIGHT_EMPTY_STATE: 'spotlight-empty-state',
+    SPOTLIGHT_FILTER_PREFIX: 'spotlight-filter',
+    SPOTLIGHT_CARD_PREFIX: 'spotlight-card',
+    SPOTLIGHT_CARD_HEADER_PREFIX: 'spotlight-card-header',
+    SPOTLIGHT_CARD_FOOTER_PREFIX: 'spotlight-card-footer',
+    SPOTLIGHT_ITEM_PREFIX: 'spotlight-item',
+
     // Common
     HEADER_LOGO: 'header-logo-image',
     LOADING_INDICATOR: 'loading-indicator',

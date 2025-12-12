@@ -9,6 +9,7 @@ import NavigationItemWithImage from '@/components/navigation-item/NavigationItem
 import type { SpotlightItem } from '@/types/api';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import EmptyState from '@/components/common/EmptyState';
+import { TestIDs } from '@/utils/testID';
 
 const DEFAULT_FILTER = 'all';
 
@@ -55,7 +56,7 @@ const SpotlightScreen = () => {
   if (!spotlightData) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
-        <ActivityIndicator size="large" color={Color.brand.primary} />
+        <ActivityIndicator testID={TestIDs.SPOTLIGHT_LOADING_INDICATOR} size="large" color={Color.brand.primary} />
       </View>
     );
   }
@@ -64,6 +65,7 @@ const SpotlightScreen = () => {
     return (
       <View style={styles.containerCenterContent}>
         <EmptyState
+          testID={TestIDs.SPOTLIGHT_ERROR_STATE}
           icon={{
             name: 'block',
             variant: 'filled',
@@ -80,6 +82,7 @@ const SpotlightScreen = () => {
   if (Object.keys(spotlightData)?.length === 0) {
     return (
         <EmptyState
+          testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
           icon={{
             name: 'how-to-reg',
             variant: 'outlined',
@@ -92,21 +95,22 @@ const SpotlightScreen = () => {
 
   return (
     <View style={styles.containerFillScreen}>
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
+      <TouchableOpacity testID={TestIDs.SPOTLIGHT_LOGOUT_BUTTON} style={styles.button} onPress={handleLogout}>
         <Text style={styles.buttonText}>Logout - dev purpose only</Text>
       </TouchableOpacity>
       <FiltersHorizontal
         filterKeys={filterKeys}
         selectedFilter={selectedFilter}
         onFilterPress={handleFilterPress}
+        testIDPrefix={TestIDs.SPOTLIGHT_FILTER_PREFIX}
       />
       <ScrollView style={[styles.containerMain, styles.noPaddingTop]} contentContainerStyle={styles.contentFillContainer}>
         {Object.entries(filteredData).map(([categoryName, sections]) => (
           <View key={categoryName}>
             {(sections as SpotlightItem[]).map((section) => (
-              <View key={section.id} style={styles.containerCard}>
+              <View key={section.id} testID={`${TestIDs.SPOTLIGHT_CARD_PREFIX}-${categoryName}-${section.id}`} style={styles.containerCard}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.cardHeaderText}>
+                  <Text testID={`${TestIDs.SPOTLIGHT_CARD_HEADER_PREFIX}-${section.id}`} style={styles.cardHeaderText}>
                     { t(`spotlightScreen.${section?.query?.template}.title`, { count: section.total }) }
                   </Text>
                 </View>
@@ -119,6 +123,7 @@ const SpotlightScreen = () => {
                   return (
                     <NavigationItemWithImage
                       key={itemId}
+                      testID={`${TestIDs.SPOTLIGHT_ITEM_PREFIX}-${itemId}`}
                       id={itemId}
                       imagePath={itemImagePath}
                       title={itemName}
@@ -131,7 +136,7 @@ const SpotlightScreen = () => {
                 })}
 
                 <View style={styles.cardFooter}>
-                  <Text style={styles.cardFooterText}>
+                  <Text testID={`${TestIDs.SPOTLIGHT_CARD_FOOTER_PREFIX}-${section.id}`} style={styles.cardFooterText}>
                     {t('spotlightScreen.viewAll', {
                       showing: section.top.length,
                       total: section.total,
