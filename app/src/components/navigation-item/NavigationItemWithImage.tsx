@@ -10,10 +10,12 @@ type Props = {
   subtitle: string;
   isLast?: boolean;
   onPress?: () => void;
+  testID?: string;
 };
 
-const NavigationItemWithImage = ({ id, imagePath, title, subtitle, isLast, onPress }: Props) => (
+const NavigationItemWithImage = ({ id, imagePath, title, subtitle, isLast, onPress, testID }: Props) => (
   <TouchableOpacity
+    testID={testID}
     style={styles.container}
     onPress={onPress}
     activeOpacity={0.7}

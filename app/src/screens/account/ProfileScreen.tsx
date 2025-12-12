@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import type { ProfileStackParamList } from '@/types/navigation';
 import { useNavigation } from '@react-navigation/native';
 import { useAccount } from '@/context/AccountContext';
+import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
@@ -40,10 +41,11 @@ const ProfileScreen = () => {
   return (
     <ScrollView style={styles.containerMain}>
       <View>
-        <Text style={styles.sectionHeader}>{t('profileScreen.yourProfile')}</Text>
+        <Text testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE} style={styles.sectionHeader}>{t('profileScreen.yourProfile')}</Text>
         <View style={styles.containerCard}>
           {userData && (
             <NavigationItemWithImage
+              testID={TestIDs.PROFILE_USER_ITEM}
               id={userData?.id}
               imagePath={userData?.icon}
               title={userData?.name}
@@ -55,11 +57,12 @@ const ProfileScreen = () => {
         </View>
       </View>
       <View>
-        <Text style={styles.sectionHeader}>{t('profileScreen.switchAccount')}</Text>
+        <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>{t('profileScreen.switchAccount')}</Text>
         <View style={styles.containerCard}>
           {userAccountsData.map((account, index) => (
             <ListItemWithImage
               key={account.id}
+              testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${account.id}`}
               id={account.id}
               imagePath={account.icon}
               title={account.name}

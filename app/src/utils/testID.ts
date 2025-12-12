@@ -45,6 +45,12 @@ export const TestIDs = {
     NAV_TAB_MORE: 'nav-tab-more',
     NAV_ACCOUNT_BUTTON: 'nav-account-button',
 
+    // Profile Screen
+    PROFILE_SECTION_YOUR_PROFILE: 'profile-section-yourprofile-text',
+    PROFILE_SECTION_SWITCH_ACCOUNT: 'profile-section-switchaccount-text',
+    PROFILE_USER_ITEM: 'profile-user-item',
+    PROFILE_ACCOUNT_ITEM_PREFIX: 'profile-account-item',
+
     // Common
     HEADER_LOGO: 'header-logo-image',
     LOADING_INDICATOR: 'loading-indicator',
