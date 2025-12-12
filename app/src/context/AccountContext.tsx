@@ -85,13 +85,13 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
       setSpotlightData(arrangedData);
       setSpotlightError(false); 
-      setSpotlightDataLoading(false);
     } catch (error) {
       setSpotlightData({});
       setSpotlightError(true);
-      setSpotlightDataLoading(false);
 
       console.error("Error fetching spotlight data:", error);
+    } finally {
+      setSpotlightDataLoading(false);
     }
   }, [userId, getSpotlightData]);
 
