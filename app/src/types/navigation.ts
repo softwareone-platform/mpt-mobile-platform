@@ -21,6 +21,7 @@ export type TabParamList = {
   statements: undefined;
   more: undefined;
   moreMenu: undefined;
+  ProfileRoot: undefined;
 };
 
 export type ScreenComponent<
@@ -39,7 +40,11 @@ export type TabItem<RouteName extends keyof TabParamList = keyof TabParamList> =
 
 export type ProfileStackParamList = {
   profile: undefined;
-  userSettings: undefined;
+  userSettings: {
+    id: string;
+    name: string;
+    icon: string | undefined;
+  };
   personalInformation: undefined;
   regionalSettings: undefined;
   security: undefined;

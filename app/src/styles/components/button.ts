@@ -1,6 +1,21 @@
 import { Color, BorderRadius, Spacing, Shadow, Typography } from '../tokens';
 
 export const buttonStyle = {
+	common: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: BorderRadius.round,
+		paddingVertical: Spacing.spacing2,
+	},
+	primaryLight: {
+		backgroundColor: Color.brand.white,
+		color: Color.brand.primary,
+	},
+	primaryLightText: {
+		color: Color.brand.primary,
+		fontSize: Typography.fontSize.font4,
+		fontWeight: Typography.fontWeight.regular,
+	},
 	primary: {
 		backgroundColor: Color.brand.primary,
 		borderRadius: BorderRadius.xs,
@@ -50,4 +65,7 @@ export const buttonStyle = {
 		textAlign: 'center' as const,
 		color: Color.gray.gray5,
 	},
+	fullWidth: {
+    width: '100%',
+  },
 } as const;

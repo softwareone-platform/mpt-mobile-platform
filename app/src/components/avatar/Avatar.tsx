@@ -7,25 +7,31 @@ import { HttpMethod } from '@/types/api';
 import { configService } from '@/config/env.config';
 import { getAccessTokenAsync } from '@/lib/tokenProvider';
 import { Color, avatarStyle } from '@/styles';
-import { DEFAULT_AVATAR_SIZE } from '@/constants';
-
-interface AvatarProps {
-  id: string;
-  imagePath?: string;
-  size?: number;
-}
+import { DEFAULT_AVATAR_SIZE, DEFAULT_AVATAR_VARIANT } from '@/constants';
+import type { AvatarProps } from '@/types/icons';
 
 interface AuthenticatedImageSource {
   uri: string;
   headers?: { [key: string]: string };
 }
 
-const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SIZE }) => {
+const Avatar: React.FC<AvatarProps> = ({
+  id,
+  imagePath,
+  size = DEFAULT_AVATAR_SIZE,
+  variant = DEFAULT_AVATAR_VARIANT,
+}) => {
   const [imageSource, setImageSource] = useState<AuthenticatedImageSource | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   const BASE_URL = configService.get('AUTH0_API_URL');
+
+  const containerVariantStyle = {
+    default: styles.default,
+    small: styles.small,
+    large: styles.large,
+  };
 
   useEffect(() => {
     setHasError(false);
@@ -73,7 +79,7 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
   return (
     <View style={styles.container}>
       {imageSource && !hasError ? (
-        <View style={[styles.iconContainer, styles.commonIconContainer]}>
+        <View style={[styles.commonIconContainer, containerVariantStyle[variant]]}>
           <Image
             source={{ uri: imageSource.uri, headers: imageSource.headers }}
             style={styles.imageStyle}
@@ -98,9 +104,11 @@ const Avatar: React.FC<AvatarProps> = ({ id, imagePath, size = DEFAULT_AVATAR_SI
 const styles = StyleSheet.create({
   container: avatarStyle.container,
   commonIconContainer: avatarStyle.commonIconContainer,
-  iconContainer: avatarStyle.iconContainer,
   loadingOverlay: avatarStyle.loadingOverlay,
   imageStyle: avatarStyle.imageStyle,
+  default: avatarStyle.iconContainer,
+  small: avatarStyle.smallIconContainer,
+  large: avatarStyle.largeIconContainer,
 });
 
 export default Avatar;

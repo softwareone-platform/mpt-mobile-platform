@@ -21,3 +21,12 @@ export interface DynamicIconProps extends BaseIconProps {
 export interface OutlinedIconProps extends BaseIconProps {
   name: OutlinedIconName;
 }
+
+export type AvatarVariant = 'default' | 'small' | 'large';
+
+export interface AvatarProps {
+  id: string;
+  imagePath?: string;
+  size?: number;
+  variant?: AvatarVariant;
+}
