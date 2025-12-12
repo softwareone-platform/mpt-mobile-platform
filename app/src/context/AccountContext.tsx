@@ -10,6 +10,7 @@ interface AccountContextValue {
   userAccountsData: UserAccount[];
   spotlightData: Record<string, SpotlightItem[]>;
   spotlightError: boolean;
+  spotlightDataLoading: boolean;
   switchAccount: (accountId: string) => Promise<void>;
 }
 
@@ -20,6 +21,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [userAccountsData, setUserAccountsData] = useState<UserAccount[]>([]);
   const [spotlightData, setSpotlightData] = useState<Record<string, SpotlightItem[]>>({});
   const [spotlightError, setSpotlightError] = useState<boolean>(false);
+  const [spotlightDataLoading, setSpotlightDataLoading] = useState<boolean>(false);
 
   const { user } = useAuth();
   const {
@@ -36,7 +38,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const response = await getUserData(userId);
-
+    
       setUserData(response);
     } catch (error) {
       if (error instanceof Error) {
@@ -77,9 +79,10 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     if (!userId) return;
 
     try {
+      setSpotlightDataLoading(true);
       const { data } = await getSpotlightData(userId);
       const arrangedData = arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
-      console.log("Arranged Spotlight Data:", JSON.stringify(arrangedData, null, 2));
+
       setSpotlightData(arrangedData);
       setSpotlightError(false); 
     } catch (error) {
@@ -87,6 +90,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
       setSpotlightError(true);
 
       console.error("Error fetching spotlight data:", error);
+    } finally {
+      setSpotlightDataLoading(false);
     }
   }, [userId, getSpotlightData]);
 
@@ -95,7 +100,6 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
     fetchSpotlightData();
   }, [userData, fetchSpotlightData]);
-
 
   useEffect(() => {
     fetchUserData();
@@ -109,6 +113,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         userAccountsData,
         spotlightData,
         spotlightError,
+        spotlightDataLoading,
         switchAccount,
       }}
     >

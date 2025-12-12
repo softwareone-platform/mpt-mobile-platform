@@ -6,12 +6,13 @@ type Props = {
   id: string;
   title: string;
   subtitle: string;
+  icon?: string;
 };
 
-const AccountSummary = ({ id, title, subtitle}: Props) => (
+const AccountSummary = ({ id, title, subtitle, icon}: Props) => (
   <View style={styles.container}>
     <View style={styles.avatarWrapper}>
-      <AvatarIcon id={id} size={80} />
+      <AvatarIcon id={id} imagePath={icon} size={80} variant="large" />
     </View>
     <View style={styles.textContainer}>
       <Text style={styles.title}>{title}</Text>
