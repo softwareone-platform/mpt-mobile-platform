@@ -89,6 +89,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       setSpotlightData({});
       setSpotlightError(true);
+      setSpotlightDataLoading(false);
 
       console.error("Error fetching spotlight data:", error);
     }
