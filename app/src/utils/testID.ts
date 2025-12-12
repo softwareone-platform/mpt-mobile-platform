@@ -44,6 +44,8 @@ export const TestIDs = {
     NAV_TAB_SUBSCRIPTIONS: 'nav-tab-subscriptions',
     NAV_TAB_MORE: 'nav-tab-more',
     NAV_ACCOUNT_BUTTON: 'nav-account-button',
+    NAV_MENU_ITEM_PREFIX: 'nav-menu',
+    NAV_TAB_PREFIX: 'nav-tab',
 
     // Profile Screen
     PROFILE_SECTION_YOUR_PROFILE: 'profile-section-yourprofile-text',

@@ -8,6 +8,7 @@ import SecondaryTabs from './SecondaryTabs';
 import { Color, navigationStyle } from '@/styles';
 import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
 import AccountToolbarButton from './AccountToolbarButton';
+import { TestIDs } from '@/utils/testID';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -46,6 +47,7 @@ const MainTabs = () => {
               tabBarLabel: t(`navigation.tabs.${tab.name}`),
               headerTitle: t(`navigation.tabs.${tab.name}`),
               headerShown: isHeaderShown,
+              tabBarAccessibilityLabel: `${TestIDs.NAV_TAB_PREFIX}-${tab.name}`,
             }}
           />
         );

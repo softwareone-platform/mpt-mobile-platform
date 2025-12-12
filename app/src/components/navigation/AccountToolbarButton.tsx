@@ -6,6 +6,7 @@ import Avatar from '@/components/avatar/Avatar';
 import { avatarStyle } from '@/styles';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
 import { useAccount } from '@/context/AccountContext';
+import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileRoot'>;
 
@@ -19,6 +20,7 @@ const AccountToolbarButton: React.FC = () => {
 
   return (
     <TouchableOpacity 
+      testID={TestIDs.NAV_ACCOUNT_BUTTON}
       style={styles.container} 
       onPress={handlePress}
       activeOpacity={0.7}
