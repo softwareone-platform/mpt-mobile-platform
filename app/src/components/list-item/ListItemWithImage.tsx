@@ -13,6 +13,7 @@ type Props = {
   isSelected?: boolean;
   isUpdatingSelection?: boolean;
   onPress?: () => void;
+  testID?: string;
 };
 
 const ListItemWithImage = ({ 
@@ -23,9 +24,11 @@ const ListItemWithImage = ({
   isLast,
   isSelected,
   isUpdatingSelection,
-  onPress
+  onPress,
+  testID,
 }: Props) => (
   <TouchableOpacity
+    testID={testID}
     style={styles.container}
     onPress={onPress}
     activeOpacity={0.7}

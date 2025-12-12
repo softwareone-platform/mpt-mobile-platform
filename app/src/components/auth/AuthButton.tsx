@@ -8,6 +8,7 @@ interface AuthButtonProps {
     onPress: () => void;
     loading?: boolean;
     variant?: 'primary' | 'secondary';
+    testID?: string;
 }
 
 const AuthButton: React.FC<AuthButtonProps> = ({
@@ -15,6 +16,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     onPress,
     loading = false,
     variant = 'primary',
+    testID,
 }) => {
     const buttonStyles = variant === 'primary' ? styles.button : styles.secondaryButton;
     const textStyles = variant === 'primary' ? styles.buttonText : styles.secondaryButtonText;
@@ -22,6 +24,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
 
     return (
         <TouchableOpacity
+            testID={testID}
             style={buttonStyles}
             onPress={onPress}
             disabled={loading}

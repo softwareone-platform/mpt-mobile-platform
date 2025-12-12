@@ -6,9 +6,10 @@ type Props = {
   filterKeys: string[];
   selectedFilter: string;
   onFilterPress: (key: string) => void;
+  testIDPrefix?: string;
 };
 
-const FiltersHorizontal = ({ filterKeys, selectedFilter, onFilterPress }: Props) => {
+const FiltersHorizontal = ({ filterKeys, selectedFilter, onFilterPress, testIDPrefix }: Props) => {
   const { t } = useTranslation();
 
   return (
@@ -24,6 +25,7 @@ const FiltersHorizontal = ({ filterKeys, selectedFilter, onFilterPress }: Props)
         return (
           <TouchableOpacity
             key={key}
+            testID={testIDPrefix ? `${testIDPrefix}-${key}` : undefined}
             onPress={() => onFilterPress(key)}
             style={[styles.chip, isActive && styles.chipActive]}
           >

@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
 import { AuthStackParamList } from '@/types/navigation';
 import { Spacing, Color, Typography } from '@/styles/tokens';
+import { TestIDs } from '@/utils/testID';
 
 type WelcomeScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
@@ -63,9 +64,14 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
     <AuthLayout
       title={t('auth.welcome.title')}
       subtitle={t('auth.welcome.subtitle')}
+      titleTestID={TestIDs.WELCOME_TITLE}
+      subtitleTestID={TestIDs.WELCOME_SUBTITLE}
+      logoTestID={TestIDs.WELCOME_LOGO}
     >
       <View style={styles.form}>
         <AuthInput
+          testID={TestIDs.WELCOME_EMAIL_INPUT}
+          errorTestID={TestIDs.WELCOME_EMAIL_ERROR}
           value={email}
           onChangeText={handleEmailChange}
           keyboardType="email-address"
@@ -76,14 +82,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
           containerStyle={styles.inputContainer}
         />
         <AuthButton
+          testID={TestIDs.WELCOME_CONTINUE_BUTTON}
           title={t('auth.welcome.continueButton')}
           onPress={handleContinue}
           loading={loading}
         />
-        <TouchableOpacity style={styles.troubleLink} onPress={() => {
-          // TODO: Handle trouble signing in action
-          console.log('Trouble signing in pressed');
-        }}>
+        <TouchableOpacity 
+          testID={TestIDs.WELCOME_TROUBLE_LINK}
+          style={styles.troubleLink} 
+          onPress={() => {
+            // TODO: Handle trouble signing in action
+            console.log('Trouble signing in pressed');
+          }}
+        >
           <Text style={styles.troubleText}>{t('auth.welcome.troubleSigningIn')}</Text>
         </TouchableOpacity>
       </View>

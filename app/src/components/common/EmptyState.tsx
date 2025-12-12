@@ -13,9 +13,12 @@ type EmptyStateProps = {
   };
   title?: string;
   description?: string;
+  testID?: string;
+  titleTestID?: string;
+  descriptionTestID?: string;
 };
 
-const EmptyState = ({ icon, title, description }: EmptyStateProps) => {
+const EmptyState = ({ icon, title, description, testID, titleTestID, descriptionTestID }: EmptyStateProps) => {
   const { t } = useTranslation();
 
   const DEFAULT_ICON_NAME = 'how-to-reg';
@@ -25,7 +28,7 @@ const EmptyState = ({ icon, title, description }: EmptyStateProps) => {
   const DEFAULT_TITLE = t('common.message.noDataAvailable');
 
   return (
-    <View style={styles.container}>
+    <View testID={testID} style={styles.container}>
 
       {icon && (
         <View style={styles.iconWrapper}>
@@ -38,9 +41,9 @@ const EmptyState = ({ icon, title, description }: EmptyStateProps) => {
         </View>
       )}
 
-      <Text style={styles.title}>{title || DEFAULT_TITLE}</Text>
+      <Text testID={titleTestID} style={styles.title}>{title || DEFAULT_TITLE}</Text>
       {description && (
-        <Text style={styles.description}>{description}</Text>
+        <Text testID={descriptionTestID} style={styles.description}>{description}</Text>
       )}
     </View>
   );

@@ -10,6 +10,7 @@ import { OutlinedIcons } from '@assets/icons';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { Color, navigationStyle } from '@/styles';
 import AccountToolbarButton from './AccountToolbarButton';
+import { TestIDs } from '@/utils/testID';
 
 const Stack = createStackNavigator<TabParamList>();
 
@@ -27,6 +28,7 @@ const SecondaryMenu = () => {
           const isLast = index === secondaryTabsData.length - 1;
           return (
             <TouchableOpacity
+              testID={`${TestIDs.NAV_MENU_ITEM_PREFIX}-${item.name}`}
               style={styles.navigationItem}
               activeOpacity={0.7}
               onPress={() => item.component && navigation.navigate(item.name)}

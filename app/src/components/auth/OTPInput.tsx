@@ -8,6 +8,7 @@ interface OTPInputProps extends Omit<TextInputProps, 'value' | 'onChangeText'> {
     value: string;
     onChangeText: (text: string) => void;
     error?: boolean;
+    testIDPrefix?: string;
 }
 
 const sanitizeNumericInput = (text: string, maxLength: number): string => {
@@ -46,6 +47,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
     value,
     onChangeText,
     error = false,
+    testIDPrefix = 'otp-digit-input',
     ...textInputProps
 }) => {
     const [focused, setFocused] = useState(false);
@@ -89,6 +91,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
         return (
             <TouchableOpacity
                 key={index}
+                testID={`${testIDPrefix}-${index + 1}`}
                 style={[
                     createDigitStyles(isFilled, isActive),
                     isLastInFirstGroup && otpInputStyle.digitContainerGroupGap
