@@ -8,12 +8,7 @@ import AccountSummary from '@/components/account-summary/AccountSummary';
 import { useAuth } from '@/context/AuthContext';
 import { StackNavigationProp } from '@react-navigation/stack';
 
-type UserDetailsScreen =
-  'personalInformation' |
-  'regionalSettings' |
-  'security' |
-  'notificationSettings' |
-  'emailSettings';
+type UserDetailsScreen = Exclude<keyof ProfileStackParamList, 'profile' | 'userSettings'>;
 
 type UserSettingsItem = {
   name: UserDetailsScreen;
