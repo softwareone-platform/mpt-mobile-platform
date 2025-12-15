@@ -71,7 +71,7 @@ env:
 jobs:
   build-android:
     name: Build Android App
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 45
 
     defaults:
@@ -216,7 +216,8 @@ jobs:
             exit 1
           fi
           
-          SIZE=$(stat -f%z "$APK_PATH" 2>/dev/null || stat -c%s "$APK_PATH")
+          # Get file size (compatible with both macOS and Linux)
+          SIZE=$(stat -c%s "$APK_PATH" 2>/dev/null || stat -f%z "$APK_PATH" 2>/dev/null)
           echo "📦 APK size: $SIZE bytes"
           
           # Verify minimum size (should be at least 1MB)
@@ -234,11 +235,13 @@ jobs:
           fi
           
           if [ -n "$AAPT_PATH" ]; then
-            PACKAGE_INFO=$($AAPT_PATH dump badging "$APK_PATH" 2>/dev/null | head -5 || true)
-            echo "📋 Package info:"
-            echo "$PACKAGE_INFO"
+            echo "Using aapt at: $AAPT_PATH"
+            PACKAGE_INFO=$($AAPT_PATH dump badging "$APK_PATH" 2>/dev/null || true)
+            FIRST_LINE=$(echo "$PACKAGE_INFO" | head -1)
+            echo "📋 Package info first line: $FIRST_LINE"
             
-            PACKAGE_NAME=$(echo "$PACKAGE_INFO" | grep "package: name=" | sed "s/.*name='\([^']*\)'.*/\1/" | head -1)
+            # Extract package name from first line (format: package: name='...' versionCode='...' versionName='...')
+            PACKAGE_NAME=$(echo "$FIRST_LINE" | grep -o "name='[^']*'" | head -1 | sed "s/name='//;s/'//")
             
             if [ -z "$PACKAGE_NAME" ]; then
               # Fallback: try to extract from AndroidManifest
@@ -318,7 +321,7 @@ jobs:
   install-and-test-android:
     name: Install and Test Android App
     needs: build-android
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment || 'test' }}
 

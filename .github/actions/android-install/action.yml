@@ -77,7 +77,8 @@ runs:
           exit 1
         fi
         
-        FILE_SIZE=$(stat -f%z "./downloaded-apk/app.apk" 2>/dev/null || stat -c%s "./downloaded-apk/app.apk")
+        # Get file size (compatible with both Linux and macOS)
+        FILE_SIZE=$(stat -c%s "./downloaded-apk/app.apk" 2>/dev/null || stat -f%z "./downloaded-apk/app.apk" 2>/dev/null)
         echo "✅ Downloaded APK (${FILE_SIZE} bytes)"
 
     - name: Verify APK artifact
@@ -97,8 +98,8 @@ runs:
           exit 1
         fi
         
-        # Verify file size
-        SIZE=$(stat -f%z "$APK_PATH" 2>/dev/null || stat -c%s "$APK_PATH")
+        # Verify file size (Linux syntax first, then macOS)
+        SIZE=$(stat -c%s "$APK_PATH" 2>/dev/null || stat -f%z "$APK_PATH" 2>/dev/null)
         echo "📦 APK size: $SIZE bytes"
         
         if [ "$SIZE" -lt 1000000 ]; then
@@ -110,8 +111,13 @@ runs:
         AAPT_PATH=$(find $ANDROID_HOME/build-tools -name "aapt" 2>/dev/null | sort -V | tail -1)
         
         if [ -n "$AAPT_PATH" ]; then
-          PACKAGE_NAME=$($AAPT_PATH dump badging "$APK_PATH" 2>/dev/null | \
-                         grep "package: name=" | sed "s/.*name='\([^']*\)'.*/\1/" | head -1)
+          echo "Using aapt at: $AAPT_PATH"
+          PACKAGE_INFO=$($AAPT_PATH dump badging "$APK_PATH" 2>/dev/null || true)
+          FIRST_LINE=$(echo "$PACKAGE_INFO" | head -1)
+          echo "📋 Package info first line: $FIRST_LINE"
+          
+          # Extract package name from first line (format: package: name='...' versionCode='...' versionName='...')
+          PACKAGE_NAME=$(echo "$FIRST_LINE" | grep -o "name='[^']*'" | head -1 | sed "s/name='//;s/'//")
           
           if [ -n "$PACKAGE_NAME" ]; then
             echo "📦 Extracted package name: $PACKAGE_NAME"
@@ -210,6 +216,30 @@ runs:
         
         echo "✅ AVD verified: $AVD_NAME"
         $AVDMANAGER list avd | grep -A5 "$AVD_NAME"
+
+    - name: Enable KVM (Ubuntu only)
+      shell: bash
+      run: |
+        echo "🔧 Enabling KVM acceleration..."
+        
+        # Check if running on Linux
+        if [ "$(uname)" == "Linux" ]; then
+          # Enable KVM group access for GitHub Actions runner
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          
+          # Verify KVM is available
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm
+            echo "✅ KVM is available and configured"
+            ls -la /dev/kvm
+          else
+            echo "⚠️ KVM not available - emulator will run without hardware acceleration"
+          fi
+        else
+          echo "⏭️ Not on Linux, skipping KVM setup"
+        fi
 
     - name: Boot Android Emulator
       id: boot-emulator

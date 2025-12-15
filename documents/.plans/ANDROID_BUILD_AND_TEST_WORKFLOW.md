@@ -1,18 +1,20 @@
 # Android Build and Test Workflow Implementation Plan
 
 **Created:** December 15, 2025  
-**Updated:** December 15, 2025  
-**Status:** Phase 1 Complete (macOS) - Phase 2 Pending (Windows)  
-**Branch:** `feature/windows-and-android-testing`
+**Updated:** December 16, 2025  
+**Status:** Phase 1 & 2 Complete - Fixing Architecture Issues  
+**Branch:** `feature/android-test-workflows`
 
 ## Implementation Status
 
-### ✅ Phase 1: macOS Runner - COMPLETE
+### ✅ Phase 1: Ubuntu Runner - COMPLETE (Updated from macOS)
+
+**Note:** Switched from macOS to Ubuntu runners due to architecture mismatch. GitHub's macOS runners are now ARM64 (Apple Silicon) which cannot run x86_64 Android emulators.
 
 | File | Status | Description |
 |------|--------|-------------|
-| `.github/workflows/android-build-and-test.yml` | ✅ Created | Main orchestration workflow |
-| `.github/actions/android-install/action.yml` | ✅ Created | Emulator setup + APK install |
+| `.github/workflows/android-build-and-test.yml` | ✅ Created | Main orchestration workflow (Ubuntu) |
+| `.github/actions/android-install/action.yml` | ✅ Created | Emulator setup + APK install (with KVM) |
 | `.github/actions/android-test/action.yml` | ✅ Created | Appium + WDIO testing |
 
 ### ✅ Phase 2: Windows Runner - COMPLETE
@@ -22,6 +24,17 @@
 | `.github/workflows/android-build-and-test-windows.yml` | ✅ Created | Windows orchestration |
 | `.github/actions/android-install-windows/action.yml` | ✅ Created | Windows emulator setup (PowerShell) |
 | `.github/actions/android-test-windows/action.yml` | ✅ Created | Windows Appium testing (PowerShell) |
+
+### 🔧 Architecture Fix Applied
+
+**Problem:** Initial implementation used `macos-latest` which runs on ARM64 (Apple Silicon). The x86_64 Android emulator cannot run on ARM64 hosts without translation.
+
+**Error:** `FATAL | Avd's CPU Architecture 'x86_64' is not supported by the QEMU2 emulator on aarch64 host`
+
+**Solution:** 
+- Switched both build and test jobs to `ubuntu-latest` 
+- Added KVM acceleration enablement step for Ubuntu
+- Ubuntu runners are x86_64, allowing native emulator execution
 
 ### Key Windows Adaptations
 
