@@ -48,6 +48,7 @@
     "headerBackTitle": "Back",
     "profile": "Profile",
     "userSettings": "User Settings",
+    "personalInformation": "Personal Information",
     "tabs": {
       "spotlight": "Spotlight",
       "orders": "Orders",
@@ -71,6 +72,12 @@
     "security": "Security",
     "notificationSettings": "Notification Settings",
     "emailSettings": "Email Settings"
+  },
+  "personalInformationScreen": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "E-mail",
+    "phone": "Phone number"
   },
   "spotlightScreen": {
     "mismatchingBuyersClient": {

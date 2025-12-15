@@ -35,6 +35,13 @@ export interface UserData {
   name: string,
   icon?: string,
   avatar?: string,
+  email?: string;
+  phone?: {
+    prefix?: string;
+    number?: string;
+  };
+  firstName?: string;
+  lastName?: string;
   currentAccount?: {
     id?: string;
     name?: string;

@@ -53,6 +53,11 @@ export const TestIDs = {
     PROFILE_USER_ITEM: 'profile-user-item',
     PROFILE_ACCOUNT_ITEM_PREFIX: 'profile-account-item',
 
+    // Personal Information Screen
+    PERSONAL_INFO_LOADING_INDICATOR: 'personal-info-loading-indicator',
+    PERSONAL_INFO_ERROR_STATE: 'personal-info-error-state',
+    PERSONAL_INFO_EMPTY_STATE: 'personal-info-empty-state',
+
     // Spotlight Screen
     SPOTLIGHT_LOGOUT_BUTTON: 'spotlight-logout-button',
     SPOTLIGHT_LOADING_INDICATOR: 'spotlight-loading-indicator',
