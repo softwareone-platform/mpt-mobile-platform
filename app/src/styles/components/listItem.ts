@@ -54,4 +54,28 @@ export const listItemStyle = {
       color: Color.labels.secondary,
     },
   },
+  textInline: {
+    contentWrapper: {
+      paddingVertical: Spacing.spacing2,
+    },
+    textContainerInline: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flex: 1,
+    },
+    labelInline: {
+      fontSize: Typography.fontSize.font4,
+      color: Color.labels.primary,
+      marginRight: 60,
+      flexShrink: 0,
+    },
+    textInline: {
+      fontSize: Typography.fontSize.font4,
+      color: Color.labels.secondary,
+      flexShrink: 1,  
+      marginRight: 12,
+      textAlign: 'right',
+    },
+  }
 } as const;

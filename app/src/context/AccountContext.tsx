@@ -7,6 +7,8 @@ import { SPOTLIGHT_CATEGORY } from '@/constants/spotlight';
 
 interface AccountContextValue {
   userData: UserData | null;
+  userDataLoading: boolean;
+  userDataError: boolean;
   userAccountsData: UserAccount[];
   spotlightData: Record<string, SpotlightItem[]>;
   spotlightError: boolean;
@@ -18,6 +20,8 @@ const AccountContext = createContext<AccountContextValue | undefined>(undefined)
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [userDataLoading, setUserDataLoading] = useState<boolean>(false);
+  const [userDataError, setUserDataError] = useState<boolean>(false);
   const [userAccountsData, setUserAccountsData] = useState<UserAccount[]>([]);
   const [spotlightData, setSpotlightData] = useState<Record<string, SpotlightItem[]>>({});
   const [spotlightError, setSpotlightError] = useState<boolean>(false);
@@ -37,14 +41,19 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     if (!userId) return;
 
     try {
+      setUserDataLoading(true);
       const response = await getUserData(userId);
     
       setUserData(response);
+      setUserDataError(false);
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error fetching full user data:", error.message);
       }
       setUserData(null);
+      setUserDataError(true);
+    } finally {
+      setUserDataLoading(false);
     }
   }, [userId, getUserData]);
 
@@ -110,6 +119,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     <AccountContext.Provider
       value={{
         userData,
+        userDataLoading,
+        userDataError,
         userAccountsData,
         spotlightData,
         spotlightError,
