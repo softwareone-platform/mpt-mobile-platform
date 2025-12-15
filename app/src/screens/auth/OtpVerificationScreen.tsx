@@ -12,6 +12,7 @@ import { AUTH_CONSTANTS } from '@/constants';
 import { validateOTP } from '@/utils/validation';
 import { formatTimer } from '@/utils/timer';
 import { auth0ErrorParsingService } from '@/services/auth0ErrorParsingService';
+import { TestIDs } from '@/utils/testID';
 
 interface OTPVerificationScreenProps {
     route: RouteProp<AuthStackParamList, 'OTPVerification'>;
@@ -144,23 +145,27 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         <AuthLayout
             title={t('auth.otpVerification.title')}
             subtitle={t('auth.otpVerification.subtitle', { email })}
+            titleTestID={TestIDs.OTP_TITLE}
+            subtitleTestID={TestIDs.OTP_MESSAGE}
             hasHeader
         >
             <View style={otpVerificationScreenStyle.contentWrapper}>
                 <View style={otpVerificationScreenStyle.form}>
                     <View style={otpVerificationScreenStyle.otpContainer}>
                         <OTPInput
+                            testIDPrefix={TestIDs.OTP_INPUT_PREFIX}
                             value={otp}
                             onChangeText={handleOTPChange}
                             error={!!otpError}
                             autoFocus
                         />
                         {otpError && (
-                            <Text style={otpVerificationScreenStyle.errorText}>{otpError}</Text>
+                            <Text testID={TestIDs.OTP_ERROR} style={otpVerificationScreenStyle.errorText}>{otpError}</Text>
                         )}
                     </View>
 
                     <AuthButton
+                        testID={TestIDs.OTP_VERIFY_BUTTON}
                         title={t('auth.otpVerification.verifyButton')}
                         onPress={handleVerify}
                         loading={loading}
@@ -168,7 +173,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
                     <View style={otpVerificationScreenStyle.resendSection}>
                         {canResend ? (
-                            <TouchableOpacity onPress={handleResendCode}>
+                            <TouchableOpacity testID={TestIDs.OTP_RESEND_BUTTON} onPress={handleResendCode}>
                                 <Text style={[
                                     otpVerificationScreenStyle.resendText,
                                     otpVerificationScreenStyle.resendTextActive

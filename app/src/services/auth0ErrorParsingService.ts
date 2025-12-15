@@ -55,37 +55,47 @@ class Auth0ErrorParsingService {
         const errorName = details.name?.toLowerCase() || '';
         const errorMessage = details.message?.toLowerCase() || '';
 
-        if (errorName === 'invalid_grant') {
-            if (errorMessage.includes('expired')) {
-                return 'CODE_EXPIRED';
-            }
-            if (errorMessage.includes('verification code') || errorMessage.includes('wrong')) {
-                return 'INVALID_CODE';
-            }
-            return 'INVALID_CODE';
+        if (this.isInvalidGrantError(errorName, errorMessage)) {
+            return this.getInvalidGrantType(errorMessage);
         }
 
-        if (
-            errorName === 'access_denied' ||
-            errorMessage.includes('linking account') && details.status === 500
-        ) {
+        if (this.isEmailNotAuthorizedError(errorName, errorMessage, details.status)) {
             return 'EMAIL_NOT_AUTHORIZED';
         }
 
-        if (
-            errorName === 'too_many_attempts' ||
-            details.status === 429
-        ) {
+        if (this.isTooManyAttemptsError(errorName, details.status)) {
             return 'TOO_MANY_ATTEMPTS';
         }
 
-        if (
-            errorName === 'blocked_user'
-        ) {
+        if (this.isBlockedUserError(errorName)) {
             return 'USER_BLOCKED';
         }
 
         return 'UNKNOWN_ERROR';
+    }
+
+    private isInvalidGrantError(errorName: string, _errorMessage: string): boolean {
+        return errorName === 'invalid_grant';
+    }
+
+    private getInvalidGrantType(errorMessage: string): Auth0ErrorType {
+        if (errorMessage.includes('expired')) {
+            return 'CODE_EXPIRED';
+        }
+        return 'INVALID_CODE';
+    }
+
+    private isEmailNotAuthorizedError(errorName: string, errorMessage: string, status?: number): boolean {
+        return errorName === 'access_denied' || 
+               (errorMessage.includes('linking account') && status === 500);
+    }
+
+    private isTooManyAttemptsError(errorName: string, status?: number): boolean {
+        return errorName === 'too_many_attempts' || status === 429;
+    }
+
+    private isBlockedUserError(errorName: string): boolean {
+        return errorName === 'blocked_user';
     }
 
     private getTranslationKey(errorType: Auth0ErrorType): string {
