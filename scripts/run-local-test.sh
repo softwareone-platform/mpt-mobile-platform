@@ -16,6 +16,7 @@ BUILD_APP=false
 SKIP_BUILD=false
 VERBOSE=false
 PLATFORM="ios"  # Default platform
+ARTIFACT_URL=""  # URL to download pre-built artifact
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -32,6 +33,10 @@ while [[ $# -gt 0 ]]; do
             SKIP_BUILD=true
             shift
             ;;
+        --build-from-artifact)
+            ARTIFACT_URL="$2"
+            shift 2
+            ;;
         --verbose|-v)
             VERBOSE=true
             shift
@@ -44,11 +49,12 @@ while [[ $# -gt 0 ]]; do
             echo "  - For --build: Xcode (iOS) or Android SDK (Android) must be installed"
             echo ""
             echo "Options:"
-            echo "  --platform, -p PLATFORM  Target platform: ios or android (default: ios)"
-            echo "  --build, -b              Build release version of the app before testing"
-            echo "  --skip-build, -s         Skip build and install existing app from last build"
-            echo "  --verbose, -v            Enable verbose output"
-            echo "  --help, -h               Show this help message"
+            echo "  --platform, -p PLATFORM          Target platform: ios or android (default: ios)"
+            echo "  --build, -b                      Build release version of the app before testing"
+            echo "  --skip-build, -s                 Skip build and install existing app from last build"
+            echo "  --build-from-artifact URL        Download and install app from artifact URL"
+            echo "  --verbose, -v                    Enable verbose output"
+            echo "  --help, -h                       Show this help message"
             echo ""
             echo "Examples:"
             echo "  $0 welcome                                # Run welcome suite on iOS"
@@ -58,6 +64,7 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 --build welcome                        # Build iOS and run tests"
             echo "  $0 --platform android --build welcome     # Build Android and run"
             echo "  $0 --skip-build all                       # Install last build and run all tests"
+            echo "  $0 --build-from-artifact URL welcome      # Download artifact and run tests"
             exit 0
             ;;
         -*)
@@ -93,6 +100,18 @@ fi
 if [ "$BUILD_APP" = true ] && [ "$SKIP_BUILD" = true ]; then
     echo "Error: --build and --skip-build cannot be used together"
     echo "Use --build to build fresh, or --skip-build to reuse last build"
+    exit 1
+fi
+
+if [ -n "$ARTIFACT_URL" ] && [ "$BUILD_APP" = true ]; then
+    echo "Error: --build-from-artifact and --build cannot be used together"
+    echo "Use --build-from-artifact to download artifact, or --build to build locally"
+    exit 1
+fi
+
+if [ -n "$ARTIFACT_URL" ] && [ "$SKIP_BUILD" = true ]; then
+    echo "Error: --build-from-artifact and --skip-build cannot be used together"
+    echo "Use --build-from-artifact to download artifact, or --skip-build to reuse last build"
     exit 1
 fi
 
@@ -147,6 +166,143 @@ log() {
             echo "$message"
             ;;
     esac
+}
+
+# Function to download and install app from artifact URL
+install_from_artifact() {
+    local artifact_url="$1"
+    
+    log "📥 Downloading app from artifact URL..." "info"
+    log "URL: $artifact_url" "verbose"
+    
+    # Create temporary directory for download
+    TEMP_DIR=$(mktemp -d)
+    log "Using temporary directory: $TEMP_DIR" "verbose"
+    
+    # Download the artifact
+    log "Downloading artifact..." "info"
+    if ! curl -L -f -o "$TEMP_DIR/artifact.zip" "$artifact_url"; then
+        log "❌ Failed to download artifact from $artifact_url" "info"
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+    
+    # Verify download
+    if [ ! -f "$TEMP_DIR/artifact.zip" ]; then
+        log "❌ Download failed - file not found" "info"
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+    
+    FILE_SIZE=$(stat -f%z "$TEMP_DIR/artifact.zip" 2>/dev/null || stat -c%s "$TEMP_DIR/artifact.zip")
+    log "✅ Downloaded artifact (${FILE_SIZE} bytes)" "info"
+    
+    # Extract the artifact
+    log "📦 Extracting artifact..." "info"
+    if ! unzip -q "$TEMP_DIR/artifact.zip" -d "$TEMP_DIR/"; then
+        log "❌ Failed to extract artifact" "info"
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+    
+    if [ "$PLATFORM" = "android" ]; then
+        # Install Android APK
+        log "🤖 Installing Android APK..." "info"
+        
+        # Find the APK file
+        APK_PATH=$(find "$TEMP_DIR" -name "*.apk" -type f | head -1)
+        
+        if [ -z "$APK_PATH" ]; then
+            log "❌ No APK file found in artifact" "info"
+            log "Contents of artifact:" "verbose"
+            ls -la "$TEMP_DIR/" 2>/dev/null
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+        
+        log "Found APK: $(basename "$APK_PATH")" "verbose"
+        
+        # Uninstall existing app
+        PACKAGE_NAME="com.softwareone.marketplaceMobile"
+        log "Uninstalling existing app if present..." "verbose"
+        adb -s "$DEVICE_UDID" uninstall "$PACKAGE_NAME" > /dev/null 2>&1 || true
+        
+        # Install the APK
+        log "Installing APK on device $DEVICE_UDID..." "info"
+        if ! adb -s "$DEVICE_UDID" install -r "$APK_PATH"; then
+            log "❌ APK installation failed" "info"
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+        
+        log "✅ APK installed successfully" "info"
+        
+        # Launch the app
+        log "🚀 Launching app..." "verbose"
+        adb -s "$DEVICE_UDID" shell am start -n "$PACKAGE_NAME/.MainActivity"
+        sleep 2
+        
+    else
+        # Install iOS app
+        log "📱 Installing iOS app..." "info"
+        
+        # Find the .app bundle
+        APP_PATH=$(find "$TEMP_DIR" -name "*.app" -type d | head -1)
+        
+        if [ -z "$APP_PATH" ]; then
+            log "❌ No .app bundle found in artifact" "info"
+            log "Contents of artifact:" "verbose"
+            ls -la "$TEMP_DIR/" 2>/dev/null
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+        
+        log "Found app bundle: $(basename "$APP_PATH")" "verbose"
+        
+        # Verify .app bundle
+        if [ ! -f "$APP_PATH/Info.plist" ]; then
+            log "❌ Invalid .app bundle - missing Info.plist" "info"
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+        
+        # Extract bundle ID
+        BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+        log "Bundle ID: $BUNDLE_ID" "verbose"
+        
+        # Check if simulator is booted
+        SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$DEVICE_UDID" | head -1 || echo "Not found")
+        if ! echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+            log "🚀 Booting simulator..." "info"
+            xcrun simctl boot "$DEVICE_UDID"
+            
+            # Wait for simulator to boot
+            log "⏳ Waiting for simulator to boot..." "verbose"
+            for i in {1..30}; do
+                if xcrun simctl list devices | grep "$DEVICE_UDID" | grep -q "(Booted)"; then
+                    log "✅ Simulator booted" "verbose"
+                    break
+                fi
+                sleep 1
+            done
+        fi
+        
+        # Install the app
+        log "Installing app on simulator..." "info"
+        if ! xcrun simctl install "$DEVICE_UDID" "$APP_PATH"; then
+            log "❌ App installation failed" "info"
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+        
+        log "✅ App installed successfully" "info"
+    fi
+    
+    # Cleanup
+    log "🧹 Cleaning up temporary files..." "verbose"
+    rm -rf "$TEMP_DIR"
+    
+    log "✅ App from artifact installed and ready for testing" "info"
 }
 
 # Function to build the release version of the app
@@ -345,7 +501,10 @@ install_existing_app() {
 }
 
 # Handle build options
-if [ "$BUILD_APP" = true ]; then
+if [ -n "$ARTIFACT_URL" ]; then
+    # Download and install from artifact URL
+    install_from_artifact "$ARTIFACT_URL"
+elif [ "$BUILD_APP" = true ]; then
     if [ "$PLATFORM" = "android" ]; then
         # Build standalone Android APK for testing
         log "🤖 Building standalone Android APK for testing..." "info"
