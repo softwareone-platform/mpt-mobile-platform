@@ -1,0 +1,347 @@
+name: Android Build and Appium Tests (Windows)
+
+permissions:
+  contents: write  # Required for creating releases
+  actions: read    # Required for downloading artifacts
+
+on:
+  # TEMPORARY: For testing on feature branch before merge - REMOVE BEFORE MERGE
+  push:
+    branches:
+      - 'feature/windows-and-android-testing'
+
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: choice
+        options:
+          - test
+        default: 'test'
+      build-mode:
+        description: 'Build configuration'
+        required: true
+        type: choice
+        options:
+          - Debug
+          - Release
+        default: 'Debug'
+      api-level:
+        description: 'Android API level for emulator'
+        required: false
+        type: string
+        default: '34'
+      device-profile:
+        description: 'Android emulator device profile'
+        required: false
+        type: string
+        default: 'pixel_6'
+
+  # Reusable workflow (called from other workflows)
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: string
+        default: 'test'
+      build-mode:
+        description: 'Build configuration'
+        required: false
+        type: string
+        default: 'Debug'
+      api-level:
+        description: 'Android API level for emulator'
+        required: false
+        type: string
+        default: '34'
+      device-profile:
+        description: 'Android emulator device profile'
+        required: false
+        type: string
+        default: 'pixel_6'
+
+env:
+  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Debug' }}
+  API_LEVEL: ${{ github.event.inputs.api-level || '34' }}
+  DEVICE_PROFILE: ${{ github.event.inputs.device-profile || 'pixel_6' }}
+
+jobs:
+  build-android:
+    name: Build Android App (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        working-directory: ./app
+        shell: pwsh
+
+    outputs:
+      apk_path: ${{ steps.find-apk.outputs.apk_path }}
+      artifact_name: ${{ steps.artifact-info.outputs.artifact_name }}
+      package_name: ${{ steps.verify-apk.outputs.package_name }}
+      release_tag: ${{ steps.create-release.outputs.release_tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            ./app/node_modules
+            ~\AppData\Local\npm-cache
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        id: gradle-cache
+        with:
+          path: |
+            ~\.gradle\caches
+            ~\.gradle\wrapper
+            ./app/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests before build
+        run: npm test
+
+      - name: Create .env file
+        run: |
+          @"
+          # Auth0 Configuration (Build Verification)
+          AUTH0_DOMAIN=login-test.pyracloud.com
+          AUTH0_CLIENT_ID=placeholder-for-build
+          AUTH0_AUDIENCE=https://api-test.pyracloud.com/
+          AUTH0_SCOPE=openid profile email offline_access
+          AUTH0_API_URL=https://api.s1.show/public/
+          AUTH0_OTP_DIGITS=6
+          AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          TEMPORARY_AUTH0_TOKEN=
+          "@ | Out-File -FilePath .env -Encoding utf8
+
+      - name: Get version info
+        id: version
+        run: |
+          # Create a temporary script to read from app.config.js
+          @"
+          import config from './app.config.js';
+          console.log(config.expo.version);
+          "@ | Out-File -FilePath read_version.mjs -Encoding utf8
+          
+          $VERSION = node read_version.mjs
+          Remove-Item read_version.mjs
+          
+          "version=$VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "📱 Building version $VERSION"
+
+      - name: Expo prebuild (generate native Android project)
+        run: |
+          Write-Host "📦 Generating native Android project with Expo..."
+          npx expo prebuild --platform android --clean
+          Write-Host "✅ Native Android project generated"
+
+      - name: Build Android APK
+        run: |
+          Write-Host "🔨 Building Android APK in ${{ env.BUILD_MODE }} mode..."
+          Set-Location android
+          
+          if ("${{ env.BUILD_MODE }}" -eq "Release") {
+            .\gradlew.bat assembleRelease --no-daemon --stacktrace
+          } else {
+            .\gradlew.bat assembleDebug --no-daemon --stacktrace
+          }
+          
+          Write-Host "✅ APK build completed"
+
+      - name: Find APK artifact
+        id: find-apk
+        run: |
+          # Determine build type folder
+          if ("${{ env.BUILD_MODE }}" -eq "Release") {
+            $BuildTypeFolder = "release"
+          } else {
+            $BuildTypeFolder = "debug"
+          }
+          
+          # Find the built APK
+          $ApkPath = Get-ChildItem -Path "android\app\build\outputs\apk\$BuildTypeFolder" -Filter "*.apk" -Recurse | Select-Object -First 1
+          
+          if (-not $ApkPath) {
+            Write-Host "❌ APK not found in expected location"
+            Write-Host "Searching entire build directory..."
+            Get-ChildItem -Path "android\app\build" -Filter "*.apk" -Recurse
+            exit 1
+          }
+          
+          $ApkRelativePath = $ApkPath.FullName.Replace("$PWD\", "").Replace("\", "/")
+          "apk_path=$ApkRelativePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "✅ Found APK at: $ApkRelativePath"
+
+      - name: Verify APK artifact
+        id: verify-apk
+        run: |
+          $ApkPath = "${{ steps.find-apk.outputs.apk_path }}"
+          
+          Write-Host "🔍 Verifying APK: $ApkPath"
+          
+          # Check file exists and get size
+          if (-not (Test-Path $ApkPath)) {
+            Write-Host "❌ APK file not found"
+            exit 1
+          }
+          
+          $FileInfo = Get-Item $ApkPath
+          $Size = $FileInfo.Length
+          Write-Host "📦 APK size: $Size bytes"
+          
+          # Verify minimum size (should be at least 1MB)
+          if ($Size -lt 1000000) {
+            Write-Host "❌ APK suspiciously small: $Size bytes"
+            exit 1
+          }
+          
+          # Try to extract package name using aapt
+          $AaptPath = Get-ChildItem -Path "$env:ANDROID_HOME\build-tools" -Filter "aapt.exe" -Recurse | 
+                      Sort-Object { $_.Directory.Name } | 
+                      Select-Object -Last 1
+          
+          $PackageName = "com.softwareone.marketplaceMobile"
+          
+          if ($AaptPath) {
+            try {
+              $PackageInfo = & $AaptPath.FullName dump badging $ApkPath 2>$null | Select-Object -First 5
+              Write-Host "📋 Package info:"
+              $PackageInfo | ForEach-Object { Write-Host $_ }
+              
+              $Match = $PackageInfo | Select-String -Pattern "package: name='([^']+)'"
+              if ($Match) {
+                $PackageName = $Match.Matches[0].Groups[1].Value
+              }
+            } catch {
+              Write-Host "⚠️ Could not extract package name with aapt"
+            }
+          }
+          
+          "package_name=$PackageName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "✅ APK verified: $ApkPath ($Size bytes)"
+          Write-Host "📦 Package name: $PackageName"
+
+      - name: Generate artifact info
+        id: artifact-info
+        run: |
+          $ArtifactName = "android-apk-windows-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-${{ github.sha }}"
+          "artifact_name=$ArtifactName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "📦 Artifact name: $ArtifactName"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact-info.outputs.artifact_name }}
+          path: app/${{ steps.find-apk.outputs.apk_path }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Create downloadable release asset
+        if: github.event_name != 'pull_request'
+        id: create-release
+        shell: bash
+        run: |
+          TAG_NAME="android-windows-build-${{ env.BUILD_MODE }}-${{ github.sha }}-${{ github.run_number }}"
+          RELEASE_NAME="Android Build (Windows) ${{ env.BUILD_MODE }} - ${{ steps.version.outputs.version }}"
+          
+          echo "🚀 Creating release: $RELEASE_NAME"
+          
+          APK_PATH="${{ steps.find-apk.outputs.apk_path }}"
+          
+          # Create release with APK
+          gh release create "$TAG_NAME" \
+            --title "$RELEASE_NAME" \
+            --notes "Automated Android build (Windows) for commit ${{ github.sha }}" \
+            --prerelease \
+            "$APK_PATH#Android-APK-Windows-${{ env.BUILD_MODE }}.apk"
+          
+          echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Build Summary
+        if: always()
+        run: |
+          @"
+          ## Android Build Summary (Windows)
+          
+          **Build Mode:** ${{ env.BUILD_MODE }}
+          **Version:** ${{ steps.version.outputs.version }}
+          **Commit:** ${{ github.sha }}
+          **Package:** ${{ steps.verify-apk.outputs.package_name }}
+          **Runner:** Windows
+          
+          "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          
+          if ("${{ steps.find-apk.outputs.apk_path }}" -ne "") {
+            "✅ **Build Status:** Success`n`n### Artifacts:`n- Android APK (${{ env.BUILD_MODE }}) uploaded" | 
+              Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          } else {
+            "❌ **Build Status:** Failed or artifact not found" | 
+              Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          }
+
+  install-and-test-android:
+    name: Install and Test Android App (Windows)
+    needs: build-android
+    runs-on: windows-latest
+    timeout-minutes: 75
+    environment: ${{ inputs.environment || 'test' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install phase using composite action
+      - name: Install Android App
+        id: install-android
+        uses: ./.github/actions/android-install-windows
+        with:
+          artifact_name: ${{ needs.build-android.outputs.artifact_name }}
+          api_level: ${{ env.API_LEVEL }}
+          device_profile: ${{ env.DEVICE_PROFILE }}
+
+      # Test phase using composite action
+      - name: Test Android App
+        uses: ./.github/actions/android-test-windows
+        with:
+          device_serial: ${{ steps.install-android.outputs.device_serial }}
+          package_name: ${{ steps.install-android.outputs.package_name }}
+          api_level: ${{ env.API_LEVEL }}
+          device_name: ${{ env.DEVICE_PROFILE }}
+          node_version: '20'
+          appium_version: '3.1.1'
+          airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
+          airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
+          airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
+          airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}

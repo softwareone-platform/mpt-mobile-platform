@@ -1,0 +1,523 @@
+name: 'Android Appium Testing (Windows)'
+description: 'Setup and run Appium tests on Android emulator (Windows)'
+inputs:
+  device_serial:
+    description: 'ADB device serial (e.g., emulator-5554)'
+    required: true
+  package_name:
+    description: 'Android package name'
+    required: true
+  api_level:
+    description: 'Android API level'
+    required: false
+    default: '34'
+  device_name:
+    description: 'Device name for WDIO capabilities'
+    required: false
+    default: 'Android Emulator'
+  node_version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  appium_version:
+    description: 'Appium version to install'
+    required: false
+    default: '3.1.1'
+  appium_host:
+    description: 'Appium server host'
+    required: false
+    default: '127.0.0.1'
+  appium_port:
+    description: 'Appium server port'
+    required: false
+    default: '4723'
+  airtable_email:
+    description: 'Airtable email for OTP testing'
+    required: true
+  airtable_api_token:
+    description: 'Airtable API token'
+    required: true
+  airtable_base_id:
+    description: 'Airtable base ID'
+    required: true
+  airtable_table_name:
+    description: 'Airtable table name'
+    required: true
+  airtable_from_email:
+    description: 'Airtable from email filter'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Verify Required Inputs
+      shell: pwsh
+      run: |
+        Write-Host "🔍 Verifying required inputs..."
+        
+        if (-not "${{ inputs.device_serial }}") {
+          Write-Host "❌ ERROR: device_serial is required"
+          exit 1
+        }
+        Write-Host "✅ device_serial: ${{ inputs.device_serial }}"
+        
+        if (-not "${{ inputs.package_name }}") {
+          Write-Host "❌ ERROR: package_name is required"
+          exit 1
+        }
+        Write-Host "✅ package_name: ${{ inputs.package_name }}"
+        
+        Write-Host "✅ api_level: ${{ inputs.api_level }}"
+        Write-Host "✅ device_name: ${{ inputs.device_name }}"
+        Write-Host "✅ appium_host: ${{ inputs.appium_host }}"
+        Write-Host "✅ appium_port: ${{ inputs.appium_port }}"
+        
+        # Verify Airtable secrets are configured
+        if (-not "${{ inputs.airtable_email }}") {
+          Write-Host "⚠️ WARNING: airtable_email not configured"
+        } else {
+          Write-Host "✅ airtable_email is configured"
+        }
+        
+        if (-not "${{ inputs.airtable_api_token }}") {
+          Write-Host "⚠️ WARNING: airtable_api_token not configured"
+        } else {
+          Write-Host "✅ airtable_api_token is configured"
+        }
+        
+        Write-Host "🎉 Input verification complete!"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: 'npm'
+        cache-dependency-path: app/package-lock.json
+
+    - name: Restore node modules cache
+      id: npm-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          app/node_modules
+          ~\AppData\Local\npm-cache
+        key: ${{ runner.os }}-node-${{ hashFiles('app/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      shell: pwsh
+      working-directory: ./app
+      run: npm ci
+
+    - name: Install Appium
+      shell: pwsh
+      run: |
+        Write-Host "📦 Installing Appium ${{ inputs.appium_version }}..."
+        npm install -g appium@${{ inputs.appium_version }}
+        
+        Write-Host "Appium version:"
+        appium --version
+
+    - name: Install UiAutomator2 Driver
+      shell: pwsh
+      run: |
+        Write-Host "📦 Installing UiAutomator2 driver..."
+        appium driver install uiautomator2 2>$null
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "Driver may already be installed, continuing..."
+        }
+        
+        Write-Host "Installed drivers:"
+        appium driver list --installed
+
+    - name: Verify Emulator Still Running
+      shell: pwsh
+      run: |
+        Write-Host "🔍 Verifying emulator is still running..."
+        
+        $DeviceSerial = "${{ inputs.device_serial }}"
+        $AdbPath = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+        
+        $Devices = & $AdbPath devices 2>&1
+        
+        if ($Devices -notmatch $DeviceSerial) {
+          Write-Host "❌ ERROR: Emulator not found: $DeviceSerial"
+          Write-Host $Devices
+          exit 1
+        }
+        
+        # Verify device is responsive
+        $TestResult = & $AdbPath -s $DeviceSerial shell echo "test" 2>&1
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "❌ ERROR: Emulator not responsive"
+          exit 1
+        }
+        
+        Write-Host "✅ Emulator verified: $DeviceSerial"
+
+    - name: Verify App Still Installed
+      shell: pwsh
+      run: |
+        Write-Host "🔍 Verifying app is still installed..."
+        
+        $DeviceSerial = "${{ inputs.device_serial }}"
+        $PackageName = "${{ inputs.package_name }}"
+        $AdbPath = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+        
+        $Packages = & $AdbPath -s $DeviceSerial shell pm list packages 2>&1
+        
+        if ($Packages -notmatch $PackageName) {
+          Write-Host "❌ ERROR: App not found: $PackageName"
+          exit 1
+        }
+        
+        Write-Host "✅ App verified: $PackageName"
+
+    - name: Start Appium Server
+      id: start-appium
+      shell: pwsh
+      run: |
+        Write-Host "🚀 Starting Appium server on port ${{ inputs.appium_port }}..."
+        
+        # Start Appium server as a background job
+        $AppiumArgs = @(
+          "--log-level", "info",
+          "--log", "appium.log",
+          "--port", "${{ inputs.appium_port }}",
+          "--address", "0.0.0.0",
+          "--allow-cors"
+        )
+        
+        $AppiumProcess = Start-Process -FilePath "appium" `
+          -ArgumentList $AppiumArgs `
+          -PassThru `
+          -NoNewWindow `
+          -RedirectStandardOutput "appium_stdout.log" `
+          -RedirectStandardError "appium_stderr.log"
+        
+        $AppiumProcess.Id | Out-File -FilePath "appium.pid"
+        Write-Host "Appium PID: $($AppiumProcess.Id)"
+        
+        # Wait for Appium to start
+        $AppiumTimeout = 65
+        $AppiumReady = $false
+        
+        Write-Host "⏳ Waiting for Appium server to start..."
+        
+        for ($i = 1; $i -le $AppiumTimeout; $i++) {
+          try {
+            $Response = Invoke-WebRequest -Uri "http://127.0.0.1:${{ inputs.appium_port }}/status" -UseBasicParsing -TimeoutSec 2 -ErrorAction SilentlyContinue
+            if ($Response.StatusCode -eq 200) {
+              Write-Host "✅ Appium ready after $i seconds"
+              $AppiumReady = $true
+              break
+            }
+          } catch {
+            # Connection refused or timeout, continue waiting
+          }
+          
+          # Check if process is still running
+          $Process = Get-Process -Id $AppiumProcess.Id -ErrorAction SilentlyContinue
+          if (-not $Process) {
+            Write-Host "❌ ERROR: Appium process died"
+            if (Test-Path "appium.log") {
+              Write-Host "Appium log:"
+              Get-Content "appium.log" -Tail 50
+            }
+            if (Test-Path "appium_stderr.log") {
+              Write-Host "Appium stderr:"
+              Get-Content "appium_stderr.log" -Tail 50
+            }
+            exit 1
+          }
+          
+          if ($i % 10 -eq 0) {
+            Write-Host "⏳ Waiting for Appium... ($i/$AppiumTimeout s)"
+          }
+          
+          Start-Sleep -Seconds 1
+        }
+        
+        if (-not $AppiumReady) {
+          Write-Host "❌ ERROR: Appium failed to start within $AppiumTimeout seconds"
+          Write-Host "Last 50 lines of Appium log:"
+          if (Test-Path "appium.log") { Get-Content "appium.log" -Tail 50 }
+          exit 1
+        }
+
+    - name: Verify Appium Connection
+      id: verify-appium
+      shell: pwsh
+      run: |
+        Write-Host "🔍 Verifying Appium connection..."
+        
+        # Wait for logs to flush
+        Start-Sleep -Seconds 2
+        
+        $AppiumUrl = "http://127.0.0.1:${{ inputs.appium_port }}"
+        
+        # Try to extract URL from logs
+        if (Test-Path "appium.log") {
+          $LogContent = Get-Content "appium.log" -Raw
+          $UrlMatch = [regex]::Match($LogContent, "http://[0-9.]+:${{ inputs.appium_port }}")
+          if ($UrlMatch.Success) {
+            $ExtractedUrl = $UrlMatch.Value
+            Write-Host "Found URL in logs: $ExtractedUrl"
+          }
+        }
+        
+        # Test connection
+        Write-Host "Testing connection to: $AppiumUrl/status"
+        
+        try {
+          $Response = Invoke-WebRequest -Uri "$AppiumUrl/status" -UseBasicParsing
+          $Status = $Response.Content
+          
+          Write-Host "✅ Appium status response:"
+          Write-Host $Status
+        } catch {
+          Write-Host "❌ ERROR: Cannot connect to Appium at $AppiumUrl"
+          if (Test-Path "appium.log") { Get-Content "appium.log" -Tail 50 }
+          exit 1
+        }
+        
+        # Extract host and port for WDIO
+        $AppiumHost = "127.0.0.1"
+        $AppiumPort = "${{ inputs.appium_port }}"
+        
+        "VERIFIED_APPIUM_URL=$AppiumUrl" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "VERIFIED_APPIUM_HOST=$AppiumHost" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "VERIFIED_APPIUM_PORT=$AppiumPort" | Out-File -FilePath $env:GITHUB_ENV -Append
+        
+        "appium_url=$AppiumUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "appium_host=$AppiumHost" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "appium_port=$AppiumPort" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        
+        Write-Host "✅ Appium verified at: $AppiumUrl"
+
+    - name: Pre-test Debug Information
+      shell: pwsh
+      run: |
+        Write-Host "=== Pre-test Debug Information ==="
+        Write-Host ""
+        Write-Host "📱 Device Configuration:"
+        Write-Host "   DEVICE_SERIAL: ${{ inputs.device_serial }}"
+        Write-Host "   DEVICE_NAME: ${{ inputs.device_name }}"
+        Write-Host "   API_LEVEL: ${{ inputs.api_level }}"
+        Write-Host "   PACKAGE_NAME: ${{ inputs.package_name }}"
+        Write-Host ""
+        Write-Host "🔌 Appium Configuration:"
+        Write-Host "   APPIUM_URL: $env:VERIFIED_APPIUM_URL"
+        Write-Host "   APPIUM_HOST: $env:VERIFIED_APPIUM_HOST"
+        Write-Host "   APPIUM_PORT: $env:VERIFIED_APPIUM_PORT"
+        Write-Host ""
+        Write-Host "📧 Airtable Configuration:"
+        Write-Host "   AIRTABLE_EMAIL: ${{ inputs.airtable_email }}"
+        Write-Host "   AIRTABLE_API_TOKEN: <configured>"
+        Write-Host "   AIRTABLE_BASE_ID: ${{ inputs.airtable_base_id }}"
+        Write-Host "   AIRTABLE_TABLE_NAME: ${{ inputs.airtable_table_name }}"
+        Write-Host "   AIRTABLE_FROM_EMAIL: ${{ inputs.airtable_from_email }}"
+        Write-Host ""
+        Write-Host "📋 ADB Status:"
+        $AdbPath = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+        & $AdbPath devices
+        Write-Host ""
+        Write-Host "📋 Package Status:"
+        & $AdbPath -s "${{ inputs.device_serial }}" shell pm list packages | Select-String -Pattern "softwareone"
+
+    - name: Run Appium Tests
+      shell: pwsh
+      working-directory: ./app
+      env:
+        # Platform configuration
+        PLATFORM_NAME: Android
+        DEVICE_UDID: ${{ inputs.device_serial }}
+        DEVICE_NAME: ${{ inputs.device_name }}
+        PLATFORM_VERSION: ${{ inputs.api_level }}
+        APP_PACKAGE: ${{ inputs.package_name }}
+        APP_ACTIVITY: .MainActivity
+        # Airtable configuration
+        AIRTABLE_EMAIL: ${{ inputs.airtable_email }}
+        AIRTABLE_API_TOKEN: ${{ inputs.airtable_api_token }}
+        AIRTABLE_BASE_ID: ${{ inputs.airtable_base_id }}
+        AIRTABLE_TABLE_NAME: ${{ inputs.airtable_table_name }}
+        AIRTABLE_FROM_EMAIL: ${{ inputs.airtable_from_email }}
+      run: |
+        Write-Host "🧪 Running Appium tests with Android configuration..."
+        
+        # Use verified Appium connection
+        $env:APPIUM_HOST = $env:VERIFIED_APPIUM_HOST
+        $env:APPIUM_PORT = $env:VERIFIED_APPIUM_PORT
+        
+        Write-Host ""
+        Write-Host "📋 Environment Variables for WDIO:"
+        Write-Host "   PLATFORM_NAME=$env:PLATFORM_NAME"
+        Write-Host "   DEVICE_UDID=$env:DEVICE_UDID"
+        Write-Host "   DEVICE_NAME=$env:DEVICE_NAME"
+        Write-Host "   PLATFORM_VERSION=$env:PLATFORM_VERSION"
+        Write-Host "   APP_PACKAGE=$env:APP_PACKAGE"
+        Write-Host "   APP_ACTIVITY=$env:APP_ACTIVITY"
+        Write-Host "   APPIUM_HOST=$env:APPIUM_HOST"
+        Write-Host "   APPIUM_PORT=$env:APPIUM_PORT"
+        Write-Host ""
+        
+        # Test connection one more time before running tests
+        Write-Host "🔧 Final connection check..."
+        try {
+          $Response = Invoke-WebRequest -Uri "http://$($env:APPIUM_HOST):$($env:APPIUM_PORT)/status" -UseBasicParsing -TimeoutSec 5
+          Write-Host "✅ Appium connection verified"
+        } catch {
+          Write-Host "❌ ERROR: Cannot connect to Appium"
+          exit 1
+        }
+        
+        Write-Host ""
+        Write-Host "🚀 Starting WDIO tests..."
+        npx wdio run wdio.conf.js --suite welcome
+
+    - name: Upload Appium logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-windows-appium-logs-${{ github.run_number }}
+        path: |
+          appium.log
+          appium_stdout.log
+          appium_stderr.log
+        retention-days: 7
+        if-no-files-found: warn
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-windows-test-results-${{ github.run_number }}
+        path: |
+          app/test-results/
+          screenshots/
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Capture logcat
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "📋 Capturing logcat..."
+        
+        $AdbPath = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+        $DeviceSerial = "${{ inputs.device_serial }}"
+        
+        & $AdbPath -s $DeviceSerial logcat -d 2>$null | Out-File -FilePath "android-logcat.log"
+        
+        # Also capture app-specific logs
+        & $AdbPath -s $DeviceSerial logcat -d 2>$null | 
+          Select-String -Pattern "${{ inputs.package_name }}" | 
+          Out-File -FilePath "android-app-logcat.log"
+        
+        Write-Host "✅ Logcat captured"
+
+    - name: Upload logcat
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-windows-logcat-${{ github.run_number }}
+        path: |
+          android-logcat.log
+          android-app-logcat.log
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Stop Appium Server
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "🛑 Stopping Appium server..."
+        
+        if (Test-Path "appium.pid") {
+          $AppiumPid = Get-Content "appium.pid"
+          $Process = Get-Process -Id $AppiumPid -ErrorAction SilentlyContinue
+          
+          if ($Process) {
+            Stop-Process -Id $AppiumPid -Force -ErrorAction SilentlyContinue
+            Write-Host "✅ Appium server stopped (PID: $AppiumPid)"
+          }
+          
+          Remove-Item "appium.pid" -ErrorAction SilentlyContinue
+        } else {
+          Write-Host "⚠️ Appium PID file not found"
+        }
+        
+        # Also try to kill any remaining appium processes
+        Get-Process -Name "node" -ErrorAction SilentlyContinue | 
+          Where-Object { $_.CommandLine -match "appium" } | 
+          Stop-Process -Force -ErrorAction SilentlyContinue
+
+    - name: Shutdown Emulator
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "🛑 Shutting down emulator..."
+        
+        $AdbPath = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+        $DeviceSerial = "${{ inputs.device_serial }}"
+        
+        # Try graceful shutdown first
+        & $AdbPath -s $DeviceSerial emu kill 2>$null
+        Start-Sleep -Seconds 5
+        
+        # Force kill if still running
+        if (Test-Path "emulator.pid") {
+          $EmulatorPid = Get-Content "emulator.pid"
+          $Process = Get-Process -Id $EmulatorPid -ErrorAction SilentlyContinue
+          
+          if ($Process) {
+            Stop-Process -Id $EmulatorPid -Force -ErrorAction SilentlyContinue
+          }
+          
+          Remove-Item "emulator.pid" -ErrorAction SilentlyContinue
+        }
+        
+        # Also try to kill any remaining emulator processes
+        Get-Process -Name "emulator*" -ErrorAction SilentlyContinue | 
+          Stop-Process -Force -ErrorAction SilentlyContinue
+        
+        Write-Host "✅ Emulator shutdown complete"
+
+    - name: Cleanup
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "🧹 Cleaning up..."
+        
+        $AdbPath = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+        
+        # Kill ADB server
+        & $AdbPath kill-server 2>$null
+        
+        # Clean up temp files
+        Remove-Item "emulator.pid" -ErrorAction SilentlyContinue
+        Remove-Item "appium.pid" -ErrorAction SilentlyContinue
+        Remove-Item "emulator_stdout.log" -ErrorAction SilentlyContinue
+        Remove-Item "emulator_stderr.log" -ErrorAction SilentlyContinue
+        
+        Write-Host "✅ Cleanup complete"
+
+    - name: Test Summary
+      if: always()
+      shell: pwsh
+      run: |
+        @"
+        ## 🧪 Android Test Summary (Windows)
+        
+        **Device:** ${{ inputs.device_serial }}
+        **Package:** ${{ inputs.package_name }}
+        **API Level:** ${{ inputs.api_level }}
+        **Appium URL:** $env:VERIFIED_APPIUM_URL
+        **Runner:** Windows
+        
+        ### Artifacts Collected:
+        - Appium logs
+        - Test results  
+        - Android logcat
+        "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append

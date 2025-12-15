@@ -1,0 +1,473 @@
+name: 'Android Appium Testing'
+description: 'Setup and run Appium tests on Android emulator'
+inputs:
+  device_serial:
+    description: 'ADB device serial (e.g., emulator-5554)'
+    required: true
+  package_name:
+    description: 'Android package name'
+    required: true
+  api_level:
+    description: 'Android API level'
+    required: false
+    default: '34'
+  device_name:
+    description: 'Device name for WDIO capabilities'
+    required: false
+    default: 'Android Emulator'
+  node_version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  appium_version:
+    description: 'Appium version to install'
+    required: false
+    default: '3.1.1'
+  appium_host:
+    description: 'Appium server host'
+    required: false
+    default: '127.0.0.1'
+  appium_port:
+    description: 'Appium server port'
+    required: false
+    default: '4723'
+  airtable_email:
+    description: 'Airtable email for OTP testing'
+    required: true
+  airtable_api_token:
+    description: 'Airtable API token'
+    required: true
+  airtable_base_id:
+    description: 'Airtable base ID'
+    required: true
+  airtable_table_name:
+    description: 'Airtable table name'
+    required: true
+  airtable_from_email:
+    description: 'Airtable from email filter'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Verify Required Inputs
+      shell: bash
+      run: |
+        echo "🔍 Verifying required inputs..."
+        
+        if [ -z "${{ inputs.device_serial }}" ]; then
+          echo "❌ ERROR: device_serial is required"
+          exit 1
+        fi
+        echo "✅ device_serial: ${{ inputs.device_serial }}"
+        
+        if [ -z "${{ inputs.package_name }}" ]; then
+          echo "❌ ERROR: package_name is required"
+          exit 1
+        fi
+        echo "✅ package_name: ${{ inputs.package_name }}"
+        
+        echo "✅ api_level: ${{ inputs.api_level }}"
+        echo "✅ device_name: ${{ inputs.device_name }}"
+        echo "✅ appium_host: ${{ inputs.appium_host }}"
+        echo "✅ appium_port: ${{ inputs.appium_port }}"
+        
+        # Verify Airtable secrets are configured
+        if [ -z "${{ inputs.airtable_email }}" ]; then
+          echo "⚠️ WARNING: airtable_email not configured"
+        else
+          echo "✅ airtable_email is configured"
+        fi
+        
+        if [ -z "${{ inputs.airtable_api_token }}" ]; then
+          echo "⚠️ WARNING: airtable_api_token not configured"
+        else
+          echo "✅ airtable_api_token is configured (${#airtable_api_token} chars)"
+        fi
+        
+        echo "🎉 Input verification complete!"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: 'npm'
+        cache-dependency-path: app/package-lock.json
+
+    - name: Restore node modules cache
+      id: npm-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          app/node_modules
+          ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('app/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ./app
+      run: npm ci
+
+    - name: Install Appium
+      shell: bash
+      run: |
+        echo "📦 Installing Appium ${{ inputs.appium_version }}..."
+        npm install -g appium@${{ inputs.appium_version }}
+        
+        echo "Appium version:"
+        appium --version
+
+    - name: Install UiAutomator2 Driver
+      shell: bash
+      run: |
+        echo "📦 Installing UiAutomator2 driver..."
+        appium driver install uiautomator2 || echo "Driver may already be installed"
+        
+        echo "Installed drivers:"
+        appium driver list --installed
+
+    - name: Verify Emulator Still Running
+      shell: bash
+      env:
+        DEVICE_SERIAL: ${{ inputs.device_serial }}
+      run: |
+        echo "🔍 Verifying emulator is still running..."
+        
+        if ! adb devices | grep -q "$DEVICE_SERIAL"; then
+          echo "❌ ERROR: Emulator not found: $DEVICE_SERIAL"
+          adb devices
+          exit 1
+        fi
+        
+        # Verify device is responsive
+        if ! adb -s "$DEVICE_SERIAL" shell echo "test" > /dev/null 2>&1; then
+          echo "❌ ERROR: Emulator not responsive"
+          exit 1
+        fi
+        
+        echo "✅ Emulator verified: $DEVICE_SERIAL"
+
+    - name: Verify App Still Installed
+      shell: bash
+      env:
+        DEVICE_SERIAL: ${{ inputs.device_serial }}
+        PACKAGE_NAME: ${{ inputs.package_name }}
+      run: |
+        echo "🔍 Verifying app is still installed..."
+        
+        if ! adb -s "$DEVICE_SERIAL" shell pm list packages | grep -q "$PACKAGE_NAME"; then
+          echo "❌ ERROR: App not found: $PACKAGE_NAME"
+          exit 1
+        fi
+        
+        echo "✅ App verified: $PACKAGE_NAME"
+
+    - name: Start Appium Server
+      id: start-appium
+      shell: bash
+      env:
+        APPIUM_PORT: ${{ inputs.appium_port }}
+      run: |
+        echo "🚀 Starting Appium server on port $APPIUM_PORT..."
+        
+        # Start Appium server
+        appium --log-level info \
+               --log appium.log \
+               --port $APPIUM_PORT \
+               --address 0.0.0.0 \
+               --allow-cors &
+        
+        APPIUM_PID=$!
+        echo $APPIUM_PID > appium.pid
+        echo "Appium PID: $APPIUM_PID"
+        
+        # Wait for Appium to start
+        APPIUM_TIMEOUT=65
+        APPIUM_READY=false
+        
+        echo "⏳ Waiting for Appium server to start..."
+        
+        for i in $(seq 1 $APPIUM_TIMEOUT); do
+          if curl -s "http://127.0.0.1:$APPIUM_PORT/status" > /dev/null 2>&1; then
+            echo "✅ Appium ready after ${i} seconds"
+            APPIUM_READY=true
+            break
+          fi
+          
+          # Check if process is still running
+          if ! kill -0 $APPIUM_PID 2>/dev/null; then
+            echo "❌ ERROR: Appium process died"
+            cat appium.log
+            exit 1
+          fi
+          
+          if [ $((i % 10)) -eq 0 ]; then
+            echo "⏳ Waiting for Appium... (${i}/${APPIUM_TIMEOUT}s)"
+          fi
+          
+          sleep 1
+        done
+        
+        if [ "$APPIUM_READY" = false ]; then
+          echo "❌ ERROR: Appium failed to start within $APPIUM_TIMEOUT seconds"
+          echo "Last 50 lines of Appium log:"
+          tail -50 appium.log
+          exit 1
+        fi
+
+    - name: Verify Appium Connection
+      id: verify-appium
+      shell: bash
+      env:
+        APPIUM_PORT: ${{ inputs.appium_port }}
+      run: |
+        echo "🔍 Verifying Appium connection..."
+        
+        # Extract actual URL from Appium logs
+        sleep 2  # Give logs time to flush
+        
+        APPIUM_URL=$(grep -E "Appium REST http interface listener started on" appium.log 2>/dev/null | \
+                     grep -oE "http://[0-9.]+:$APPIUM_PORT" | head -1)
+        
+        if [ -z "$APPIUM_URL" ]; then
+          # Try alternative log format
+          APPIUM_URL=$(grep -E "http://[0-9.]+:$APPIUM_PORT" appium.log 2>/dev/null | head -1 | \
+                       grep -oE "http://[0-9.]+:$APPIUM_PORT")
+        fi
+        
+        if [ -z "$APPIUM_URL" ]; then
+          APPIUM_URL="http://127.0.0.1:$APPIUM_PORT"
+          echo "⚠️ Could not extract URL from logs, using default: $APPIUM_URL"
+        fi
+        
+        # Test connection
+        echo "Testing connection to: $APPIUM_URL/status"
+        STATUS=$(curl -s "$APPIUM_URL/status" 2>/dev/null)
+        
+        if [ -z "$STATUS" ]; then
+          echo "❌ ERROR: Cannot connect to Appium at $APPIUM_URL"
+          cat appium.log
+          exit 1
+        fi
+        
+        echo "✅ Appium status response:"
+        echo "$STATUS" | jq '.' 2>/dev/null || echo "$STATUS"
+        
+        # Extract host and port for WDIO
+        APPIUM_HOST=$(echo "$APPIUM_URL" | sed 's|http://\([^:]*\):.*|\1|')
+        APPIUM_PORT_EXTRACTED=$(echo "$APPIUM_URL" | sed 's|.*:\([0-9]*\)$|\1|')
+        
+        echo "VERIFIED_APPIUM_URL=$APPIUM_URL" >> $GITHUB_ENV
+        echo "VERIFIED_APPIUM_HOST=$APPIUM_HOST" >> $GITHUB_ENV
+        echo "VERIFIED_APPIUM_PORT=$APPIUM_PORT_EXTRACTED" >> $GITHUB_ENV
+        
+        echo "appium_url=$APPIUM_URL" >> $GITHUB_OUTPUT
+        echo "appium_host=$APPIUM_HOST" >> $GITHUB_OUTPUT
+        echo "appium_port=$APPIUM_PORT_EXTRACTED" >> $GITHUB_OUTPUT
+        
+        echo "✅ Appium verified at: $APPIUM_URL"
+
+    - name: Pre-test Debug Information
+      shell: bash
+      env:
+        DEVICE_SERIAL: ${{ inputs.device_serial }}
+        PACKAGE_NAME: ${{ inputs.package_name }}
+        API_LEVEL: ${{ inputs.api_level }}
+        DEVICE_NAME: ${{ inputs.device_name }}
+      run: |
+        echo "=== Pre-test Debug Information ==="
+        echo ""
+        echo "📱 Device Configuration:"
+        echo "   DEVICE_SERIAL: $DEVICE_SERIAL"
+        echo "   DEVICE_NAME: $DEVICE_NAME"
+        echo "   API_LEVEL: $API_LEVEL"
+        echo "   PACKAGE_NAME: $PACKAGE_NAME"
+        echo ""
+        echo "🔌 Appium Configuration:"
+        echo "   APPIUM_URL: ${VERIFIED_APPIUM_URL}"
+        echo "   APPIUM_HOST: ${VERIFIED_APPIUM_HOST}"
+        echo "   APPIUM_PORT: ${VERIFIED_APPIUM_PORT}"
+        echo ""
+        echo "📧 Airtable Configuration:"
+        echo "   AIRTABLE_EMAIL: ${{ inputs.airtable_email }}"
+        echo "   AIRTABLE_API_TOKEN: <configured>"
+        echo "   AIRTABLE_BASE_ID: ${{ inputs.airtable_base_id }}"
+        echo "   AIRTABLE_TABLE_NAME: ${{ inputs.airtable_table_name }}"
+        echo "   AIRTABLE_FROM_EMAIL: ${{ inputs.airtable_from_email }}"
+        echo ""
+        echo "📋 ADB Status:"
+        adb devices
+        echo ""
+        echo "📋 Package Status:"
+        adb -s "$DEVICE_SERIAL" shell pm list packages | grep -i softwareone || echo "Package check complete"
+        echo ""
+        echo "📋 Current Activity:"
+        adb -s "$DEVICE_SERIAL" shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity" | head -2 || echo "Activity check complete"
+
+    - name: Run Appium Tests
+      shell: bash
+      working-directory: ./app
+      continue-on-error: false
+      env:
+        # Platform configuration
+        PLATFORM_NAME: Android
+        DEVICE_UDID: ${{ inputs.device_serial }}
+        DEVICE_NAME: ${{ inputs.device_name }}
+        PLATFORM_VERSION: ${{ inputs.api_level }}
+        APP_PACKAGE: ${{ inputs.package_name }}
+        APP_ACTIVITY: .MainActivity
+        # Appium connection (use verified values)
+        APPIUM_HOST: ${{ env.VERIFIED_APPIUM_HOST }}
+        APPIUM_PORT: ${{ env.VERIFIED_APPIUM_PORT }}
+        # Airtable configuration
+        AIRTABLE_EMAIL: ${{ inputs.airtable_email }}
+        AIRTABLE_API_TOKEN: ${{ inputs.airtable_api_token }}
+        AIRTABLE_BASE_ID: ${{ inputs.airtable_base_id }}
+        AIRTABLE_TABLE_NAME: ${{ inputs.airtable_table_name }}
+        AIRTABLE_FROM_EMAIL: ${{ inputs.airtable_from_email }}
+      run: |
+        echo "🧪 Running Appium tests with Android configuration..."
+        echo ""
+        echo "📋 Environment Variables for WDIO:"
+        echo "   PLATFORM_NAME=$PLATFORM_NAME"
+        echo "   DEVICE_UDID=$DEVICE_UDID"
+        echo "   DEVICE_NAME=$DEVICE_NAME"
+        echo "   PLATFORM_VERSION=$PLATFORM_VERSION"
+        echo "   APP_PACKAGE=$APP_PACKAGE"
+        echo "   APP_ACTIVITY=$APP_ACTIVITY"
+        echo "   APPIUM_HOST=$APPIUM_HOST"
+        echo "   APPIUM_PORT=$APPIUM_PORT"
+        echo ""
+        
+        # Test connection one more time before running tests
+        echo "🔧 Final connection check..."
+        if curl -s "http://${APPIUM_HOST}:${APPIUM_PORT}/status" > /dev/null; then
+          echo "✅ Appium connection verified"
+        else
+          echo "❌ ERROR: Cannot connect to Appium"
+          exit 1
+        fi
+        
+        echo ""
+        echo "🚀 Starting WDIO tests..."
+        npx wdio run wdio.conf.js --suite welcome
+
+    - name: Upload Appium logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-appium-logs-${{ github.run_number }}
+        path: appium.log
+        retention-days: 7
+        if-no-files-found: warn
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-test-results-${{ github.run_number }}
+        path: |
+          app/test-results/
+          screenshots/
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Capture logcat
+      if: always()
+      shell: bash
+      env:
+        DEVICE_SERIAL: ${{ inputs.device_serial }}
+      run: |
+        echo "📋 Capturing logcat..."
+        adb -s "$DEVICE_SERIAL" logcat -d > android-logcat.log 2>/dev/null || true
+        
+        # Also capture app-specific logs
+        adb -s "$DEVICE_SERIAL" logcat -d | grep -i "${{ inputs.package_name }}" > android-app-logcat.log 2>/dev/null || true
+        
+        echo "✅ Logcat captured"
+
+    - name: Upload logcat
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-logcat-${{ github.run_number }}
+        path: |
+          android-logcat.log
+          android-app-logcat.log
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Stop Appium Server
+      if: always()
+      shell: bash
+      run: |
+        echo "🛑 Stopping Appium server..."
+        if [ -f appium.pid ]; then
+          APPIUM_PID=$(cat appium.pid)
+          if kill -0 $APPIUM_PID 2>/dev/null; then
+            kill $APPIUM_PID || true
+            sleep 2
+            kill -9 $APPIUM_PID 2>/dev/null || true
+          fi
+          rm appium.pid
+          echo "✅ Appium server stopped"
+        else
+          echo "⚠️ Appium PID file not found"
+        fi
+
+    - name: Shutdown Emulator
+      if: always()
+      shell: bash
+      env:
+        DEVICE_SERIAL: ${{ inputs.device_serial }}
+      run: |
+        echo "🛑 Shutting down emulator..."
+        
+        # Try graceful shutdown first
+        adb -s "$DEVICE_SERIAL" emu kill 2>/dev/null || true
+        sleep 5
+        
+        # Force kill if still running
+        if [ -f emulator.pid ]; then
+          EMULATOR_PID=$(cat emulator.pid)
+          if kill -0 $EMULATOR_PID 2>/dev/null; then
+            kill $EMULATOR_PID || true
+            sleep 2
+            kill -9 $EMULATOR_PID 2>/dev/null || true
+          fi
+          rm emulator.pid
+        fi
+        
+        echo "✅ Emulator shutdown complete"
+
+    - name: Cleanup
+      if: always()
+      shell: bash
+      run: |
+        echo "🧹 Cleaning up..."
+        
+        # Kill any remaining adb servers
+        adb kill-server 2>/dev/null || true
+        
+        # Clean up temp files
+        rm -f emulator.pid appium.pid 2>/dev/null || true
+        
+        echo "✅ Cleanup complete"
+
+    - name: Test Summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## 🧪 Android Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Device:** ${{ inputs.device_serial }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Package:** ${{ inputs.package_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**API Level:** ${{ inputs.api_level }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Appium URL:** ${VERIFIED_APPIUM_URL}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Artifacts Collected:" >> $GITHUB_STEP_SUMMARY
+        echo "- Appium logs" >> $GITHUB_STEP_SUMMARY
+        echo "- Test results" >> $GITHUB_STEP_SUMMARY
+        echo "- Android logcat" >> $GITHUB_STEP_SUMMARY
