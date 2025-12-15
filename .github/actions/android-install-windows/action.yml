@@ -158,6 +158,36 @@ runs:
         
         Write-Host "ANDROID_HOME: $env:ANDROID_HOME"
         
+        # Add Android SDK tools to PATH for subsequent steps
+        $PlatformTools = Join-Path $env:ANDROID_HOME "platform-tools"
+        $Emulator = Join-Path $env:ANDROID_HOME "emulator"
+        $CmdlineTools = Join-Path $env:ANDROID_HOME "cmdline-tools\latest\bin"
+        
+        # Add to GITHUB_PATH for subsequent steps
+        $PlatformTools | Out-File -FilePath $env:GITHUB_PATH -Append
+        $Emulator | Out-File -FilePath $env:GITHUB_PATH -Append
+        $CmdlineTools | Out-File -FilePath $env:GITHUB_PATH -Append
+        
+        Write-Host "📁 Added to PATH: $PlatformTools"
+        Write-Host "📁 Added to PATH: $Emulator"
+        Write-Host "📁 Added to PATH: $CmdlineTools"
+        
+        # Set ANDROID_SDK_HOME to control where .android folder is created
+        # This ensures AVDs are created in a consistent location
+        $AndroidSdkHome = $env:USERPROFILE
+        $AndroidAvdHome = Join-Path $env:USERPROFILE ".android\avd"
+        
+        # Create the AVD directory if it doesn't exist
+        if (-not (Test-Path $AndroidAvdHome)) {
+          New-Item -ItemType Directory -Force -Path $AndroidAvdHome | Out-Null
+        }
+        
+        "ANDROID_SDK_HOME=$AndroidSdkHome" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "ANDROID_AVD_HOME=$AndroidAvdHome" | Out-File -FilePath $env:GITHUB_ENV -Append
+        
+        Write-Host "📁 SDK Home: $AndroidSdkHome"
+        Write-Host "📁 AVD Home: $AndroidAvdHome"
+        
         # Accept licenses
         $SdkManager = Join-Path $env:ANDROID_HOME "cmdline-tools\latest\bin\sdkmanager.bat"
         
@@ -171,7 +201,8 @@ runs:
         
         if (Test-Path $SdkManager) {
           Write-Host "Using sdkmanager: $SdkManager"
-          echo "y" | & $SdkManager --licenses 2>$null
+          # Accept all licenses including the new android-googlexr-license
+          echo "y`ny`ny`ny`ny`ny`ny`ny" | & $SdkManager --licenses 2>$null
         } else {
           Write-Host "⚠️ sdkmanager not found, assuming licenses are accepted"
         }
@@ -238,6 +269,10 @@ runs:
           }
         }
         
+        # Set ANDROID_SDK_HOME to ensure AVD is created in the right place
+        $env:ANDROID_SDK_HOME = $env:USERPROFILE
+        Write-Host "📁 Using ANDROID_SDK_HOME: $env:ANDROID_SDK_HOME"
+        
         # Delete existing AVD if present
         & $AvdManager delete avd --name $AvdName 2>$null
         
@@ -247,6 +282,17 @@ runs:
           --package "system-images;android-${{ inputs.api_level }};google_apis;${{ inputs.arch }}" `
           --device "${{ inputs.device_profile }}" `
           --force
+        
+        # Verify AVD was created
+        $ExpectedAvdPath = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd"
+        if (Test-Path $ExpectedAvdPath) {
+          Write-Host "✅ AVD directory found at: $ExpectedAvdPath"
+        } else {
+          Write-Host "⚠️ AVD not at expected location, searching..."
+          Get-ChildItem -Path $env:USERPROFILE -Filter "$AvdName.avd" -Recurse -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "Found AVD at: $($_.FullName)"
+          }
+        }
         
         "avd_name=$AvdName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         "AVD_NAME=$AvdName" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -267,11 +313,41 @@ runs:
         }
         
         $AvdName = "${{ steps.create-avd.outputs.avd_name }}"
-        $AvdList = & $AvdManager list avd 2>&1
         
-        if ($AvdList -notmatch $AvdName) {
+        # Set ANDROID_SDK_HOME for avdmanager
+        $env:ANDROID_SDK_HOME = $env:USERPROFILE
+        
+        # Get AVD list as an array of lines
+        $AvdListOutput = & $AvdManager list avd 2>&1
+        
+        # Convert to string for matching (join with newlines)
+        $AvdListString = $AvdListOutput -join "`n"
+        
+        Write-Host "📋 Available AVDs:"
+        Write-Host $AvdListString
+        
+        # Check if AVD name appears in the list (more robust check)
+        $AvdFound = $false
+        foreach ($line in $AvdListOutput) {
+          if ($line -match "Name:\s*$AvdName" -or $line -match "$AvdName\.avd") {
+            $AvdFound = $true
+            break
+          }
+        }
+        
+        # Also check if the AVD directory exists as a fallback
+        $AvdPath = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd"
+        if (Test-Path $AvdPath) {
+          Write-Host "📁 AVD directory exists at: $AvdPath"
+          $AvdFound = $true
+        }
+        
+        if (-not $AvdFound) {
           Write-Host "❌ ERROR: AVD not found: $AvdName"
-          Write-Host $AvdList
+          Write-Host "Searching for AVD files..."
+          Get-ChildItem -Path $env:USERPROFILE -Filter "*.avd" -Recurse -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "Found: $($_.FullName)"
+          }
           exit 1
         }
         
@@ -286,6 +362,24 @@ runs:
         $AvdName = "${{ steps.create-avd.outputs.avd_name }}"
         $EmulatorPath = Join-Path $env:ANDROID_HOME "emulator\emulator.exe"
         $AdbPath = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
+        
+        # Set ANDROID_SDK_HOME to ensure emulator finds the AVD
+        $env:ANDROID_SDK_HOME = $env:USERPROFILE
+        $env:ANDROID_AVD_HOME = Join-Path $env:USERPROFILE ".android\avd"
+        
+        Write-Host "📁 ANDROID_SDK_HOME: $env:ANDROID_SDK_HOME"
+        Write-Host "📁 ANDROID_AVD_HOME: $env:ANDROID_AVD_HOME"
+        
+        # Debug: Check AVD files exist
+        $AvdIniPath = Join-Path $env:USERPROFILE ".android\avd\$AvdName.ini"
+        $AvdDirPath = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd"
+        Write-Host "🔍 Checking AVD files:"
+        Write-Host "  INI file: $AvdIniPath - Exists: $(Test-Path $AvdIniPath)"
+        Write-Host "  AVD dir:  $AvdDirPath - Exists: $(Test-Path $AvdDirPath)"
+        
+        # Start ADB server first
+        Write-Host "Starting ADB server..."
+        & $AdbPath start-server
         
         # Start emulator in background with optimized settings for CI
         $EmulatorArgs = @(
@@ -314,7 +408,7 @@ runs:
         # Wait for device to appear in ADB
         Write-Host "⏳ Waiting for emulator to appear in ADB..."
         
-        $AdbTimeout = 90
+        $AdbTimeout = 120
         $AdbReady = $false
         
         for ($i = 1; $i -le $AdbTimeout; $i++) {
@@ -327,6 +421,12 @@ runs:
           
           if ($i % 10 -eq 0) {
             Write-Host "⏳ Waiting for ADB... ($i/$AdbTimeout s)"
+            
+            # Check if emulator process is still running
+            if ($EmulatorProcess.HasExited) {
+              Write-Host "❌ Emulator process has exited with code: $($EmulatorProcess.ExitCode)"
+              break
+            }
           }
           
           Start-Sleep -Seconds 1
