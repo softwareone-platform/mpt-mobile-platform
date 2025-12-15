@@ -8,7 +8,7 @@ on:
   # TEMPORARY: For testing on feature branch before merge - REMOVE BEFORE MERGE
   push:
     branches:
-      - 'feature/windows-and-android-testing'
+      - 'feature/android-test-workflows'
 
   # Manual trigger
   workflow_dispatch:
