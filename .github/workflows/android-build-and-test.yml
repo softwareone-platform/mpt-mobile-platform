@@ -27,7 +27,7 @@ on:
         options:
           - Debug
           - Release
-        default: 'Debug'
+        default: 'Release'
       api-level:
         description: 'Android API level for emulator'
         required: false
@@ -51,7 +51,7 @@ on:
         description: 'Build configuration'
         required: false
         type: string
-        default: 'Debug'
+        default: 'Release'
       api-level:
         description: 'Android API level for emulator'
         required: false
@@ -64,7 +64,7 @@ on:
         default: 'pixel_6'
 
 env:
-  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Debug' }}
+  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
   API_LEVEL: ${{ github.event.inputs.api-level || '34' }}
   DEVICE_PROFILE: ${{ github.event.inputs.device-profile || 'pixel_6' }}
 
@@ -156,10 +156,32 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📱 Building version $VERSION"
 
+      - name: Configure build environment
+        working-directory: ./app
+        run: |
+          echo "🔧 Configuring build environment for ${{ env.BUILD_MODE }} mode..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Configuring for STANDALONE PRODUCTION app"
+            # Remove expo-dev-client for production builds to avoid Expo Dev Client UI
+            echo "📦 Removing expo-dev-client for production build..."
+            npm uninstall expo-dev-client
+            echo "✅ expo-dev-client removed"
+          else
+            echo "🛠️ Configuring for DEVELOPMENT app with Expo Dev Tools"
+          fi
+
       - name: Expo prebuild (generate native Android project)
         working-directory: ./app
         run: |
           echo "📦 Generating native Android project with Expo..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Building standalone app (production-ready, no Expo Dev Client)"
+          else
+            echo "🛠️ Building development app (with Expo Dev Tools)"
+          fi
+          
           npx expo prebuild --platform android --clean
           echo "✅ Native Android project generated"
 

@@ -27,7 +27,7 @@ on:
         options:
           - Debug
           - Release
-        default: 'Debug'
+        default: 'Release'
       api-level:
         description: 'Android API level for emulator'
         required: false
@@ -51,7 +51,7 @@ on:
         description: 'Build configuration'
         required: false
         type: string
-        default: 'Debug'
+        default: 'Release'
       api-level:
         description: 'Android API level for emulator'
         required: false
@@ -64,7 +64,7 @@ on:
         default: 'pixel_6'
 
 env:
-  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Debug' }}
+  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
   API_LEVEL: ${{ github.event.inputs.api-level || '34' }}
   DEVICE_PROFILE: ${{ github.event.inputs.device-profile || 'pixel_6' }}
 
@@ -158,9 +158,28 @@ jobs:
           "version=$VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "📱 Building version $VERSION"
 
+      - name: Configure build environment
+        run: |
+          Write-Host "🔧 Configuring build environment for ${{ env.BUILD_MODE }} mode..."
+          
+          if ("${{ env.BUILD_MODE }}" -eq "Release") {
+            Write-Host "🎯 Configuring for STANDALONE PRODUCTION app"
+            # Remove expo-dev-client for production builds to avoid Expo Dev Client UI
+            Write-Host "📦 Removing expo-dev-client for production build..."
+            npm uninstall expo-dev-client
+            Write-Host "✅ expo-dev-client removed"
+          } else {
+            Write-Host "🛠️ Configuring for DEVELOPMENT app with Expo Dev Tools"
+          }
+
       - name: Expo prebuild (generate native Android project)
         run: |
-          Write-Host "📦 Generating native Android project with Expo..."
+          if ("${{ env.BUILD_MODE }}" -eq "Release") {
+            Write-Host "🎯 Building standalone app (production-ready, no Expo Dev Client)"
+          } else {
+            Write-Host "🛠️ Building development app (with Expo Dev Tools)"
+          }
+          
           npx expo prebuild --platform android --clean
           Write-Host "✅ Native Android project generated"
 
