@@ -5,6 +5,10 @@
     },
     "action": {
       "signOut": "Sign out"
+    },
+    "legal": {
+      "termsOfUse": "Terms of use",
+      "privacyPolicy": "Privacy policy"
     }
   },
   "auth": {
