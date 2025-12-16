@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '@/context/AuthContext';
-import { AuthLayout, AuthButton } from '@/components/auth';
+import { AuthLayout, AuthButton, LegalFooter } from '@/components/auth';
 import OTPInput from '@/components/auth/OTPInput';
 import { AuthStackParamList } from '@/types/navigation';
-import { otpVerificationScreenStyle } from '@/styles/components';
 import { AUTH_CONSTANTS } from '@/constants';
 import { validateOTP } from '@/utils/validation';
 import { formatTimer } from '@/utils/timer';
 import { auth0ErrorParsingService } from '@/services/auth0ErrorParsingService';
 import { TestIDs } from '@/utils/testID';
+import { screenStyle, linkStyle, textStyle, spacingStyle } from '@/styles';
 
 interface OTPVerificationScreenProps {
     route: RouteProp<AuthStackParamList, 'OTPVerification'>;
@@ -141,72 +141,61 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         }
     };
 
-    return (
-        <AuthLayout
-            title={t('auth.otpVerification.title')}
-            subtitle={t('auth.otpVerification.subtitle', { email })}
-            titleTestID={TestIDs.OTP_TITLE}
-            subtitleTestID={TestIDs.OTP_MESSAGE}
-            hasHeader
-        >
-            <View style={otpVerificationScreenStyle.contentWrapper}>
-                <View style={otpVerificationScreenStyle.form}>
-                    <View style={otpVerificationScreenStyle.otpContainer}>
-                        <OTPInput
-                            testIDPrefix={TestIDs.OTP_INPUT_PREFIX}
-                            value={otp}
-                            onChangeText={handleOTPChange}
-                            error={!!otpError}
-                            autoFocus
-                        />
-                        {otpError && (
-                            <Text testID={TestIDs.OTP_ERROR} style={otpVerificationScreenStyle.errorText}>{otpError}</Text>
-                        )}
-                    </View>
-
-                    <AuthButton
-                        testID={TestIDs.OTP_VERIFY_BUTTON}
-                        title={t('auth.otpVerification.verifyButton')}
-                        onPress={handleVerify}
-                        loading={loading}
-                    />
-
-                    <View style={otpVerificationScreenStyle.resendSection}>
-                        {canResend ? (
-                            <TouchableOpacity testID={TestIDs.OTP_RESEND_BUTTON} onPress={handleResendCode}>
-                                <Text style={[
-                                    otpVerificationScreenStyle.resendText,
-                                    otpVerificationScreenStyle.resendTextActive
-                                ]}>
-                                    {t('auth.otpVerification.resendCode')}
-                                </Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <Text style={otpVerificationScreenStyle.resendText}>
-                                {t('auth.otpVerification.resendCodeIn', { time: formatTimer(resendTimer) })}
-                            </Text>
-                        )}
-                    </View>
-                </View>
-
-                <View style={otpVerificationScreenStyle.footer}>
-                    <View style={otpVerificationScreenStyle.footerLinksContainer}>
-                        <TouchableOpacity>
-                            <Text style={otpVerificationScreenStyle.footerText}>
-                                Trouble signing in?
-                            </Text>
-                        </TouchableOpacity>
-                        <Text style={otpVerificationScreenStyle.footerSeparator}> • </Text>
-                        <TouchableOpacity>
-                            <Text style={otpVerificationScreenStyle.footerText}>
-                                T&Cs & Privacy
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-        </AuthLayout>
-    );
+	return (
+		<AuthLayout
+			title={t('auth.otpVerification.title')}
+			subtitle={t('auth.otpVerification.subtitle', { email })}
+			titleTestID={TestIDs.OTP_TITLE}
+			subtitleTestID={TestIDs.OTP_MESSAGE}
+			hasHeader
+		>
+			<View style={styles.container}>
+				<View>
+					<View style={styles.marginBottom4}>
+						<OTPInput
+							testIDPrefix={TestIDs.OTP_INPUT_PREFIX}
+							value={otp}
+							onChangeText={handleOTPChange}
+							error={!!otpError}
+							autoFocus
+						/>
+						{otpError && (
+							<Text testID={TestIDs.OTP_ERROR} style={styles.textErrorSmall}>{otpError}</Text>
+						)}
+					</View>
+					<AuthButton
+						testID={TestIDs.OTP_VERIFY_BUTTON}
+						title={t('auth.otpVerification.verifyButton')}
+						onPress={handleVerify}
+						loading={loading}
+					/>
+					<View style={styles.containerFlexStart}>
+						{canResend ? (
+							<TouchableOpacity testID={TestIDs.OTP_RESEND_BUTTON} onPress={handleResendCode}>
+								<Text style={styles.linkSmall}>
+									{t('auth.otpVerification.resendCode')}
+								</Text>
+							</TouchableOpacity>
+						) : (
+							<Text style={styles.textSmall}>
+								{t('auth.otpVerification.resendCodeIn', { time: formatTimer(resendTimer) })}
+							</Text>
+						)}
+					</View>
+				</View>
+				<LegalFooter />
+			</View>
+		</AuthLayout>
+	);
 };
+
+const styles = StyleSheet.create({
+  container: screenStyle.containerSpaceBetween,
+	containerFlexStart: screenStyle.containerFlexStart,
+  linkSmall: linkStyle.linkSmall,
+	textSmall: textStyle.textSmall,
+	textErrorSmall: {...textStyle.textErrorSmall, ...spacingStyle.marginTop1},
+  marginBottom4: spacingStyle.marginBottom4,
+});
 
 export default OTPVerificationScreen;

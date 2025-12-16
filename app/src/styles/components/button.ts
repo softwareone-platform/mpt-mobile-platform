@@ -42,6 +42,7 @@ export const buttonStyle = {
 		alignItems: 'center' as const,
 		paddingHorizontal: Spacing.spacing3,
 		backgroundColor: Color.brand.primary,
+		marginBottom: Spacing.spacing2,
 	},
 	authPrimaryText: {
 		fontSize: Typography.fontSize.font3,
@@ -58,6 +59,7 @@ export const buttonStyle = {
 		backgroundColor: Color.gray.gray1,
 		borderWidth: 1,
 		borderColor: Color.gray.gray3,
+		marginBottom: Spacing.spacing2,
 	},
 	authSecondaryText: {
 		fontSize: Typography.fontSize.font3,

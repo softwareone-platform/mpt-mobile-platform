@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '@/context/AuthContext';
-import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
+import { AuthLayout, AuthInput, AuthButton, LegalFooter } from '@/components/auth';
 import { AuthStackParamList } from '@/types/navigation';
-import { Spacing, Color, Typography } from '@/styles/tokens';
 import { TestIDs } from '@/utils/testID';
+import { screenStyle, linkStyle } from '@/styles';
 
 type WelcomeScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
@@ -68,55 +68,44 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
       subtitleTestID={TestIDs.WELCOME_SUBTITLE}
       logoTestID={TestIDs.WELCOME_LOGO}
     >
-      <View style={styles.form}>
-        <AuthInput
-          testID={TestIDs.WELCOME_EMAIL_INPUT}
-          errorTestID={TestIDs.WELCOME_EMAIL_ERROR}
-          value={email}
-          onChangeText={handleEmailChange}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder={t('auth.welcome.emailPlaceholder')}
-          error={emailError}
-          containerStyle={styles.inputContainer}
-        />
-        <AuthButton
-          testID={TestIDs.WELCOME_CONTINUE_BUTTON}
-          title={t('auth.welcome.continueButton')}
-          onPress={handleContinue}
-          loading={loading}
-        />
-        <TouchableOpacity 
-          testID={TestIDs.WELCOME_TROUBLE_LINK}
-          style={styles.troubleLink} 
-          onPress={() => {
-            // TODO: Handle trouble signing in action
-            console.log('Trouble signing in pressed');
-          }}
-        >
-          <Text style={styles.troubleText}>{t('auth.welcome.troubleSigningIn')}</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <View>
+          <AuthInput
+            testID={TestIDs.WELCOME_EMAIL_INPUT}
+            errorTestID={TestIDs.WELCOME_EMAIL_ERROR}
+            value={email}
+            onChangeText={handleEmailChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder={t('auth.welcome.emailPlaceholder')}
+            error={emailError}
+          />
+          <AuthButton
+            testID={TestIDs.WELCOME_CONTINUE_BUTTON}
+            title={t('auth.welcome.continueButton')}
+            onPress={handleContinue}
+            loading={loading}
+          />
+          <TouchableOpacity
+            testID={TestIDs.WELCOME_TROUBLE_LINK}
+            onPress={() => {
+              // TODO: Handle trouble signing in action
+              console.log('Trouble signing in pressed');
+            }}
+          >
+            <Text style={styles.linkSmall}>{t('auth.welcome.troubleSigningIn')}</Text>
+          </TouchableOpacity>
+        </View>
+        <LegalFooter />
       </View>
     </AuthLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    marginBottom: Spacing.spacing2,
-  },
-  troubleLink: {
-    marginTop: Spacing.spacing2,
-  },
-  troubleText: {
-    fontSize: Typography.fontSize.font2,
-    color: Color.brand.primary,
-    fontWeight: Typography.fontWeight.regular,
-  },
+  container: screenStyle.containerSpaceBetween,
+  linkSmall: linkStyle.linkSmall,
 });
 
 export default WelcomeScreen;
