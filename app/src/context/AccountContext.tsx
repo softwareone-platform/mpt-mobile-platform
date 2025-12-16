@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAccountApi } from '@/services/accountService';
 import { useAuth } from '@/context/AuthContext';
 import { UserData, UserAccount, SpotlightItem } from '@/types/api';
@@ -19,14 +20,12 @@ interface AccountContextValue {
 const AccountContext = createContext<AccountContextValue | undefined>(undefined);
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [userDataLoading, setUserDataLoading] = useState<boolean>(false);
-  const [userDataError, setUserDataError] = useState<boolean>(false);
   const [userAccountsData, setUserAccountsData] = useState<UserAccount[]>([]);
   const [spotlightData, setSpotlightData] = useState<Record<string, SpotlightItem[]>>({});
   const [spotlightError, setSpotlightError] = useState<boolean>(false);
   const [spotlightDataLoading, setSpotlightDataLoading] = useState<boolean>(false);
 
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const {
     getUserData,
@@ -37,25 +36,15 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
   const userId = user?.["https://claims.softwareone.com/userId"];
 
-  const fetchUserData = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      setUserDataLoading(true);
-      const response = await getUserData(userId);
-    
-      setUserData(response);
-      setUserDataError(false);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error fetching full user data:", error.message);
-      }
-      setUserData(null);
-      setUserDataError(true);
-    } finally {
-      setUserDataLoading(false);
-    }
-  }, [userId, getUserData]);
+  const {
+    data: userData = null,
+    isLoading: userDataLoading,
+    isError: userDataError,
+  } = useQuery({
+    queryKey: ['userData', userId],
+    queryFn: () => getUserData(userId!),
+    enabled: !!userId,
+  });
 
   const fetchUserAccountsData = useCallback(async () => {
     if (!userId) return;
@@ -73,15 +62,16 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const switchAccount = useCallback(
     async (accountId: string) => {
       if (!userId) return;
-
+      
       try {
         await apiSwitchAccount(userId, accountId);
-        await fetchUserData();
+        queryClient.invalidateQueries({ queryKey: ['userData', userId] });
       } catch (error) {
         console.error("Error switching account:", error);
+        throw error;
       }
     },
-    [userId, apiSwitchAccount, fetchUserData]
+    [userId, apiSwitchAccount, queryClient]
   );
 
   const fetchSpotlightData = useCallback(async () => {
@@ -111,9 +101,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   }, [userData, fetchSpotlightData]);
 
   useEffect(() => {
-    fetchUserData();
     fetchUserAccountsData();
-  }, [fetchUserData, fetchUserAccountsData]);
+  }, [fetchUserAccountsData]);
 
   return (
     <AccountContext.Provider
