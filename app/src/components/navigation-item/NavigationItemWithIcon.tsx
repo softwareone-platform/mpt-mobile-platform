@@ -8,10 +8,11 @@ type Props = {
   title: string;
   icon: string;
   isLast?: boolean;
+  isDisabled?: boolean;
   onPress?: () => void;
 };
 
-const NavigationItemWithIcon = ({ title, icon, isLast, onPress }: Props) => (
+const NavigationItemWithIcon = ({ title, icon, isLast, isDisabled, onPress }: Props) => (
   <TouchableOpacity
     style={styles.container}
     onPress={onPress}
@@ -20,7 +21,7 @@ const NavigationItemWithIcon = ({ title, icon, isLast, onPress }: Props) => (
     <View style={styles.iconWrapper}>
       <OutlinedIcon 
         name={icon as keyof typeof OutlinedIcons}
-        color={Color.brand.primary}
+        color={isDisabled ? Color.gray.gray3 : Color.brand.primary}
         size={24}
       />
     </View>
@@ -28,7 +29,7 @@ const NavigationItemWithIcon = ({ title, icon, isLast, onPress }: Props) => (
       <View style={styles.textContainer}>
         <Text style={styles.title}>{title}</Text>
       </View>
-      <NavigationItemChevron />
+      {!isDisabled && <NavigationItemChevron />}
     </View>
   </TouchableOpacity>
 );

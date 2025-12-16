@@ -59,6 +59,12 @@ describe('testID utils', () => {
       expect(TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX).toBe('profile-account-item');
     });
 
+    it('should have personal information screen testIDs', () => {
+      expect(TestIDs.PERSONAL_INFO_LOADING_INDICATOR).toBe('personal-info-loading-indicator');
+      expect(TestIDs.PERSONAL_INFO_ERROR_STATE).toBe('personal-info-error-state');
+      expect(TestIDs.PERSONAL_INFO_EMPTY_STATE).toBe('personal-info-empty-state');
+    });
+
     it('should have spotlight screen testIDs', () => {
       expect(TestIDs.SPOTLIGHT_LOGOUT_BUTTON).toBe('spotlight-logout-button');
       expect(TestIDs.SPOTLIGHT_FILTER_PREFIX).toBe('spotlight-filter');

@@ -1,28 +1,34 @@
 import { useTranslation } from 'react-i18next';
 import { View, ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { RouteProp, useRoute} from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation} from '@react-navigation/native';
 import { cardStyle, screenStyle, buttonStyle, Spacing } from '@/styles';
 import NavigationItemWithIcon from '@/components/navigation-item/NavigationItemWithIcon';
 import type { ProfileStackParamList } from '@/types/navigation';
 import AccountSummary from '@/components/account-summary/AccountSummary';
 import { useAuth } from '@/context/AuthContext';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type UserDetailsScreen = Exclude<keyof ProfileStackParamList, 'profile' | 'userSettings'>;
 
 type UserSettingsItem = {
-  name: keyof ProfileStackParamList;
+  name: UserDetailsScreen;
   icon: string;
+  isDisabled?: boolean;
 };
 
 type UserSettingsRouteProp = RouteProp<ProfileStackParamList, 'userSettings'>;
 
+type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
+
 const userDetailsData: Array<UserSettingsItem> = [
-  { name: 'personalInformation', icon: 'credit-card' },
-  { name: 'regionalSettings', icon: 'language' },
-  { name: 'security', icon: 'lock' },
+  { name: 'personalInformation', icon: 'credit-card', isDisabled: false },
+  { name: 'regionalSettings', icon: 'language', isDisabled: true },
+  { name: 'security', icon: 'lock', isDisabled: true },
 ];
 
 const communicationData: Array<UserSettingsItem> = [
-  { name: 'notificationSettings', icon: 'notifications' },
-  { name: 'emailSettings', icon: 'email' },
+  { name: 'notificationSettings', icon: 'notifications', isDisabled: true },
+  { name: 'emailSettings', icon: 'email', isDisabled: true },
 ];
 
 const UserSettingsScreen = () => {
@@ -30,6 +36,7 @@ const UserSettingsScreen = () => {
   const { t } = useTranslation();
   const { params } = useRoute<UserSettingsRouteProp>();
   const { id, name, icon } = params;
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   const handleLogout = async () => {
     try {
@@ -47,7 +54,7 @@ const UserSettingsScreen = () => {
         subtitle={id}
         icon={icon}
       />
-      <View >
+      <View>
         <Text style={styles.sectionHeader}>{t('userSettingsScreen.userDetails')}</Text>
         <View style={styles.containerCard}>
           {userDetailsData.map((item, index) => (
@@ -56,6 +63,8 @@ const UserSettingsScreen = () => {
               title={t(`userSettingsScreen.${item.name}`)}
               icon={item.icon}
               isLast={index === userDetailsData.length - 1}
+              isDisabled={item.isDisabled}
+              onPress={item.isDisabled ? undefined : () => navigation.navigate(item.name)}
             />
           ))}
         </View>
@@ -69,6 +78,8 @@ const UserSettingsScreen = () => {
               title={t(`userSettingsScreen.${item.name}`)}
               icon={item.icon}
               isLast={index === communicationData.length - 1}
+              isDisabled={item.isDisabled}
+              onPress={item.isDisabled ? undefined : () => navigation.navigate(item.name)}
             />
           ))}
         </View>
