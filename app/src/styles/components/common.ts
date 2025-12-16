@@ -19,6 +19,16 @@ export const screenStyle = {
   containerFillScreen: {
     flexShrink: 1,
   },
+  containerSpaceBetween: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  containerFlexStart: {
+    justifyContent: 'flex-start',
+  },
+  contentFillContainer: {
+    flexGrow: 1,
+  },
   sectionHeader: {
     fontSize: Typography.fontSize.font2,
     textTransform: 'uppercase',
@@ -26,10 +36,23 @@ export const screenStyle = {
     marginBottom: Spacing.spacing1,
     marginLeft: Spacing.spacing2,
   },
-  contentFillContainer: {
-    flexGrow: 1,
+  footerContainer: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.spacing2,
   },
   noPaddingTop: {
     paddingTop: 0,
   },
 } as const;
+
+export const spacingStyle = {
+  marginLeft3: { 
+    marginLeft: Spacing.spacing3
+  },
+  marginBottom4: { 
+    marginBottom: Spacing.spacing4
+  },
+  marginTop1: { 
+    marginTop: Spacing.spacing1
+  },
+ } as const;
