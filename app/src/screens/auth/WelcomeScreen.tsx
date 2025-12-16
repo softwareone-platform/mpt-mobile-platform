@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthLayout, AuthInput, AuthButton, LegalFooter } from '@/components/auth';
 import { AuthStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
-import { screenStyle, spacingStyle, linkStyle } from '@/styles';
+import { screenStyle, linkStyle } from '@/styles';
 
 type WelcomeScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
