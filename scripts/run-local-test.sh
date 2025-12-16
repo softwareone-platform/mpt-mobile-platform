@@ -52,7 +52,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --platform, -p PLATFORM          Target platform: ios or android (default: ios)"
             echo "  --build, -b                      Build release version of the app before testing"
             echo "  --skip-build, -s                 Skip build and install existing app from last build"
-            echo "  --build-from-artifact URL        Download and install app from artifact URL"
+            echo "  --build-from-artifact URL        Download and install app from artifact URL (zip or apk)"
             echo "  --verbose, -v                    Enable verbose output"
             echo "  --help, -h                       Show this help message"
             echo ""
@@ -64,7 +64,8 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 --build welcome                        # Build iOS and run tests"
             echo "  $0 --platform android --build welcome     # Build Android and run"
             echo "  $0 --skip-build all                       # Install last build and run all tests"
-            echo "  $0 --build-from-artifact URL welcome      # Download artifact and run tests"
+            echo "  $0 --build-from-artifact URL welcome      # Download artifact (zip) and run tests"
+            echo "  $0 --platform android --build-from-artifact URL.apk welcome  # Download APK directly"
             exit 0
             ;;
         -*)
@@ -179,40 +180,56 @@ install_from_artifact() {
     TEMP_DIR=$(mktemp -d)
     log "Using temporary directory: $TEMP_DIR" "verbose"
     
+    # Determine file type from URL
+    local is_direct_apk=false
+    local download_filename="artifact.zip"
+    
+    if [ "$PLATFORM" = "android" ] && [[ "$artifact_url" == *.apk ]]; then
+        is_direct_apk=true
+        download_filename="app.apk"
+        log "Detected direct APK download" "verbose"
+    fi
+    
     # Download the artifact
     log "Downloading artifact..." "info"
-    if ! curl -L -f -o "$TEMP_DIR/artifact.zip" "$artifact_url"; then
+    if ! curl -L -f -o "$TEMP_DIR/$download_filename" "$artifact_url"; then
         log "❌ Failed to download artifact from $artifact_url" "info"
         rm -rf "$TEMP_DIR"
         exit 1
     fi
     
     # Verify download
-    if [ ! -f "$TEMP_DIR/artifact.zip" ]; then
+    if [ ! -f "$TEMP_DIR/$download_filename" ]; then
         log "❌ Download failed - file not found" "info"
         rm -rf "$TEMP_DIR"
         exit 1
     fi
     
-    FILE_SIZE=$(stat -f%z "$TEMP_DIR/artifact.zip" 2>/dev/null || stat -c%s "$TEMP_DIR/artifact.zip")
+    FILE_SIZE=$(stat -f%z "$TEMP_DIR/$download_filename" 2>/dev/null || stat -c%s "$TEMP_DIR/$download_filename")
     log "✅ Downloaded artifact (${FILE_SIZE} bytes)" "info"
     
-    # Extract the artifact
-    log "📦 Extracting artifact..." "info"
-    if ! unzip -q "$TEMP_DIR/artifact.zip" -d "$TEMP_DIR/"; then
-        log "❌ Failed to extract artifact" "info"
-        rm -rf "$TEMP_DIR"
-        exit 1
+    # Extract the artifact if it's a zip file
+    if [ "$is_direct_apk" = false ]; then
+        log "📦 Extracting artifact..." "info"
+        if ! unzip -q "$TEMP_DIR/$download_filename" -d "$TEMP_DIR/"; then
+            log "❌ Failed to extract artifact" "info"
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
     fi
     
     if [ "$PLATFORM" = "android" ]; then
         # Install Android APK
         log "🤖 Installing Android APK..." "info"
         
-        # Find the APK file
-        APK_PATH=$(find "$TEMP_DIR" -name "*.apk" -type f | head -1)
+        # Find the APK file (either downloaded directly or extracted from zip)
+        if [ "$is_direct_apk" = true ]; then
+            APK_PATH="$TEMP_DIR/$download_filename"
+        else
+            APK_PATH=$(find "$TEMP_DIR" -name "*.apk" -type f | head -1)
+        fi
         
-        if [ -z "$APK_PATH" ]; then
+        if [ -z "$APK_PATH" ] || [ ! -f "$APK_PATH" ]; then
             log "❌ No APK file found in artifact" "info"
             log "Contents of artifact:" "verbose"
             ls -la "$TEMP_DIR/" 2>/dev/null

@@ -138,6 +138,58 @@ jobs:
           TEMPORARY_AUTH0_TOKEN=
           EOF
 
+      - name: Verify .env file
+        run: |
+          echo "🔍 Verifying .env file..."
+          
+          # Check file exists
+          if [ ! -f ".env" ]; then
+            echo "❌ ERROR: .env file not created"
+            exit 1
+          fi
+          
+          # Show .env structure (masking sensitive values)
+          echo "📄 .env file contents (masked):"
+          while IFS= read -r line || [ -n "$line" ]; do
+            if [[ "$line" =~ ^[[:space:]]*# ]] || [[ -z "$line" ]]; then
+              echo "$line"
+            elif [[ "$line" =~ ^([A-Z_]+)=(.*)$ ]]; then
+              key="${BASH_REMATCH[1]}"
+              value="${BASH_REMATCH[2]}"
+              if [ -n "$value" ]; then
+                echo "$key=***[${#value} chars]"
+              else
+                echo "$key=[EMPTY]"
+              fi
+            else
+              echo "$line"
+            fi
+          done < .env
+          
+          # Verify required variables have values
+          REQUIRED_VARS="AUTH0_DOMAIN AUTH0_CLIENT_ID AUTH0_SCHEME"
+          MISSING_VARS=""
+          
+          for var in $REQUIRED_VARS; do
+            value=$(grep "^$var=" .env | cut -d'=' -f2-)
+            if [ -z "$value" ]; then
+              MISSING_VARS="$MISSING_VARS $var"
+              echo "❌ $var is empty or missing"
+            else
+              echo "✅ $var is set"
+            fi
+          done
+          
+          if [ -n "$MISSING_VARS" ]; then
+            echo ""
+            echo "❌ ERROR: Missing required environment variables:$MISSING_VARS"
+            echo "Please ensure the AUTH0_CLIENT_ID_TEST secret is configured in GitHub repository settings."
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All required environment variables are set"
+
       - name: Get version info
         id: version
         working-directory: ./app

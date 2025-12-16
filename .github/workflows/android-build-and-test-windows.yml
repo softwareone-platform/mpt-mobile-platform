@@ -82,8 +82,11 @@ jobs:
     outputs:
       apk_path: ${{ steps.find-apk.outputs.apk_path }}
       artifact_name: ${{ steps.artifact-info.outputs.artifact_name }}
+      download_url: ${{ steps.artifact-info.outputs.download_url }}
+      api_url: ${{ steps.artifact-info.outputs.api_url }}
       package_name: ${{ steps.verify-apk.outputs.package_name }}
       release_tag: ${{ steps.create-release.outputs.release_tag }}
+      asset_url: ${{ steps.create-release.outputs.asset_url }}
 
     steps:
       - name: Checkout code
@@ -142,6 +145,56 @@ jobs:
           AUTH0_SCHEME=com.softwareone.marketplaceMobile
           TEMPORARY_AUTH0_TOKEN=
           "@ | Out-File -FilePath .env -Encoding utf8
+
+      - name: Verify .env file
+        run: |
+          Write-Host "🔍 Verifying .env file..."
+          
+          # Check file exists
+          if (-not (Test-Path ".env")) {
+            Write-Host "❌ ERROR: .env file not created"
+            exit 1
+          }
+          
+          # Show .env structure (masking sensitive values)
+          Write-Host "📄 .env file contents (masked):"
+          Get-Content ".env" | ForEach-Object {
+            if ($_ -match '^([A-Z_]+)=(.*)$') {
+              $key = $matches[1]
+              $value = $matches[2]
+              if ($value) {
+                Write-Host "$key=***[$($value.Length) chars]"
+              } else {
+                Write-Host "$key=[EMPTY]"
+              }
+            } else {
+              Write-Host $_
+            }
+          }
+          
+          # Verify required variables have values
+          $requiredVars = @("AUTH0_DOMAIN", "AUTH0_CLIENT_ID", "AUTH0_SCHEME")
+          $missingVars = @()
+          $content = Get-Content ".env" -Raw
+          
+          foreach ($var in $requiredVars) {
+            if ($content -match "^$var=(.+)$" -and $matches[1].Trim()) {
+              Write-Host "✅ $var is set"
+            } else {
+              $missingVars += $var
+              Write-Host "❌ $var is empty or missing"
+            }
+          }
+          
+          if ($missingVars.Count -gt 0) {
+            Write-Host ""
+            Write-Host "❌ ERROR: Missing required environment variables: $($missingVars -join ', ')"
+            Write-Host "Please ensure the AUTH0_CLIENT_ID_TEST secret is configured in GitHub repository settings."
+            exit 1
+          }
+          
+          Write-Host ""
+          Write-Host "✅ All required environment variables are set"
 
       - name: Get version info
         id: version
@@ -274,7 +327,36 @@ jobs:
         run: |
           $ArtifactName = "android-apk-windows-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-${{ github.sha }}"
           "artifact_name=$ArtifactName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          
+          # Generate download URLs
+          $DownloadUrl = "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          $ApiUrl = "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          "download_url=$DownloadUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "api_url=$ApiUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          
           Write-Host "📦 Artifact name: $ArtifactName"
+          Write-Host "🔗 Download URL: $DownloadUrl"
+          
+          # Write to step summary
+          @"
+          ## 📦 Artifact Information
+          
+          **Artifact Name:** ``$ArtifactName``
+          **Download URL:** [$DownloadUrl]($DownloadUrl)
+          **API URL:** ``$ApiUrl``
+          
+          ### 🔗 Use in Other Workflows:
+          ``````yaml
+          - name: Download Build Artifact
+            uses: actions/download-artifact@v4
+            with:
+              name: $ArtifactName
+              github-token: `${{ secrets.GITHUB_TOKEN }}
+              repository: ${{ github.repository }}
+              run-id: ${{ github.run_id }}
+          ``````
+          "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -303,7 +385,22 @@ jobs:
             --prerelease \
             "$APK_PATH#Android-APK-Windows-${{ env.BUILD_MODE }}.apk"
           
+          # Get the release asset download URL
+          ASSET_URL=$(gh release view "$TAG_NAME" --json assets --jq '.assets[0].url')
+          
           echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "asset_url=$ASSET_URL" >> $GITHUB_OUTPUT
+          
+          # Add to step summary
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Release Asset Created:" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Tag:** \`$TAG_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Asset URL:** [$ASSET_URL]($ASSET_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Copy-Paste for External Workflows:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
+          echo "download_url: \"$ASSET_URL\"" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         env:
           GH_TOKEN: ${{ github.token }}
 

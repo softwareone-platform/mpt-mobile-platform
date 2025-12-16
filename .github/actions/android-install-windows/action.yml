@@ -381,16 +381,18 @@ runs:
         Write-Host "Starting ADB server..."
         & $AdbPath start-server
         
-      # Start emulator in background with optimized settings for CI
-      $EmulatorArgs = @(
-        "-avd", $AvdName,
-        "-no-window",
-        "-no-audio",
-        "-no-boot-anim",
-        "-gpu", "swiftshader_indirect",
-        "-no-snapshot",
-        "-memory", "4096"
-      )        Write-Host "Starting emulator with args: $($EmulatorArgs -join ' ')"
+        # Start emulator in background with optimized settings for CI
+        $EmulatorArgs = @(
+          "-avd", $AvdName,
+          "-no-window",
+          "-no-audio",
+          "-no-boot-anim",
+          "-gpu", "swiftshader_indirect",
+          "-no-snapshot",
+          "-memory", "4096"
+        )
+        
+        Write-Host "Starting emulator with args: $($EmulatorArgs -join ' ')"
         
         $EmulatorProcess = Start-Process -FilePath $EmulatorPath `
           -ArgumentList $EmulatorArgs `
