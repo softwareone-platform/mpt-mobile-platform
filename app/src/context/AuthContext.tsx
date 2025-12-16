@@ -3,7 +3,7 @@ import { PortalVersionInfo } from '@/services/portalVersionService';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
 import { tokenProvider } from '@/lib/tokenProvider';
-import { usePortalVersion } from '@/hooks/usePortalVersion';
+import { usePortalVersion } from '@/hooks/queries/usePortalVersion';
 
 export type AuthState = 'loading' | 'unauthenticated' | 'authenticated';
 

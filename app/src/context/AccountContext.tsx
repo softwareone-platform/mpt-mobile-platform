@@ -1,10 +1,10 @@
 import { createContext, useContext, useCallback, ReactNode } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { UserData, UserAccount, SpotlightItem } from '@/types/api';
-import { useUserData } from '@/hooks/useUserData';
-import { useSpotlightData } from '@/hooks/useSpotlightData';
-import { useUserAccountsData } from '@/hooks/useUserAccountsData';
-import { useSwitchAccount } from '@/hooks/useSwitchAccount';
+import { useUserData } from '@/hooks/queries/useUserData';
+import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
+import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
+import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
 
 interface AccountContextValue {
   userData: UserData | null;
