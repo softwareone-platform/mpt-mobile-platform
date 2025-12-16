@@ -9,6 +9,9 @@ export const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 1, // 1 minute
       refetchOnReconnect: true,  
       retry: 1,
-    }
+    },
+    mutations: {
+      retry: 1,
+    },
   },
 });

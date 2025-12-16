@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccountApi } from '@/services/accountService';
 import { useAuth } from '@/context/AuthContext';
 import { UserData, UserAccount, SpotlightItem } from '@/types/api';
@@ -59,19 +59,19 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [userId, getUserAccountsData]);
 
+  const switchAccountMutation = useMutation({
+    mutationFn: (accountId: string) => apiSwitchAccount(userId!, accountId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userData', userId] });
+    },
+  });
+
   const switchAccount = useCallback(
     async (accountId: string) => {
       if (!userId) return;
-      
-      try {
-        await apiSwitchAccount(userId, accountId);
-        queryClient.invalidateQueries({ queryKey: ['userData', userId] });
-      } catch (error) {
-        console.error("Error switching account:", error);
-        throw error;
-      }
+      await switchAccountMutation.mutateAsync(accountId);
     },
-    [userId, apiSwitchAccount, queryClient]
+    [userId, switchAccountMutation]
   );
 
   const fetchSpotlightData = useCallback(async () => {
