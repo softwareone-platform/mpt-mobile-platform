@@ -10,7 +10,7 @@ export default {
   expo: {
     name: "SoftwareOne",
     slug: "softwareone-marketplace-mobile",
-    version: "4.0.0",
+    version: "1.3.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     scheme: AUTH0_SCHEME,
@@ -33,7 +33,8 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.softwareone.marketplaceMobile"
+      bundleIdentifier: "com.softwareone.marketplaceMobile",
+      buildNumber: "1"
     },
     android: {
       splash: {
