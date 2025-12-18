@@ -261,18 +261,20 @@ scripts\windows\run-local-test-android.bat --emulator Pixel_8_API_34 welcome
 Alternative with better error handling:
 
 ```powershell
-# Run specific suite
+# Run specific suite (uses .env file for Auth0 config)
 .\scripts\windows\run-local-test-android.ps1 welcome
 
-# Build and run
-.\scripts\windows\run-local-test-android.ps1 -Build -Environment dev -ClientId YOUR_ID welcome
-
-# Skip build
+# Skip build, reuse last APK
 .\scripts\windows\run-local-test-android.ps1 -SkipBuild welcome
 
 # Use specific emulator
 .\scripts\windows\run-local-test-android.ps1 -EmulatorName "Pixel_8_API_34" welcome
+
+# Build and run (requires .env file with Auth0 configuration)
+.\scripts\windows\run-local-test-android.ps1 -Build welcome
 ```
+
+> **Note:** The PowerShell script supports legacy `-Environment` and `-ClientId` parameters for backwards compatibility, but the recommended approach is to configure Auth0 settings in the `.env` file in the `app\` directory.
 
 ### Manual Testing Workflow
 
@@ -328,7 +330,14 @@ Checks and validates your development environment.
 
 ### `scripts\windows\run-local-test-android.ps1`
 
-PowerShell alternative to the batch script with same functionality.
+PowerShell alternative to the batch script with enhanced error handling.
+
+| Parameter | Description |
+|-----------|-------------|
+| `-Build` | Build the app before testing (requires `.env` file) |
+| `-SkipBuild` | Skip build and install existing APK from last build |
+| `-EmulatorName` | Specify emulator AVD name to start |
+| `TestTarget` | Suite name, spec file, or 'all' (required) |
 
 ---
 

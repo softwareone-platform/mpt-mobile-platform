@@ -74,11 +74,11 @@ The framework automatically selects the correct capabilities based on `PLATFORM_
 ### iOS Release Build for Testing
 Use the testing script for production-like builds:
 ```bash
-./scripts/run-local-test.sh --platform ios --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+./scripts/run-local-test.sh --platform ios --build welcome
 ```
 - Builds **Release** configuration
 - Optimized for performance testing  
-- **Requires `--client-id`** for Auth0 configuration
+- **Requires `.env` file** in `app/` directory with Auth0 configuration
 - Suitable for comprehensive test suites
 
 ### iOS Development Build and Deployment
@@ -99,37 +99,37 @@ This script performs a complete deployment cycle:
 6. Launches the app
 
 **iOS Deploy Script Options:**
-- `--client-id`: Auth0 client ID (required if `.env` not configured)
+- `--client-id`: Auth0 client ID (creates/updates `.env` file)
 - `--release`: Build in release mode (default: debug)
 - `--simulator`: Specify simulator name
+- `--force-boot`: Force boot simulator even if already running
 - `--logs`: Show app logs after launch
 - `--verbose`: Show detailed output
 
 ### Android Build and Deployment
 Use the deployment script for Android:
 ```bash
-# With client ID
-./scripts/deploy-android.sh --env dev --client-id YOUR_AUTH0_CLIENT_ID
+# With client ID (creates/updates .env file)
+./scripts/deploy-android.sh
 
-# With existing .env file
-./scripts/deploy-android.sh --env dev
+# Release build
+./scripts/deploy-android.sh --release
 ```
 This script performs a complete Android deployment:
 1. Validates environment (Android SDK, JDK)
 2. Checks for running emulator or connected device
-3. Configures Auth0 environment
-4. Uninstalls existing app
-5. Builds Android app with Expo
-6. Installs on emulator/device
-7. Launches the app
+3. Reads Auth0 configuration from `.env` file
+4. Builds Android app with Expo
+5. Installs on emulator/device
+6. Launches the app
 
 **Android Deploy Script Options:**
-- `--env`: Environment (dev, test, prod) - required
-- `--client-id`: Auth0 client ID (required if `.env` not configured)
-- `--emulator`: Specify emulator name to auto-start
+- `--release`, `-r`: Build release version
+- `--debug`, `-d`: Build debug version (default)
+- `--emulator`: Specify emulator AVD name to auto-start
 - `--verbose`: Show detailed output
 
-> **Note:** Both deploy scripts can use an existing `.env` file with `AUTH0_CLIENT_ID` configured, making the `--client-id` parameter optional when the environment is already set up.
+> **Note:** Both deploy scripts require an `.env` file with `AUTH0_CLIENT_ID` configured in the `app/` directory.
 
 ### Fast Iteration Testing
 For repeated test runs without rebuilding:
@@ -497,8 +497,8 @@ The unified test script supports both iOS and Android:
 # Run specific file
 ./scripts/run-local-test.sh --platform ios ./test/specs/welcome.e2e.js
 
-# Build and run
-./scripts/run-local-test.sh --platform ios --build --env dev --client-id YOUR_ID welcome
+# Build and run (requires .env file)
+./scripts/run-local-test.sh --platform ios --build welcome
 ```
 
 **Android Tests:**
@@ -512,8 +512,8 @@ The unified test script supports both iOS and Android:
 # Run specific file
 ./scripts/run-local-test.sh --platform android ./test/specs/welcome.e2e.js
 
-# Build and run
-./scripts/run-local-test.sh --platform android --build --env dev --client-id YOUR_ID welcome
+# Build and run (requires .env file)
+./scripts/run-local-test.sh --platform android --build welcome
 ```
 
 **Using NPM Scripts:**

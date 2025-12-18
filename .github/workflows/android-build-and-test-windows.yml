@@ -38,11 +38,6 @@ on:
         required: false
         type: string
         default: 'pixel_6'
-      report-to-portal:
-        description: 'Send test results to ReportPortal'
-        required: false
-        type: boolean
-        default: false
 
   # Reusable workflow (called from other workflows)
   workflow_call:
@@ -67,11 +62,6 @@ on:
         required: false
         type: string
         default: 'pixel_6'
-      report-to-portal:
-        description: 'Send test results to ReportPortal'
-        required: false
-        type: boolean
-        default: false
 
 env:
   BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
@@ -482,7 +472,7 @@ jobs:
           airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
           airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
           # ReportPortal configuration (optional)
-          report_portal_api_key: ${{ inputs.report-to-portal && secrets.REPORT_PORTAL_API_KEY || '' }}
+          report_portal_api_key: ${{ secrets.REPORT_PORTAL_API_KEY || '' }}
           report_portal_endpoint: ${{ vars.REPORT_PORTAL_ENDPOINT }}
           report_portal_project: ${{ vars.REPORT_PORTAL_PROJECT }}
           report_portal_launch_name: "Android Appium Tests (Windows) - ${{ inputs.build-mode || 'Release' }}"

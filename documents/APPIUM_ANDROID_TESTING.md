@@ -57,7 +57,10 @@ emulator -avd YOUR_EMULATOR_NAME
 | Build + test | `./scripts/run-local-test.sh --platform android --build welcome` |
 | Reuse installed app | `./scripts/run-local-test.sh --platform android welcome` |
 | Test specific file | `./scripts/run-local-test.sh --platform android ./test/specs/welcome.e2e.js` |
-| Run all tests | `./scripts/run-local-test.sh --platform android all` |---
+| Run all tests | `./scripts/run-local-test.sh --platform android all` |
+| Test from artifact | `./scripts/run-local-test.sh --platform android --build-from-artifact URL welcome` |
+
+---
 
 ## Environment Setup
 
@@ -249,6 +252,9 @@ The primary way to run tests on Android:
 
 # Build and run (when you've made app changes)
 ./scripts/run-local-test.sh --platform android --build welcome
+
+# Download APK from artifact URL and run tests
+./scripts/run-local-test.sh --platform android --build-from-artifact https://example.com/app.apk welcome
 
 # Use verbose output for debugging
 ./scripts/run-local-test.sh --platform android --verbose welcome
