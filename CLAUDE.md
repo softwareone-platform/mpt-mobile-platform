@@ -19,8 +19,8 @@ MPT Mobile Platform is a React Native Expo mobile application for iOS and Androi
 **Key Dependencies:**
 - **Navigation**: `@react-navigation/native`, `@react-navigation/bottom-tabs`, `@react-navigation/stack`
 - **Authentication**: `react-native-auth0`, `expo-secure-store`, `jwt-decode`
-- **API**: `axios`
-- **State Management**: React Context API (built-in)
+- **API & Data Fetching**: `axios`, `@tanstack/react-query`
+- **State Management**: React Context API + TanStack React Query
 - **i18n**: `i18next`, `react-i18next`
 - **Environment**: `dotenv`, `react-native-dotenv`
 - **UI**: `@expo/vector-icons`, `expo-linear-gradient`, `react-native-svg`, `jdenticon`
@@ -38,6 +38,7 @@ app/
 │   │   ├── auth/               # Authentication components (AuthButton, OTPInput, etc.)
 │   │   ├── navigation/         # Navigation components (stacks, tabs)
 │   │   ├── common/             # Common components (DynamicIcon, Avatar, etc.)
+│   │   ├── filters/            # Filter components for Spotlight
 │   │   ├── tabs/               # Tab components
 │   │   ├── tab-item/           # Tab item components
 │   │   ├── navigation-item/    # Navigation item components
@@ -52,7 +53,7 @@ app/
 │   │   └── NavigationContext.tsx # Navigation state management
 │   ├── screens/                # Screen components
 │   │   ├── auth/               # Auth screens (Welcome, OTP verification)
-│   │   ├── account/            # Account screens (Profile, Settings)
+│   │   ├── account/            # Account screens (Profile, Settings, Personal Information)
 │   │   ├── spotlight/          # Spotlight screen
 │   │   ├── loading/            # Loading screen
 │   │   ├── agreements/         # Agreements screen
@@ -68,7 +69,13 @@ app/
 │   │   ├── apiClient.ts        # Axios API client
 │   │   └── tokenProvider.ts    # Token management
 │   ├── hooks/                  # Custom React hooks
-│   │   └── useApi.ts           # API hook for data fetching
+│   │   ├── useApi.ts           # API hook for data fetching
+│   │   └── queries/            # TanStack React Query hooks
+│   │       ├── usePortalVersion.ts
+│   │       ├── useSpotlightData.ts
+│   │       ├── useSwitchAccount.ts
+│   │       ├── useUserAccountsData.ts
+│   │       └── useUserData.ts
 │   ├── styles/                 # Design system and styles
 │   │   ├── tokens/             # Design tokens (colors, typography, spacing, shadows)
 │   │   ├── components/         # Component styles
@@ -369,10 +376,10 @@ The project uses GitHub Actions for continuous integration and deployment.
 - Builds and deploys to TestFlight
 - Caches npm and CocoaPods dependencies
 - Uploads signed IPA and dSYMs (30-day retention)
-- Auto-increments version/build number
+- Auto-increments version/build number based on selection
 - Creates git tags for releases
-- Commits version bump back to repository
-- Requires TestFlight environment secrets
+- Creates PR for version bump (branch protection friendly)
+- Requires TestFlight + target environment secrets
 
 **Reusable Workflow** (`.github/workflows/reusable-build-test.yml`)
 - Shared build and test logic
@@ -485,24 +492,27 @@ The following secrets must be configured in the `TestFlight` GitHub environment 
 - `IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64` - Base64-encoded distribution certificate (.p12)
 - `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD` - Password for the distribution certificate
 - `IOS_PROVISIONING_PROFILE_BASE64` - Base64-encoded provisioning profile (.mobileprovision)
-- `PROVISIONING_PROFILE_SPECIFIER` - Name of the provisioning profile (e.g., "SoftwareONE Marketplace Mobile App Store")
 
-**Auth0 Configuration (Test Environment):**
-- `AUTH0_DOMAIN_TEST` - Test environment domain (e.g., login-test.pyracloud.com)
-- `AUTH0_CLIENT_ID_TEST` - Test environment client ID
-- `AUTH0_AUDIENCE_TEST` - Test environment audience (e.g., https://api-test.pyracloud.com/)
-- `AUTH0_API_URL_TEST` - Test environment API URL (e.g., https://api.s1.show/public/)
+**Required Secrets/Variables in Target Environment (test/prod):**
 
-**Auth0 Configuration (Production Environment - Optional):**
-- `AUTH0_DOMAIN_PROD` - Production environment domain
-- `AUTH0_CLIENT_ID_PROD` - Production environment client ID
-- `AUTH0_AUDIENCE_PROD` - Production environment audience
-- `AUTH0_API_URL_PROD` - Production environment API URL
+Auth0 configuration is stored in the target environment (test or prod), not in TestFlight:
 
-**App Configuration:**
-- Development Team ID: `47PY6J2KQC` (hardcoded in workflow)
-- Bundle ID: `com.softwareone.marketplaceMobile` (hardcoded in workflow)
-- App Store App ID: `6752612555` (hardcoded in workflow)
+**Secrets:**
+- `AUTH0_CLIENT_ID` - Auth0 client ID for the environment
+
+**Variables:**
+- `AUTH0_DOMAIN` - Auth0 domain (e.g., login-test.pyracloud.com)
+- `AUTH0_AUDIENCE` - API audience (e.g., https://api-test.pyracloud.com/)
+- `AUTH0_API_URL` - API base URL (e.g., https://api.s1.show/public/)
+- `AUTH0_SCOPE` - OAuth scopes (e.g., openid profile email offline_access)
+- `AUTH0_OTP_DIGITS` - Number of OTP digits (e.g., 6)
+- `AUTH0_SCHEME` - URL scheme for Auth0 callback
+
+**App Configuration (Hardcoded in Workflow):**
+- Development Team ID: `47PY6J2KQC`
+- Bundle ID: `com.softwareone.marketplaceMobile`
+- App Store App ID: `6752612555`
+- Provisioning Profile Specifier: `SoftwareONE Marketplace Mobile App Store`
 
 **How to Get These Values:**
 
@@ -529,9 +539,9 @@ The following secrets must be configured in the `TestFlight` GitHub environment 
 
 **Workflow Process:**
 
-1. Manual trigger with version bump selection
+1. Manual trigger with version bump selection (none, build, patch, minor, major)
 2. Runs tests
-3. Increments version/build number in app.json
+3. Increments version/build number in app.config.js based on selection
 4. Generates native iOS project with Expo prebuild
 5. Configures Xcode with Team ID
 6. Sets up App Store Connect API authentication
@@ -540,7 +550,7 @@ The following secrets must be configured in the `TestFlight` GitHub environment 
 9. Archives iOS app with Release configuration
 10. Exports signed IPA for App Store
 11. Uploads to TestFlight via `xcrun altool`
-12. Commits incremented build number back to repo
+12. Creates a PR with the version bump (for merging back to main)
 13. Creates git tag for the release
 14. Uploads IPA and dSYMs as artifacts (30-day retention)
 
@@ -643,7 +653,7 @@ Add new flags in `app/src/config/feature-flags/featureFlags.json`.
 
 ### State Management
 
-React Context API for global state management:
+React Context API for global state + TanStack React Query for server state:
 
 **AuthContext** (`app/src/context/AuthContext.tsx`):
 - Authentication state (logged in/out)
@@ -657,17 +667,24 @@ React Context API for global state management:
 - Navigation helpers
 - Tab switching logic
 
+**TanStack React Query** (`app/src/hooks/queries/`):
+- Server state management with caching
+- Automatic background refetching
+- Query hooks: `usePortalVersion`, `useSpotlightData`, `useUserData`, `useUserAccountsData`, `useSwitchAccount`
+
 **Usage:**
 ```typescript
 import { useAuth } from '@/context/AuthContext';
+import { useUserData } from '@/hooks/queries/useUserData';
 
 function MyComponent() {
   const { user, isAuthenticated, login, logout } = useAuth();
-  // Use auth state and methods
+  const { data, isLoading, error } = useUserData();
+  // Use auth state, methods, and server data
 }
 ```
 
-No Redux/MobX - keeping it simple with built-in Context API.
+No Redux/MobX - using Context API for client state and TanStack Query for server state.
 
 ### Navigation
 
@@ -944,7 +961,7 @@ These must match Auth0 dashboard configuration.
 10. **Node Version**: Use Node.js LTS (20.19.4+)
 11. **Android Emulator**: Must be running before `npm run android`
 12. **iOS Builds**: Require Xcode and iOS Simulator
-13. **Version**: Current app version is 4.0.0 (see `app/package.json`)
+13. **Version**: Current app version is 1.3.0 (see `app/app.config.js`)
 
 ## Git Workflow
 
@@ -1017,17 +1034,23 @@ See `.github/CODEOWNERS` for code review assignments.
 
 *Screens:*
 - Authentication: Welcome, OTP Verification, Loading
-- Account: Profile, User Settings
-- Spotlight: Main screen with nested tabs
+- Account: Profile, User Settings, Personal Information
+- Spotlight: Main screen with nested tabs and filters
 - Spotlight Tabs: Agreements, Invoices, Orders, Credit Memos, Statements, Subscriptions
 
 *Components:*
 - Auth components: AuthButton, AuthInput, AuthLayout, OTPInput
 - Navigation components: MainTabs, SecondaryTabs, stacks, AccountToolbarButton
 - Common components: DynamicIcon, JdenticonIcon, LinearGradient, OutlinedIcon, Avatar
+- Filter components: Spotlight filters for data filtering
 - Tab components: Tabs, TabItem
 - List components: ListItemWithImage
 - Account components: AccountSummary
+
+*Data Fetching:*
+- TanStack React Query integration
+- Query hooks for portal version, spotlight data, user data, accounts
+- Account switching functionality
 
 *Utilities & Services:*
 - Input validation utilities
@@ -1047,15 +1070,19 @@ See `.github/CODEOWNERS` for code review assignments.
 - Component tests (OTPInput, screens)
 - Service tests (API client, token provider, auth service)
 - Utility tests (validation, API errors, image utilities)
+- E2E testing with Appium (iOS and Android)
+- Windows testing support for Android
+
+*Legal & Compliance:*
+- Terms of use and privacy policy links
+- Export compliance (ITSAppUsesNonExemptEncryption)
 
 **In Progress:**
 - Additional main tabs (Search, Chat, Service Desk, Analytics)
-- API integration for all services
 - Enhanced error handling and retry logic
 - Deep linking support
 
 **Planned:**
-- Multi-account support
 - Real-time data sync
 - SonarCloud quality gates enforcement
 - Additional language translations

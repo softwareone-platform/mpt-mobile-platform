@@ -319,14 +319,14 @@ The project includes a complete TestFlight deployment workflow (`.github/workflo
 **What the workflow does:**
 
 1. Runs all tests to ensure code quality
-2. Increments version/build number in `app.json`
+2. Increments version/build number in `app.config.js` based on selection
 3. Generates native iOS project with Expo prebuild
 4. Configures code signing with distribution certificate
 5. Archives iOS app in Release mode
 6. Exports signed IPA for App Store distribution
 7. Uploads to TestFlight via App Store Connect API
-8. Commits incremented build number back to the repository
-9. Creates a git tag for the release (e.g., `v4.0.0-build123`)
+8. Creates a PR with the version bump (for merging back to main)
+9. Creates a git tag for the release (e.g., `v1.3.0-build3`)
 10. Uploads IPA and dSYMs as artifacts (30-day retention)
 
 **Build artifacts available:**
@@ -342,11 +342,13 @@ All secrets must be configured in the `TestFlight` GitHub environment:
 1. Go to Settings → Environments → TestFlight
 2. Add environment secrets
 
-**Required secrets list:**
+**Required secrets in TestFlight environment:**
 - App Store Connect API: `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_CONTENT`
-- Code Signing: `IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`, `IOS_PROVISIONING_PROFILE_BASE64`, `PROVISIONING_PROFILE_SPECIFIER`
-- Auth0 (Test): `AUTH0_DOMAIN_TEST`, `AUTH0_CLIENT_ID_TEST`, `AUTH0_AUDIENCE_TEST`, `AUTH0_API_URL_TEST`
-- Auth0 (Production): `AUTH0_DOMAIN_PROD`, `AUTH0_CLIENT_ID_PROD`, `AUTH0_AUDIENCE_PROD`, `AUTH0_API_URL_PROD`
+- Code Signing: `IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`, `IOS_PROVISIONING_PROFILE_BASE64`
+
+**Required secrets/variables in target environment (test/prod):**
+- Secret: `AUTH0_CLIENT_ID`
+- Variables: `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_API_URL`, `AUTH0_SCOPE`, `AUTH0_OTP_DIGITS`, `AUTH0_SCHEME`
 
 **Important Note on Secrets:**
 - GitHub secrets are read-only and cannot be copied between repositories

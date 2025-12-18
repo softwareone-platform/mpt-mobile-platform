@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { useAccountApi } from '@/services/accountService';
+import { createContext, useContext, useCallback, ReactNode } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { UserData, UserAccount, SpotlightItem } from '@/types/api';
-import { arrangeSpotlightData } from '@/utils/spotlight';
-import { SPOTLIGHT_CATEGORY } from '@/constants/spotlight';
+import { useUserData } from '@/hooks/queries/useUserData';
+import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
+import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
+import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
 
 interface AccountContextValue {
   userData: UserData | null;
@@ -19,101 +20,37 @@ interface AccountContextValue {
 const AccountContext = createContext<AccountContextValue | undefined>(undefined);
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [userDataLoading, setUserDataLoading] = useState<boolean>(false);
-  const [userDataError, setUserDataError] = useState<boolean>(false);
-  const [userAccountsData, setUserAccountsData] = useState<UserAccount[]>([]);
-  const [spotlightData, setSpotlightData] = useState<Record<string, SpotlightItem[]>>({});
-  const [spotlightError, setSpotlightError] = useState<boolean>(false);
-  const [spotlightDataLoading, setSpotlightDataLoading] = useState<boolean>(false);
-
   const { user } = useAuth();
-  const {
-    getUserData,
-    getUserAccountsData,
-    getSpotlightData,
-    switchAccount: apiSwitchAccount 
-  } = useAccountApi();
 
   const userId = user?.["https://claims.softwareone.com/userId"];
 
-  const fetchUserData = useCallback(async () => {
-    if (!userId) return;
+  const {
+    data: userData = null,
+    isLoading: userDataLoading,
+    isError: userDataError,
+  } = useUserData(userId);
 
-    try {
-      setUserDataLoading(true);
-      const response = await getUserData(userId);
-    
-      setUserData(response);
-      setUserDataError(false);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error fetching full user data:", error.message);
-      }
-      setUserData(null);
-      setUserDataError(true);
-    } finally {
-      setUserDataLoading(false);
-    }
-  }, [userId, getUserData]);
+  const {
+    data: spotlightDataRaw,
+    isLoading: spotlightDataLoading,
+    isError: spotlightError,
+  } = useSpotlightData(userId, userData);
 
-  const fetchUserAccountsData = useCallback(async () => {
-    if (!userId) return;
+  const spotlightData = spotlightDataRaw ?? {};
 
-    try {
-      const { data } = await getUserAccountsData(userId);
+  const {
+    data: userAccountsData = [],
+  } = useUserAccountsData(userId);
 
-      setUserAccountsData(data);
-    } catch (error) {
-      console.error('Error fetching user accounts:', error);
-      setUserAccountsData([]);
-    }
-  }, [userId, getUserAccountsData]);
+  const switchAccountMutation = useSwitchAccount(userId);
 
   const switchAccount = useCallback(
     async (accountId: string) => {
       if (!userId) return;
-
-      try {
-        await apiSwitchAccount(userId, accountId);
-        await fetchUserData();
-      } catch (error) {
-        console.error("Error switching account:", error);
-      }
+      await switchAccountMutation.mutateAsync(accountId);
     },
-    [userId, apiSwitchAccount, fetchUserData]
+    [userId, switchAccountMutation]
   );
-
-  const fetchSpotlightData = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      setSpotlightDataLoading(true);
-      const { data } = await getSpotlightData(userId);
-      const arrangedData = arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
-
-      setSpotlightData(arrangedData);
-      setSpotlightError(false); 
-    } catch (error) {
-      setSpotlightData({});
-      setSpotlightError(true);
-
-      console.error("Error fetching spotlight data:", error);
-    } finally {
-      setSpotlightDataLoading(false);
-    }
-  }, [userId, getSpotlightData]);
-
-  useEffect(() => {
-    if (!userData) return;
-
-    fetchSpotlightData();
-  }, [userData, fetchSpotlightData]);
-
-  useEffect(() => {
-    fetchUserData();
-    fetchUserAccountsData();
-  }, [fetchUserData, fetchUserAccountsData]);
 
   return (
     <AccountContext.Provider
