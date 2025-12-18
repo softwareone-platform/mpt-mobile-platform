@@ -373,14 +373,46 @@ jobs:
             app/ios/build/${{ env.SCHEME }}.xcarchive/dSYMs/
           retention-days: 30
 
-      - name: Commit build number increment
-        if: success()
+      - name: Create version bump PR
+        if: success() && inputs.version_bump != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BUILD="${{ steps.version.outputs.build }}"
+          BRANCH_NAME="chore/version-bump-${VERSION}-build${BUILD}"
+
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+
+          # Create a new branch for the version bump
+          git checkout -b "$BRANCH_NAME"
           git add app.config.js
-          git commit -m "chore: bump build number to ${{ steps.version.outputs.build }} [skip ci]" || echo "No changes to commit"
-          git push
+          git commit -m "chore: bump version to ${VERSION} build ${BUILD} [skip ci]"
+          git push origin "$BRANCH_NAME"
+
+          # Create PR using gh cli
+          gh pr create \
+            --title "chore: bump version to ${VERSION} build ${BUILD}" \
+            --body "$(cat <<EOF
+          ## Version Bump
+
+          This PR was automatically created by the TestFlight deployment workflow.
+
+          - **Version:** ${VERSION}
+          - **Build Number:** ${BUILD}
+          - **Environment:** ${{ inputs.environment }}
+
+          ### Changes
+          - Updated version/buildNumber in \`app/app.config.js\`
+
+          This PR should be merged to keep the version numbers in sync with TestFlight.
+          EOF
+          )" \
+            --base main \
+            --head "$BRANCH_NAME"
+
+          echo "PR created for version bump"
 
       - name: Create release tag
         if: success()
@@ -414,4 +446,5 @@ jobs:
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. Wait 10-15 minutes for App Store Connect processing" >> $GITHUB_STEP_SUMMARY
           echo "2. Check TestFlight: [App Store Connect](https://appstoreconnect.apple.com/apps/${{ env.APP_STORE_APP_ID }}/testflight/ios)" >> $GITHUB_STEP_SUMMARY
-          echo "3. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
+          echo "3. Merge the version bump PR to sync build numbers" >> $GITHUB_STEP_SUMMARY
+          echo "4. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
