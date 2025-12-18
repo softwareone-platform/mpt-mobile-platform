@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -8,6 +8,7 @@ import { AuthLayout, AuthInput, AuthButton, LegalFooter } from '@/components/aut
 import { AuthStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 import { screenStyle, linkStyle } from '@/styles';
+import { WELCOME_TROUBLE_URL } from '@/constants';
 
 type WelcomeScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
@@ -88,11 +89,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
             loading={loading}
           />
           <TouchableOpacity
-            testID={TestIDs.WELCOME_TROUBLE_LINK}
-            onPress={() => {
-              // TODO: Handle trouble signing in action
-              console.log('Trouble signing in pressed');
-            }}
+            testID={TestIDs.WELCOME_TROUBLE_LINK} 
+            onPress={() => Linking.openURL(WELCOME_TROUBLE_URL)}
           >
             <Text style={styles.linkSmall}>{t('auth.welcome.troubleSigningIn')}</Text>
           </TouchableOpacity>
