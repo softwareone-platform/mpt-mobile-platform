@@ -46,6 +46,23 @@ inputs:
   airtable_from_email:
     description: 'Airtable from email filter'
     required: true
+  # ReportPortal Configuration (Optional)
+  report_portal_api_key:
+    description: 'ReportPortal API key (leave empty to disable reporting)'
+    required: false
+    default: ''
+  report_portal_endpoint:
+    description: 'ReportPortal server endpoint'
+    required: false
+    default: ''
+  report_portal_project:
+    description: 'ReportPortal project name'
+    required: false
+    default: 'mpt-mobile'
+  report_portal_launch_name:
+    description: 'Name for the test launch in ReportPortal'
+    required: false
+    default: 'Android Appium Tests'
 
 runs:
   using: 'composite'
@@ -327,6 +344,12 @@ runs:
         AIRTABLE_BASE_ID: ${{ inputs.airtable_base_id }}
         AIRTABLE_TABLE_NAME: ${{ inputs.airtable_table_name }}
         AIRTABLE_FROM_EMAIL: ${{ inputs.airtable_from_email }}
+        # ReportPortal configuration (optional)
+        REPORT_PORTAL_API_KEY: ${{ inputs.report_portal_api_key }}
+        REPORT_PORTAL_ENDPOINT: ${{ inputs.report_portal_endpoint }}
+        REPORT_PORTAL_PROJECT: ${{ inputs.report_portal_project }}
+        REPORT_PORTAL_LAUNCH_NAME: ${{ inputs.report_portal_launch_name }}
+        REPORT_PORTAL_LAUNCH_DESCRIPTION: 'Android API ${{ inputs.api_level }} (${{ inputs.device_name }}) - GitHub Actions Run #${{ github.run_number }}'
       run: |
         echo "🧪 Running Appium tests with Android configuration..."
         echo ""
