@@ -32,39 +32,14 @@ env:
   PROVISIONING_PROFILE_SPECIFIER: 'SoftwareONE Marketplace Mobile App Store'
 
 jobs:
-  # First job: Get Auth0 config from target environment
-  get-config:
-    name: Get Environment Config
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    outputs:
-      auth0_domain: ${{ steps.config.outputs.auth0_domain }}
-      auth0_client_id: ${{ steps.config.outputs.auth0_client_id }}
-      auth0_audience: ${{ steps.config.outputs.auth0_audience }}
-      auth0_api_url: ${{ steps.config.outputs.auth0_api_url }}
-      auth0_scope: ${{ steps.config.outputs.auth0_scope }}
-      auth0_otp_digits: ${{ steps.config.outputs.auth0_otp_digits }}
-      auth0_scheme: ${{ steps.config.outputs.auth0_scheme }}
-    steps:
-      - name: Export Auth0 config
-        id: config
-        run: |
-          echo "auth0_domain=${{ vars.AUTH0_DOMAIN }}" >> $GITHUB_OUTPUT
-          echo "auth0_client_id=${{ secrets.AUTH0_CLIENT_ID }}" >> $GITHUB_OUTPUT
-          echo "auth0_audience=${{ vars.AUTH0_AUDIENCE }}" >> $GITHUB_OUTPUT
-          echo "auth0_api_url=${{ vars.AUTH0_API_URL }}" >> $GITHUB_OUTPUT
-          echo "auth0_scope=${{ vars.AUTH0_SCOPE }}" >> $GITHUB_OUTPUT
-          echo "auth0_otp_digits=${{ vars.AUTH0_OTP_DIGITS }}" >> $GITHUB_OUTPUT
-          echo "auth0_scheme=${{ vars.AUTH0_SCHEME }}" >> $GITHUB_OUTPUT
-
-  # Second job: Build and deploy using TestFlight environment for iOS signing
   deploy-testflight:
     name: Build and Deploy to TestFlight
-    needs: get-config
     runs-on: macos-latest
     timeout-minutes: 60
+    # Use target environment for Auth0 config (AUTH0_CLIENT_ID secret)
+    # iOS signing secrets are at repository level
     environment:
-      name: TestFlight
+      name: ${{ inputs.environment }}
       url: https://appstoreconnect.apple.com
 
     defaults:
@@ -119,17 +94,31 @@ jobs:
 
       - name: Setup environment variables
         run: |
+          # Auth0 config from environment variables and secrets
+          # AUTH0_CLIENT_ID comes from the target environment (test/prod)
+          # Other Auth0 vars come from environment variables
           cat > .env << EOF
-          AUTH0_DOMAIN=${{ needs.get-config.outputs.auth0_domain }}
-          AUTH0_CLIENT_ID=${{ needs.get-config.outputs.auth0_client_id }}
-          AUTH0_AUDIENCE=${{ needs.get-config.outputs.auth0_audience }}
-          AUTH0_SCOPE=${{ needs.get-config.outputs.auth0_scope }}
-          AUTH0_API_URL=${{ needs.get-config.outputs.auth0_api_url }}
-          AUTH0_OTP_DIGITS=${{ needs.get-config.outputs.auth0_otp_digits }}
-          AUTH0_SCHEME=${{ needs.get-config.outputs.auth0_scheme }}
+          AUTH0_DOMAIN=${{ vars.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_AUDIENCE=${{ vars.AUTH0_AUDIENCE }}
+          AUTH0_SCOPE=${{ vars.AUTH0_SCOPE }}
+          AUTH0_API_URL=${{ vars.AUTH0_API_URL }}
+          AUTH0_OTP_DIGITS=${{ vars.AUTH0_OTP_DIGITS }}
+          AUTH0_SCHEME=${{ vars.AUTH0_SCHEME }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"
+
+          # Verify critical variables are set
+          if [ -z "${{ vars.AUTH0_DOMAIN }}" ]; then
+            echo "::error::AUTH0_DOMAIN is not set in ${{ inputs.environment }} environment"
+            exit 1
+          fi
+          if [ -z "${{ secrets.AUTH0_CLIENT_ID }}" ]; then
+            echo "::error::AUTH0_CLIENT_ID secret is not set in ${{ inputs.environment }} environment"
+            exit 1
+          fi
+          echo "Auth0 configuration validated ✓"
 
       - name: Increment build number
         id: version
@@ -225,6 +214,7 @@ jobs:
 
       - name: Setup App Store Connect API
         run: |
+          # iOS signing secrets are at repository level
           mkdir -p ~/private_keys
           echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" | base64 -d > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8
 
@@ -238,6 +228,7 @@ jobs:
 
       - name: Setup iOS Distribution Certificate
         run: |
+          # iOS signing secrets are at repository level
           KEYCHAIN_NAME="build.keychain"
           KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
 
@@ -261,6 +252,7 @@ jobs:
 
       - name: Install Provisioning Profile
         run: |
+          # iOS signing secrets are at repository level
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
 
