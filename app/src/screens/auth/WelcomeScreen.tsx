@@ -90,7 +90,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
           />
           <TouchableOpacity
             testID={TestIDs.WELCOME_TROUBLE_LINK} 
-            onPress={() => Linking.openURL(WELCOME_TROUBLE_URL)}
+            onPress={() => Linking.openURL(HELP_SIGN_UP_URL)}
           >
             <Text style={styles.linkSmall}>{t('auth.welcome.troubleSigningIn')}</Text>
           </TouchableOpacity>
