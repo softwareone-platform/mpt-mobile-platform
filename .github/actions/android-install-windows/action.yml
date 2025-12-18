@@ -382,73 +382,111 @@ runs:
         & $AdbPath start-server
         
         # Start emulator in background with optimized settings for CI
+        # Note: Using -gpu auto to let emulator choose, and -accel auto for WHPX when available
+        # swiftshader_indirect can cause access violations on some Windows runners
         $EmulatorArgs = @(
           "-avd", $AvdName,
           "-no-window",
           "-no-audio",
           "-no-boot-anim",
-          "-gpu", "swiftshader_indirect",
+          "-gpu", "auto",
+          "-accel", "auto",
           "-no-snapshot",
-          "-memory", "4096"
+          "-memory", "4096",
+          "-cores", "2"
         )
         
         Write-Host "Starting emulator with args: $($EmulatorArgs -join ' ')"
         
-        $EmulatorProcess = Start-Process -FilePath $EmulatorPath `
-          -ArgumentList $EmulatorArgs `
-          -PassThru `
-          -NoNewWindow `
-          -RedirectStandardOutput "emulator_stdout.log" `
-          -RedirectStandardError "emulator_stderr.log"
-        
-        $EmulatorProcess.Id | Out-File -FilePath "emulator.pid"
-        Write-Host "Emulator PID: $($EmulatorProcess.Id)"
-        
-        # Wait for device to appear in ADB
-        Write-Host "⏳ Waiting for emulator to appear in ADB..."
-        
-        $AdbTimeout = 120
+        # Try first with auto GPU, if that fails we'll try swiftshader
+        $RetryCount = 0
+        $MaxRetries = 2
+        $GpuModes = @("auto", "swiftshader_indirect", "guest")
         $AdbReady = $false
+        $DeviceSerial = $null
         
-        for ($i = 1; $i -le $AdbTimeout; $i++) {
-          $Devices = & $AdbPath devices 2>&1
-          if ($Devices -match "emulator-") {
-            Write-Host "✅ Emulator appeared in ADB after $i seconds"
-            $AdbReady = $true
-            break
+        foreach ($GpuMode in $GpuModes) {
+          if ($AdbReady) { break }
+          
+          $RetryCount++
+          Write-Host "🔄 Attempt $RetryCount/$($GpuModes.Count) with GPU mode: $GpuMode"
+          
+          # Update GPU mode in args
+          $CurrentArgs = @(
+            "-avd", $AvdName,
+            "-no-window",
+            "-no-audio",
+            "-no-boot-anim",
+            "-gpu", $GpuMode,
+            "-no-snapshot",
+            "-memory", "4096",
+            "-cores", "2"
+          )
+          
+          # Add acceleration only for auto mode
+          if ($GpuMode -eq "auto") {
+            $CurrentArgs += @("-accel", "auto")
           }
           
-          if ($i % 10 -eq 0) {
-            Write-Host "⏳ Waiting for ADB... ($i/$AdbTimeout s)"
-            
-            # Check if emulator process is still running
-            if ($EmulatorProcess.HasExited) {
-              Write-Host "❌ Emulator process has exited with code: $($EmulatorProcess.ExitCode)"
+          $EmulatorProcess = Start-Process -FilePath $EmulatorPath `
+            -ArgumentList $CurrentArgs `
+            -PassThru `
+            -NoNewWindow `
+            -RedirectStandardOutput "emulator_stdout_$RetryCount.log" `
+            -RedirectStandardError "emulator_stderr_$RetryCount.log"
+          
+          $EmulatorProcess.Id | Out-File -FilePath "emulator.pid"
+          Write-Host "Emulator PID: $($EmulatorProcess.Id)"
+          
+          # Wait for device to appear in ADB (shorter timeout for retries)
+          $AdbTimeout = if ($RetryCount -eq $GpuModes.Count) { 120 } else { 45 }
+          
+          for ($i = 1; $i -le $AdbTimeout; $i++) {
+            $Devices = & $AdbPath devices 2>&1
+            if ($Devices -match "emulator-") {
+              Write-Host "✅ Emulator appeared in ADB after $i seconds with GPU mode: $GpuMode"
+              $AdbReady = $true
+              $DeviceSerial = ($Devices | Select-String "emulator-" | Select-Object -First 1).ToString().Split()[0]
               break
             }
+            
+            if ($i % 10 -eq 0) {
+              Write-Host "⏳ Waiting for ADB... ($i/$AdbTimeout s)"
+              
+              # Check if emulator process crashed
+              if ($EmulatorProcess.HasExited) {
+                Write-Host "⚠️ Emulator crashed with exit code: $($EmulatorProcess.ExitCode)"
+                Write-Host "Emulator stderr:"
+                if (Test-Path "emulator_stderr_$RetryCount.log") { 
+                  Get-Content "emulator_stderr_$RetryCount.log" -Tail 20 
+                }
+                break
+              }
+            }
+            
+            Start-Sleep -Seconds 1
           }
           
-          Start-Sleep -Seconds 1
+          # Kill emulator if it didn't work and we're retrying
+          if (-not $AdbReady -and -not $EmulatorProcess.HasExited) {
+            Write-Host "⚠️ Killing unresponsive emulator..."
+            Stop-Process -Id $EmulatorProcess.Id -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 3
+          }
         }
         
         if (-not $AdbReady) {
-          Write-Host "❌ ERROR: Emulator did not appear in ADB"
+          Write-Host "❌ ERROR: Emulator failed to start after $($GpuModes.Count) attempts"
           & $AdbPath devices
           
-          Write-Host "Emulator stdout:"
-          if (Test-Path "emulator_stdout.log") { Get-Content "emulator_stdout.log" -Tail 50 }
+          foreach ($n in 1..$RetryCount) {
+            Write-Host "--- Attempt $n logs ---"
+            Write-Host "Emulator stdout:"
+            if (Test-Path "emulator_stdout_$n.log") { Get-Content "emulator_stdout_$n.log" -Tail 30 }
+            Write-Host "Emulator stderr:"
+            if (Test-Path "emulator_stderr_$n.log") { Get-Content "emulator_stderr_$n.log" -Tail 30 }
+          }
           
-          Write-Host "Emulator stderr:"
-          if (Test-Path "emulator_stderr.log") { Get-Content "emulator_stderr.log" -Tail 50 }
-          
-          exit 1
-        }
-        
-        # Get device serial
-        $DeviceSerial = (& $AdbPath devices | Select-String "emulator-" | Select-Object -First 1).ToString().Split()[0]
-        
-        if (-not $DeviceSerial) {
-          Write-Host "❌ ERROR: Could not determine device serial"
           exit 1
         }
         
