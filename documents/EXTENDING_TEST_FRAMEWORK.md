@@ -186,40 +186,41 @@ All page objects should use the platform-agnostic selector utility for cross-pla
 ```javascript
 const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
-const { getSelector, selectors } = require('./utils/selectors');
+const { selectors } = require('./utils/selectors');
 
 class WelcomePage extends BasePage {
     constructor () {
         super();
     }
 
-    // Using getSelector for platform-specific XPath when needed
+    // Using byResourceId with testID (recommended for cross-platform)
     get logoImage () {
-        return $(getSelector({
-            ios: '//*[contains(@name, "FIXME!")]',
-            android: '(//android.widget.ImageView)[1]'
-        }));
+        return $(selectors.byResourceId('welcome-logo-image'));
     }
 
-    // Using built-in selector helpers (recommended)
     get welcomeTitle () {
-        return $(selectors.byText('Welcome'));
+        return $(selectors.byResourceId('welcome-title-text'));
     }
 
     get enterEmailSubTitle () {
-        return $(selectors.byContainsText('Existing Marketplace users'));
+        return $(selectors.byResourceId('welcome-subtitle-text'));
     }
 
     get emailInput () {
-        return $(selectors.textField());
+        return $(selectors.byResourceId('welcome-email-input'));
     }
 
     get continueButton () {
-        return $(selectors.button('Continue'));
+        return $(selectors.byResourceId('welcome-continue-button'));
     }
 
+    // Text-based selectors for error messages
     get emailRequiredErrorLabel () {
         return $(selectors.byText('Email is required'));
+    }
+
+    get validEmailErrorLabel () {
+        return $(selectors.byText('Please enter a valid email address'));
     }
 }
 
@@ -234,7 +235,9 @@ The framework provides a `selectors.js` utility (`app/test/pageobjects/utils/sel
 // Text-based selectors:
 selectors.byText(text)              // Find by exact text (@name on iOS, @text on Android)
 selectors.byContainsText(text)      // Find by partial text match
+selectors.byContainsTextAny(...patterns) // Find by any of multiple text patterns (OR condition)
 selectors.staticText(text)          // Find static text element (TextView/StaticText)
+selectors.textContainsButNotContains(contains, excludes) // Find text containing one string but not another
 
 // Element type selectors:
 selectors.textField()               // Find text input field (no params)
@@ -247,7 +250,13 @@ selectors.switchElement()           // Find toggle switch (no params)
 // ID-based selectors:
 selectors.byAccessibilityId(id)     // Find by accessibility ID (works with testID)
 selectors.byResourceId(id)          // Find by resource ID (accessibility ID on iOS, resource-id on Android)
+selectors.byContentDesc(desc)       // Find by content-desc (Android) / accessibility ID (iOS)
+selectors.byStartsWithResourceId(prefix) // Find where resource-id/name starts with prefix
 selectors.accessibleByIndex(index)  // Find accessible/clickable element by 1-based index
+
+// Pattern-based selectors for spotlight items:
+selectors.staticTextByIdPrefixAndPattern(idPrefix, textPattern) // Find by ID prefix and text pattern
+selectors.spotlightItemsByPrefix(prefix) // Find spotlight items by entity prefix (ORD, SUB, etc.)
 
 // Low-level helper functions:
 isAndroid()                         // Returns true if running on Android
@@ -259,21 +268,34 @@ getSelector({ ios, android })       // Returns platform-specific selector string
 ```javascript
 const { getSelector, selectors } = require('./utils/selectors');
 
-// Text-based selectors
-get welcomeTitle () { return $(selectors.byText('Welcome')); }
+// ID-based selectors (recommended - uses testID from React Native)
+get welcomeTitle () { return $(selectors.byResourceId('welcome-title-text')); }
+get emailInput () { return $(selectors.byResourceId('welcome-email-input')); }
+get filterAll () { return $(selectors.byResourceId('spotlight-filter-all')); }
+
+// Text-based selectors (for elements without testID)
+get errorLabel () { return $(selectors.byText('Email is required')); }
 get subtitle () { return $(selectors.byContainsText('Existing Marketplace users')); }
 
+// Multi-pattern text matching (handles cross-platform text differences)
+// Note: Android may use "long running orders" while iOS uses "long-running orders"
+get longRunningOrdersHeader () {
+    return $(selectors.byContainsTextAny('long-running orders', 'long running orders'));
+}
+
+// Exclusion pattern (find text containing one string but not another)
+get expiredInvitesHeader () {
+    return $(selectors.textContainsButNotContains('expired invites', 'of my clients'));
+}
+
 // Element type selectors  
-get emailInput () { return $(selectors.textField()); }
-get continueButton () { return $(selectors.button('Continue')); }
-get logoImage () { return $(selectors.image()); }
 get mainScrollView () { return $(selectors.scrollView()); }
 
 // Using getSelector for complex platform-specific XPath
-get otpInput1 () {
+get spotlightHeader () {
     return $(getSelector({
-        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
-        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
+        ios: '(//XCUIElementTypeStaticText[@name="Spotlight"])[last()]',
+        android: '//android.view.View[@text="Spotlight" and @heading="true"]'
     }));
 }
 ```
@@ -435,10 +457,12 @@ describe('Welcome page of application', () => {
 ```javascript
 const footerPage = require('../pageobjects/base/footer.page')
 
-// Use footer navigation to switch between tabs
+// Footer page uses accessibility IDs for reliable cross-platform navigation
+// Tab elements: spotlightsTab, ordersTab, subscriptionsTab, moreTab
 await footerPage.clickOrdersTab()
 await footerPage.clickSubscriptionsTab()
-await footerPage.clickspotlightsTab()
+await footerPage.clickSpotlightsTab()
+await footerPage.clickMoreTab()
 ```
 
 ### Suite Configuration (Optional)
@@ -448,6 +472,8 @@ Optionally group related tests into suites by adding them to `wdio.conf.js`:
 ```javascript
 suites: {
     welcome: ['./test/specs/welcome.e2e.js'],
+    home: ['./test/specs/home.e2e.js'],
+    navigation: ['./test/specs/navigation.e2e.js'],
     newFeature: ['./test/specs/new-feature.e2e.js']
 }
 ```

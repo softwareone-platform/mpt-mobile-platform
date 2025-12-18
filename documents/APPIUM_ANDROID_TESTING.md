@@ -284,6 +284,34 @@ export PLATFORM_NAME=Android
 npx wdio run wdio.conf.js --suite welcome
 ```
 
+### Environment Setup Script
+
+Use the automated environment setup script for easy configuration:
+
+```bash
+# Setup environment for Android
+source ./scripts/setup-test-env.sh --platform android
+
+# Start an emulator by name
+source ./scripts/setup-test-env.sh --platform android --start-emulator "Pixel_8_API_34"
+
+# List available emulators
+source ./scripts/setup-test-env.sh --list-emulators
+```
+
+**Available Options:**
+- `--platform <ios|android>`: Set the target platform (default: ios)
+- `--start-emulator <name>`: Start emulator by AVD name
+- `--list-emulators`: List available emulators
+- `--help`: Show help message
+
+The setup script will automatically:
+- Load values from `app/.env`
+- Start Android emulator if requested
+- Configure platform-specific Appium variables
+- Set up Airtable OTP testing variables
+- Display current configuration
+
 ---
 
 ## CI/CD Integration

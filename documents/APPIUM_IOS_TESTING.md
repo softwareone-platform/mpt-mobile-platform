@@ -362,17 +362,30 @@ APP_BUNDLE_ID=com.softwareone.marketplaceMobile
 Use the automated environment setup script for easy configuration:
 
 ```bash
-# Load configuration from .env file and set up test environment
+# Load configuration from .env file and set up test environment (iOS default)
 source ./scripts/setup-test-env.sh
 
-# Save configuration to .env.test file for later use
-./scripts/setup-test-env.sh --save
+# Setup for Android
+source ./scripts/setup-test-env.sh --platform android
+
+# Start a simulator/emulator by name
+source ./scripts/setup-test-env.sh --start-emulator "iPhone 16"
+source ./scripts/setup-test-env.sh --platform android --start-emulator "Pixel_8_API_34"
+
+# List available simulators and emulators
+source ./scripts/setup-test-env.sh --list-emulators
 ```
+
+**Available Options:**
+- `--platform <ios|android>`: Set the target platform (default: ios)
+- `--start-emulator <name>`: Start emulator/simulator by name
+- `--list-emulators`: List available emulators/simulators
+- `--help`: Show help message
 
 The setup script will automatically:
 - Load values from `app/.env` 
-- Detect booted iOS simulators
-- Configure Appium variables
+- Detect and optionally start iOS simulators or Android emulators
+- Configure platform-specific Appium variables
 - Set up Airtable OTP testing variables
 - Display current configuration
 

@@ -8,27 +8,27 @@ class WelcomePage extends BasePage {
     }
 
     get logoImage () {
-        return $('~welcome-logo-image');
+        return $(selectors.byResourceId('welcome-logo-image'));
     }
 
     get welcomeTitle () {
-        return $('~welcome-title-text');
+        return $(selectors.byResourceId('welcome-title-text'));
     }
 
     get enterEmailSubTitle () {
-        return $('~welcome-subtitle-text');
+        return $(selectors.byResourceId('welcome-subtitle-text'));
     }
 
     get emailInput () {
-        return $('~welcome-email-input');
+        return $(selectors.byResourceId('welcome-email-input'));
     }
 
     get continueButton () {
-        return $('~welcome-continue-button');
+        return $(selectors.byResourceId('welcome-continue-button'));
     }
 
     get troubleSigningInButton () {
-        return $('~welcome-trouble-link');
+        return $(selectors.byResourceId('welcome-trouble-link'));
     }
 
     get emailRequiredErrorLabel () {

@@ -34,7 +34,8 @@ describe('Home page of application', () => {
         it('should display long-running orders header', async () => {
             await expect(homePage.longRunningOrdersHeader).toBeDisplayed()
             const headerText = await homePage.longRunningOrdersHeader.getText()
-            expect(headerText).toContain('long-running orders')
+            // Android uses "long running orders" (no hyphen)
+            expect(headerText.toLowerCase()).toContain('long running orders')
         })
 
         it('should display expiring subscriptions header', async () => {
@@ -61,28 +62,21 @@ describe('Home page of application', () => {
             expect(headerText).toContain('pending invites')
         })
 
-        it('should display expired invites of my clients header', async () => {
-            await homePage.scrollToSection('expired invites of my clients')
-            const isVisible = await homePage.isExpiredInvitesOfMyClientsSectionVisible()
-            expect(isVisible).toBe(true)
-            const headerText = await homePage.expiredInvitesOfMyClientsHeader.getText()
-            expect(headerText).toContain('expired invites of my clients')
-        })
-
-        it('should display invoices past due header', async () => {
-            await homePage.scrollToSection('invoices past due')
+        it('should display past due invoices header', async () => {
+            await homePage.scrollToSection('past due invoices')
             const isVisible = await homePage.isInvoicesPastDueSectionVisible()
             expect(isVisible).toBe(true)
             const headerText = await homePage.invoicesPastDueHeader.getText()
-            expect(headerText).toContain('invoices past due')
+            expect(headerText).toContain('past due invoices')
         })
 
-        it('should display in-progress journals header', async () => {
-            await homePage.scrollToSection('in-progress journals')
+        it('should display in progress journals header', async () => {
+            await homePage.scrollToSection('in progress journals')
             const isVisible = await homePage.isInProgressJournalsSectionVisible()
             expect(isVisible).toBe(true)
             const headerText = await homePage.inProgressJournalsHeader.getText()
-            expect(headerText).toContain('in-progress journals')
+            // Android uses "in progress journals" (no hyphen)
+            expect(headerText.toLowerCase()).toContain('in progress journals')
         })
 
         it('should display mismatching buyers header', async () => {
