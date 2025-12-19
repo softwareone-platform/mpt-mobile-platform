@@ -14,6 +14,12 @@ export interface UserAccount {
   invitation?: {
     status: string;
   };
+  favorite?: boolean;
+  audit?: {
+    access: {
+      at: string;
+    };
+  };
 }
 
 export interface PaginatedUserAccounts {
@@ -22,6 +28,12 @@ export interface PaginatedUserAccounts {
     omitted: string[];
   };
   data: UserAccount[];
+}
+
+export interface FormattedUserAccounts {
+  all: UserAccount[];
+  favourites: UserAccount[];
+  recent: UserAccount[];
 }
 
 export interface SwitchAccountBody {
