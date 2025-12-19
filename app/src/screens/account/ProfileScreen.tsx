@@ -28,7 +28,7 @@ const ProfileScreen = () => {
   const { t } = useTranslation();
 
   const accountsToDisplay = userAccountsData[selectedTab] || [];
-  const filterKeys = Object.keys(userAccountsData) as (keyof FormattedUserAccounts)[];
+  const filterKeys = ['all', 'favourites', 'recent'] as (keyof FormattedUserAccounts)[];
 
   const tabData: TabData[] = filterKeys.map((key) => ({
     label: t(`profileScreen.tabs.${key}`),
