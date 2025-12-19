@@ -34,9 +34,12 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     data: spotlightDataRaw,
     isLoading: spotlightDataLoading,
     isError: spotlightError,
+    fetchStatus,
   } = useSpotlightData(userId, userData);
 
   const spotlightData = spotlightDataRaw ?? {};
+  
+  const isSpotlightLoading = userDataLoading || spotlightDataLoading || fetchStatus === 'fetching';
 
   const {
     data: userAccountsData = { all: [], favourites: [], recent: []},
@@ -61,7 +64,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         userAccountsData,
         spotlightData,
         spotlightError,
-        spotlightDataLoading,
+        spotlightDataLoading: isSpotlightLoading,
         switchAccount,
       }}
     >
