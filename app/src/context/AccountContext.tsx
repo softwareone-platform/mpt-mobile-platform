@@ -1,6 +1,6 @@
 import { createContext, useContext, useCallback, ReactNode } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { UserData, UserAccount, SpotlightItem } from '@/types/api';
+import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
 import { useUserData } from '@/hooks/queries/useUserData';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
 import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
@@ -10,7 +10,7 @@ interface AccountContextValue {
   userData: UserData | null;
   userDataLoading: boolean;
   userDataError: boolean;
-  userAccountsData: UserAccount[];
+  userAccountsData: FormattedUserAccounts;
   spotlightData: Record<string, SpotlightItem[]>;
   spotlightError: boolean;
   spotlightDataLoading: boolean;
@@ -39,7 +39,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const spotlightData = spotlightDataRaw ?? {};
 
   const {
-    data: userAccountsData = [],
+    data: userAccountsData = { all: [], favourites: [], recent: []},
   } = useUserAccountsData(userId);
 
   const switchAccountMutation = useSwitchAccount(userId);
