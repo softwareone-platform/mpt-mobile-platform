@@ -377,30 +377,34 @@ runs:
         Write-Host "  INI file: $AvdIniPath - Exists: $(Test-Path $AvdIniPath)"
         Write-Host "  AVD dir:  $AvdDirPath - Exists: $(Test-Path $AvdDirPath)"
         
+        # Clean up any stale lock files from previous runs (prevents "Running multiple emulators" error)
+        Write-Host "🧹 Cleaning up stale emulator lock files..."
+        $LockFiles = @(
+          (Join-Path $AvdDirPath "hardware-qemu.ini.lock"),
+          (Join-Path $AvdDirPath "multiinstance.lock"),
+          (Join-Path $AvdDirPath ".lock")
+        )
+        foreach ($LockFile in $LockFiles) {
+          if (Test-Path $LockFile) {
+            Write-Host "  Removing: $LockFile"
+            Remove-Item -Path $LockFile -Force -ErrorAction SilentlyContinue
+          }
+        }
+        
+        # Kill any existing emulator processes
+        Write-Host "🧹 Killing any existing emulator processes..."
+        Get-Process -Name "qemu-system-x86_64*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        Get-Process -Name "emulator*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        
         # Start ADB server first
         Write-Host "Starting ADB server..."
+        & $AdbPath kill-server 2>$null
+        Start-Sleep -Seconds 1
         & $AdbPath start-server
-        
-        # Start emulator in background with optimized settings for CI
-        # Note: Using -gpu auto to let emulator choose, and -accel auto for WHPX when available
-        # swiftshader_indirect can cause access violations on some Windows runners
-        $EmulatorArgs = @(
-          "-avd", $AvdName,
-          "-no-window",
-          "-no-audio",
-          "-no-boot-anim",
-          "-gpu", "auto",
-          "-accel", "auto",
-          "-no-snapshot",
-          "-memory", "4096",
-          "-cores", "2"
-        )
-        
-        Write-Host "Starting emulator with args: $($EmulatorArgs -join ' ')"
         
         # Try first with auto GPU, if that fails we'll try swiftshader
         $RetryCount = 0
-        $MaxRetries = 2
         $GpuModes = @("auto", "swiftshader_indirect", "guest")
         $AdbReady = $false
         $DeviceSerial = $null
@@ -411,22 +415,36 @@ runs:
           $RetryCount++
           Write-Host "🔄 Attempt $RetryCount/$($GpuModes.Count) with GPU mode: $GpuMode"
           
-          # Update GPU mode in args
+          # Clean up lock files between attempts
+          foreach ($LockFile in $LockFiles) {
+            if (Test-Path $LockFile) {
+              Remove-Item -Path $LockFile -Force -ErrorAction SilentlyContinue
+            }
+          }
+          
+          # Build emulator arguments
+          # -wipe-data ensures clean state
+          # -read-only allows starting even if lock files exist (fallback)
           $CurrentArgs = @(
             "-avd", $AvdName,
             "-no-window",
             "-no-audio",
             "-no-boot-anim",
             "-gpu", $GpuMode,
-            "-no-snapshot",
+            "-no-snapshot-load",
+            "-no-snapshot-save",
+            "-wipe-data",
             "-memory", "4096",
-            "-cores", "2"
+            "-cores", "2",
+            "-no-metrics"
           )
           
           # Add acceleration only for auto mode
           if ($GpuMode -eq "auto") {
             $CurrentArgs += @("-accel", "auto")
           }
+          
+          Write-Host "Starting emulator with args: $($CurrentArgs -join ' ')"
           
           $EmulatorProcess = Start-Process -FilePath $EmulatorPath `
             -ArgumentList $CurrentArgs `
@@ -439,7 +457,7 @@ runs:
           Write-Host "Emulator PID: $($EmulatorProcess.Id)"
           
           # Wait for device to appear in ADB (shorter timeout for retries)
-          $AdbTimeout = if ($RetryCount -eq $GpuModes.Count) { 120 } else { 45 }
+          $AdbTimeout = if ($RetryCount -eq $GpuModes.Count) { 150 } else { 60 }
           
           for ($i = 1; $i -le $AdbTimeout; $i++) {
             $Devices = & $AdbPath devices 2>&1
@@ -450,15 +468,15 @@ runs:
               break
             }
             
-            if ($i % 10 -eq 0) {
+            if ($i % 15 -eq 0) {
               Write-Host "⏳ Waiting for ADB... ($i/$AdbTimeout s)"
               
               # Check if emulator process crashed
               if ($EmulatorProcess.HasExited) {
-                Write-Host "⚠️ Emulator crashed with exit code: $($EmulatorProcess.ExitCode)"
+                Write-Host "⚠️ Emulator exited with code: $($EmulatorProcess.ExitCode)"
                 Write-Host "Emulator stderr:"
                 if (Test-Path "emulator_stderr_$RetryCount.log") { 
-                  Get-Content "emulator_stderr_$RetryCount.log" -Tail 20 
+                  Get-Content "emulator_stderr_$RetryCount.log" -Tail 30 
                 }
                 break
               }
@@ -468,9 +486,13 @@ runs:
           }
           
           # Kill emulator if it didn't work and we're retrying
-          if (-not $AdbReady -and -not $EmulatorProcess.HasExited) {
-            Write-Host "⚠️ Killing unresponsive emulator..."
-            Stop-Process -Id $EmulatorProcess.Id -Force -ErrorAction SilentlyContinue
+          if (-not $AdbReady) {
+            Write-Host "⚠️ Attempt $RetryCount failed, cleaning up..."
+            if (-not $EmulatorProcess.HasExited) {
+              Stop-Process -Id $EmulatorProcess.Id -Force -ErrorAction SilentlyContinue
+            }
+            # Also kill any orphaned processes
+            Get-Process -Name "qemu-system-x86_64*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 3
           }
         }
@@ -482,9 +504,9 @@ runs:
           foreach ($n in 1..$RetryCount) {
             Write-Host "--- Attempt $n logs ---"
             Write-Host "Emulator stdout:"
-            if (Test-Path "emulator_stdout_$n.log") { Get-Content "emulator_stdout_$n.log" -Tail 30 }
+            if (Test-Path "emulator_stdout_$n.log") { Get-Content "emulator_stdout_$n.log" -Tail 50 }
             Write-Host "Emulator stderr:"
-            if (Test-Path "emulator_stderr_$n.log") { Get-Content "emulator_stderr_$n.log" -Tail 30 }
+            if (Test-Path "emulator_stderr_$n.log") { Get-Content "emulator_stderr_$n.log" -Tail 50 }
           }
           
           exit 1
