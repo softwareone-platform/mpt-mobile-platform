@@ -55,4 +55,7 @@ export const spacingStyle = {
   marginTop1: { 
     marginTop: Spacing.spacing1
   },
+  paddingVertical4: { 
+    paddingVertical: Spacing.spacing4
+  },
  } as const;

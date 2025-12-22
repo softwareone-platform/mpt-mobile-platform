@@ -1,24 +1,39 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { cardStyle, screenStyle, Spacing } from '@/styles';
+import { cardStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { ProfileStackParamList } from '@/types/navigation';
+import { FormattedUserAccounts } from '@/types/api';
 import { useNavigation } from '@react-navigation/native';
 import { useAccount } from '@/context/AccountContext';
 import { TestIDs } from '@/utils/testID';
+import Tabs, { TabData } from '@/components/tabs/Tabs';
+import { isFeatureEnabled } from '@/config/feature-flags/featureFlags';
+import EmptyState from '@/components/common/EmptyState';
 
 type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
+
+export const DEFAULT_ACCOUNT_FILTER = 'all';
 
 const ProfileScreen = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [isSwitching, setIsSwitching] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<keyof FormattedUserAccounts>(DEFAULT_ACCOUNT_FILTER);
 
   const { userData, userAccountsData, switchAccount } = useAccount();
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { t } = useTranslation();
+
+  const accountsToDisplay = userAccountsData[selectedTab] || [];
+  const filterKeys = ['all', 'favourites', 'recent'] as (keyof FormattedUserAccounts)[];
+
+  const tabData: TabData[] = filterKeys.map((key) => ({
+    label: t(`profileScreen.tabs.${key}`),
+    value: key,
+  }));
 
   useEffect(() => {
     if (userData?.currentAccount?.id) {
@@ -62,21 +77,41 @@ const ProfileScreen = () => {
       </View>
       <View>
         <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>{t('profileScreen.switchAccount')}</Text>
+        {isFeatureEnabled('FEATURE_ACCOUNT_TABS') && (
+          <Tabs
+            tabs={tabData}
+            value={selectedTab}
+            onChange={(tabValue) => setSelectedTab(tabValue as keyof FormattedUserAccounts)}
+          />
+        )}
         <View style={styles.containerCard}>
-          {userAccountsData.map((account, index) => (
-            <ListItemWithImage
-              key={account.id}
-              testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${account.id}`}
-              id={account.id}
-              imagePath={account.icon}
-              title={account.name}
-              subtitle={account.id}
-              isLast={index === userAccountsData.length - 1}
-              isSelected={account.id === userData?.currentAccount?.id}
-              isUpdatingSelection={isSwitching && account.id === selectedAccountId} 
-              onPress={() => handleSwitchAccount(account.id)}
-            />
-          ))}
+          {accountsToDisplay.length === 0 ? (
+            <View style={[styles.containerCenterContent, styles.paddingVertical4]}>
+              <EmptyState
+                icon={{
+                  name: 'how-to-reg',
+                  variant: 'outlined',
+                }}
+                title={t(`profileScreen.accountsEmptyState.${selectedTab}.title`)}
+                description={t(`profileScreen.accountsEmptyState.${selectedTab}.description`)}
+              />
+            </View>
+          ) : (
+            accountsToDisplay.map((account, index) => (
+              <ListItemWithImage
+                key={account.id}
+                testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${account.id}`}
+                id={account.id}
+                imagePath={account.icon}
+                title={account.name}
+                subtitle={account.id}
+                isLast={index === accountsToDisplay.length - 1}
+                isSelected={account.id === userData?.currentAccount?.id}
+                isUpdatingSelection={isSwitching && account.id === selectedAccountId}
+                onPress={() => handleSwitchAccount(account.id)}
+              />
+            ))
+          )}
         </View>
       </View>
     </ScrollView>
@@ -89,7 +124,10 @@ const styles = StyleSheet.create({
     ...cardStyle.containerRounded,
     marginBottom: Spacing.spacing2,
   },
+  containerCenterContent: screenStyle.containerCenterContent,
   sectionHeader: screenStyle.sectionHeader,
+  paddingVertical4: spacingStyle.paddingVertical4,
+
 });
 
 export default ProfileScreen;

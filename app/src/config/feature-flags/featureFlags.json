@@ -1,3 +1,4 @@
 {
-  "FEATURE_TEST": false
+  "FEATURE_TEST": false,
+  "FEATURE_ACCOUNT_TABS": false
 }

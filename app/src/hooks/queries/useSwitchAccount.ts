@@ -9,6 +9,7 @@ export const useSwitchAccount = (userId: string | undefined) => {
     mutationFn: (accountId: string) => apiSwitchAccount(userId!, accountId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userData', userId] });
+      queryClient.invalidateQueries({ queryKey: ['userAccountsData', userId] });
     },
   });
 };
