@@ -377,19 +377,30 @@ runs:
         Write-Host "  INI file: $AvdIniPath - Exists: $(Test-Path $AvdIniPath)"
         Write-Host "  AVD dir:  $AvdDirPath - Exists: $(Test-Path $AvdDirPath)"
         
-        # Clean up any stale lock files from previous runs (prevents "Running multiple emulators" error)
-        Write-Host "🧹 Cleaning up stale emulator lock files..."
-        $LockFiles = @(
-          (Join-Path $AvdDirPath "hardware-qemu.ini.lock"),
-          (Join-Path $AvdDirPath "multiinstance.lock"),
-          (Join-Path $AvdDirPath ".lock")
-        )
-        foreach ($LockFile in $LockFiles) {
-          if (Test-Path $LockFile) {
-            Write-Host "  Removing: $LockFile"
-            Remove-Item -Path $LockFile -Force -ErrorAction SilentlyContinue
+        # Helper function to clean up lock files safely
+        function Remove-EmulatorLocks {
+          param([string]$AvdPath)
+          if (-not $AvdPath -or -not (Test-Path $AvdPath)) {
+            Write-Host "  ⚠️ AVD path not valid for lock cleanup: $AvdPath"
+            return
+          }
+          $LockPatterns = @("hardware-qemu.ini.lock", "multiinstance.lock", ".lock")
+          foreach ($Pattern in $LockPatterns) {
+            $LockPath = Join-Path $AvdPath $Pattern
+            if ($LockPath -and (Test-Path $LockPath -ErrorAction SilentlyContinue)) {
+              try {
+                Write-Host "  Removing: $LockPath"
+                Remove-Item -Path $LockPath -Force -ErrorAction Stop
+              } catch {
+                Write-Host "  ⚠️ Could not remove $LockPath : $_"
+              }
+            }
           }
         }
+        
+        # Clean up any stale lock files from previous runs (prevents "Running multiple emulators" error)
+        Write-Host "🧹 Cleaning up stale emulator lock files..."
+        Remove-EmulatorLocks -AvdPath $AvdDirPath
         
         # Kill any existing emulator processes
         Write-Host "🧹 Killing any existing emulator processes..."
@@ -415,12 +426,8 @@ runs:
           $RetryCount++
           Write-Host "🔄 Attempt $RetryCount/$($GpuModes.Count) with GPU mode: $GpuMode"
           
-          # Clean up lock files between attempts
-          foreach ($LockFile in $LockFiles) {
-            if (Test-Path $LockFile) {
-              Remove-Item -Path $LockFile -Force -ErrorAction SilentlyContinue
-            }
-          }
+          # Clean up lock files between attempts using safe helper
+          Remove-EmulatorLocks -AvdPath $AvdDirPath
           
           # Build emulator arguments
           # -wipe-data ensures clean state
@@ -488,12 +495,21 @@ runs:
           # Kill emulator if it didn't work and we're retrying
           if (-not $AdbReady) {
             Write-Host "⚠️ Attempt $RetryCount failed, cleaning up..."
-            if (-not $EmulatorProcess.HasExited) {
-              Stop-Process -Id $EmulatorProcess.Id -Force -ErrorAction SilentlyContinue
+            try {
+              if ($EmulatorProcess -and -not $EmulatorProcess.HasExited) {
+                Stop-Process -Id $EmulatorProcess.Id -Force -ErrorAction SilentlyContinue
+              }
+            } catch {
+              Write-Host "  ⚠️ Error stopping emulator process: $_"
             }
             # Also kill any orphaned processes
             Get-Process -Name "qemu-system-x86_64*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 3
+            Get-Process -Name "emulator*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            # Restart ADB to clear any stale state
+            & $AdbPath kill-server 2>$null
+            Start-Sleep -Seconds 2
+            & $AdbPath start-server
+            Start-Sleep -Seconds 1
           }
         }
         
