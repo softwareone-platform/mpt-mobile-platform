@@ -1,0 +1,583 @@
+name: 'Android App Install and Setup'
+description: 'Download, install, and setup Android app on emulator'
+inputs:
+  artifact_name:
+    description: 'Name of the Android APK artifact to download'
+    required: false
+  download_url:
+    description: 'Direct download URL for the APK'
+    required: false
+  api_level:
+    description: 'Android API level for emulator'
+    required: false
+    default: '34'
+  device_profile:
+    description: 'Android emulator device profile'
+    required: false
+    default: 'pixel_6'
+  arch:
+    description: 'System image architecture'
+    required: false
+    default: 'x86_64'
+outputs:
+  device_serial:
+    description: 'ADB device serial (e.g., emulator-5554)'
+    value: ${{ steps.boot-emulator.outputs.device_serial }}
+  package_name:
+    description: 'Android package name'
+    value: ${{ steps.verify-apk.outputs.package_name }}
+  apk_path:
+    description: 'Path to the APK file'
+    value: ${{ steps.verify-apk.outputs.apk_path }}
+  avd_name:
+    description: 'Name of the Android Virtual Device'
+    value: ${{ steps.create-avd.outputs.avd_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Verify Required Inputs
+      shell: bash
+      run: |
+        echo "🔍 Verifying required inputs..."
+        
+        if [ -z "${{ inputs.artifact_name }}" ] && [ -z "${{ inputs.download_url }}" ]; then
+          echo "❌ ERROR: Either artifact_name or download_url must be provided"
+          exit 1
+        fi
+        
+        if [ -n "${{ inputs.artifact_name }}" ] && [ -n "${{ inputs.download_url }}" ]; then
+          echo "⚠️ WARNING: Both artifact_name and download_url provided, using artifact_name"
+        fi
+        
+        echo "✅ API Level: ${{ inputs.api_level }}"
+        echo "✅ Device Profile: ${{ inputs.device_profile }}"
+        echo "✅ Architecture: ${{ inputs.arch }}"
+        echo "🎉 Input verification complete!"
+
+    - name: Download APK from artifact
+      if: inputs.artifact_name != ''
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: ./downloaded-apk
+
+    - name: Download APK from URL
+      if: inputs.download_url != '' && inputs.artifact_name == ''
+      shell: bash
+      run: |
+        echo "📥 Downloading APK from URL..."
+        echo "URL: ${{ inputs.download_url }}"
+        
+        mkdir -p ./downloaded-apk
+        curl -L -o ./downloaded-apk/app.apk "${{ inputs.download_url }}"
+        
+        if [ ! -f "./downloaded-apk/app.apk" ]; then
+          echo "❌ ERROR: Download failed"
+          exit 1
+        fi
+        
+        # Get file size (compatible with both Linux and macOS)
+        FILE_SIZE=$(stat -c%s "./downloaded-apk/app.apk" 2>/dev/null || stat -f%z "./downloaded-apk/app.apk" 2>/dev/null)
+        echo "✅ Downloaded APK (${FILE_SIZE} bytes)"
+
+    - name: Verify APK artifact
+      id: verify-apk
+      shell: bash
+      run: |
+        echo "🔍 Verifying APK artifact..."
+        
+        # Find the APK file
+        APK_PATH=$(find ./downloaded-apk -name "*.apk" -type f | head -1)
+        
+        echo "Contents of ./downloaded-apk:"
+        ls -la ./downloaded-apk/
+        
+        if [ -z "$APK_PATH" ]; then
+          echo "❌ ERROR: APK file not found"
+          exit 1
+        fi
+        
+        # Verify file size (Linux syntax first, then macOS)
+        SIZE=$(stat -c%s "$APK_PATH" 2>/dev/null || stat -f%z "$APK_PATH" 2>/dev/null)
+        echo "📦 APK size: $SIZE bytes"
+        
+        if [ "$SIZE" -lt 1000000 ]; then
+          echo "❌ ERROR: APK suspiciously small: $SIZE bytes"
+          exit 1
+        fi
+        
+        # Extract package name using aapt
+        AAPT_PATH=$(find $ANDROID_HOME/build-tools -name "aapt" 2>/dev/null | sort -V | tail -1)
+        
+        if [ -n "$AAPT_PATH" ]; then
+          echo "Using aapt at: $AAPT_PATH"
+          PACKAGE_INFO=$($AAPT_PATH dump badging "$APK_PATH" 2>/dev/null || true)
+          FIRST_LINE=$(echo "$PACKAGE_INFO" | head -1)
+          echo "📋 Package info first line: $FIRST_LINE"
+          
+          # Extract package name from first line (format: package: name='...' versionCode='...' versionName='...')
+          PACKAGE_NAME=$(echo "$FIRST_LINE" | grep -o "name='[^']*'" | head -1 | sed "s/name='//;s/'//")
+          
+          if [ -n "$PACKAGE_NAME" ]; then
+            echo "📦 Extracted package name: $PACKAGE_NAME"
+          fi
+        fi
+        
+        # Fallback package name
+        if [ -z "$PACKAGE_NAME" ]; then
+          PACKAGE_NAME="com.softwareone.marketplaceMobile"
+          echo "⚠️ Using default package name: $PACKAGE_NAME"
+        fi
+        
+        echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+        echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+        echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
+        echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+        
+        echo "✅ APK verified: $APK_PATH"
+        echo "📦 Package: $PACKAGE_NAME"
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      shell: bash
+      run: |
+        echo "🔧 Setting up Android SDK..."
+        
+        # Verify ANDROID_HOME is set
+        if [ -z "$ANDROID_HOME" ]; then
+          echo "❌ ERROR: ANDROID_HOME not set"
+          exit 1
+        fi
+        
+        echo "ANDROID_HOME: $ANDROID_HOME"
+        
+        # Add Android SDK tools to PATH
+        echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+        echo "$ANDROID_HOME/emulator" >> $GITHUB_PATH
+        echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        
+        # Also export for immediate use in this step
+        export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+        
+        # Set up ANDROID_SDK_HOME and ANDROID_AVD_HOME to ensure AVDs are created in a consistent location
+        # ANDROID_SDK_HOME is the legacy variable that controls where .android directory is created
+        # This is critical to prevent avdmanager from using XDG paths like ~/.config/.android/
+        echo "ANDROID_SDK_HOME=$HOME" >> $GITHUB_ENV
+        echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> $GITHUB_ENV
+        
+        # Create the directories
+        mkdir -p "$HOME/.android/avd"
+        echo "📁 SDK Home: $HOME"
+        echo "📁 AVD Home: $HOME/.android/avd"
+        
+        # Accept licenses
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+        
+        echo "✅ Android SDK ready"
+
+    - name: Install SDK Components
+      shell: bash
+      run: |
+        echo "📦 Installing SDK components for API ${{ inputs.api_level }}..."
+        
+        SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+        
+        # Install required components
+        $SDKMANAGER "system-images;android-${{ inputs.api_level }};google_apis;${{ inputs.arch }}" --verbose
+        $SDKMANAGER "emulator" --verbose
+        $SDKMANAGER "platform-tools" --verbose
+        $SDKMANAGER "platforms;android-${{ inputs.api_level }}" --verbose
+        
+        echo "✅ SDK components installed"
+
+    - name: Create Android Virtual Device
+      id: create-avd
+      shell: bash
+      run: |
+        echo "📱 Creating Android Virtual Device..."
+        
+        AVD_NAME="test_avd_${{ inputs.api_level }}"
+        AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
+        
+        # Set up Android SDK home directories
+        # ANDROID_SDK_HOME is the legacy variable that controls where .android directory is created
+        # This ensures avdmanager creates AVDs in $HOME/.android/avd instead of XDG paths
+        export ANDROID_SDK_HOME="$HOME"
+        export ANDROID_AVD_HOME="$HOME/.android/avd"
+        
+        # Also persist these for subsequent steps
+        echo "ANDROID_SDK_HOME=$HOME" >> $GITHUB_ENV
+        echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> $GITHUB_ENV
+        
+        # Create the directories
+        mkdir -p "$HOME/.android/avd"
+        echo "📁 Using AVD Home: $ANDROID_AVD_HOME"
+        echo "📁 Using SDK Home: $ANDROID_SDK_HOME"
+        
+        # Delete existing AVD if present
+        $AVDMANAGER delete avd --name "$AVD_NAME" 2>/dev/null || true
+        
+        # Create AVD
+        echo "no" | $AVDMANAGER create avd \
+          --name "$AVD_NAME" \
+          --package "system-images;android-${{ inputs.api_level }};google_apis;${{ inputs.arch }}" \
+          --device "${{ inputs.device_profile }}" \
+          --force
+        
+        # Verify AVD was created in expected location
+        if [ -f "$HOME/.android/avd/${AVD_NAME}.ini" ]; then
+          echo "✅ AVD ini file found at: $HOME/.android/avd/${AVD_NAME}.ini"
+        else
+          echo "⚠️ AVD ini not in expected location, checking alternatives..."
+          echo "Searching for AVD files..."
+          find $HOME -name "${AVD_NAME}.ini" 2>/dev/null || true
+          find $HOME -name "${AVD_NAME}.avd" -type d 2>/dev/null || true
+          
+          # Check if it was created in .config/.android (XDG path)
+          if [ -f "$HOME/.config/.android/avd/${AVD_NAME}.ini" ]; then
+            echo "📍 Found AVD in XDG config path, creating symlink..."
+            # Create symlink so emulator can find it
+            ln -sf "$HOME/.config/.android/avd/${AVD_NAME}.ini" "$HOME/.android/avd/${AVD_NAME}.ini"
+            ln -sf "$HOME/.config/.android/avd/${AVD_NAME}.avd" "$HOME/.android/avd/${AVD_NAME}.avd"
+            echo "✅ Symlinks created"
+          fi
+        fi
+        
+        echo "avd_name=$AVD_NAME" >> $GITHUB_OUTPUT
+        echo "AVD_NAME=$AVD_NAME" >> $GITHUB_ENV
+        echo "✅ AVD created: $AVD_NAME"
+
+    - name: Verify AVD Created
+      shell: bash
+      run: |
+        echo "🔍 Verifying AVD creation..."
+        
+        AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
+        AVD_NAME="${{ steps.create-avd.outputs.avd_name }}"
+        
+        if ! $AVDMANAGER list avd | grep -q "$AVD_NAME"; then
+          echo "❌ ERROR: AVD not found: $AVD_NAME"
+          $AVDMANAGER list avd
+          exit 1
+        fi
+        
+        echo "✅ AVD verified: $AVD_NAME"
+        $AVDMANAGER list avd | grep -A5 "$AVD_NAME"
+
+    - name: Enable KVM (Ubuntu only)
+      shell: bash
+      run: |
+        echo "🔧 Enabling KVM acceleration..."
+        
+        # Check if running on Linux
+        if [ "$(uname)" == "Linux" ]; then
+          # Enable KVM group access for GitHub Actions runner
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          
+          # Verify KVM is available
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm
+            echo "✅ KVM is available and configured"
+            ls -la /dev/kvm
+          else
+            echo "⚠️ KVM not available - emulator will run without hardware acceleration"
+          fi
+        else
+          echo "⏭️ Not on Linux, skipping KVM setup"
+        fi
+
+    - name: Boot Android Emulator
+      id: boot-emulator
+      shell: bash
+      run: |
+        echo "🚀 Starting Android Emulator..."
+        
+        AVD_NAME="${{ steps.create-avd.outputs.avd_name }}"
+        
+        # Ensure PATH includes Android tools
+        export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+        
+        # Set Android SDK/AVD home directories (must match what was used during AVD creation)
+        export ANDROID_SDK_HOME="$HOME"
+        export ANDROID_AVD_HOME="$HOME/.android/avd"
+        
+        # Debug: List available AVDs
+        echo "📋 Available AVDs:"
+        $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list avd
+        
+        # Debug: Check AVD files
+        echo "📁 AVD directory contents ($HOME/.android/avd/):"
+        ls -la "$HOME/.android/avd/" 2>/dev/null || echo "Directory not found"
+        
+        # Also check XDG path in case symlinks weren't created
+        echo "📁 XDG AVD directory contents ($HOME/.config/.android/avd/):"
+        ls -la "$HOME/.config/.android/avd/" 2>/dev/null || echo "Directory not found (this is OK)"
+        
+        # Start emulator in background with optimized settings for CI
+        $ANDROID_HOME/emulator/emulator \
+          -avd "$AVD_NAME" \
+          -no-window \
+          -no-audio \
+          -no-boot-anim \
+          -gpu swiftshader_indirect \
+          -no-snapshot \
+          -memory 4096 \
+          -partition-size 4096 \
+          &
+        
+        EMULATOR_PID=$!
+        echo $EMULATOR_PID > emulator.pid
+        echo "Emulator PID: $EMULATOR_PID"
+        
+        # Start ADB server
+        $ANDROID_HOME/platform-tools/adb start-server
+        
+        # Wait for device to appear in ADB
+        echo "⏳ Waiting for emulator to appear in ADB..."
+        
+        ADB_TIMEOUT=120
+        ADB_READY=false
+        ADB="$ANDROID_HOME/platform-tools/adb"
+        
+        for i in $(seq 1 $ADB_TIMEOUT); do
+          if $ADB devices | grep -q "emulator-"; then
+            echo "✅ Emulator appeared in ADB after ${i} seconds"
+            ADB_READY=true
+            break
+          fi
+          
+          if [ $((i % 10)) -eq 0 ]; then
+            echo "⏳ Waiting for ADB... (${i}/${ADB_TIMEOUT}s)"
+            # Check if emulator process is still running
+            if ! kill -0 $EMULATOR_PID 2>/dev/null; then
+              echo "❌ Emulator process died"
+              break
+            fi
+          fi
+          
+          sleep 1
+        done
+        
+        if [ "$ADB_READY" = false ]; then
+          echo "❌ ERROR: Emulator did not appear in ADB"
+          $ADB devices
+          # Show emulator logs for debugging
+          echo "📋 Checking for emulator logs..."
+          cat $HOME/.android/avd/${AVD_NAME}.avd/*.log 2>/dev/null | tail -50 || true
+          exit 1
+        fi
+        
+        # Get device serial
+        DEVICE_SERIAL=$($ADB devices | grep "emulator-" | cut -f1 | head -1)
+        
+        if [ -z "$DEVICE_SERIAL" ]; then
+          echo "❌ ERROR: Could not determine device serial"
+          exit 1
+        fi
+        
+        echo "device_serial=$DEVICE_SERIAL" >> $GITHUB_OUTPUT
+        echo "DEVICE_SERIAL=$DEVICE_SERIAL" >> $GITHUB_ENV
+        echo "✅ Device serial: $DEVICE_SERIAL"
+
+    - name: Verify Emulator Boot Complete
+      shell: bash
+      run: |
+        echo "⏳ Waiting for emulator boot to complete..."
+        
+        DEVICE_SERIAL="${{ steps.boot-emulator.outputs.device_serial }}"
+        ADB="$ANDROID_HOME/platform-tools/adb"
+        BOOT_TIMEOUT=180
+        BOOT_SUCCESS=false
+        
+        for i in $(seq 1 $BOOT_TIMEOUT); do
+          # Check 1: sys.boot_completed
+          BOOT_COMPLETED=$($ADB -s "$DEVICE_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || echo "")
+          
+          # Check 2: Boot animation stopped
+          BOOT_ANIM=$($ADB -s "$DEVICE_SERIAL" shell getprop init.svc.bootanim 2>/dev/null | tr -d '\r\n' || echo "")
+          
+          if [ "$BOOT_COMPLETED" = "1" ] && [ "$BOOT_ANIM" = "stopped" ]; then
+            echo "✅ Boot completed after ${i} seconds"
+            echo "   sys.boot_completed=$BOOT_COMPLETED"
+            echo "   init.svc.bootanim=$BOOT_ANIM"
+            BOOT_SUCCESS=true
+            break
+          fi
+          
+          if [ $((i % 15)) -eq 0 ]; then
+            echo "⏳ Boot progress: boot_completed=$BOOT_COMPLETED, bootanim=$BOOT_ANIM (${i}/${BOOT_TIMEOUT}s)"
+          fi
+          
+          sleep 1
+        done
+        
+        if [ "$BOOT_SUCCESS" = false ]; then
+          echo "❌ ERROR: Emulator failed to boot within $BOOT_TIMEOUT seconds"
+          echo "Final state: boot_completed=$BOOT_COMPLETED, bootanim=$BOOT_ANIM"
+          
+          # Attempt recovery
+          echo "🔄 Attempting recovery..."
+          $ADB -s "$DEVICE_SERIAL" reboot
+          
+          RECOVERY_TIMEOUT=120
+          for i in $(seq 1 $RECOVERY_TIMEOUT); do
+            BOOT_COMPLETED=$($ADB -s "$DEVICE_SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r\n' || echo "")
+            BOOT_ANIM=$($ADB -s "$DEVICE_SERIAL" shell getprop init.svc.bootanim 2>/dev/null | tr -d '\r\n' || echo "")
+            
+            if [ "$BOOT_COMPLETED" = "1" ] && [ "$BOOT_ANIM" = "stopped" ]; then
+              echo "✅ Recovery successful after ${i} seconds"
+              BOOT_SUCCESS=true
+              break
+            fi
+            
+            sleep 1
+          done
+          
+          if [ "$BOOT_SUCCESS" = false ]; then
+            echo "❌ FATAL: Emulator boot recovery failed"
+            exit 1
+          fi
+        fi
+        
+        # Additional stability wait
+        echo "⏳ Waiting for system stability..."
+        sleep 10
+        
+        # Verify package manager is responsive
+        echo "🔍 Verifying package manager..."
+        PM_TIMEOUT=30
+        PM_READY=false
+        
+        for i in $(seq 1 $PM_TIMEOUT); do
+          if $ADB -s "$DEVICE_SERIAL" shell pm list packages > /dev/null 2>&1; then
+            echo "✅ Package manager responsive"
+            PM_READY=true
+            break
+          fi
+          sleep 1
+        done
+        
+        if [ "$PM_READY" = false ]; then
+          echo "❌ ERROR: Package manager not responsive"
+          exit 1
+        fi
+        
+        # Unlock screen
+        echo "🔓 Unlocking screen..."
+        $ADB -s "$DEVICE_SERIAL" shell input keyevent 82 || true
+        
+        echo "✅ Emulator fully operational"
+
+    - name: Install APK on Emulator
+      shell: bash
+      run: |
+        echo "📲 Installing APK on emulator..."
+        
+        DEVICE_SERIAL="${{ steps.boot-emulator.outputs.device_serial }}"
+        APK_PATH="${{ steps.verify-apk.outputs.apk_path }}"
+        ADB="$ANDROID_HOME/platform-tools/adb"
+        
+        echo "Device: $DEVICE_SERIAL"
+        echo "APK: $APK_PATH"
+        
+        # Install with replace flag
+        INSTALL_OUTPUT=$($ADB -s "$DEVICE_SERIAL" install -r "$APK_PATH" 2>&1)
+        INSTALL_RESULT=$?
+        
+        echo "$INSTALL_OUTPUT"
+        
+        if [ $INSTALL_RESULT -ne 0 ]; then
+          echo "❌ APK installation failed"
+          
+          # Try uninstalling first if it exists
+          PACKAGE_NAME="${{ steps.verify-apk.outputs.package_name }}"
+          echo "🔄 Attempting to uninstall existing package..."
+          $ADB -s "$DEVICE_SERIAL" uninstall "$PACKAGE_NAME" || true
+          
+          echo "🔄 Retrying installation..."
+          $ADB -s "$DEVICE_SERIAL" install "$APK_PATH"
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ FATAL: APK installation failed after retry"
+            exit 1
+          fi
+        fi
+        
+        echo "✅ APK installed"
+
+    - name: Verify APK Installation
+      shell: bash
+      run: |
+        echo "🔍 Verifying APK installation..."
+        
+        DEVICE_SERIAL="${{ steps.boot-emulator.outputs.device_serial }}"
+        PACKAGE_NAME="${{ steps.verify-apk.outputs.package_name }}"
+        ADB="$ANDROID_HOME/platform-tools/adb"
+        
+        # Check if package is installed
+        if ! $ADB -s "$DEVICE_SERIAL" shell pm list packages | grep -q "$PACKAGE_NAME"; then
+          echo "❌ ERROR: Package not found after installation: $PACKAGE_NAME"
+          echo "Installed packages containing 'softwareone':"
+          $ADB -s "$DEVICE_SERIAL" shell pm list packages | grep -i softwareone || echo "None found"
+          exit 1
+        fi
+        
+        echo "✅ Package verified: $PACKAGE_NAME"
+
+    - name: Launch Application
+      shell: bash
+      run: |
+        echo "🚀 Launching application..."
+        
+        DEVICE_SERIAL="${{ steps.boot-emulator.outputs.device_serial }}"
+        PACKAGE_NAME="${{ steps.verify-apk.outputs.package_name }}"
+        ADB="$ANDROID_HOME/platform-tools/adb"
+        
+        # Try to get main activity from package info
+        MAIN_ACTIVITY=$($ADB -s "$DEVICE_SERIAL" shell pm dump "$PACKAGE_NAME" 2>/dev/null | \
+                        grep -A1 "android.intent.action.MAIN" | \
+                        grep -oE "$PACKAGE_NAME/[a-zA-Z0-9._]+" | head -1)
+        
+        if [ -z "$MAIN_ACTIVITY" ]; then
+          # Fallback to common React Native activity names
+          MAIN_ACTIVITY="$PACKAGE_NAME/.MainActivity"
+        fi
+        
+        echo "Starting activity: $MAIN_ACTIVITY"
+        
+        $ADB -s "$DEVICE_SERIAL" shell am start -n "$MAIN_ACTIVITY" || \
+        $ADB -s "$DEVICE_SERIAL" shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1
+        
+        sleep 5
+        
+        # Verify app is running
+        RUNNING_ACTIVITIES=$($ADB -s "$DEVICE_SERIAL" shell dumpsys activity activities 2>/dev/null | \
+                            grep -E "mResumedActivity|topResumedActivity" | head -1)
+        
+        if echo "$RUNNING_ACTIVITIES" | grep -q "$PACKAGE_NAME"; then
+          echo "✅ App launched and in foreground"
+        else
+          echo "⚠️ App may not be in foreground: $RUNNING_ACTIVITIES"
+          echo "Continuing anyway - Appium will handle app launch"
+        fi
+
+    - name: Installation Summary
+      shell: bash
+      run: |
+        echo "## 📱 Android Install Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Device Serial:** ${{ steps.boot-emulator.outputs.device_serial }}" >> $GITHUB_STEP_SUMMARY
+        echo "**AVD Name:** ${{ steps.create-avd.outputs.avd_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**API Level:** ${{ inputs.api_level }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Device Profile:** ${{ inputs.device_profile }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Package Name:** ${{ steps.verify-apk.outputs.package_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Status:** App installed and ready for testing" >> $GITHUB_STEP_SUMMARY

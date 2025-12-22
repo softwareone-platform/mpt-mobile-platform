@@ -17,58 +17,79 @@ Currently, the test automation framework relies heavily on value-based locators 
 
 ## Current State Analysis
 
-### Existing Locator Patterns
+### ✅ Implemented: testID-based Selectors
 
-From the current Page Object Model files, the framework uses a `selectors.js` utility for cross-platform element identification:
+The test framework has been updated to use `testID`-based selectors for key elements. The following patterns are now in use:
 
 ```javascript
-// welcome.page.js - Using selector utilities
-const { getSelector, selectors } = require('./utils/selectors');
+// welcome.page.js - Using byResourceId with testIDs (recommended pattern)
+const { selectors } = require('./utils/selectors');
 
-get welcomeTitle () {
-    return $(selectors.byText('Welcome'));
+get logoImage () {
+    return $(selectors.byResourceId('welcome-logo-image'));
 }
 
-get enterEmailSubTitle () {
-    return $(selectors.byContainsText('Existing Marketplace users'));
+get welcomeTitle () {
+    return $(selectors.byResourceId('welcome-title-text'));
 }
 
 get emailInput () {
-    return $(selectors.textField());
+    return $(selectors.byResourceId('welcome-email-input'));
 }
 
 get continueButton () {
-    return $(selectors.button('Continue'));
+    return $(selectors.byResourceId('welcome-continue-button'));
 }
 
+// Text-based selectors still used for error messages
 get emailRequiredErrorLabel () {
     return $(selectors.byText('Email is required'));
 }
 
-// verify.page.js - Platform-specific selectors for complex elements
-get otpInput1 () {
-    return $(getSelector({
-        ios: '(//XCUIElementTypeOther[@accessible="true"])[1]',
-        android: '(//android.view.ViewGroup[@clickable="true" and @content-desc])[3]'
-    }));
+// footer.page.js - Using accessibility IDs for navigation tabs
+get spotlightsTab () {
+    return $(selectors.byAccessibilityId('nav-tab-spotlight'));
 }
 
-// footer.page.js - Text-based selectors
-get spotlightsTab () {
-    return $(selectors.byContainsText('Spotlight'));
+get ordersTab () {
+    return $(selectors.byAccessibilityId('nav-tab-orders'));
+}
+
+// spotlights.page.js - Using byResourceId for filter chips and cards
+get filterAll () {
+    return $(selectors.byResourceId('spotlight-filter-all'));
+}
+
+get filterOrders () {
+    return $(selectors.byResourceId('spotlight-filter-orders'));
 }
 ```
 
-### Problems with Current Approach
+### Remaining Text-Based Selectors
 
-While the selector utilities improve cross-platform compatibility, challenges remain:
+Some elements still use text-based selectors where testIDs haven't been implemented:
 
-| Issue | Impact | Example |
-|-------|--------|---------|
-| Text content changes | Tests break | Changing "Continue" to "Next" breaks `selectors.button('Continue')` |
-| Localization | Tests fail for non-English | Translation changes break text-based selectors |
-| Positional indexing | Brittle tests | `[1]`, `[3]` indices in OTP inputs break when elements are added/removed |
-| Element type selectors | May match multiple | `selectors.textField()` may match wrong field if multiple exist |
+```javascript
+// Error messages - testID not yet added to React components
+get emailRequiredErrorLabel () {
+    return $(selectors.byText('Email is required'));
+}
+
+// Section headers with cross-platform text differences
+get longRunningOrdersHeader () {
+    // Android uses "long running orders" (no hyphen), iOS uses "long-running orders"
+    return $(selectors.byContainsTextAny('long-running orders', 'long running orders'));
+}
+```
+
+### Benefits of Current Implementation
+
+| Aspect | Improvement |
+|--------|-------------|
+| Text content changes | ✅ Welcome page elements now testID-based - won't break on text changes |
+| Navigation tabs | ✅ Footer tabs use accessibility IDs - locale-independent |
+| Filter chips | ✅ Spotlight filters use testIDs - reliable selection |
+| Platform consistency | ✅ `byResourceId` works identically on iOS and Android |
 
 ---
 

@@ -29,15 +29,15 @@ describe('Navigation via footer', () => {
         await expect(subscriptionsPage.defaultText).toBeDisplayed()
     })
 
-    it('click on Spotlights button to load Spotlights page', async () => {
-        await expect(subscriptionsPage.footer.spotlightsTab).toBeDisplayed()
-        await subscriptionsPage.footer.clickSpotlightsTab();
-        await expect(homePage.defaultText).toBeDisplayed()
-    })
-
     it('click on More button to load More page', async () => {
         await expect(homePage.footer.moreTab).toBeDisplayed()
         await homePage.footer.clickMoreTab();
         await expect(morePage.footer.moreTab).toBeDisplayed()
+    })
+
+    it('click on Spotlights button to load Spotlights page', async () => {
+        await expect(morePage.footer.spotlightsTab).toBeDisplayed()
+        await morePage.footer.clickSpotlightsTab();
+        await expect(homePage.filterAll).toBeDisplayed()
     })
 })

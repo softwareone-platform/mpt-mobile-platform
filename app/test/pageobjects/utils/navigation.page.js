@@ -10,13 +10,13 @@ async function ensureHomePage() {
     }
     
     // Check if already on home page with shortened timeout
-    const isHomeVisible = await homePage.defaultText.isDisplayed({ timeout: 3000 }).catch(() => false);
+    const isHomeVisible = await homePage.filterAll.isDisplayed({ timeout: 3000 }).catch(() => false);
     if (isHomeVisible) {
         return;
     }
     
     // Navigate to home page via footer tab
-    await footerPage.clickspotlightsTab();
+    await footerPage.clickSpotlightsTab();
 }
 
 module.exports = { ensureHomePage };
