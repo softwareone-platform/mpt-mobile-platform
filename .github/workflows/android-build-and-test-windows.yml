@@ -53,10 +53,10 @@ on:
         type: string
         default: 'Release'
       api-level:
-        description: 'Android API level for emulator'
+        description: 'Android API level for emulator (30 is faster, 34 is latest)'
         required: false
         type: string
-        default: '34'
+        default: '30'
       device-profile:
         description: 'Android emulator device profile'
         required: false
@@ -65,7 +65,7 @@ on:
 
 env:
   BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
-  API_LEVEL: ${{ github.event.inputs.api-level || '34' }}
+  API_LEVEL: ${{ github.event.inputs.api-level || '30' }}
   DEVICE_PROFILE: ${{ github.event.inputs.device-profile || 'pixel_6' }}
 
 jobs:

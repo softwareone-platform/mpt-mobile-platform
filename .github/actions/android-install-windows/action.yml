@@ -287,6 +287,50 @@ runs:
         $ExpectedAvdPath = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd"
         if (Test-Path $ExpectedAvdPath) {
           Write-Host "✅ AVD directory found at: $ExpectedAvdPath"
+          
+          # Optimize AVD config for faster boot in CI
+          $ConfigPath = Join-Path $ExpectedAvdPath "config.ini"
+          if (Test-Path $ConfigPath) {
+            Write-Host "🔧 Optimizing AVD configuration for CI..."
+            $Config = Get-Content $ConfigPath
+            
+            # Override settings for faster/lighter emulator
+            $Optimizations = @{
+              "hw.lcd.density" = "320"          # Lower density (was 420 for pixel_6)
+              "hw.lcd.width" = "720"            # Lower resolution
+              "hw.lcd.height" = "1280"          # Lower resolution  
+              "hw.ramSize" = "2048"             # Match emulator memory setting
+              "hw.keyboard" = "yes"             # Hardware keyboard
+              "hw.gpu.enabled" = "no"           # Disable GPU in config (emulator args control this)
+              "hw.gpu.mode" = "off"             # GPU mode off
+              "hw.camera.back" = "none"         # No back camera
+              "hw.camera.front" = "none"        # No front camera
+              "hw.gps" = "no"                   # No GPS
+              "hw.sensors.proximity" = "no"    # No proximity sensor
+              "hw.sensors.magnetic_field" = "no" # No magnetic sensor
+              "hw.sensors.orientation" = "no"   # No orientation sensor
+              "hw.sensors.temperature" = "no"   # No temperature sensor
+              "hw.sensors.light" = "no"         # No light sensor
+              "hw.sensors.pressure" = "no"      # No pressure sensor
+              "hw.sensors.humidity" = "no"      # No humidity sensor
+              "disk.dataPartition.size" = "2G"  # Smaller data partition
+              "fastboot.chosenSnapshotFile" = "" # No snapshot
+              "fastboot.forceChosenSnapshotBoot" = "no"
+              "fastboot.forceFastBoot" = "no"
+            }
+            
+            foreach ($Key in $Optimizations.Keys) {
+              $Value = $Optimizations[$Key]
+              if ($Config -match "^$Key\s*=") {
+                $Config = $Config -replace "^$Key\s*=.*", "$Key=$Value"
+              } else {
+                $Config += "`n$Key=$Value"
+              }
+            }
+            
+            $Config | Set-Content $ConfigPath
+            Write-Host "✅ AVD config optimized"
+          }
         } else {
           Write-Host "⚠️ AVD not at expected location, searching..."
           Get-ChildItem -Path $env:USERPROFILE -Filter "$AvdName.avd" -Recurse -Directory -ErrorAction SilentlyContinue | ForEach-Object {
@@ -414,24 +458,31 @@ runs:
         Start-Sleep -Seconds 1
         & $AdbPath start-server
         
-        # Try first with auto GPU, if that fails we'll try swiftshader
+        # Try different GPU and acceleration configurations
+        # Windows Server 2025 + emulator 36.x has known issues with gfxstream
         $RetryCount = 0
-        $GpuModes = @("auto", "swiftshader_indirect", "guest")
+        # Configuration: [GPU mode, Acceleration mode, Extra args]
+        $Configurations = @(
+          @{ Gpu = "swiftshader_indirect"; Accel = "auto"; Extra = @() },
+          @{ Gpu = "off"; Accel = "auto"; Extra = @() },
+          @{ Gpu = "swiftshader_indirect"; Accel = "off"; Extra = @("-no-accel") },
+          @{ Gpu = "off"; Accel = "off"; Extra = @("-no-accel") }
+        )
         $AdbReady = $false
         $DeviceSerial = $null
         
-        foreach ($GpuMode in $GpuModes) {
+        foreach ($Config in $Configurations) {
           if ($AdbReady) { break }
           
           $RetryCount++
-          Write-Host "🔄 Attempt $RetryCount/$($GpuModes.Count) with GPU mode: $GpuMode"
+          $GpuMode = $Config.Gpu
+          $AccelMode = $Config.Accel
+          Write-Host "🔄 Attempt $RetryCount/$($Configurations.Count) - GPU: $GpuMode, Accel: $AccelMode"
           
           # Clean up lock files between attempts using safe helper
           Remove-EmulatorLocks -AvdPath $AvdDirPath
           
-          # Build emulator arguments
-          # -wipe-data ensures clean state
-          # -read-only allows starting even if lock files exist (fallback)
+          # Build emulator arguments optimized for CI (fast boot, minimal resources)
           $CurrentArgs = @(
             "-avd", $AvdName,
             "-no-window",
@@ -441,14 +492,23 @@ runs:
             "-no-snapshot-load",
             "-no-snapshot-save",
             "-wipe-data",
-            "-memory", "4096",
+            "-memory", "2048",
             "-cores", "2",
-            "-no-metrics"
+            "-no-metrics",
+            # Additional performance optimizations
+            "-no-sim",              # No SIM card - faster boot
+            "-no-cache",            # No cache partition
+            "-skip-adb-auth",       # Skip ADB authorization
+            "-no-passive-gps",      # Disable GPS
+            "-netdelay", "none",    # No network delay
+            "-netspeed", "full",    # Full network speed
+            "-screen", "no-touch",  # Disable touch screen (we use ADB)
+            "-partition-size", "2048"  # Smaller partition = faster wipe
           )
           
-          # Add acceleration only for auto mode
-          if ($GpuMode -eq "auto") {
-            $CurrentArgs += @("-accel", "auto")
+          # Add extra args from configuration
+          if ($Config.Extra.Count -gt 0) {
+            $CurrentArgs += $Config.Extra
           }
           
           Write-Host "Starting emulator with args: $($CurrentArgs -join ' ')"
@@ -463,13 +523,13 @@ runs:
           $EmulatorProcess.Id | Out-File -FilePath "emulator.pid"
           Write-Host "Emulator PID: $($EmulatorProcess.Id)"
           
-          # Wait for device to appear in ADB (shorter timeout for retries)
-          $AdbTimeout = if ($RetryCount -eq $GpuModes.Count) { 150 } else { 60 }
+          # Wait for device to appear in ADB (longer timeout for last attempt)
+          $AdbTimeout = if ($RetryCount -eq $Configurations.Count) { 180 } else { 90 }
           
           for ($i = 1; $i -le $AdbTimeout; $i++) {
             $Devices = & $AdbPath devices 2>&1
             if ($Devices -match "emulator-") {
-              Write-Host "✅ Emulator appeared in ADB after $i seconds with GPU mode: $GpuMode"
+              Write-Host "✅ Emulator appeared in ADB after $i seconds (GPU: $GpuMode, Accel: $AccelMode)"
               $AdbReady = $true
               $DeviceSerial = ($Devices | Select-String "emulator-" | Select-Object -First 1).ToString().Split()[0]
               break
@@ -483,7 +543,7 @@ runs:
                 Write-Host "⚠️ Emulator exited with code: $($EmulatorProcess.ExitCode)"
                 Write-Host "Emulator stderr:"
                 if (Test-Path "emulator_stderr_$RetryCount.log") { 
-                  Get-Content "emulator_stderr_$RetryCount.log" -Tail 30 
+                  Get-Content "emulator_stderr_$RetryCount.log" -Tail 50 
                 }
                 break
               }
@@ -514,7 +574,7 @@ runs:
         }
         
         if (-not $AdbReady) {
-          Write-Host "❌ ERROR: Emulator failed to start after $($GpuModes.Count) attempts"
+          Write-Host "❌ ERROR: Emulator failed to start after $($Configurations.Count) attempts"
           & $AdbPath devices
           
           foreach ($n in 1..$RetryCount) {
