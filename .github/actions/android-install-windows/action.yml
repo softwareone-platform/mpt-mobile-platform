@@ -502,8 +502,8 @@ runs:
             "-no-passive-gps",      # Disable GPS
             "-netdelay", "none",    # No network delay
             "-netspeed", "full",    # Full network speed
-            "-screen", "no-touch",  # Disable touch screen (we use ADB)
-            "-partition-size", "2048"  # Smaller partition = faster wipe
+            "-screen", "no-touch"   # Disable touch screen (we use ADB)
+            # Note: Removed -partition-size as it can cause issues with different emulator versions
           )
           
           # Add extra args from configuration
