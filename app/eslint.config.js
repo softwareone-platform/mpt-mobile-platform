@@ -68,7 +68,6 @@ const commonRules = {
 };
 
 module.exports = [
-  // Global ignores
   {
     ignores: [
       '**/node_modules/**',
@@ -94,8 +93,6 @@ module.exports = [
       'eslint.config.js',
     ],
   },
-
-  // Base JS/TS rules (type-agnostic)
   js.configs.recommended,
   {
     files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
@@ -114,8 +111,6 @@ module.exports = [
       ...commonRules,
     },
   },
-
-  // TypeScript type-aware rules (optional, only for actual code)
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -138,9 +133,9 @@ module.exports = [
         'warn',
         {
           vars: 'all',
-          varsIgnorePattern: '^_', // ignore _foo
-          args: 'none', // ignore ALL params (interfaces, callbacks, etc)
-          argsIgnorePattern: '^_', // also ignore _param explicitly
+          varsIgnorePattern: '^_',
+          args: 'none',
+          argsIgnorePattern: '^_',
           ignoreRestSiblings: true,
           caughtErrors: 'none',
         },
