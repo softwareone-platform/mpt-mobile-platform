@@ -1,8 +1,10 @@
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
-import NavigationItemChevron from './NavigationItemChevron';
-import { Color, listItemStyle } from "@/styles"; 
 import { OutlinedIcons } from '@assets/icons';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+
+import NavigationItemChevron from './NavigationItemChevron';
+
 import OutlinedIcon from '@/components/common/OutlinedIcon';
+import { Color, listItemStyle } from '@/styles';
 
 type Props = {
   title: string;
@@ -13,13 +15,9 @@ type Props = {
 };
 
 const NavigationItemWithIcon = ({ title, icon, isLast, isDisabled, onPress }: Props) => (
-  <TouchableOpacity
-    style={styles.container}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
+  <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
     <View style={styles.iconWrapper}>
-      <OutlinedIcon 
+      <OutlinedIcon
         name={icon as keyof typeof OutlinedIcons}
         color={isDisabled ? Color.gray.gray3 : Color.brand.primary}
         size={24}
@@ -38,7 +36,7 @@ const styles = StyleSheet.create({
   container: listItemStyle.container,
   lastItem: listItemStyle.lastItem,
   iconWrapper: listItemStyle.textAndIcon.iconWrapper,
-  contentWrapper:{
+  contentWrapper: {
     ...listItemStyle.contentWrapper,
     ...listItemStyle.textAndIcon.contentWrapper,
   },

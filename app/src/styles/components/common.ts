@@ -46,16 +46,16 @@ export const screenStyle = {
 } as const;
 
 export const spacingStyle = {
-  marginLeft3: { 
-    marginLeft: Spacing.spacing3
+  marginLeft3: {
+    marginLeft: Spacing.spacing3,
   },
-  marginBottom4: { 
-    marginBottom: Spacing.spacing4
+  marginBottom4: {
+    marginBottom: Spacing.spacing4,
   },
-  marginTop1: { 
-    marginTop: Spacing.spacing1
+  marginTop1: {
+    marginTop: Spacing.spacing1,
   },
-  paddingVertical4: { 
-    paddingVertical: Spacing.spacing4
+  paddingVertical4: {
+    paddingVertical: Spacing.spacing4,
   },
- } as const;
+} as const;

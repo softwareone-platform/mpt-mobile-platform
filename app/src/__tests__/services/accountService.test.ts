@@ -1,11 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { useAccountApi } from '@/services/accountService';
 
-import {
-  DEFAULT_PAGE_SIZE,
-  DEFAULT_OFFSET,
-  DEFAULT_SPOTLIGHT_LIMIT,
-} from '@/constants/api';
+import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
+import { useAccountApi } from '@/services/accountService';
 
 const mockGet = jest.fn();
 const mockPut = jest.fn();
@@ -53,9 +49,7 @@ describe('useAccountApi', () => {
       res = await api.getCurrentAccountIcon('999');
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      '/v1/accounts/users/999?select=currentAccount.icon'
-    );
+    expect(mockGet).toHaveBeenCalledWith('/v1/accounts/users/999?select=currentAccount.icon');
     expect(res).toEqual({ currentAccount: { icon: 'icon.png' } });
   });
 
@@ -124,7 +118,7 @@ describe('useAccountApi', () => {
     });
 
     expect(mockGet).toHaveBeenCalledWith(
-      `/v1/spotlight/objects?select=top&limit=${DEFAULT_SPOTLIGHT_LIMIT}`
+      `/v1/spotlight/objects?select=top&limit=${DEFAULT_SPOTLIGHT_LIMIT}`,
     );
     expect(res).toEqual({ top: [] });
   });
@@ -138,9 +132,7 @@ describe('useAccountApi', () => {
       res = await api.getSpotlightData(12);
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      `/v1/spotlight/objects?select=top&limit=12`
-    );
+    expect(mockGet).toHaveBeenCalledWith(`/v1/spotlight/objects?select=top&limit=12`);
     expect(res).toEqual({ top: [] });
   });
 
@@ -172,9 +164,7 @@ describe('useAccountApi', () => {
     });
 
     const expectedUrl =
-      `/v1/commerce/subscriptions?filter(group.buyers)` +
-      `&offset=5` +
-      `&limit=10`;
+      `/v1/commerce/subscriptions?filter(group.buyers)` + `&offset=5` + `&limit=10`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual([{ id: 'sub2' }]);
@@ -189,10 +179,9 @@ describe('useAccountApi', () => {
       await api.switchAccount('100', '200');
     });
 
-    expect(mockPut).toHaveBeenCalledWith(
-      '/v1/accounts/users/100',
-      { currentAccount: { id: '200' } }
-    );
+    expect(mockPut).toHaveBeenCalledWith('/v1/accounts/users/100', {
+      currentAccount: { id: '200' },
+    });
 
     expect(mockRefreshAuth).toHaveBeenCalled();
   });
@@ -203,7 +192,7 @@ describe('useAccountApi', () => {
     await expect(
       act(async () => {
         await api.switchAccount('', '200');
-      })
+      }),
     ).rejects.toThrow('User ID is required to switch accounts');
 
     expect(mockPut).not.toHaveBeenCalled();
@@ -212,7 +201,7 @@ describe('useAccountApi', () => {
   it('logs warning when refreshAuth fails after account switch', async () => {
     const api = setup();
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-    
+
     mockPut.mockResolvedValueOnce(undefined);
     mockRefreshAuth.mockRejectedValueOnce(new Error('Refresh failed'));
 
@@ -220,17 +209,15 @@ describe('useAccountApi', () => {
       await api.switchAccount('100', '200');
     });
 
-    expect(mockPut).toHaveBeenCalledWith(
-      '/v1/accounts/users/100',
-      { currentAccount: { id: '200' } }
-    );
+    expect(mockPut).toHaveBeenCalledWith('/v1/accounts/users/100', {
+      currentAccount: { id: '200' },
+    });
 
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       'Failed to refresh token after account switch',
-      expect.any(Error)
+      expect.any(Error),
     );
 
     consoleWarnSpy.mockRestore();
   });
 });
-

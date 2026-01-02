@@ -1,7 +1,9 @@
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
-import { listItemStyle } from "@/styles"; 
-import AvatarIcon from "@/components/avatar/Avatar";
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+
 import NavigationItemChevron from './NavigationItemChevron';
+
+import AvatarIcon from '@/components/avatar/Avatar';
+import { listItemStyle } from '@/styles';
 
 type Props = {
   id: string;
@@ -13,19 +15,24 @@ type Props = {
   testID?: string;
 };
 
-const NavigationItemWithImage = ({ id, imagePath, title, subtitle, isLast, onPress, testID }: Props) => (
-  <TouchableOpacity
-    testID={testID}
-    style={styles.container}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
+const NavigationItemWithImage = ({
+  id,
+  imagePath,
+  title,
+  subtitle,
+  isLast,
+  onPress,
+  testID,
+}: Props) => (
+  <TouchableOpacity testID={testID} style={styles.container} onPress={onPress} activeOpacity={0.7}>
     <View style={styles.avatarWrapper}>
       <AvatarIcon id={id} imagePath={imagePath} size={44} />
     </View>
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
       <View style={styles.textContainer}>
-        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          {title}
+        </Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
       <NavigationItemChevron />
@@ -37,7 +44,7 @@ const styles = StyleSheet.create({
   container: listItemStyle.container,
   lastItem: listItemStyle.lastItem,
   avatarWrapper: listItemStyle.textAndImage.avatarWrapper,
-  contentWrapper:{
+  contentWrapper: {
     ...listItemStyle.contentWrapper,
     ...listItemStyle.textAndImage.contentWrapper,
   },

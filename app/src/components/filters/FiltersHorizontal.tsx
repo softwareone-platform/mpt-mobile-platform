@@ -1,6 +1,7 @@
-import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { filterStyle } from '@/styles/components';
 import { useTranslation } from 'react-i18next';
+import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
+
+import { filterStyle } from '@/styles/components';
 
 type Props = {
   filterKeys: string[];

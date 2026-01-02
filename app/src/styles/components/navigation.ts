@@ -1,4 +1,5 @@
 import { Color, Spacing, Typography } from '../tokens';
+
 import { cardStyle } from './card';
 import { separatorStyle } from './separator';
 
@@ -25,7 +26,7 @@ export const navigationStyle = {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    label: { 
+    label: {
       fontSize: Typography.fontSize.font3,
       color: Color.labels.primary,
     },
@@ -41,7 +42,7 @@ export const navigationStyle = {
       paddingVertical: Spacing.spacing2,
     },
     lastItem: {
-      borderBottomWidth: 0, 
+      borderBottomWidth: 0,
     },
   },
   header: {
@@ -52,5 +53,5 @@ export const navigationStyle = {
       color: Color.brand.primary,
       marginLeft: 6,
     },
-  }
+  },
 } as const;

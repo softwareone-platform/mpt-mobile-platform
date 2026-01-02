@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+
 import apiClient from '@/lib/apiClient';
 
 // Pure API functions
@@ -29,9 +30,15 @@ export async function apiDelete<T>(path: string): Promise<T> {
 
 export function useApi() {
   const get = useCallback(<T>(path: string) => apiGet<T>(path), []);
-  const post = useCallback(<T, B = unknown>(path: string, body?: B) => apiPost<T, B>(path, body), []);
+  const post = useCallback(
+    <T, B = unknown>(path: string, body?: B) => apiPost<T, B>(path, body),
+    [],
+  );
   const put = useCallback(<T, B = unknown>(path: string, body?: B) => apiPut<T, B>(path, body), []);
-  const patch = useCallback(<T, B = unknown>(path: string, body?: B) => apiPatch<T, B>(path, body), []);
+  const patch = useCallback(
+    <T, B = unknown>(path: string, body?: B) => apiPatch<T, B>(path, body),
+    [],
+  );
   const del = useCallback(<T>(path: string) => apiDelete<T>(path), []);
 
   return useMemo(
@@ -42,6 +49,6 @@ export function useApi() {
       patch,
       delete: del,
     }),
-    [get, post, put, patch, del]
+    [get, post, put, patch, del],
   );
 }

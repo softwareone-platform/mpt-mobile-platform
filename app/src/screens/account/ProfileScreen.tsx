@@ -1,18 +1,19 @@
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { cardStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
-import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
+
+import EmptyState from '@/components/common/EmptyState';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
-import { StackNavigationProp } from '@react-navigation/stack';
-import type { ProfileStackParamList } from '@/types/navigation';
-import { FormattedUserAccounts } from '@/types/api';
-import { useNavigation } from '@react-navigation/native';
-import { useAccount } from '@/context/AccountContext';
-import { TestIDs } from '@/utils/testID';
+import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import Tabs, { TabData } from '@/components/tabs/Tabs';
 import { isFeatureEnabled } from '@/config/feature-flags/featureFlags';
-import EmptyState from '@/components/common/EmptyState';
+import { useAccount } from '@/context/AccountContext';
+import { cardStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
+import { FormattedUserAccounts } from '@/types/api';
+import type { ProfileStackParamList } from '@/types/navigation';
+import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
@@ -21,7 +22,8 @@ export const DEFAULT_ACCOUNT_FILTER = 'all';
 const ProfileScreen = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [isSwitching, setIsSwitching] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<keyof FormattedUserAccounts>(DEFAULT_ACCOUNT_FILTER);
+  const [selectedTab, setSelectedTab] =
+    useState<keyof FormattedUserAccounts>(DEFAULT_ACCOUNT_FILTER);
 
   const { userData, userAccountsData, switchAccount } = useAccount();
   const navigation = useNavigation<ProfileScreenNavigationProp>();
@@ -42,7 +44,7 @@ const ProfileScreen = () => {
   }, [userData]);
 
   const handleSwitchAccount = async (accountId: string) => {
-    if(accountId === selectedAccountId) return;
+    if (accountId === selectedAccountId) return;
 
     setIsSwitching(true);
     setSelectedAccountId(accountId);
@@ -56,7 +58,9 @@ const ProfileScreen = () => {
   return (
     <ScrollView style={styles.containerMain}>
       <View>
-        <Text testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE} style={styles.sectionHeader}>{t('profileScreen.yourProfile')}</Text>
+        <Text testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE} style={styles.sectionHeader}>
+          {t('profileScreen.yourProfile')}
+        </Text>
         <View style={styles.containerCard}>
           {userData && (
             <NavigationItemWithImage
@@ -66,17 +70,21 @@ const ProfileScreen = () => {
               title={userData?.name}
               subtitle={userData?.id}
               isLast={true}
-              onPress={() => navigation.navigate("userSettings", {
-                id: userData.id,
-                name: userData.name,
-                icon: userData.icon,
-              })}
+              onPress={() =>
+                navigation.navigate('userSettings', {
+                  id: userData.id,
+                  name: userData.name,
+                  icon: userData.icon,
+                })
+              }
             />
           )}
         </View>
       </View>
       <View>
-        <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>{t('profileScreen.switchAccount')}</Text>
+        <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>
+          {t('profileScreen.switchAccount')}
+        </Text>
         {isFeatureEnabled('FEATURE_ACCOUNT_TABS') && (
           <Tabs
             tabs={tabData}
@@ -127,7 +135,6 @@ const styles = StyleSheet.create({
   containerCenterContent: screenStyle.containerCenterContent,
   sectionHeader: screenStyle.sectionHeader,
   paddingVertical4: spacingStyle.paddingVertical4,
-
 });
 
 export default ProfileScreen;

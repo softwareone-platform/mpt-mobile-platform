@@ -7,7 +7,7 @@ export const tabStyle = {
     padding: Spacing.spacing05,
     flexDirection: 'row',
     marginBottom: Spacing.spacing2,
-  },  
+  },
 } as const;
 
 export const tabItemStyle = {

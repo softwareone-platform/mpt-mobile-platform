@@ -8,8 +8,8 @@ type PortalManifest = {
 };
 
 export type PortalVersionInfo = {
-  fullVersion: string; 
-  majorVersion: number; 
+  fullVersion: string;
+  majorVersion: number;
 };
 
 const MANIFEST_PATH = '/manifest.json';
@@ -32,11 +32,11 @@ export async function fetchPortalVersion(): Promise<PortalVersionInfo> {
     const { data } = await apiClient.get<PortalManifest>(url);
     const fullVersion = data.version || '';
     const majorVersion = parseMajorVersion(fullVersion);
-    
+
     if (majorVersion === 0 && fullVersion) {
       console.warn(`Portal version "${fullVersion}" could not be parsed to a valid major version`);
     }
-    
+
     return { fullVersion, majorVersion };
   } catch (error) {
     console.error('Failed to fetch portal manifest:', error);

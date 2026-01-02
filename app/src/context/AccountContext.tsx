@@ -1,10 +1,11 @@
 import { createContext, useContext, useCallback, ReactNode } from 'react';
+
 import { useAuth } from '@/context/AuthContext';
-import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
-import { useUserData } from '@/hooks/queries/useUserData';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
-import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
 import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
+import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
+import { useUserData } from '@/hooks/queries/useUserData';
+import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
 
 interface AccountContextValue {
   userData: UserData | null;
@@ -22,7 +23,7 @@ const AccountContext = createContext<AccountContextValue | undefined>(undefined)
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
-  const userId = user?.["https://claims.softwareone.com/userId"];
+  const userId = user?.['https://claims.softwareone.com/userId'];
 
   const {
     data: userData = null,
@@ -38,12 +39,11 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   } = useSpotlightData(userId, userData);
 
   const spotlightData = spotlightDataRaw ?? {};
-  
+
   const isSpotlightLoading = userDataLoading || spotlightDataLoading || fetchStatus === 'fetching';
 
-  const {
-    data: userAccountsData = { all: [], favourites: [], recent: []},
-  } = useUserAccountsData(userId);
+  const { data: userAccountsData = { all: [], favourites: [], recent: [] } } =
+    useUserAccountsData(userId);
 
   const switchAccountMutation = useSwitchAccount(userId);
 
@@ -52,7 +52,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
       if (!userId) return;
       await switchAccountMutation.mutateAsync(accountId);
     },
-    [userId, switchAccountMutation]
+    [userId, switchAccountMutation],
   );
 
   return (

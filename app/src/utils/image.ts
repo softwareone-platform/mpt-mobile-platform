@@ -5,16 +5,16 @@ export function getImageUrl(baseUrl: string, imagePath: string): string | null {
     return null;
   }
 
-  if(imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
 
-  return `${baseUrl.replace(/\/+$/, "")}/${imagePath.replace(/^\/+/, "")}`;
+  return `${baseUrl.replace(/\/+$/, '')}/${imagePath.replace(/^\/+/, '')}`;
 }
 
 export function getImageHeaders(
   accessToken: string,
-  method: HttpMethod = HttpMethod.GET
+  method: HttpMethod = HttpMethod.GET,
 ): { [key: string]: string } | undefined {
   if (!accessToken) return undefined;
 

@@ -1,4 +1,5 @@
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+
 import { tabItemStyle } from '@/styles/components/tab';
 
 type Props = {
@@ -14,9 +15,7 @@ const TabItem = ({ label, selected, onPress }: Props) => {
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={[styles.label, selected && styles.labelSelected]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, selected && styles.labelSelected]}>{label}</Text>
     </TouchableOpacity>
   );
 };

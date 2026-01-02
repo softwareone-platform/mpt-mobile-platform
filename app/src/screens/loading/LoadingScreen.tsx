@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
+
 import { Color } from '@/styles/tokens';
 
 const LoadingScreen: React.FC = () => {

@@ -1,7 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
+
 import OutlinedIcon from './OutlinedIcon';
-import { MaterialIconName, DynamicIconProps, OutlinedIconName } from '@/types/icons';
+
 import { DEFAULT_ICON_SIZE, DEFAULT_ICON_COLOR, DEFAULT_ICON_VARIANT } from '@/constants/icons';
+import { MaterialIconName, DynamicIconProps, OutlinedIconName } from '@/types/icons';
 
 const DynamicIcon = ({
   name,
