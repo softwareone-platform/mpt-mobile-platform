@@ -10,9 +10,11 @@ export const getRecentAccounts = (
   data: UserAccount[],
   maxRecentAccounts: number,
 ): UserAccount[] => {
-  const sortedByAccess = [...data].sort((a, b) => {
-    const dateA = new Date(a.audit?.access?.at || 0).getTime();
-    const dateB = new Date(b.audit?.access?.at || 0).getTime();
+  const itemsWithAccessDate = data.filter((item) => item.audit?.access?.at);
+
+  const sortedByAccess = itemsWithAccessDate.sort((a, b) => {
+    const dateA = new Date(a.audit!.access!.at).getTime();
+    const dateB = new Date(b.audit!.access!.at).getTime();
     return dateB - dateA;
   });
 
