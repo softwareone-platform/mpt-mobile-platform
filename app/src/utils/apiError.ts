@@ -1,21 +1,22 @@
+import { AxiosError } from 'axios';
+
 export type ApiError = {
   name: 'API Error';
   status: number | null;
   message: string;
-  details?: any;
+  details?: unknown;
 };
 
-export const createApiError = (error: any): ApiError => {
-  const status = error?.response?.status ?? null;
+export const createApiError = (error: unknown): ApiError => {
+  const axiosError = error as AxiosError<{ message?: string }>;
+  const status = axiosError?.response?.status ?? null;
   const message =
-    error?.response?.data?.message ||
-    error?.message ||
-    'Unexpected API Error';
+    axiosError?.response?.data?.message || axiosError?.message || 'Unexpected API Error';
 
   return {
     name: 'API Error',
     status,
     message,
-    details: error?.response?.data,
+    details: axiosError?.response?.data,
   };
 };

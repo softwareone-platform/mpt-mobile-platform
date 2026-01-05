@@ -1,5 +1,5 @@
-import type { SpotlightTemplateName } from '@/types/spotlight';
 import type { SpotlightItem } from '@/types/api';
+import type { SpotlightTemplateName } from '@/types/spotlight';
 
 export const categories: { name: string; templates: SpotlightTemplateName[] }[] = [
   { name: 'orders', templates: ['savedOrdersClient', 'queryingOrders'] },
@@ -12,10 +12,10 @@ export const duplicateCategories: { name: string; templates: SpotlightTemplateNa
 ];
 
 export const categoryLookup: Record<SpotlightTemplateName, string> = {
-  'savedOrdersClient': 'orders',
-  'queryingOrders': 'orders',
-  'renewingSubscriptions': 'subscriptions',
-  'expiringSubscriptions': 'subscriptions',
+  savedOrdersClient: 'orders',
+  queryingOrders: 'orders',
+  renewingSubscriptions: 'subscriptions',
+  expiringSubscriptions: 'subscriptions',
 } as Record<SpotlightTemplateName, string>;
 
 export const spotlightItem1: SpotlightItem = {
@@ -70,7 +70,11 @@ export const spotlightItemUnknownTemplate: SpotlightItem = {
   id: '8',
   total: 7,
   top: [],
-  query: { id: 'q8', name: 'Unknown Template', template: 'notExistingTemplate' as SpotlightTemplateName },  
+  query: {
+    id: 'q8',
+    name: 'Unknown Template',
+    template: 'notExistingTemplate' as SpotlightTemplateName,
+  },
 };
 
 export const spotlightData: SpotlightItem[] = [
@@ -82,22 +86,22 @@ export const spotlightData: SpotlightItem[] = [
 
 export const spotlightDataMissingQuery: SpotlightItem[] = [
   ...spotlightData,
-  spotlightItemMissingQuery
+  spotlightItemMissingQuery,
 ];
 
 export const spotlightDataMissingTemplate: SpotlightItem[] = [
   ...spotlightData,
-  spotlightItemMissingTemplate
+  spotlightItemMissingTemplate,
 ];
 
 export const spotlightDataUndefinedTemplate: SpotlightItem[] = [
   ...spotlightData,
-  spotlightItemUndefinedTemplate
+  spotlightItemUndefinedTemplate,
 ];
 
 export const spotlightDataUnknownTemplate: SpotlightItem[] = [
   ...spotlightData,
-  spotlightItemUnknownTemplate
+  spotlightItemUnknownTemplate,
 ];
 
 export const spotlightDataNullItem: SpotlightItem[] = [
@@ -136,9 +140,7 @@ export const largeSpotlightData: SpotlightItem[] = Array.from({ length: 100 }, (
   const id = (i + 1).toString();
   const even = i % 2 === 0;
 
-  const template: SpotlightTemplateName = even
-    ? 'savedOrdersClient'
-    : 'renewingSubscriptions';
+  const template: SpotlightTemplateName = even ? 'savedOrdersClient' : 'renewingSubscriptions';
 
   return {
     id,

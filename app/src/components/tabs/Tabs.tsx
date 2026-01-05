@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+
 import TabItem from '@/components/tab-item/TabItem';
 import { tabStyle } from '@/styles/components/tab';
 

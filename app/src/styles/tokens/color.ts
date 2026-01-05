@@ -65,7 +65,7 @@ export const Color = {
   },
   fills: {
     tertiary: 'rgba(118, 118, 128, 0.12)',
-  }
+  },
 } as const;
 
 export default Color;

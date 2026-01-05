@@ -1,150 +1,147 @@
 const globals = require('globals');
 const js = require('@eslint/js');
+
 const reactPlugin = require('eslint-plugin-react');
 const reactHooksPlugin = require('eslint-plugin-react-hooks');
 const reactNativePlugin = require('eslint-plugin-react-native');
 const typescriptParser = require('@typescript-eslint/parser');
 const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
+const importPlugin = require('eslint-plugin-import');
+const unusedImportsPlugin = require('eslint-plugin-unused-imports');
+const prettierPlugin = require('eslint-plugin-prettier');
+
+const commonGlobals = {
+  ...globals.es2020,
+  ...globals.node,
+  ...globals.jest,
+  __DEV__: 'readonly',
+  fetch: 'readonly',
+  FormData: 'readonly',
+  XMLHttpRequest: 'readonly',
+  navigator: 'readonly',
+  requestAnimationFrame: 'readonly',
+  cancelAnimationFrame: 'readonly',
+};
+
+const commonPlugins = {
+  react: reactPlugin,
+  'react-hooks': reactHooksPlugin,
+  'react-native': reactNativePlugin,
+  import: importPlugin,
+  'unused-imports': unusedImportsPlugin,
+  prettier: prettierPlugin,
+};
+
+const commonRules = {
+  'react/react-in-jsx-scope': 'off',
+  'react/prop-types': 'off',
+  'react/display-name': 'off',
+  'react-hooks/rules-of-hooks': 'error',
+  'react-hooks/exhaustive-deps': 'warn',
+
+  'react-native/no-unused-styles': 'warn',
+  'react-native/no-inline-styles': 'warn',
+  'react-native/no-color-literals': 'warn',
+  'react-native/no-single-element-style-arrays': 'warn',
+  'react-native/no-raw-text': 'off',
+
+  'import/order': [
+    'error',
+    {
+      groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+      'newlines-between': 'always',
+      alphabetize: { order: 'asc', caseInsensitive: true },
+    },
+  ],
+  'import/no-duplicates': 'error',
+  'unused-imports/no-unused-imports': 'error',
+  'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
+  eqeqeq: ['error', 'always'],
+  'prefer-const': 'warn',
+  'no-var': 'error',
+  'no-debugger': 'warn',
+  'no-undef': 'off',
+
+  'prettier/prettier': 'error',
+  'eol-last': ['error', 'always'],
+  'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
+};
 
 module.exports = [
-  // Global ignores
   {
     ignores: [
-      // Dependencies
       '**/node_modules/**',
-
-      // Build outputs
       '**/dist/**',
       '**/build/**',
       '**/web-build/**',
-
-      // Expo
       '**/.expo/**',
       '**/.expo-shared/**',
-
-      // Metro
       '**/.metro-health-check*',
-
-      // Logs
       '**/*.log',
-      '**/npm-debug.log*',
-      '**/yarn-debug.log*',
-      '**/yarn-error.log*',
-
-      // Runtime data
-      '**/pids',
-      '**/*.pid',
-      '**/*.seed',
-
-      // Coverage
-      '**/coverage/**',
-
-      // Environment variables
-      '**/.env',
-      '**/.env.local',
-      '**/.env.development.local',
-      '**/.env.test.local',
-      '**/.env.production.local',
-
-      // IDE and editor files
+      '**/*.snap',
+      '**/.env*',
       '**/.vscode/**',
       '**/.idea/**',
       '**/*.swp',
       '**/*.swo',
-
-      // OS generated files
       '**/.DS_Store',
-      '**/.DS_Store?',
-      '**/._*',
-      '**/.Spotlight-V100',
-      '**/.Trashes',
-      '**/ehthumbs.db',
-      '**/Thumbs.db',
-
-      // iOS and Android native folders
       '**/ios/**',
       '**/android/**',
+      '**/test/**',
+      'wdio.conf.js',
+      'assets/icons/**',
+      'eslint.config.js',
     ],
   },
-
-  // Base ESLint recommended rules
   js.configs.recommended,
-
-  // React recommended rules
-  {
-    files: ['**/*.jsx', '**/*.tsx'],
-    ...reactPlugin.configs.flat.recommended,
-  },
-
-  // Main configuration for JavaScript/TypeScript files
   {
     files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
-
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
         ecmaVersion: 2020,
         sourceType: 'module',
+        ecmaFeatures: { jsx: true },
       },
-      globals: {
-        ...globals.es2020,
-        ...globals.node,
-        ...globals.jest,
-        // React Native globals
-        __DEV__: 'readonly',
-        fetch: 'readonly',
-        FormData: 'readonly',
-        XMLHttpRequest: 'readonly',
-        navigator: 'readonly',
-        requestAnimationFrame: 'readonly',
-        cancelAnimationFrame: 'readonly',
+      globals: commonGlobals,
+    },
+    plugins: commonPlugins,
+    settings: { react: { version: 'detect' } },
+    rules: {
+      ...commonRules,
+    },
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+        ecmaVersion: 2020,
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
       },
     },
-
     plugins: {
-      react: reactPlugin,
-      'react-hooks': reactHooksPlugin,
-      'react-native': reactNativePlugin,
       '@typescript-eslint': typescriptPlugin,
     },
-
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
-
     rules: {
-      // React specific rules
-      'react/react-in-jsx-scope': 'off', // Not needed in React 17+
-      'react/prop-types': 'off', // Using TypeScript for prop validation
-      'react/display-name': 'off',
-
-      // React Hooks rules
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-
-      // React Native specific rules
-      'react-native/no-unused-styles': 'warn',
-      'react-native/split-platform-components': 'warn',
-      'react-native/no-inline-styles': 'warn',
-      'react-native/no-color-literals': 'warn',
-      'react-native/no-raw-text': 'off', // Can be restrictive for simple text
-
-      // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'no-unused-vars': 'off', // Turn off base rule as it conflicts with TypeScript rule
-
-      // General ESLint rules
-      'no-console': 'off',
-      'no-debugger': 'warn',
-      'prefer-const': 'warn',
-      'no-var': 'error',
-      'no-undef': 'off', // TypeScript handles this
-      "eol-last": ["error", "always"],
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'none',
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          caughtErrors: 'none',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true, ignoreIIFE: true }],
     },
   },
 ];

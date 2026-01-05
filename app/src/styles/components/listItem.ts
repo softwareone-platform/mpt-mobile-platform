@@ -1,4 +1,5 @@
 import { Color, Spacing, Typography } from '../tokens';
+
 import { separatorStyle } from './separator';
 
 export const listItemStyle = {
@@ -73,9 +74,9 @@ export const listItemStyle = {
     textInline: {
       fontSize: Typography.fontSize.font4,
       color: Color.labels.secondary,
-      flexShrink: 1,  
+      flexShrink: 1,
       marginRight: 12,
       textAlign: 'right',
     },
-  }
+  },
 } as const;

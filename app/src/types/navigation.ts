@@ -26,7 +26,7 @@ export type TabParamList = {
 
 export type ScreenComponent<
   ParamList extends Record<string, object | undefined>,
-  RouteName extends keyof ParamList
+  RouteName extends keyof ParamList,
 > = React.ComponentType<{
   navigation: NavigationProp<ParamList, RouteName>;
   route: RouteProp<ParamList, RouteName>;

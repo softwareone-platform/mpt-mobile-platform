@@ -2,7 +2,7 @@ describe('WelcomeScreen Business Logic', () => {
   describe('Email Validation', () => {
     it('should validate email format correctly', () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
+
       const testCases = [
         { email: 'valid@example.com', expected: true },
         { email: 'user.name+tag@domain.co.uk', expected: true },
@@ -23,7 +23,7 @@ describe('WelcomeScreen Business Logic', () => {
 
     it('should handle edge cases in email validation', () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
+
       expect(emailRegex.test('a@b.c')).toBe(true); // Minimal valid email
       expect(emailRegex.test('very.long.email.address@very.long.domain.name.com')).toBe(true);
       expect(emailRegex.test('user+tag@domain.co')).toBe(true);
@@ -32,9 +32,9 @@ describe('WelcomeScreen Business Logic', () => {
   });
 
   describe('Auth0 Error Message Parsing', () => {
-    const parseAuth0ErrorPatterns = (errorMessage: string) => {
+    const parseAuth0ErrorPatterns = (errorMessage: string): string => {
       const message = errorMessage.toLowerCase();
-      
+
       if (message.includes('connection is disabled') || message.includes('connection disabled')) {
         return 'connectionDisabled';
       }
@@ -89,8 +89,8 @@ describe('WelcomeScreen Business Logic', () => {
 
   describe('Form Validation Logic', () => {
     it('should validate required email field', () => {
-      const isEmailRequired = (email: string) => !email.trim();
-      
+      const isEmailRequired = (email: string): boolean => !email.trim();
+
       expect(isEmailRequired('')).toBe(true);
       expect(isEmailRequired('   ')).toBe(true);
       expect(isEmailRequired('test@example.com')).toBe(false);
@@ -99,15 +99,15 @@ describe('WelcomeScreen Business Logic', () => {
 
     it('should validate form state correctly', () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
-      const isFormValid = (email: string, loading: boolean) => {
+
+      const isFormValid = (email: string, loading: boolean): boolean => {
         const trimmedEmail = email.trim();
         return Boolean(trimmedEmail && emailRegex.test(trimmedEmail) && !loading);
       };
 
       expect(isFormValid('test@example.com', false)).toBe(true);
       expect(isFormValid('  valid@domain.org  ', false)).toBe(true);
-      
+
       expect(isFormValid('', false)).toBe(false);
       expect(isFormValid('invalid-email', false)).toBe(false);
     });
@@ -116,31 +116,33 @@ describe('WelcomeScreen Business Logic', () => {
   describe('Async Operations', () => {
     it('should handle sendPasswordlessEmail success', async () => {
       const mockSendPasswordlessEmail = jest.fn().mockResolvedValue(undefined);
-      
+
       await expect(mockSendPasswordlessEmail('test@example.com')).resolves.toBeUndefined();
       expect(mockSendPasswordlessEmail).toHaveBeenCalledWith('test@example.com');
     });
 
     it('should handle sendPasswordlessEmail errors', async () => {
       const mockSendPasswordlessEmail = jest.fn().mockRejectedValue(new Error('Connection failed'));
-      
-      await expect(mockSendPasswordlessEmail('test@example.com')).rejects.toThrow('Connection failed');
+
+      await expect(mockSendPasswordlessEmail('test@example.com')).rejects.toThrow(
+        'Connection failed',
+      );
     });
 
     it('should handle loading states properly', async () => {
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: (value: void) => void;
       const loadingPromise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
-      
+
       const mockSendPasswordlessEmail = jest.fn().mockReturnValue(loadingPromise);
-      
+
       const result = mockSendPasswordlessEmail('test@example.com');
       expect(result).toBeInstanceOf(Promise);
-      
+
       resolvePromise!(undefined);
       await result;
-      
+
       expect(mockSendPasswordlessEmail).toHaveBeenCalledWith('test@example.com');
     });
   });

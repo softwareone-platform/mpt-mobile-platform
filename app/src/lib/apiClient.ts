@@ -1,14 +1,16 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+
+import { getAccessTokenAsync } from './tokenProvider';
+
 import { configService } from '@/config/env.config';
 import { createApiError } from '@/utils/apiError';
-import { getAccessTokenAsync } from './tokenProvider';
 
 const BASE_URL = configService.get('AUTH0_API_URL');
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    "Accept": "application/json",
+    Accept: 'application/json',
   },
 });
 
@@ -28,7 +30,7 @@ apiClient.interceptors.request.use(
   },
   (error: AxiosError) => {
     return Promise.reject(createApiError(error));
-  }
+  },
 );
 
 /**
@@ -39,7 +41,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     return Promise.reject(createApiError(error));
-  }
+  },
 );
 
 export default apiClient;

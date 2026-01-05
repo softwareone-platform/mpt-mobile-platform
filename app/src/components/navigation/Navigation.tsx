@@ -1,11 +1,13 @@
-import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { NavigationDataProvider } from '@/context/NavigationContext';
-import { useAuth } from '@/context/AuthContext';
-import { RootStackParamList } from './types';
-import MainTabs from './MainTabs';
+import { createStackNavigator } from '@react-navigation/stack';
+
 import AuthStack from './AuthStack';
+import MainTabs from './MainTabs';
 import ProfileStack from './ProfileStack';
+import { RootStackParamList } from './types';
+
+import { useAuth } from '@/context/AuthContext';
+import { NavigationDataProvider } from '@/context/NavigationContext';
 import { LoadingScreen } from '@/screens';
 
 const RootStack = createStackNavigator<RootStackParamList>();

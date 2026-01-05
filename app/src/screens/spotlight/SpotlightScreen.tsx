@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import { useAccount } from '@/context/AccountContext';
-import { Color } from '@/styles/tokens';
-import { screenStyle, cardStyle, Spacing } from '@/styles';
-import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
-import type { SpotlightItem } from '@/types/api';
-import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
+
 import EmptyState from '@/components/common/EmptyState';
+import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
+import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
+import { useAccount } from '@/context/AccountContext';
+import { screenStyle, cardStyle, Spacing } from '@/styles';
+import { Color } from '@/styles/tokens';
+import type { SpotlightItem } from '@/types/api';
 import { TestIDs } from '@/utils/testID';
 
 const DEFAULT_FILTER = 'all';
@@ -46,7 +47,11 @@ const SpotlightScreen = () => {
   if (spotlightDataLoading) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
-        <ActivityIndicator testID={TestIDs.SPOTLIGHT_LOADING_INDICATOR} size="large" color={Color.brand.primary} />
+        <ActivityIndicator
+          testID={TestIDs.SPOTLIGHT_LOADING_INDICATOR}
+          size="large"
+          color={Color.brand.primary}
+        />
       </View>
     );
   }
@@ -71,12 +76,12 @@ const SpotlightScreen = () => {
 
   if (!spotlightData || Object.keys(spotlightData)?.length === 0) {
     return (
-        <EmptyState
-          testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
-          icon={{
-            name: 'how-to-reg',
-            variant: 'outlined',
-          }}
+      <EmptyState
+        testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
+        icon={{
+          name: 'how-to-reg',
+          variant: 'outlined',
+        }}
         title={t('spotlightScreen.noTaskHeader')}
         description={t('spotlightScreen.noTaskDescription')}
       />
@@ -91,14 +96,26 @@ const SpotlightScreen = () => {
         onFilterPress={handleFilterPress}
         testIDPrefix={TestIDs.SPOTLIGHT_FILTER_PREFIX}
       />
-      <ScrollView style={[styles.containerMain, styles.noPaddingTop]} contentContainerStyle={styles.contentFillContainer}>
+      <ScrollView
+        style={[styles.containerMain, styles.noPaddingTop]}
+        contentContainerStyle={styles.contentFillContainer}
+      >
         {Object.entries(filteredData).map(([categoryName, sections]) => (
           <View key={categoryName}>
             {(sections as SpotlightItem[]).map((section) => (
-              <View key={section.id} testID={`${TestIDs.SPOTLIGHT_CARD_PREFIX}-${categoryName}-${section.id}`} style={styles.containerCard}>
+              <View
+                key={section.id}
+                testID={`${TestIDs.SPOTLIGHT_CARD_PREFIX}-${categoryName}-${section.id}`}
+                style={styles.containerCard}
+              >
                 <View style={styles.cardHeader}>
-                  <Text testID={`${TestIDs.SPOTLIGHT_CARD_HEADER_PREFIX}-${section.id}`} style={styles.cardHeaderText}>
-                    { t(`spotlightScreen.${section?.query?.template}.title`, { count: section.total }) }
+                  <Text
+                    testID={`${TestIDs.SPOTLIGHT_CARD_HEADER_PREFIX}-${section.id}`}
+                    style={styles.cardHeaderText}
+                  >
+                    {t(`spotlightScreen.${section?.query?.template}.title`, {
+                      count: section.total,
+                    })}
                   </Text>
                 </View>
                 {section.top.map((item, itemIndex) => {
@@ -123,7 +140,10 @@ const SpotlightScreen = () => {
                 })}
 
                 <View style={styles.cardFooter}>
-                  <Text testID={`${TestIDs.SPOTLIGHT_CARD_FOOTER_PREFIX}-${section.id}`} style={styles.cardFooterText}>
+                  <Text
+                    testID={`${TestIDs.SPOTLIGHT_CARD_FOOTER_PREFIX}-${section.id}`}
+                    style={styles.cardFooterText}
+                  >
                     {t('spotlightScreen.viewAll', {
                       showing: section.top.length,
                       total: section.total,

@@ -1,6 +1,6 @@
-import type { ComponentProps } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { OutlinedIcons } from '@assets/icons';
+import { MaterialIcons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 
 export type MaterialIconName = ComponentProps<typeof MaterialIcons>['name'];
 

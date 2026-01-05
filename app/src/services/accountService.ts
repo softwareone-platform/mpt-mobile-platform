@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react';
-import { useApi } from '@/hooks/useApi';
-import { useAuth } from '@/context/AuthContext';
+
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
+import { useAuth } from '@/context/AuthContext';
+import { useApi } from '@/hooks/useApi';
 import type {
   UserAccount,
   UserData,
@@ -21,7 +22,7 @@ export function useAccountApi() {
       const endpoint = `/v1/accounts/users/${userId}`;
       return api.get<UserData>(endpoint);
     },
-    [api]
+    [api],
   );
 
   const getCurrentAccountIcon = useCallback(
@@ -29,7 +30,7 @@ export function useAccountApi() {
       const endpoint = `/v1/accounts/users/${userId}?select=currentAccount.icon`;
       return api.get<FullUserData>(endpoint);
     },
-    [api]
+    [api],
   );
 
   const getAllUserAccounts = useCallback(
@@ -37,16 +38,17 @@ export function useAccountApi() {
       const endpoint = `/v1/accounts/users/${userId}/accounts`;
       return api.get<UserAccount[]>(endpoint);
     },
-    [api]
+    [api],
   );
 
   const getUserAccountsData = useCallback(
     async (
       userId: string,
       offset: number = DEFAULT_OFFSET,
-      limit: number = DEFAULT_PAGE_SIZE
+      limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedUserAccounts> => {
-      const endpoint = `/v1/accounts/users/${userId}/accounts` +
+      const endpoint =
+        `/v1/accounts/users/${userId}/accounts` +
         `?select=id,name,type,icon,favorite,audit.access.at,-*` +
         `&eq(invitation.status,"Active")` +
         `&order=name` +
@@ -55,7 +57,7 @@ export function useAccountApi() {
 
       return api.get<PaginatedUserAccounts>(endpoint);
     },
-    [api]
+    [api],
   );
 
   const getSpotlightData = useCallback(
@@ -63,22 +65,20 @@ export function useAccountApi() {
       const endpoint = `/v1/spotlight/objects?select=top&limit=${limit}`;
       return api.get<SpotlightData>(endpoint);
     },
-    [api]
+    [api],
   );
 
   const getSubscriptionsData = useCallback(
     async (
       offset: number = DEFAULT_OFFSET,
-      limit: number = DEFAULT_PAGE_SIZE
+      limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<SubscriptionItem[]> => {
       const endpoint =
-        `/v1/commerce/subscriptions?filter(group.buyers)` +
-        `&offset=${offset}` +
-        `&limit=${limit}`;
+        `/v1/commerce/subscriptions?filter(group.buyers)` + `&offset=${offset}` + `&limit=${limit}`;
 
       return api.get<SubscriptionItem[]>(endpoint);
     },
-    [api]
+    [api],
   );
 
   const switchAccount = useCallback(
@@ -100,7 +100,7 @@ export function useAccountApi() {
         console.warn('Failed to refresh token after account switch', error);
       }
     },
-    [api, refreshAuth]
+    [api, refreshAuth],
   );
 
   return useMemo(
@@ -121,6 +121,6 @@ export function useAccountApi() {
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,
-    ]
+    ],
   );
 }

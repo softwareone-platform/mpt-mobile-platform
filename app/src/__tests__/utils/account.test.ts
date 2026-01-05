@@ -1,16 +1,12 @@
 import {
-  getFavouriteAccounts,
-  getRecentAccounts,
-  formatUserAccountsData,
-} from '@/utils/account';
-
-import {
   accounts,
   accountsNoFavouritesNoTimestamps,
   accountsSomeMissingFields,
   accountsSomeInvalidTimestamps,
   accountsAllFavouritesFalse,
- } from '../__mocks__/utils/account';
+} from '../__mocks__/utils/account';
+
+import { getFavouriteAccounts, getRecentAccounts, formatUserAccountsData } from '@/utils/account';
 
 describe('account utils', () => {
   describe('getFavouriteAccounts', () => {

@@ -1,13 +1,15 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import DynamicIcon from '@/components/common/DynamicIcon';
-import { useNavigationData } from '@/context/NavigationContext';
-import { TabParamList } from './types';
-import SecondaryTabs from './SecondaryTabs';
-import { Color, navigationStyle } from '@/styles';
-import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
+import { StyleSheet } from 'react-native';
+
 import AccountToolbarButton from './AccountToolbarButton';
+import SecondaryTabs from './SecondaryTabs';
+import { TabParamList } from './types';
+
+import DynamicIcon from '@/components/common/DynamicIcon';
+import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
+import { useNavigationData } from '@/context/NavigationContext';
+import { Color, navigationStyle } from '@/styles';
 import { TestIDs } from '@/utils/testID';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -22,7 +24,14 @@ const MainTabs = () => {
         tabBarIcon: ({ focused, color, size }) => {
           const item = mainTabsData.find((tab) => tab.name === route.name);
           if (!item) return null;
-          return <DynamicIcon name={item.icon} size={size} color={color} variant={focused ? 'filled' : 'outlined'} />;
+          return (
+            <DynamicIcon
+              name={item.icon}
+              size={size}
+              color={color}
+              variant={focused ? 'filled' : 'outlined'}
+            />
+          );
         },
         tabBarActiveTintColor: Color.brand.primary,
         tabBarInactiveTintColor: Color.gray.gray4,
@@ -31,7 +40,7 @@ const MainTabs = () => {
         tabBarStyle: styles.container,
         tabBarLabelStyle: styles.label,
         tabBarBackground: () => <LinearGradientHorisontal height={3} />,
-        headerRight: () => <AccountToolbarButton />
+        headerRight: () => <AccountToolbarButton />,
       })}
     >
       {mainTabsData.map((tab) => {

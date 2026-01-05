@@ -16,7 +16,7 @@ describe('ConfigService', () => {
   describe('getAll', () => {
     it('should return all config values', () => {
       const config = configService.getAll();
-      
+
       expect(config).toBeDefined();
       expect(config).toHaveProperty('AUTH0_DOMAIN');
       expect(config).toHaveProperty('AUTH0_CLIENT_ID');
@@ -26,7 +26,7 @@ describe('ConfigService', () => {
     it('should return immutable copy', () => {
       const config1 = configService.getAll();
       const config2 = configService.getAll();
-      
+
       expect(config1).toEqual(config2);
       expect(config1).not.toBe(config2);
     });

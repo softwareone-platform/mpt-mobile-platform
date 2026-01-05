@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { View, Text, StyleSheet } from 'react-native';
+
 import DynamicIcon from '@/components/common/DynamicIcon';
-import { Color } from '@/styles/tokens';
 import { screenStyle, emptyStateStyle } from '@/styles';
+import { Color } from '@/styles/tokens';
 
 type EmptyStateProps = {
   icon?: {
@@ -18,7 +19,14 @@ type EmptyStateProps = {
   descriptionTestID?: string;
 };
 
-const EmptyState = ({ icon, title, description, testID, titleTestID, descriptionTestID }: EmptyStateProps) => {
+const EmptyState = ({
+  icon,
+  title,
+  description,
+  testID,
+  titleTestID,
+  descriptionTestID,
+}: EmptyStateProps) => {
   const { t } = useTranslation();
 
   const DEFAULT_ICON_NAME = 'how-to-reg';
@@ -29,7 +37,6 @@ const EmptyState = ({ icon, title, description, testID, titleTestID, description
 
   return (
     <View testID={testID} style={styles.container}>
-
       {icon && (
         <View style={styles.iconWrapper}>
           <DynamicIcon
@@ -41,9 +48,13 @@ const EmptyState = ({ icon, title, description, testID, titleTestID, description
         </View>
       )}
 
-      <Text testID={titleTestID} style={styles.title}>{title || DEFAULT_TITLE}</Text>
+      <Text testID={titleTestID} style={styles.title}>
+        {title || DEFAULT_TITLE}
+      </Text>
       {description && (
-        <Text testID={descriptionTestID} style={styles.description}>{description}</Text>
+        <Text testID={descriptionTestID} style={styles.description}>
+          {description}
+        </Text>
       )}
     </View>
   );
@@ -55,5 +66,5 @@ const styles = StyleSheet.create({
   container: screenStyle.containerCenterContent,
   iconWrapper: emptyStateStyle.iconWrapper,
   title: emptyStateStyle.title,
-  description: emptyStateStyle.description,  
+  description: emptyStateStyle.description,
 });

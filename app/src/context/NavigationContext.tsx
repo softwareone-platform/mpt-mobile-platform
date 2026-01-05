@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { TabItem, TabParamList } from '@/types/navigation';
+
 import {
   SpotlightScreen,
   OrdersScreen,
@@ -10,16 +10,13 @@ import {
   CreditMemosScreen,
   StatementsScreen,
 } from '@/screens';
+import type { TabItem, TabParamList } from '@/types/navigation';
 
 type NavigationDataContextType = {
   mainTabsData: TabItem<keyof TabParamList>[];
   secondaryTabsData: TabItem<keyof TabParamList>[];
-  setMainTabsData: React.Dispatch<
-    React.SetStateAction<TabItem<keyof TabParamList>[]>
-  >;
-  setSecondaryTabsData: React.Dispatch<
-    React.SetStateAction<TabItem<keyof TabParamList>[]>
-  >;
+  setMainTabsData: React.Dispatch<React.SetStateAction<TabItem<keyof TabParamList>[]>>;
+  setSecondaryTabsData: React.Dispatch<React.SetStateAction<TabItem<keyof TabParamList>[]>>;
 };
 
 const NavigationDataContext = createContext<NavigationDataContextType | undefined>(undefined);
@@ -39,12 +36,10 @@ const DEFAULT_SECONDARY_TABS: TabItem<keyof TabParamList>[] = [
 ];
 
 export const NavigationDataProvider = ({ children }: { children: ReactNode }) => {
-  const [mainTabsData, setMainTabsData] = useState<
-    TabItem<keyof TabParamList>[]
-  >(DEFAULT_MAIN_TABS);
-  const [secondaryTabsData, setSecondaryTabsData] = useState<
-    TabItem<keyof TabParamList>[]
-  >(DEFAULT_SECONDARY_TABS);
+  const [mainTabsData, setMainTabsData] =
+    useState<TabItem<keyof TabParamList>[]>(DEFAULT_MAIN_TABS);
+  const [secondaryTabsData, setSecondaryTabsData] =
+    useState<TabItem<keyof TabParamList>[]>(DEFAULT_SECONDARY_TABS);
 
   return (
     <NavigationDataContext.Provider

@@ -43,10 +43,10 @@ export interface SwitchAccountBody {
 }
 
 export interface UserData {
-  id: string,
-  name: string,
-  icon?: string,
-  avatar?: string,
+  id: string;
+  name: string;
+  icon?: string;
+  avatar?: string;
   email?: string;
   phone?: {
     prefix?: string;
@@ -59,7 +59,7 @@ export interface UserData {
     name?: string;
     type?: string;
     icon?: string;
-  }
+  };
   data?: { [key: string]: unknown }[];
 }
 

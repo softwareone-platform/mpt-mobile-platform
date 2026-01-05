@@ -4,7 +4,7 @@ export function isTestEnvironment(): boolean {
 
 export function validateRequiredVars<T extends string>(
   config: Record<string, string | undefined>,
-  requiredVars: T[]
+  requiredVars: T[],
 ): string[] {
   const missingVars: string[] = [];
 
@@ -18,6 +18,6 @@ export function validateRequiredVars<T extends string>(
 }
 
 export function formatValidationError(missingVars: string[]): string {
-  const varList = missingVars.map(v => `  - ${v}`).join('\n');
+  const varList = missingVars.map((v) => `  - ${v}`).join('\n');
   return `CONFIGURATION ERROR: Missing required environment variables:\n${varList}\n\nPlease check your .env file and ensure all required variables are set.\nAfter updating .env, you MUST restart Metro: npx expo start --clear`;
 }

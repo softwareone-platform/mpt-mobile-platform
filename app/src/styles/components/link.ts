@@ -1,4 +1,4 @@
-import {Color, Typography } from '../tokens';
+import { Color, Typography } from '../tokens';
 
 const linkCommon = {
   color: Color.brand.primary,
