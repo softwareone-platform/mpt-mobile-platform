@@ -16,3 +16,4 @@ export { filterStyle } from './filter';
 export { emptyStateStyle } from './emptyState';
 export { linkStyle } from './link';
 export { textStyle } from './text';
+export { chipStyle } from './chip';

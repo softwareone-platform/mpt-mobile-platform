@@ -11,7 +11,7 @@ export const filterStyle = {
     gap: Spacing.spacing1,
   },
   chip: {
-    paddingVertical: Spacing.spacing05,
+    paddingVertical: Spacing.spacingSmall4,
     paddingHorizontal: 10,
     borderRadius: BorderRadius.round,
     backgroundColor: Color.fills.tertiary,

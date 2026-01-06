@@ -39,7 +39,12 @@ const commonRules = {
   'react-hooks/rules-of-hooks': 'error',
   'react-hooks/exhaustive-deps': 'warn',
 
-  'react-native/no-unused-styles': 'warn',
+  'react-native/no-unused-styles': [
+    'warn',
+    {
+      skipDynamicStyleAccess: true,
+    },
+  ],
   'react-native/no-inline-styles': 'warn',
   'react-native/no-color-literals': 'warn',
   'react-native/no-single-element-style-arrays': 'warn',
