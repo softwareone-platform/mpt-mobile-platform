@@ -1,4 +1,5 @@
 import type { ViewStyle, TextStyle } from 'react-native';
+
 import { BorderRadius, Color, Spacing, Typography } from '../tokens';
 
 const chipTextCommon: TextStyle = {
@@ -13,6 +14,7 @@ const chipContainerCommon: ViewStyle = {
   borderRadius: BorderRadius.round,
   alignSelf: 'flex-start',
 };
+
 export const chipStyle = {
   default: {
     container: {

@@ -12,6 +12,7 @@ const Chip = ({ text, status }: Props) => {
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        /* eslint-disable react-native/no-unused-styles */
         container: chipStyle[status].container,
         text: chipStyle[status].text,
       }),
