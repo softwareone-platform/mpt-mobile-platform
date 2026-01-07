@@ -11,6 +11,7 @@ export const useSwitchAccount = (userId: string | undefined) => {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['userData', userId] });
       void queryClient.invalidateQueries({ queryKey: ['userAccountsData', userId] });
+      void queryClient.invalidateQueries({ queryKey: ['spotlightData', userId] });
     },
   });
 };
