@@ -5,7 +5,7 @@ import { BorderRadius, Color, Spacing, Typography } from '../tokens';
 const chipTextCommon: TextStyle = {
   fontSize: Typography.fontSize.font2,
   fontWeight: Typography.fontWeight.regular,
-  lineHeight: Typography.lineHeight.height3,
+  lineHeight: Typography.lineHeight.height4,
 };
 
 const chipContainerCommon: ViewStyle = {
