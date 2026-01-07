@@ -29,7 +29,7 @@ export const listItemStyle = {
   },
   textOnly: {
     contentWrapper: {
-      paddingVertical: 12,
+      paddingVertical: Spacing.spacingSmall12,
     },
   },
   textAndIcon: {
@@ -37,21 +37,21 @@ export const listItemStyle = {
       paddingVertical: Spacing.spacing3,
     },
     iconWrapper: {
-      marginRight: 12,
+      marginRight: Spacing.spacingSmall12,
     },
   },
   textAndImage: {
     avatarWrapper: {
       borderRadius: 11,
       overflow: 'hidden',
-      marginRight: 12,
+      marginRight: Spacing.spacingSmall12,
     },
     contentWrapper: {
       paddingVertical: Spacing.spacing1,
     },
     subtitle: {
       fontSize: Typography.fontSize.font3,
-      marginTop: 2,
+      marginTop: Spacing.spacingSmall2,
       color: Color.labels.secondary,
     },
   },
@@ -75,8 +75,17 @@ export const listItemStyle = {
       fontSize: Typography.fontSize.font4,
       color: Color.labels.secondary,
       flexShrink: 1,
-      marginRight: 12,
+      marginRight: Spacing.spacingSmall12,
       textAlign: 'right',
+    },
+  },
+  textAndStatus: {
+    title: {
+      marginBottom: Spacing.spacing1,
+    },
+    subtitle: {
+      flexShrink: 1,
+      paddingRight: Spacing.spacing3,
     },
   },
 } as const;
