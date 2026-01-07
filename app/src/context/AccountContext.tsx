@@ -36,7 +36,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     isLoading: spotlightDataLoading,
     isError: spotlightError,
     fetchStatus,
-  } = useSpotlightData(userId, userData);
+  } = useSpotlightData(userId);
 
   const spotlightData = spotlightDataRaw ?? {};
 
