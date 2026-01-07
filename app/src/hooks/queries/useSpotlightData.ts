@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useUserData } from './useUserData';
+
 import { SPOTLIGHT_CATEGORY } from '@/constants/spotlight';
 import { useAccountApi } from '@/services/accountService';
 import { arrangeSpotlightData } from '@/utils/spotlight';
-import { useUserData } from './useUserData';
 
 export const useSpotlightData = (userId: string | undefined) => {
   const { data: userData } = useUserData(userId);
