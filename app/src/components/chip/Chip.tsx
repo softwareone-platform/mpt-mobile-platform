@@ -2,10 +2,11 @@ import { useMemo } from 'react';
 import { Text, StyleSheet, View } from 'react-native';
 
 import { chipStyle } from '@/styles/components';
+import type { Status } from '@/types/lists';
 
 type Props = {
   text: string;
-  status: 'default' | 'info' | 'warning' | 'danger' | 'success';
+  status: Status;
 };
 
 const Chip = ({ text, status }: Props) => {

@@ -5,6 +5,10 @@ const linkCommon = {
   fontWeight: Typography.fontWeight.regular,
 };
 export const linkStyle = {
+  linkLarge: {
+    ...linkCommon,
+    fontSize: Typography.fontSize.font4,
+  },
   linkRegular: {
     ...linkCommon,
     fontSize: Typography.fontSize.font3,
