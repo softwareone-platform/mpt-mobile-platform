@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
 import AvatarIcon from '@/components/avatar/Avatar';
@@ -17,6 +18,7 @@ const ListItemWithStatus = ({
   onPress,
   testID,
 }: ListItemWithStatusProps) => {
+  const { t } = useTranslation();
   const hasSubtitle = Boolean(subtitle);
   const hasImage = Boolean(imagePath);
 
@@ -53,7 +55,7 @@ const ListItemWithStatus = ({
               {hasSubtitle ? subtitle : title}
             </Text>
 
-            {status && <Chip status={status} text={statusText} />}
+            {status && <Chip status={status} text={t(`status.${statusText}`)} />}
           </View>
         </View>
       </View>

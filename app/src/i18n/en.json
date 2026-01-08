@@ -133,7 +133,7 @@
     "unpaidInvoicesOfMyClients": {
       "title": "{{count}} unpaid invoices of my clients"
     },
-    "inProgressJournals": { 
+    "inProgressJournals": {
       "title": "{{count}} in progress journals"
     },
     "queryingOrders": {
@@ -180,12 +180,67 @@
       "invoices": "Invoices",
       "enrollments": "Enrollments",
       "journals": "Journals",
-      "buyers": "Buyers"    
+      "buyers": "Buyers"
     },
     "errorFetchingDataDescription": "We couldn't load your Spotlight data. Try refreshing the page or check back later.",
     "errorFetchingDataTitle": "Something went wrong",
     "noTaskDescription": "Great job in staying on top of things",
     "noTaskHeader": "No tasks on your side",
     "viewAll": "Showing {{showing}} of {{total}} (view all)"
+  },
+  "status": {
+    "Accepted": "Accepted",
+    "Active": "Active",
+    "Blocked": "Blocked",
+    "Cancelled": "Cancelled",
+    "Completed": "Completed",
+    "Configuring": "Configuring",
+    "Conflict": "Conflict",
+    "Default": "Default",
+    "Deleted": "Deleted",
+    "Disabled": "Disabled",
+    "Draft": "Draft",
+    "Enabled": "Enabled",
+    "Enquiring": "Enquiring",
+    "Error": "Error",
+    "Expired": "Expired",
+    "Exported": "Exported",
+    "Failed": "Failed",
+    "For Sale": "For Sale",
+    "Generated": "Generated",
+    "Generating": "Generating",
+    "Inactive": "Inactive",
+    "Invited": "Invited",
+    "Invitation Expired": "Invitation Expired",
+    "Issued": "Issued",
+    "Migrate": "Migrate",
+    "Mismatch": "Mismatch",
+    "New": "New",
+    "Offline": "Offline",
+    "Open": "Open",
+    "Overdue": "Overdue",
+    "Paid": "Paid",
+    "Pending": "Pending",
+    "Preparing": "Preparing",
+    "Private": "Private",
+    "Processing": "Processing",
+    "Provisioning": "Provisioning",
+    "Public": "Public",
+    "Published": "Published",
+    "Querying": "Querying",
+    "Queued": "Queued",
+    "Quoted": "Quoted",
+    "Ready": "Ready",
+    "Redeemed": "Redeemed",
+    "Review": "Review",
+    "Saved": "Saved",
+    "Split": "Split",
+    "Terminated": "Terminated",
+    "Terminating": "Terminating",
+    "Unassigned": "Unassigned",
+    "Unpublished": "Unpublished",
+    "Update": "Update",
+    "Updating": "Updating",
+    "Validating": "Validating"
   }
 }
