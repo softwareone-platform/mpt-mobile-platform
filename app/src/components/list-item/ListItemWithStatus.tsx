@@ -2,15 +2,16 @@ import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
 import AvatarIcon from '@/components/avatar/Avatar';
 import Chip from '@/components/chip/Chip';
+import { statusList } from '@/constants/status';
 import { listItemStyle, linkStyle } from '@/styles';
 import type { ListItemWithStatusProps } from '@/types/lists';
+import { getStatus } from '@/utils/list';
 
 const ListItemWithStatus = ({
   id,
   imagePath,
   title,
   subtitle,
-  status,
   statusText,
   isLast,
   onPress,
@@ -18,6 +19,8 @@ const ListItemWithStatus = ({
 }: ListItemWithStatusProps) => {
   const hasSubtitle = Boolean(subtitle);
   const hasImage = Boolean(imagePath);
+
+  const status = getStatus(statusText, statusList);
 
   return (
     <TouchableOpacity

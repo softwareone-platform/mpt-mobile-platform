@@ -5,7 +5,6 @@ export type ListItemWithStatusProps = {
   imagePath?: string;
   title: string;
   subtitle?: string;
-  status: Status;
   statusText: string;
   isLast?: boolean;
   onPress?: () => void;
