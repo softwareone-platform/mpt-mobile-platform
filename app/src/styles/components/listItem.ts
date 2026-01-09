@@ -1,4 +1,4 @@
-import { Color, Spacing, Typography } from '../tokens';
+import { Color, Spacing, Typography, BorderRadius } from '../tokens';
 
 import { separatorStyle } from './separator';
 
@@ -85,7 +85,25 @@ export const listItemStyle = {
     },
     subtitle: {
       flexShrink: 1,
+      fontSize: Typography.fontSize.font2,
       paddingRight: Spacing.spacing3,
+    },
+  },
+  listItemDynamic: {
+    container: {
+      backgroundColor: Color.brand.white,
+      paddingRight: Spacing.spacing2,
+    },
+    contentWrapper: {
+      paddingRight: 0,
+    },
+    firstItem: {
+      borderTopLeftRadius: BorderRadius.xl,
+      borderTopRightRadius: BorderRadius.xl,
+    },
+    lastItem: {
+      borderBottomLeftRadius: BorderRadius.xl,
+      borderBottomRightRadius: BorderRadius.xl,
     },
   },
 } as const;

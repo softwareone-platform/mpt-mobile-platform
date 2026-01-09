@@ -9,7 +9,6 @@ const chipTextCommon: TextStyle = {
 };
 
 const chipContainerCommon: ViewStyle = {
-  paddingVertical: Spacing.spacingSmall2,
   paddingHorizontal: Spacing.spacingSmall10,
   borderRadius: BorderRadius.round,
   alignSelf: 'flex-start',
