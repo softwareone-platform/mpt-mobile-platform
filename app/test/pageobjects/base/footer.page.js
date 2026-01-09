@@ -4,22 +4,22 @@ const { selectors } = require('../utils/selectors');
 
 class FooterPage extends BasePage {
     get spotlightsTab () {
-        return $(selectors.byContainsText('Spotlight'));
+        return $(selectors.byAccessibilityId('nav-tab-spotlight'));
     }
 
     get ordersTab () {
-        return $(selectors.byContainsText('Orders'));
+        return $(selectors.byAccessibilityId('nav-tab-orders'));
     }
 
     get subscriptionsTab () {
-        return $(selectors.byContainsText('Subscriptions'));
+        return $(selectors.byAccessibilityId('nav-tab-subscriptions'));
     }
 
     get moreTab () {
-        return $(selectors.byContainsText('More'));
+        return $(selectors.byAccessibilityId('nav-tab-more'));
     }
 
-    async clickspotlightsTab() {
+    async clickSpotlightsTab() {
         await this.click(this.spotlightsTab);
     }
 
