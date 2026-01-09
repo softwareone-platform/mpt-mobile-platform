@@ -1,6 +1,19 @@
-import { statusList } from '../__mocks__/utils/list';
+import {
+  statusList,
+  baseItem,
+  expectedMappedItemFull,
+  expectedMappedItemNoImage,
+  expectedMappedItemNoImageNoSubtitle,
+  itemWithNumericField,
+} from '../__mocks__/utils/list';
 
-import { getStatus } from '@/utils/list';
+import {
+  listItemConfigFull,
+  listItemConfigNoImage,
+  listItemConfigNoImageNoSubtitle,
+} from '@/config/list';
+import type { ListItemWithStatusProps } from '@/types/lists';
+import { getStatus, mapToListItemProps } from '@/utils/list';
 
 describe('getStatus with mock status list', () => {
   it('returns correct Status for keys in the mock', () => {
@@ -21,5 +34,34 @@ describe('getStatus with mock status list', () => {
     expect(getStatus(' accepted ', statusList)).toBe('default');
     expect(getStatus('REVIEW', statusList)).toBe('default');
     expect(getStatus('For_Sale', statusList)).toBe('default');
+  });
+});
+
+describe('mapToListItemProps', () => {
+  it('maps all fields correctly', () => {
+    const result: ListItemWithStatusProps = mapToListItemProps(baseItem, listItemConfigFull);
+
+    expect(result).toEqual(expectedMappedItemFull);
+  });
+
+  it('handles missing optional imagePath', () => {
+    const result: ListItemWithStatusProps = mapToListItemProps(baseItem, listItemConfigNoImage);
+
+    expect(result).toEqual(expectedMappedItemNoImage);
+  });
+
+  it('handles missing optional subtitle and imagePath', () => {
+    const result: ListItemWithStatusProps = mapToListItemProps(
+      baseItem,
+      listItemConfigNoImageNoSubtitle,
+    );
+
+    expect(result).toEqual(expectedMappedItemNoImageNoSubtitle);
+  });
+
+  it('converts numeric or boolean values to string', () => {
+    const result = mapToListItemProps(itemWithNumericField, listItemConfigFull);
+
+    expect(result).toEqual(expectedMappedItemFull);
   });
 });

@@ -14,6 +14,7 @@ const ListItemWithStatus = ({
   title,
   subtitle,
   statusText,
+  isFirst,
   isLast,
   onPress,
   testID,
@@ -27,7 +28,11 @@ const ListItemWithStatus = ({
   return (
     <TouchableOpacity
       testID={testID}
-      style={styles.container}
+      style={[
+        styles.container,
+        isFirst && styles.firstItemDynamic,
+        isLast && styles.lastItemDynamic,
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
@@ -66,6 +71,7 @@ const ListItemWithStatus = ({
 const styles = StyleSheet.create({
   container: {
     ...listItemStyle.container,
+    ...listItemStyle.listItemDynamic.container,
   },
 
   lastItem: listItemStyle.lastItem,
@@ -75,13 +81,14 @@ const styles = StyleSheet.create({
   contentWrapper: {
     ...listItemStyle.contentWrapper,
     ...listItemStyle.textAndImage.contentWrapper,
+    ...listItemStyle.listItemDynamic.contentWrapper,
   },
 
   inlineContentWrapper: listItemStyle.textInline.contentWrapper,
 
   textContainer: listItemStyle.textContainer,
 
-  title: linkStyle.linkLarge,
+  title: linkStyle.linkRegular,
 
   titleMain: listItemStyle.textAndStatus.title,
 
@@ -91,6 +98,9 @@ const styles = StyleSheet.create({
   },
 
   statusRowContainer: listItemStyle.textInline.textContainerInline,
+
+  firstItemDynamic: listItemStyle.listItemDynamic.firstItem,
+  lastItemDynamic: listItemStyle.listItemDynamic.lastItem,
 });
 
 export default ListItemWithStatus;

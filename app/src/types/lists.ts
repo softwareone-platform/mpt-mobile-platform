@@ -6,7 +6,16 @@ export type ListItemWithStatusProps = {
   title: string;
   subtitle?: string;
   statusText: string;
+  isFirst?: boolean;
   isLast?: boolean;
   onPress?: () => void;
   testID?: string;
+};
+
+export type ListItemConfig = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imagePath?: string;
+  status: string;
 };
