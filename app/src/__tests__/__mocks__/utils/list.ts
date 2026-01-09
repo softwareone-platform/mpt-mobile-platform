@@ -1,4 +1,4 @@
-import type { Status, ListItemConfig } from '@/types/lists';
+import type { Status } from '@/types/lists';
 
 export const statusList = {
   Accepted: 'success',
@@ -21,27 +21,6 @@ export const itemWithNumericField = {
   name: 'Test Item',
   status: 'Active',
   icon: '/path/to/image.png',
-};
-
-export const configFull: ListItemConfig = {
-  id: 'id',
-  title: 'name',
-  subtitle: 'id',
-  imagePath: 'icon',
-  status: 'status',
-};
-
-export const configNoImage: ListItemConfig = {
-  id: 'id',
-  title: 'name',
-  subtitle: 'id',
-  status: 'status',
-};
-
-export const configNoImageNoSubtitle: ListItemConfig = {
-  id: 'id',
-  title: 'id',
-  status: 'status',
 };
 
 export const expectedMappedItemFull: Record<string, unknown> = {
