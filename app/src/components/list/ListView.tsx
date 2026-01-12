@@ -17,7 +17,7 @@ export function ListView({ data, config, onItemPress }: ListViewProps) {
   return (
     <FlatList
       data={data}
-      keyExtractor={(item) => mapToListItemProps(item, config).id}
+      keyExtractor={(item) => String(item[config.id])}
       contentContainerStyle={screenStyle.containerMain}
       renderItem={({ item, index }) => {
         const isFirst = index === 0;

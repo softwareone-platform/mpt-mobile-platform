@@ -1,4 +1,4 @@
-import type { Status } from '@/types/lists';
+import type { Status, ListItemWithStatusProps } from '@/types/lists';
 
 export const statusList = {
   Accepted: 'success',
@@ -23,7 +23,7 @@ export const itemWithNumericField = {
   icon: '/path/to/image.png',
 };
 
-export const expectedMappedItemFull: Record<string, unknown> = {
+export const expectedMappedItemFull: ListItemWithStatusProps = {
   id: '123',
   title: 'Test Item',
   subtitle: '123',
@@ -31,7 +31,7 @@ export const expectedMappedItemFull: Record<string, unknown> = {
   statusText: 'Active',
 };
 
-export const expectedMappedItemNoImage: Record<string, unknown> = {
+export const expectedMappedItemNoImage: ListItemWithStatusProps = {
   id: '123',
   title: 'Test Item',
   subtitle: '123',
@@ -39,7 +39,7 @@ export const expectedMappedItemNoImage: Record<string, unknown> = {
   statusText: 'Active',
 };
 
-export const expectedMappedItemNoImageNoSubtitle: Record<string, unknown> = {
+export const expectedMappedItemNoImageNoSubtitle: ListItemWithStatusProps = {
   id: '123',
   title: '123',
   subtitle: undefined,
