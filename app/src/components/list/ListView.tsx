@@ -1,6 +1,7 @@
 import { FlatList, ActivityIndicator } from 'react-native';
 
 import ListItemWithStatus from '@/components/list-item/ListItemWithStatus';
+import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { screenStyle } from '@/styles';
 import type { ListItemConfig } from '@/types/lists';
 import { mapToListItemProps } from '@/utils/list';
@@ -48,7 +49,7 @@ export function ListView<T extends object>({
           fetchNext?.();
         }
       }}
-      onEndReachedThreshold={0.6}
+      onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
       ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
       showsVerticalScrollIndicator={false}
     />

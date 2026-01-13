@@ -106,15 +106,23 @@ describe('useBillingApi', () => {
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
+    let res1: PaginatedResponse<CreditMemo> | undefined;
+    let res2: PaginatedResponse<CreditMemo> | undefined;
+
     await act(async () => {
-      const res1 = await api.getCreditMemos(0, 2);
-      const res2 = await api.getCreditMemos(2, 2);
-
-      expect(res1.data.length).toBe(2);
-      expect(res2.data.length).toBe(2);
-
-      expect(res1.data.map((item) => item.id)).toEqual(['CM1', 'CM2']);
-      expect(res2.data.map((item) => item.id)).toEqual(['CM3', 'CM4']);
+      res1 = await api.getCreditMemos(0, 2);
     });
+
+    await act(async () => {
+      res2 = await api.getCreditMemos(2, 2);
+    });
+
+    expect(res1).toBeDefined();
+    expect(res1!.data.length).toBe(2);
+    expect(res1!.data.map((item) => item.id)).toEqual(['CM1', 'CM2']);
+
+    expect(res2).toBeDefined();
+    expect(res2!.data.length).toBe(2);
+    expect(res2!.data.map((item) => item.id)).toEqual(['CM3', 'CM4']);
   });
 });
