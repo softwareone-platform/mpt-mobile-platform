@@ -23,7 +23,7 @@ const AccountContext = createContext<AccountContextValue | undefined>(undefined)
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
-  const userId = user?.['https://claims.softwareone.com/userId'];
+  const userId = user?.['https://claims.softwareone.com/userId'] as string | undefined;
 
   const {
     data: userData = null,
