@@ -8,10 +8,10 @@ export const useSwitchAccount = (userId: string | undefined) => {
 
   return useMutation({
     mutationFn: (accountId: string) => apiSwitchAccount(userId!, accountId),
-    onSuccess: () => {
+    onSuccess: (_, accountId) => {
       void queryClient.invalidateQueries({ queryKey: ['userData', userId] });
       void queryClient.invalidateQueries({ queryKey: ['userAccountsData', userId] });
-      void queryClient.invalidateQueries({ queryKey: ['spotlightData', userId] });
+      void queryClient.invalidateQueries({ queryKey: ['spotlightData', userId, accountId] });
     },
   });
 };
