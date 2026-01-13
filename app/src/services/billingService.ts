@@ -1,4 +1,3 @@
-// services/billingService.ts
 import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
