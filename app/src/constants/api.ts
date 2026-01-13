@@ -4,3 +4,5 @@ export const DEFAULT_OFFSET = 0;
 export const DEFAULT_SPOTLIGHT_LIMIT = 100;
 
 export const MAX_RECENT_ACCOUNTS = 10;
+
+export const FLATLIST_END_REACHED_THRESHOLD = 0.6;

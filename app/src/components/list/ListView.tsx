@@ -1,23 +1,35 @@
-import { FlatList } from 'react-native';
+import { FlatList, ActivityIndicator } from 'react-native';
 
 import ListItemWithStatus from '@/components/list-item/ListItemWithStatus';
+import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { screenStyle } from '@/styles';
 import type { ListItemConfig } from '@/types/lists';
 import { mapToListItemProps } from '@/utils/list';
 
-type ListViewProps = {
-  data: Record<string, unknown>[];
+type ListViewProps<T extends object> = {
+  data: T[];
   config: ListItemConfig;
-  onItemPress?: (item: Record<string, unknown>) => void;
+  onItemPress?: (item: T) => void;
+
+  isFetchingNext?: boolean;
+  hasMore?: boolean;
+  fetchNext?: () => void;
 };
 
-export function ListView({ data, config, onItemPress }: ListViewProps) {
+export function ListView<T extends object>({
+  data,
+  config,
+  onItemPress,
+  isFetchingNext,
+  hasMore,
+  fetchNext,
+}: ListViewProps<T>) {
   if (data.length === 0) return null;
 
   return (
     <FlatList
       data={data}
-      keyExtractor={(item) => String(item[config.id])}
+      keyExtractor={(item) => String((item as Record<string, unknown>)[config.id])}
       contentContainerStyle={screenStyle.containerMain}
       renderItem={({ item, index }) => {
         const isFirst = index === 0;
@@ -25,13 +37,20 @@ export function ListView({ data, config, onItemPress }: ListViewProps) {
 
         return (
           <ListItemWithStatus
-            {...mapToListItemProps(item, config)}
+            {...mapToListItemProps(item as Record<string, unknown>, config)}
             isFirst={isFirst}
             isLast={isLast}
             onPress={() => onItemPress?.(item)}
           />
         );
       }}
+      onEndReached={() => {
+        if (hasMore && !isFetchingNext) {
+          fetchNext?.();
+        }
+      }}
+      onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
+      ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
       showsVerticalScrollIndicator={false}
     />
   );

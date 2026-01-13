@@ -137,3 +137,16 @@ export interface SubscriptionItem {
   quantity?: number;
   [key: string]: unknown;
 }
+
+export interface PaginationMeta {
+  offset: number;
+  limit: number;
+  total: number;
+}
+
+export interface PaginatedResponse<T> {
+  $meta: {
+    pagination: PaginationMeta;
+  };
+  data: T[];
+}
