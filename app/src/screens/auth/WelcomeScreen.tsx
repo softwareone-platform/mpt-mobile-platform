@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Linking } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useAuth } from '@/context/AuthContext';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, StyleSheet, Text, TouchableOpacity, Linking } from 'react-native';
+
 import { AuthLayout, AuthInput, AuthButton, LegalFooter } from '@/components/auth';
+import { HELP_SIGN_UP_URL } from '@/constants';
+import { useAuth } from '@/context/AuthContext';
+import { screenStyle, linkStyle } from '@/styles';
 import { AuthStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
-import { HELP_SIGN_UP_URL } from '@/constants';
-import { screenStyle, linkStyle } from '@/styles';
 
 type WelcomeScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Welcome'>;
 
-interface WelcomeScreenProps { }
+interface WelcomeScreenProps {}
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
   const [email, setEmail] = useState('');
@@ -89,7 +90,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = () => {
             loading={loading}
           />
           <TouchableOpacity
-            testID={TestIDs.WELCOME_TROUBLE_LINK} 
+            testID={TestIDs.WELCOME_TROUBLE_LINK}
             onPress={() => Linking.openURL(HELP_SIGN_UP_URL)}
           >
             <Text style={styles.linkSmall}>{t('auth.welcome.troubleSigningIn')}</Text>

@@ -7,9 +7,14 @@ import {
   AUTH0_OTP_DIGITS,
   AUTH0_SCHEME,
 } from '@env';
-import { isTestEnvironment, validateRequiredVars, formatValidationError } from '@/utils/configValidation';
 
-type EnvironmentVariable = 
+import {
+  isTestEnvironment,
+  validateRequiredVars,
+  formatValidationError,
+} from '@/utils/configValidation';
+
+type EnvironmentVariable =
   | 'AUTH0_DOMAIN'
   | 'AUTH0_CLIENT_ID'
   | 'AUTH0_AUDIENCE'
@@ -71,11 +76,11 @@ class ConfigService {
 
   public get(key: EnvironmentVariable): string {
     const value = this.config[key];
-    
+
     if (!value && REQUIRED_VARS.includes(key) && !isTestEnvironment()) {
       throw new Error(`Required environment variable ${key} is not set`);
     }
-    
+
     return value || '';
   }
 

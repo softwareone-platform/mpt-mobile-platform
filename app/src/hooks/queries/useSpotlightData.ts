@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+
+import { useUserData } from './useUserData';
+
+import { SPOTLIGHT_CATEGORY } from '@/constants/spotlight';
 import { useAccountApi } from '@/services/accountService';
 import { arrangeSpotlightData } from '@/utils/spotlight';
-import { SPOTLIGHT_CATEGORY } from '@/constants/spotlight';
-import { UserData } from '@/types/api';
 
-export const useSpotlightData = (
-  userId: string | undefined,
-  userData: UserData | null
-) => {
+export const useSpotlightData = (userId: string | undefined) => {
+  const { data: userData } = useUserData(userId);
   const { getSpotlightData } = useAccountApi();
   const currentAccountId = userData?.currentAccount?.id;
 
@@ -17,6 +17,6 @@ export const useSpotlightData = (
       const { data } = await getSpotlightData();
       return arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
     },
-    enabled: !!userId && !!userData && !!currentAccountId,
+    enabled: !!currentAccountId,
   });
 };

@@ -5,43 +5,41 @@ export const ORDERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'queryingOrders',
   'processingOrders',
   'savedOrdersOperations',
-  'longRunningOrders'
+  'longRunningOrders',
 ];
 
 export const SUBSCRIPTION_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'renewingSubscriptions',
   'expiringSubscriptions',
-  'expiringSubscriptionsOfMyClients'
+  'expiringSubscriptionsOfMyClients',
 ];
 
 export const USERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'pendingInvites',
   'pendingInvitesOfMyClients',
   'expiredInvites',
-  'expiredInvitesOfMyClients'
+  'expiredInvitesOfMyClients',
 ];
 
 export const INVOICES_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'unpaidInvoices',
   'invoicesPastDue',
   'unpaidInvoicesOfMyClients',
-  'invoicesPastDueOfMyClients'
+  'invoicesPastDueOfMyClients',
 ];
 
 export const ENROLLMENTS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'queryingEnrollments',
   'processingEnrollments',
-  'longRunningEnrollmentsOfMyClients'
+  'longRunningEnrollmentsOfMyClients',
 ];
 
-export const JOURNALS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
-  'inProgressJournals',
-];
+export const JOURNALS_SPOTLIGHTS: Array<SpotlightTemplateName> = ['inProgressJournals'];
 
 export const BUYERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'mismatchingBuyersClient',
   'mismatchingBuyersOfMyClients',
-  'buyersWithBlockedSellerConnectionsOfMyClients'
+  'buyersWithBlockedSellerConnectionsOfMyClients',
 ];
 
 export const SPOTLIGHT_CATEGORY: Array<{ name: string; templates: SpotlightTemplateName[] }> = [

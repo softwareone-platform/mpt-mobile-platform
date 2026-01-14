@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { useAccountApi } from '@/services/accountService';
-import { formatUserAccountsData } from '@/utils/account';
-import { FormattedUserAccounts } from '@/types/api';
+
 import { MAX_RECENT_ACCOUNTS } from '@/constants/api';
+import { useAccountApi } from '@/services/accountService';
+import { FormattedUserAccounts } from '@/types/api';
+import { formatUserAccountsData } from '@/utils/account';
 
 export const useUserAccountsData = (userId: string | undefined) => {
   const { getUserAccountsData } = useAccountApi();

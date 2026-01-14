@@ -1,5 +1,5 @@
-import { getImageUrl, getImageHeaders } from '@/utils/image';
 import { HttpMethod } from '@/types/api';
+import { getImageUrl, getImageHeaders } from '@/utils/image';
 
 const baseUrlMock = 'https://example.com';
 const httpUrlMock = 'http://example.com/images/photo.png';
@@ -8,8 +8,8 @@ const imagePathMock = '/path/to/image.png';
 const accessTokenMock = 'abc123';
 
 const imageHeadersMock = {
-  'Authorization': `Bearer ${accessTokenMock}`,
-  'Accept': 'image/*',
+  Authorization: `Bearer ${accessTokenMock}`,
+  Accept: 'image/*',
 };
 
 describe('getImageUrl', () => {
@@ -86,7 +86,7 @@ describe('getImageHeaders', () => {
 
   it('should return undefined if token is empty', () => {
     const imageHeaders = getImageHeaders('', HttpMethod.GET);
-    
+
     expect(imageHeaders).toBeUndefined();
   });
 

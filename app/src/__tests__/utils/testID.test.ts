@@ -9,7 +9,9 @@ describe('testID utils', () => {
     });
 
     it('should generate testID with string variant', () => {
-      expect(testID('welcome', 'continue', 'button', 'primary')).toBe('welcome-continue-button-primary');
+      expect(testID('welcome', 'continue', 'button', 'primary')).toBe(
+        'welcome-continue-button-primary',
+      );
       expect(testID('nav', 'spotlight', 'tab', 'active')).toBe('nav-spotlight-tab-active');
     });
 

@@ -1,11 +1,12 @@
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '@/types/navigation';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+
 import Avatar from '@/components/avatar/Avatar';
-import { avatarStyle } from '@/styles';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
 import { useAccount } from '@/context/AccountContext';
+import { avatarStyle } from '@/styles';
+import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileRoot'>;
@@ -19,9 +20,9 @@ const AccountToolbarButton: React.FC = () => {
   };
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       testID={TestIDs.NAV_ACCOUNT_BUTTON}
-      style={styles.container} 
+      style={styles.container}
       onPress={handlePress}
       activeOpacity={0.7}
     >
@@ -42,4 +43,4 @@ const styles = StyleSheet.create({
   topBarIconWrapper: avatarStyle.topBarIconWrapper,
 });
 
-export default AccountToolbarButton; 
+export default AccountToolbarButton;

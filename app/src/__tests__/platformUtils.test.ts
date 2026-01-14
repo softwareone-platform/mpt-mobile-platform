@@ -1,5 +1,6 @@
-import { isLiquidGlassSupported } from '../utils/platformUtils';
 import { Platform } from 'react-native';
+
+import { isLiquidGlassSupported } from '../utils/platformUtils';
 
 jest.mock('react-native', () => ({
   Platform: {

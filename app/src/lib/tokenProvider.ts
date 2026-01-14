@@ -14,7 +14,7 @@ export const tokenProvider = {
   async getToken() {
     const last = Array.from(subscribers).at(-1);
     return last ? last() : null;
-  }
+  },
 };
 
 export async function getAccessTokenAsync(): Promise<string | null> {

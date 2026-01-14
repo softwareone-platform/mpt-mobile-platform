@@ -37,10 +37,10 @@ describe('OtpVerificationScreen Business Logic', () => {
       const otpLength = AUTH_CONSTANTS.OTP_LENGTH;
       const completeOtp = '1'.repeat(otpLength);
       const incompleteOtp = '1'.repeat(otpLength - 1);
-      
+
       expect(completeOtp.length).toBe(otpLength);
       expect(incompleteOtp.length).toBe(otpLength - 1);
-      
+
       // This test verifies the condition used in useEffect
       expect(completeOtp.length === otpLength).toBe(true);
       expect(incompleteOtp.length === otpLength).toBe(false);
@@ -55,10 +55,10 @@ describe('OtpVerificationScreen Business Logic', () => {
 
       const validOtp = '123456';
       const invalidOtp = '12345a';
-      
+
       expect(validOtp.length).toBe(AUTH_CONSTANTS.OTP_LENGTH);
       expect(invalidOtp.length).toBe(AUTH_CONSTANTS.OTP_LENGTH);
-      
+
       expect(validateOTP(validOtp)).toBe(true);
       expect(validateOTP(invalidOtp)).toBe(false);
     });
@@ -80,23 +80,23 @@ describe('OtpVerificationScreen Business Logic', () => {
 
     it('should handle timer countdown correctly', () => {
       let timer = RESEND_COOLDOWN_SECONDS;
-      
+
       expect(timer).toBe(90);
-      
+
       // Simulate countdown
       timer -= 1;
       expect(timer).toBe(89);
-      
+
       timer -= 30;
       expect(timer).toBe(59);
-      
+
       timer -= 59;
       expect(timer).toBe(0);
     });
 
     it('should enable resend when timer reaches zero', () => {
       const canResend = (timer: number): boolean => timer === 0;
-      
+
       expect(canResend(90)).toBe(false);
       expect(canResend(1)).toBe(false);
       expect(canResend(0)).toBe(true);
@@ -105,30 +105,30 @@ describe('OtpVerificationScreen Business Logic', () => {
     it('should reset timer to cooldown value on resend', () => {
       let timer = 0;
       const canResend = timer === 0;
-      
+
       expect(canResend).toBe(true);
-      
+
       // Simulate resend action
       if (canResend) {
         timer = RESEND_COOLDOWN_SECONDS;
       }
-      
+
       expect(timer).toBe(90);
       expect(formatTimer(timer)).toBe('1:30');
     });
 
     it('should handle multiple timer cycles', () => {
       let timer = RESEND_COOLDOWN_SECONDS;
-      
+
       // First cycle
       expect(timer).toBe(90);
       timer = 0; // Simulate countdown to 0
       expect(timer).toBe(0);
-      
+
       // Reset for second cycle
       timer = RESEND_COOLDOWN_SECONDS;
       expect(timer).toBe(90);
-      
+
       // Second cycle
       timer = 0;
       expect(timer).toBe(0);

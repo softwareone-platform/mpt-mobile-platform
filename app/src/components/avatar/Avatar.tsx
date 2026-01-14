@@ -1,14 +1,15 @@
+import { Image } from 'expo-image';
 import { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { Image } from 'expo-image';
+
 import Jdenticon from '@/components/common/JdenticonIcon';
-import { getImageUrl, getImageHeaders } from '@/utils/image';
-import { HttpMethod } from '@/types/api';
 import { configService } from '@/config/env.config';
+import { DEFAULT_AVATAR_SIZE, DEFAULT_AVATAR_VARIANT } from '@/constants';
 import { getAccessTokenAsync } from '@/lib/tokenProvider';
 import { Color, avatarStyle } from '@/styles';
-import { DEFAULT_AVATAR_SIZE, DEFAULT_AVATAR_VARIANT } from '@/constants';
+import { HttpMethod } from '@/types/api';
 import type { AvatarProps } from '@/types/icons';
+import { getImageUrl, getImageHeaders } from '@/utils/image';
 
 interface AuthenticatedImageSource {
   uri: string;
@@ -65,7 +66,7 @@ const Avatar: React.FC<AvatarProps> = ({
       }
     };
 
-    fetchImageSource();
+    void fetchImageSource();
   }, [imagePath, BASE_URL]);
 
   const handleImageLoadError = () => {
@@ -74,7 +75,7 @@ const Avatar: React.FC<AvatarProps> = ({
     setHasError(true);
     setIsLoading(false);
     setImageSource(null);
-  }
+  };
 
   return (
     <View style={styles.container}>

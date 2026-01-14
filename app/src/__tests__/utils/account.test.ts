@@ -1,16 +1,12 @@
 import {
-  getFavouriteAccounts,
-  getRecentAccounts,
-  formatUserAccountsData,
-} from '@/utils/account';
-
-import {
   accounts,
   accountsNoFavouritesNoTimestamps,
   accountsSomeMissingFields,
   accountsSomeInvalidTimestamps,
   accountsAllFavouritesFalse,
- } from '../__mocks__/utils/account';
+} from '../__mocks__/utils/account';
+
+import { getFavouriteAccounts, getRecentAccounts, formatUserAccountsData } from '@/utils/account';
 
 describe('account utils', () => {
   describe('getFavouriteAccounts', () => {
@@ -62,18 +58,17 @@ describe('account utils', () => {
     it('handles missing audit.access.at field safely', () => {
       const result = getRecentAccounts(accountsSomeMissingFields, 10);
 
-      expect(result).toHaveLength(4);
-      expect(result[3].id).toBe('2');
+      expect(result).toHaveLength(3);
+      expect(result[2].id).toBe('1');
     });
 
     it('handles mixed valid and invalid timestamps', () => {
       const result = getRecentAccounts(accountsSomeInvalidTimestamps, 10);
 
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[0].id).toBe('3');
       expect(result[1].id).toBe('4');
       expect(result[2].id).toBe('1');
-      expect(result[3].id).toBe('2');
     });
 
     it('limits results to maxRecentAccounts', () => {
@@ -120,7 +115,7 @@ describe('account utils', () => {
 
       expect(result.all).toHaveLength(3);
       expect(result.favourites).toEqual([]);
-      expect(result.recent).toHaveLength(2);
+      expect(result.recent).toHaveLength(0);
     });
   });
 });

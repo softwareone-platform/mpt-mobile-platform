@@ -1,11 +1,11 @@
-import { View, ViewStyle } from 'react-native';
 import jdenticon from 'jdenticon';
+import { View, ViewStyle } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
 interface JdenticonIconProps {
   value: string;
   size: number;
-  config?: any;
+  config?: Record<string, string | number | unknown>;
   style?: ViewStyle & { padding?: number };
 }
 
@@ -14,11 +14,11 @@ const JdenticonIcon: React.FC<JdenticonIconProps> = ({ value, size, config, styl
   const containerStyle: ViewStyle = style.padding
     ? {
         width: size + 2 * style.padding,
-        ...style
+        ...style,
       }
     : {
         width: size,
-        ...style
+        ...style,
       };
 
   return (

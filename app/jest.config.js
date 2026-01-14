@@ -2,9 +2,7 @@ module.exports = {
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  testMatch: [
-    '**/__tests__/**/*.test.(ts|tsx|js)',
-  ],
+  testMatch: ['**/__tests__/**/*.test.(ts|tsx|js)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@env$': '<rootDir>/src/__tests__/__mocks__/@env.js',

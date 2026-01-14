@@ -62,10 +62,15 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "^54.0.4",
     "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-native": "^5.0.0",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "jest": "^30.2.0",
+    "prettier": "^3.7.4",
     "typescript": "~5.9.2"
   },
   "private": true

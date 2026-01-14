@@ -1,8 +1,10 @@
+/* eslint-disable no-console */
+
 jest.mock('react-native', () => ({
   View: 'View',
   Text: 'Text',
   StyleSheet: {
-    create: (styles: any) => styles,
+    create: (styles: unknown) => styles,
   },
   TouchableOpacity: 'TouchableOpacity',
   TextInput: 'TextInput',

@@ -1,9 +1,10 @@
-import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/context/AuthContext';
-import { AccountProvider } from '@/context/AccountContext';
+import { StatusBar } from 'expo-status-bar';
+
 import { Navigation } from '@/components/navigation';
 import { queryClient } from '@/config/queryClient';
+import { AccountProvider } from '@/context/AccountContext';
+import { AuthProvider } from '@/context/AuthContext';
 import './src/i18n';
 
 const App = () => {

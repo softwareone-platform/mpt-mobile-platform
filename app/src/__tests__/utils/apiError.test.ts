@@ -1,7 +1,18 @@
 import { createApiError, ApiError } from '@/utils/apiError';
 
+type MockError =
+  | {
+      response?: {
+        status?: number | null;
+        data?: Record<string, unknown> & { message?: string };
+      };
+      message?: string;
+    }
+  | null
+  | undefined;
+
 describe('createApiError', () => {
-  let mockError: any;
+  let mockError: MockError;
   let expectedApiError: ApiError;
 
   beforeEach(() => {
@@ -22,8 +33,8 @@ describe('createApiError', () => {
   });
 
   it('should create ApiError from Axios response error with message', () => {
-    mockError.response.status = 404;
-    mockError.response.data = { message: 'Not Found', extra: 'details here' };
+    mockError!.response!.status = 404;
+    mockError!.response!.data = { message: 'Not Found', extra: 'details here' };
 
     expectedApiError.status = 404;
     expectedApiError.message = 'Not Found';
@@ -33,8 +44,8 @@ describe('createApiError', () => {
   });
 
   it('should create ApiError from Axios response error without message', () => {
-    mockError.response.status = 404;
-    mockError.response.data = { extra: 'details here' };
+    mockError!.response!.status = 404;
+    mockError!.response!.data = { extra: 'details here' };
 
     expectedApiError.status = 404;
     expectedApiError.message = 'Unexpected API Error';
@@ -44,8 +55,8 @@ describe('createApiError', () => {
   });
 
   it('should create ApiError from error with only message property', () => {
-    mockError.response = undefined;
-    mockError.message = 'Network failure';
+    mockError!.response = undefined;
+    mockError!.message = 'Network failure';
 
     expectedApiError.status = null;
     expectedApiError.message = 'Network failure';
@@ -55,8 +66,8 @@ describe('createApiError', () => {
   });
 
   it('should return default message if error has no message or response', () => {
-    mockError.response = undefined;
-    mockError.message = undefined;
+    mockError!.response = undefined;
+    mockError!.message = undefined;
 
     expectedApiError.status = null;
     expectedApiError.message = 'Unexpected API Error';
@@ -74,8 +85,8 @@ describe('createApiError', () => {
   });
 
   it('should handle error with response but no message', () => {
-    mockError.response.status = 500;
-    mockError.response.data = { code: 'SERVER_ERROR' };
+    mockError!.response!.status = 500;
+    mockError!.response!.data = { code: 'SERVER_ERROR' };
 
     expectedApiError.status = 500;
     expectedApiError.message = 'Unexpected API Error';

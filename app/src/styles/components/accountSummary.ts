@@ -5,7 +5,7 @@ export const accountSummaryStyle = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: Spacing.spacing4, 
+    paddingBottom: Spacing.spacing4,
   },
   avatarWrapper: {
     borderRadius: BorderRadius.round,

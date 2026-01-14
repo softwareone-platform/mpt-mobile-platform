@@ -1,7 +1,8 @@
-import { Svg } from 'react-native-svg';
 import { OutlinedIcons } from '@assets/icons';
-import type { OutlinedIconProps } from '@/types/icons';
+import { Svg } from 'react-native-svg';
+
 import { DEFAULT_ICON_SIZE, DEFAULT_ICON_COLOR } from '@/constants/icons';
+import type { OutlinedIconProps } from '@/types/icons';
 
 const OutlinedIcon = ({
   name,

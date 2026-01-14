@@ -1,13 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import { View, ScrollView, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { cardStyle, screenStyle, Spacing } from '@/styles';
+
 import AccountSummary from '@/components/account-summary/AccountSummary';
-import { useAccount } from '@/context/AccountContext';
 import EmptyState from '@/components/common/EmptyState';
-import { Color } from '@/styles/tokens';
-import { TestIDs } from '@/utils/testID';
-import { formatPhoneNumber } from '@/utils/formatting';
 import NavigationItemWithText from '@/components/navigation-item/NavigationItemWithText';
+import { useAccount } from '@/context/AccountContext';
+import { cardStyle, screenStyle, Spacing } from '@/styles';
+import { Color } from '@/styles/tokens';
+import { formatPhoneNumber } from '@/utils/formatting';
+import { TestIDs } from '@/utils/testID';
 
 type PersonalInfoKey = 'firstName' | 'lastName' | 'email' | 'phone';
 
@@ -30,7 +31,11 @@ const PersonalInformation = () => {
   if (userDataLoading) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
-        <ActivityIndicator testID={TestIDs.PERSONAL_INFO_LOADING_INDICATOR} size="large" color={Color.brand.primary} />
+        <ActivityIndicator
+          testID={TestIDs.PERSONAL_INFO_LOADING_INDICATOR}
+          size="large"
+          color={Color.brand.primary}
+        />
       </View>
     );
   }
@@ -52,11 +57,7 @@ const PersonalInformation = () => {
   }
 
   if (!userData) {
-    return (
-        <EmptyState
-          testID={TestIDs.PERSONAL_INFO_EMPTY_STATE}
-      />
-    );
+    return <EmptyState testID={TestIDs.PERSONAL_INFO_EMPTY_STATE} />;
   }
 
   return (
@@ -74,15 +75,17 @@ const PersonalInformation = () => {
             const value =
               item.name === 'phone'
                 ? formatPhoneNumber(userData.phone?.prefix, userData.phone?.number)
-                : userData[item.name] ?? '';
+                : (userData[item.name] ?? '');
 
-            return <NavigationItemWithText
-              key={item.name}
-              label={t(`personalInformationScreen.${item.name}`)}
-              text={value}
-              isLast={index === personalInformationData.length - 1}
-              isDisabled={item.isDisabled}
-            />
+            return (
+              <NavigationItemWithText
+                key={item.name}
+                label={t(`personalInformationScreen.${item.name}`)}
+                text={value}
+                isLast={index === personalInformationData.length - 1}
+                isDisabled={item.isDisabled}
+              />
+            );
           })}
         </View>
       </View>

@@ -1,12 +1,13 @@
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { View, ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { RouteProp, useRoute, useNavigation} from '@react-navigation/native';
-import { cardStyle, screenStyle, buttonStyle, Spacing } from '@/styles';
-import NavigationItemWithIcon from '@/components/navigation-item/NavigationItemWithIcon';
-import type { ProfileStackParamList } from '@/types/navigation';
+
 import AccountSummary from '@/components/account-summary/AccountSummary';
+import NavigationItemWithIcon from '@/components/navigation-item/NavigationItemWithIcon';
 import { useAuth } from '@/context/AuthContext';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { cardStyle, screenStyle, buttonStyle, Spacing } from '@/styles';
+import type { ProfileStackParamList } from '@/types/navigation';
 
 type UserDetailsScreen = Exclude<keyof ProfileStackParamList, 'profile' | 'userSettings'>;
 
@@ -48,12 +49,7 @@ const UserSettingsScreen = () => {
 
   return (
     <ScrollView style={styles.containerMain}>
-      <AccountSummary
-        id={id}
-        title={name}
-        subtitle={id}
-        icon={icon}
-      />
+      <AccountSummary id={id} title={name} subtitle={id} icon={icon} />
       <View>
         <Text style={styles.sectionHeader}>{t('userSettingsScreen.userDetails')}</Text>
         <View style={styles.containerCard}>

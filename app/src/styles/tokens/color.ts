@@ -29,6 +29,10 @@ export const Color = {
     info2: '#959bff',
     info3: '#3520bf',
     info4: '#2b1999',
+    warning1: '#fdf2e9',
+    warning2: '#f1b178',
+    warning3: '#e87d1e',
+    warning4: '#733f11',
     danger1: '#fce8ea',
     danger2: '#ee8c96',
     danger3: '#bb1425',
@@ -65,7 +69,7 @@ export const Color = {
   },
   fills: {
     tertiary: 'rgba(118, 118, 128, 0.12)',
-  }
+  },
 } as const;
 
 export default Color;

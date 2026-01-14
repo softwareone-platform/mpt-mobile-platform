@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+
+# Native builds
+android
+ios
+
+# Build outputs
+build
+dist
+coverage
+
+# Files we don't format
+*.snap
+*.md
+*.json
+*.lock
+*.log
+
+# OS / tooling
+.DS_Store
+eslint.config.mjs

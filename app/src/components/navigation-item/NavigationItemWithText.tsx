@@ -1,6 +1,8 @@
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+
 import NavigationItemChevron from './NavigationItemChevron';
-import { listItemStyle } from "@/styles"; 
+
+import { listItemStyle } from '@/styles';
 
 type Props = {
   label: string;
@@ -11,11 +13,7 @@ type Props = {
 };
 
 const NavigationItemWithText = ({ label, text, isLast, isDisabled, onPress }: Props) => (
-  <TouchableOpacity
-    style={styles.container}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
+  <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
       <View style={styles.textContainerInline}>
         <Text style={styles.label}>{label}</Text>
@@ -23,7 +21,7 @@ const NavigationItemWithText = ({ label, text, isLast, isDisabled, onPress }: Pr
           {text}
         </Text>
       </View>
-      { !isDisabled && <NavigationItemChevron /> }
+      {!isDisabled && <NavigationItemChevron />}
     </View>
   </TouchableOpacity>
 );
@@ -31,14 +29,13 @@ const NavigationItemWithText = ({ label, text, isLast, isDisabled, onPress }: Pr
 const styles = StyleSheet.create({
   container: listItemStyle.container,
   lastItem: listItemStyle.lastItem,
-  contentWrapper:{
+  contentWrapper: {
     ...listItemStyle.contentWrapper,
     ...listItemStyle.textInline.contentWrapper,
   },
   textContainerInline: listItemStyle.textInline.textContainerInline,
   label: listItemStyle.textInline.labelInline,
   text: listItemStyle.textInline.textInline,
-
 });
 
 export default NavigationItemWithText;

@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet } from "react-native";
-import { accountSummaryStyle } from "@/styles"; 
-import AvatarIcon from "@/components/avatar/Avatar";
+import { View, Text, StyleSheet } from 'react-native';
+
+import AvatarIcon from '@/components/avatar/Avatar';
+import { accountSummaryStyle } from '@/styles';
 
 type Props = {
   id: string;
@@ -9,7 +10,7 @@ type Props = {
   icon?: string;
 };
 
-const AccountSummary = ({ id, title, subtitle, icon}: Props) => (
+const AccountSummary = ({ id, title, subtitle, icon }: Props) => (
   <View style={styles.container}>
     <View style={styles.avatarWrapper}>
       <AvatarIcon id={id} imagePath={icon} size={80} variant="large" />

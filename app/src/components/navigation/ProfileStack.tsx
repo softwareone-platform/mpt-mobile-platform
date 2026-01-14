@@ -1,11 +1,12 @@
-import { StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
-import type { ProfileStackParamList } from '@/types/navigation';
+import { StyleSheet } from 'react-native';
+
+import PersonalInformation from '@/screens/account/PersonalInformation';
 import ProfileScreen from '@/screens/account/ProfileScreen';
 import UserSettingsScreen from '@/screens/account/UserSettingsScreen';
-import PersonalInformation from '@/screens/account/PersonalInformation';
 import { Color, navigationStyle } from '@/styles';
+import type { ProfileStackParamList } from '@/types/navigation';
 
 const Stack = createStackNavigator<ProfileStackParamList>();
 
@@ -25,7 +26,7 @@ const ProfileStack = () => {
       <Stack.Screen
         name="profile"
         component={ProfileScreen}
-        options={{ 
+        options={{
           title: t('navigation.profile'),
           ...commonOptions,
         }}

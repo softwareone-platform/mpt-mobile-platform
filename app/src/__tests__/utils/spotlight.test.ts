@@ -1,10 +1,4 @@
-import { 
-  buildCategoryLookup,
-  groupSpotlightData,
-  orderSpotlightData,
-  arrangeSpotlightData
-} from '@/utils/spotlight';
-import { 
+import {
   categories,
   duplicateCategories,
   categoryLookup,
@@ -19,8 +13,15 @@ import {
   spotlightDataUndefinedTemplate,
   groupedSpotlightData,
   groupedSpotlightDataSingleItemPerCategory,
-  largeSpotlightData
+  largeSpotlightData,
 } from '../__mocks__/utils/spotlight';
+
+import {
+  buildCategoryLookup,
+  groupSpotlightData,
+  orderSpotlightData,
+  arrangeSpotlightData,
+} from '@/utils/spotlight';
 
 describe('spotlightUtils', () => {
   describe('buildCategoryLookup', () => {
@@ -32,7 +33,7 @@ describe('spotlightUtils', () => {
 
     it('should allow duplicate templates, using the last category definition', () => {
       const lookup = buildCategoryLookup(duplicateCategories);
-      
+
       expect(lookup.savedOrdersClient).toBe('cat2');
     });
   });
@@ -87,7 +88,7 @@ describe('spotlightUtils', () => {
 
     it('should return empty object when spotlightData is empty', () => {
       const groupedData = groupSpotlightData(spotlightDataEmpty, categoryLookup);
-      
+
       expect(groupedData).toEqual({});
     });
   });
@@ -98,7 +99,7 @@ describe('spotlightUtils', () => {
 
       expect(Object.keys(ordered)).toEqual(['orders', 'subscriptions']);
       expect(ordered.orders[0].id).toBe('1');
-      expect(ordered.subscriptions.map(item => item.id)).toEqual(['2']);
+      expect(ordered.subscriptions.map((item) => item.id)).toEqual(['2']);
     });
 
     it('should correctly handle single item per category', () => {
@@ -117,7 +118,7 @@ describe('spotlightUtils', () => {
       expect(arrangedData.orders).toHaveLength(2);
       expect(arrangedData.orders[0].id).toBe('1');
       expect(arrangedData.subscriptions).toHaveLength(1);
-      expect(arrangedData.subscriptions.map(item => item.id)).toEqual(['2']);
+      expect(arrangedData.subscriptions.map((item) => item.id)).toEqual(['2']);
     });
 
     it('should return empty object when spotlightData is empty', () => {
