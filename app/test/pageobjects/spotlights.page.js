@@ -53,6 +53,18 @@ class SpotlightsPage extends BasePage {
         return $(selectors.byResourceId('spotlight-filter-buyers'));
     }
 
+    get filterEnrollments () {
+        return $(selectors.byResourceId('spotlight-filter-enrollments'));
+    }
+
+    // ========== Filter Scroll Container ==========
+    get filterScrollView () {
+        return $(getSelector({
+            ios: '//XCUIElementTypeScrollView[.//XCUIElementTypeOther[contains(@name, "spotlight-filter-")]]',
+            android: '//android.widget.HorizontalScrollView[.//*[contains(@resource-id, "spotlight-filter-")]]'
+        }));
+    }
+
     // ========== Account Button ==========
     get accountButton () {
         return $(selectors.byResourceId('nav-account-button'));
@@ -205,6 +217,15 @@ class SpotlightsPage extends BasePage {
         return this.getCardByType('buyers');
     }
 
+    // ========== Long-Running Enrollments Section ==========
+    get longRunningEnrollmentsHeader () {
+        return $(selectors.byContainsText('long-running enrollments'));
+    }
+
+    get enrollmentsCard () {
+        return this.getCardByType('enrollments');
+    }
+
     // ========== Helper Methods ==========
     async scrollToSection (sectionName) {
         const section = $(selectors.byContainsText(sectionName));
@@ -234,6 +255,59 @@ class SpotlightsPage extends BasePage {
 
     async isLongRunningOrdersSectionVisible () {
         return await this.longRunningOrdersHeader.isDisplayed();
+    }
+
+    /**
+     * Scroll content to top - useful for resetting scroll position after filter changes
+     * Only scrolls if the top section is not already visible
+     */
+    async scrollToTop () {
+        // Check if we're already at the top by looking for the orders section header text
+        // If already visible, don't scroll
+        const ordersHeader = $(selectors.byContainsTextAny('long-running orders', 'long running orders'));
+        const isAlreadyAtTop = await ordersHeader.isDisplayed().catch(() => false);
+        if (isAlreadyAtTop) {
+            return; // Already at top, no need to scroll
+        }
+
+        if (isAndroid()) {
+            // Android: Use mobile: scrollGesture with direction 'down' to scroll content down (reveal top)
+            // This is a controlled scroll within the ScrollView bounds
+            const scrollView = await $('//android.widget.ScrollView');
+            const isScrollViewPresent = await scrollView.isExisting();
+            if (isScrollViewPresent) {
+                // Perform multiple swipe gestures to scroll to top
+                const maxScrolls = 10;
+                for (let i = 0; i < maxScrolls; i++) {
+                    const isVisible = await ordersHeader.isDisplayed().catch(() => false);
+                    if (isVisible) break;
+                    
+                    // Swipe down gesture - finger moves down, content reveals top
+                    await browser.execute('mobile: swipeGesture', {
+                        left: 100,
+                        top: 500,
+                        width: 880,
+                        height: 800,
+                        direction: 'down',
+                        percent: 0.75
+                    });
+                    await browser.pause(200);
+                }
+            }
+        } else {
+            // iOS: Use mobile: swipe with direction 'down' multiple times
+            const maxScrolls = 10;
+            for (let i = 0; i < maxScrolls; i++) {
+                const isVisible = await ordersHeader.isDisplayed().catch(() => false);
+                if (isVisible) break;
+                
+                await browser.execute('mobile: swipe', {
+                    direction: 'down',
+                    velocity: 500
+                });
+                await browser.pause(200);
+            }
+        }
     }
 
     async isExpiringSubscriptionsSectionVisible () {
@@ -276,18 +350,24 @@ class SpotlightsPage extends BasePage {
         return await this.buyersWithBlockedConnectionsHeader.isDisplayed();
     }
 
-    // ========== Filter Chip Methods ==========
+    async isLongRunningEnrollmentsSectionVisible () {
+        await this.scrollToSection('long-running enrollments');
+        return await this.longRunningEnrollmentsHeader.isDisplayed();
+    }
+
+    // ========== Horizontal Filter Scroll Methods ==========
     /**
-     * Select a filter chip by name
-     * @param {string} filterName - 'all', 'orders', 'subscriptions', 'users', 'invoices', 'journals', 'buyers'
+     * Scroll filter chips horizontally to reveal a specific filter
+     * @param {string} filterName - 'all', 'orders', 'subscriptions', 'users', 'invoices', 'enrollments', 'journals', 'buyers'
      */
-    async selectFilter (filterName) {
+    async scrollToFilter (filterName) {
         const filterMap = {
             all: this.filterAll,
             orders: this.filterOrders,
             subscriptions: this.filterSubscriptions,
             users: this.filterUsers,
             invoices: this.filterInvoices,
+            enrollments: this.filterEnrollments,
             journals: this.filterJournals,
             buyers: this.filterBuyers
         };
@@ -295,7 +375,196 @@ class SpotlightsPage extends BasePage {
         if (!filter) {
             throw new Error(`Unknown filter: ${filterName}`);
         }
-        await filter.click();
+
+        // First check if already visible
+        const initiallyVisible = await filter.isDisplayed().catch(() => false);
+        if (initiallyVisible) return filter;
+
+        const maxScrolls = 5;
+        for (let i = 0; i < maxScrolls; i++) {
+            // Horizontal swipe left to reveal more filters (later filters like enrollments, journals, buyers)
+            await this.horizontalSwipeOnFilters('left');
+            await browser.pause(300);
+
+            const isVisible = await filter.isDisplayed().catch(() => false);
+            if (isVisible) return filter;
+        }
+        
+        throw new Error(`Could not scroll to filter: ${filterName}`);
+    }
+
+    /**
+     * Perform horizontal swipe on filter chips container
+     * Uses platform-specific gestures matching existing vertical scroll implementation
+     * @param {string} direction - 'left' or 'right' (direction content should move/scroll)
+     */
+    async horizontalSwipeOnFilters (direction) {
+        if (isAndroid()) {
+            // Android: Use mobile: swipeGesture with coordinates
+            // HorizontalScrollView from DOM: bounds [0,296][1080,454]
+            // Filter chips Y range: 338-412, center at y=375
+            // Android swipeGesture 'direction' = direction content moves
+            // 'left' = content moves left, revealing content on the right (later filters)
+            await browser.execute('mobile: swipeGesture', {
+                left: 100,
+                top: 338,
+                width: 880,
+                height: 74,
+                direction: direction,
+                percent: 0.6
+            });
+        } else {
+            // iOS: Use mobile: swipe with velocity (matching vertical scroll pattern)
+            // Filter ScrollView location from DOM: y=91, height=60 (y range: 91-151)
+            await browser.execute('mobile: swipe', {
+                direction: direction,
+                velocity: 500
+            });
+        }
+    }
+
+    /**
+     * Reset filter scroll position to show 'All' filter
+     */
+    async resetFilterScrollPosition () {
+        const maxScrolls = 5;
+        for (let i = 0; i < maxScrolls; i++) {
+            const isVisible = await this.filterAll.isDisplayed().catch(() => false);
+            if (isVisible) return;
+            await this.horizontalSwipeOnFilters('right');
+            await browser.pause(300);
+        }
+    }
+
+    // ========== Section Visibility Check Methods for Filtered State ==========
+    /**
+     * Check which section types are currently visible (not hidden by filter)
+     * @returns {Promise<Object>} Object with section types as keys and visibility as values
+     */
+    async getVisibleSectionTypes () {
+        return {
+            orders: await this.isOrdersSectionVisible(),
+            subscriptions: await this.isSubscriptionsSectionVisible(),
+            users: await this.isUsersSectionVisible(),
+            invoices: await this.isInvoicesSectionVisible(),
+            enrollments: await this.isEnrollmentsSectionVisible(),
+            journals: await this.isJournalsSectionVisible(),
+            buyers: await this.isBuyersSectionVisible()
+        };
+    }
+
+    /**
+     * Check if any orders section is visible (long-running orders)
+     * Does NOT scroll - only checks current view state
+     */
+    async isOrdersSectionVisible () {
+        try {
+            const header = await this.longRunningOrdersHeader;
+            return await header.isDisplayed();
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Check if any subscriptions section is visible (expiring subscriptions)
+     */
+    async isSubscriptionsSectionVisible () {
+        try {
+            const card = await this.expiringSubscriptionsCard;
+            return await card.isDisplayed();
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Check if any users section is visible (pending/expired invites)
+     */
+    async isUsersSectionVisible () {
+        try {
+            const pendingHeader = await this.pendingInvitesHeader;
+            const expiredHeader = await this.expiredInvitesHeader;
+            return (await pendingHeader.isDisplayed()) || (await expiredHeader.isDisplayed());
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Check if any invoices section is visible (past due invoices)
+     */
+    async isInvoicesSectionVisible () {
+        try {
+            const card = await this.invoicesPastDueCard;
+            return await card.isDisplayed();
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Check if any journals section is visible (in progress journals)
+     */
+    async isJournalsSectionVisible () {
+        try {
+            const card = await this.inProgressJournalsCard;
+            return await card.isDisplayed();
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Check if any enrollments section is visible (long-running enrollments)
+     */
+    async isEnrollmentsSectionVisible () {
+        try {
+            const card = await this.getCardByType('enrollments');
+            return await card.isDisplayed();
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Check if any buyers section is visible (mismatching buyers, blocked connections)
+     */
+    async isBuyersSectionVisible () {
+        try {
+            const mismatchingHeader = await this.mismatchingBuyersHeader;
+            const blockedHeader = await this.buyersWithBlockedConnectionsHeader;
+            return (await mismatchingHeader.isDisplayed()) || (await blockedHeader.isDisplayed());
+        } catch {
+            return false;
+        }
+    }
+
+    // ========== Filter Chip Methods ==========
+    /**
+     * Select a filter chip by name
+     * @param {string} filterName - 'all', 'orders', 'subscriptions', 'users', 'invoices', 'journals', 'buyers'
+     */
+    async selectFilter (filterName) {
+        const filterKey = filterName.toLowerCase();
+        const validFilters = ['all', 'orders', 'subscriptions', 'users', 'invoices', 'enrollments', 'journals', 'buyers'];
+        if (!validFilters.includes(filterKey)) {
+            throw new Error(`Unknown filter: ${filterName}`);
+        }
+        
+        // Construct selector directly to avoid any issues with ChainablePromiseElement
+        const resourceId = `spotlight-filter-${filterKey}`;
+        const selector = isAndroid() 
+            ? `//*[@resource-id="${resourceId}"]`
+            : `~${resourceId}`;
+        
+        const filterElement = $(selector);
+        await filterElement.click();
+        
+        // Wait for filter state to update after click
+        // Note: On Android, the accessibilityState.selected update timing is unreliable,
+        // so we use a fixed pause. The section visibility tests validate actual filter behavior.
+        await browser.pause(500);
     }
 
     /**
@@ -309,6 +578,7 @@ class SpotlightsPage extends BasePage {
             subscriptions: this.filterSubscriptions,
             users: this.filterUsers,
             invoices: this.filterInvoices,
+            enrollments: this.filterEnrollments,
             journals: this.filterJournals,
             buyers: this.filterBuyers
         };
