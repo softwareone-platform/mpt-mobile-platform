@@ -22,18 +22,15 @@ export const createApiError = (error: unknown): ApiError => {
 };
 
 export const isUnauthorisedError = (error: unknown): boolean => {
-  // Narrow error to object first
   if (error === null || typeof error !== 'object') {
     return false;
   }
 
-  // Check if it has a status property
   const apiError = error as ApiError;
   if (typeof apiError.status !== 'number') {
     return false;
   }
 
-  // Finally, check if status is 401 or 403
   if (apiError.status === 401 || apiError.status === 403) {
     return true;
   }
