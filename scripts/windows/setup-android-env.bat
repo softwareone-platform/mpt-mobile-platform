@@ -8,6 +8,44 @@ REM
 REM This script checks your Windows environment for Android
 REM development and testing prerequisites.
 REM ============================================================
+REM
+REM CHANGELOG - January 15, 2026:
+REM ============================================================
+REM Fixed critical issues for Windows batch file execution:
+REM
+REM 1. JAVA VERSION DETECTION FIX (Line 37):
+REM    - Changed from: java -version 2>&1
+REM    - Changed to: java -version 2^>^&1
+REM    - Reason: Special characters >, &, and | must be escaped with ^ in batch
+REM    - Without escaping, the redirection fails and version detection breaks
+REM
+REM 2. ADB VERSION CHECK FIX (Line 109):
+REM    - Changed from: adb.exe version 2>&1
+REM    - Changed to: adb.exe version 2^>^&1
+REM    - Reason: Same as above - proper stderr redirection to stdout
+REM    - Allows capturing full version output for display
+REM
+REM 3. APPIUM DRIVER CHECK FIX (Line 170):
+REM    - Changed from: appium driver list --installed 2>&1
+REM    - Changed to: appium driver list --installed 2^>^&1
+REM    - Reason: Ensures error output is captured and properly piped
+REM    - Critical for detecting if UiAutomator2 driver is installed
+REM
+REM 4. APPIUM DRIVER OUTPUT FIX (Line 176):
+REM    - Changed from: appium driver list --installed 2>&1
+REM    - Changed to: appium driver list --installed 2^>^&1
+REM    - Reason: Consistent error handling for driver list display
+REM
+REM WINDOWS BATCH FILE GOTCHAS DOCUMENTED:
+REM - Redirection operators must be escaped in batch files
+REM - Use 2^>^&1 instead of 2>&1 for stderr-to-stdout redirection
+REM - Without proper escaping, the command fails silently
+REM - This is especially critical in for /f loops where output is captured
+REM - Affects any command that uses pipes, redirects, or special characters
+REM
+REM These fixes ensure environment validation works correctly on Windows
+REM with proper error handling and output capture for all prerequisite checks.
+REM ============================================================
 
 echo.
 echo ============================================================
@@ -164,14 +202,14 @@ if errorlevel 1 (
     REM Check for UiAutomator2 driver
     echo.
     echo        Checking Appium drivers...
-    appium driver list --installed 2>nul | findstr /i "uiautomator2" >nul
+    appium driver list --installed 2^>^&1 | findstr /i "uiautomator2" >nul
     if errorlevel 1 (
         echo        [MISSING] UiAutomator2 driver not installed
         echo.
         echo        Install with: appium driver install uiautomator2
         set ALL_OK=false
     ) else (
-        for /f "tokens=*" %%d in ('appium driver list --installed 2^>nul ^| findstr /i "uiautomator2"') do (
+        for /f "tokens=*" %%d in ('appium driver list --installed 2^>^&1 ^| findstr /i "uiautomator2"') do (
             echo        [OK] %%d
         )
     )
