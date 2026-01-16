@@ -41,8 +41,7 @@ describe('useUserApi', () => {
 
     const expectedUrl =
       `/v1/accounts/accounts/ACC-0000-0001/users` +
-      `?select=audit,groups,modules,buyers` +
-      `&order=name` +
+      `?order=name` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 
@@ -71,11 +70,7 @@ describe('useUserApi', () => {
     });
 
     const expectedUrl =
-      `/v1/accounts/accounts/ACC-0000-0001/users` +
-      `?select=audit,groups,modules,buyers` +
-      `&order=name` +
-      `&offset=50` +
-      `&limit=25`;
+      `/v1/accounts/accounts/ACC-0000-0001/users` + `?order=name` + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -229,8 +224,7 @@ describe('useUserApi', () => {
 
     const expectedUrl =
       `/v1/accounts/users` +
-      `?select=audit,accounts` +
-      `&order=name` +
+      `?order=name` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 

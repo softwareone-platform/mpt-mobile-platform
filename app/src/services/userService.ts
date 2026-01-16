@@ -15,8 +15,7 @@ export function useUserApi() {
     ): Promise<PaginatedResponse<User>> => {
       const endpoint =
         `/v1/accounts/accounts/${accountId}/users` +
-        `?select=audit,groups,modules,buyers` +
-        `&order=name` +
+        `?order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
@@ -32,11 +31,7 @@ export function useUserApi() {
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<User>> => {
       const endpoint =
-        `/v1/accounts/users` +
-        `?select=audit,accounts` +
-        `&order=name` +
-        `&offset=${offset}` +
-        `&limit=${limit}`;
+        `/v1/accounts/users` + `?order=name` + `&offset=${offset}` + `&limit=${limit}`;
 
       return api.get<PaginatedResponse<User>>(endpoint);
     },
