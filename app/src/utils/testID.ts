@@ -87,6 +87,11 @@ export const TestIDs = {
   CREDIT_MEMOS_LOADING_INDICATOR: 'credit-memos-loading-indicator',
   CREDIT_MEMOS_ERROR_STATE: 'credit-memos-error-state',
   CREDIT_MEMOS_EMPTY_STATE: 'credit-memos-empty-state',
+
+  // Users Screen
+  USERS_LOADING_INDICATOR: 'users-loading-indicator',
+  USERS_ERROR_STATE: 'users-error-state',
+  USERS_EMPTY_STATE: 'users-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;
