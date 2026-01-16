@@ -1,0 +1,82 @@
+name: Android Testing with External Build
+
+permissions:
+  contents: read
+  actions: read    # Required for downloading artifacts
+
+# Example workflow showing how to use the Android install template 
+# with an external build download URL
+#
+# To get the download URL from the main build workflow:
+# 1. Run the 'Android Build and Appium Tests' workflow 
+# 2. Check the build job summary for the release asset URL
+# 3. Use that URL as the download_url input for this workflow
+
+on:
+  # Manual trigger only
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: choice
+        options:
+          - test
+        default: 'test'
+      download_url:
+        description: 'Direct download URL for the Android APK (example: from GitHub releases or external URL)'
+        required: true
+        type: string
+        default: 'https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/android-build-Release-9779063dafbe1d8d2945cf57436ce6817e5277c2-8/app-release.apk'
+      api_level:
+        description: 'Android API level for emulator'
+        required: false
+        type: string
+        default: '34'
+      device_profile:
+        description: 'Android emulator device profile'
+        required: false
+        type: string
+        default: 'pixel_6'
+
+jobs:
+  install-and-test-external-android:
+    name: Install and Test External Android Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.environment || 'test' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Install phase using composite action template
+      - name: Install External Android App
+        id: install-android
+        uses: ./.github/actions/android-install
+        with:
+          # Use the provided download URL
+          download_url: ${{ inputs.download_url }}
+          api_level: ${{ inputs.api_level || '34' }}
+          device_profile: ${{ inputs.device_profile || 'pixel_6' }}
+          
+      # Test phase using composite action template  
+      - name: Test External Android App
+        uses: ./.github/actions/android-test
+        with:
+          device_serial: ${{ steps.install-android.outputs.device_serial }}
+          package_name: ${{ steps.install-android.outputs.package_name }}
+          api_level: ${{ inputs.api_level || '34' }}
+          device_name: ${{ inputs.device_profile || 'pixel_6' }}
+          node_version: '20'
+          appium_version: '3.1.1'
+          airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
+          airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
+          airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
+          airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
+          # ReportPortal configuration (enabled if API key is set)
+          report_portal_api_key: ${{ secrets.REPORT_PORTAL_API_KEY || '' }}
+          report_portal_endpoint: ${{ vars.REPORT_PORTAL_ENDPOINT }}
+          report_portal_project: ${{ vars.REPORT_PORTAL_PROJECT }}
+          report_portal_launch_name: 'Android External Build Tests'

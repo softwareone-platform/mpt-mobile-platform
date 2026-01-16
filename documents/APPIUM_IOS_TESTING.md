@@ -13,8 +13,8 @@ For the fastest testing workflow, use these three approaches based on your needs
 ### 🚀 **Recommended Workflow**
 
 ```bash
-# 1. First time: Build fresh Release app
-./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+# 1. First time: Build fresh Release app (requires .env file in app/ directory)
+./scripts/run-local-test.sh --build welcome
 
 # 2. Iteration: Reuse last build for fast testing
 ./scripts/run-local-test.sh --skip-build welcome
@@ -25,7 +25,7 @@ For the fastest testing workflow, use these three approaches based on your needs
 
 ### ⚡ **Development Workflow**
 
-1. **Initial build**: Use `--build` when you change app code or Auth0 configuration
+1. **Initial build**: Use `--build` when you change app code (requires `.env` file in `app/` directory)
 2. **Fast iteration**: Use `--skip-build` for repeated testing without rebuilding  
 3. **Debug mode**: Add `--verbose` to see detailed logs for troubleshooting
 
@@ -71,11 +71,11 @@ cd /path/to/mpt-mobile-platform
 # Run tests with existing app (fastest)
 ./scripts/run-local-test.sh welcome
 
-# Build fresh Release app and run tests (production-like testing)
-./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+# Build fresh Release app and run tests (requires .env file)
+./scripts/run-local-test.sh --build welcome
 
 # Run with verbose output for debugging
-./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID --verbose welcome
+./scripts/run-local-test.sh --build --verbose welcome
 
 # Run specific test file
 ./scripts/run-local-test.sh ./test/specs/welcome.e2e.js
@@ -85,7 +85,7 @@ cd /path/to/mpt-mobile-platform
 ```
 
 The `run-local-test.sh` script provides a complete testing solution:
-- **Builds** Release version of the app (optional with `--build`)
+- **Builds** Release version of the app (optional with `--build`, requires `.env` file)
 - **Sets up** iOS simulator and installs the app
 - **Starts** Appium server automatically
 - **Runs** your specified test suite or spec file
@@ -148,28 +148,30 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 # Basic usage - run tests with existing app
 ./scripts/run-local-test.sh welcome
 
-# Full workflow - build Release app and test (recommended for production validation)
-./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+# Full workflow - build Release app and test (requires .env file)
+./scripts/run-local-test.sh --build welcome
 
 # Fast workflow - reuse last build and test (recommended for iteration)
 ./scripts/run-local-test.sh --skip-build welcome
 
 # Available options:
+#   --platform, -p        Target platform: ios or android (default: ios)
 #   --build, -b           Build release version of the app before testing
 #   --skip-build, -s      Skip build and install existing app from last build
-#   --client-id, -c ID    Set Auth0 client ID for build (required with --build)
+#   --build-from-artifact Download and install app from artifact URL (zip or apk)
 #   --verbose, -v         Enable verbose output for debugging
 #   --help, -h            Show help message
 ```
 
 **Script Features:**
 - ✅ **Automatic build** (optional): Builds Release configuration using Expo prebuild + xcodebuild
-- ✅ **Fast iteration** (new): Reuses last build for quick testing cycles with `--skip-build`
+- ✅ **Fast iteration**: Reuses last build for quick testing cycles with `--skip-build`
+- ✅ **Artifact support**: Download and install app from artifact URL with `--build-from-artifact`
 - ✅ **Simulator management**: Boots simulator and installs app automatically
 - ✅ **Appium lifecycle**: Starts/stops Appium server as needed
 - ✅ **Flexible execution**: Run from project root or scripts directory
 - ✅ **Production parity**: Uses same build process as CI/CD pipeline
-- ✅ **Environment setup**: Handles Auth0 configuration for builds
+- ✅ **Environment config**: Reads Auth0 configuration from `.env` file in `app/` directory
 
 **Performance Comparison:**
 - **Full build** (`--build`): ~6-8 minutes (build + test)
@@ -181,13 +183,13 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 #### 🏗️ **Development Cycle**
 ```bash
 # 1. Make code changes
-# 2. Build once with new changes
-./scripts/run-local-test.sh --build --client-id YOUR_AUTH0_CLIENT_ID welcome
+# 2. Build once with new changes (requires .env file)
+./scripts/run-local-test.sh --build welcome
 
 # 3. Iterate quickly without rebuilding
 ./scripts/run-local-test.sh --skip-build welcome
-./scripts/run-local-test.sh --skip-build orders  
-./scripts/run-local-test.sh --skip-build --verbose invoices  # Debug a failing test
+./scripts/run-local-test.sh --skip-build home  
+./scripts/run-local-test.sh --skip-build --verbose navigation  # Debug a failing test
 ```
 
 #### 🧪 **Test-Driven Development**
@@ -199,8 +201,11 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 
 #### 🚀 **Production Validation**
 ```bash
-# Always use fresh builds for production testing
-./scripts/run-local-test.sh --build --client-id PROD_CLIENT_ID welcome
+# Always use fresh builds for production testing (requires .env file)
+./scripts/run-local-test.sh --build welcome
+
+# Or download and test from CI artifact URL
+./scripts/run-local-test.sh --build-from-artifact https://github.com/.../app.zip welcome
 ```
 
 ### 4. Manual Appium Testing (Alternative)
@@ -308,12 +313,12 @@ pkill -f appium
 #### Script Debugging
 - Use `--verbose` flag with `run-local-test.sh` for detailed logging
 - Check script exit codes and error messages
-- Verify Auth0 client ID is properly set when using `--build` option
+- Verify `.env` file exists in `app/` directory with Auth0 configuration
 
 #### Build and Installation Issues
 - **No existing build error**: If `--skip-build` fails, run with `--build` first or use `./scripts/deploy-ios.sh`
 - **Build conflicts**: Cannot use `--build` and `--skip-build` together
-- **Missing client ID**: `--build` requires `--client-id` parameter
+- **Missing .env file**: `--build` requires `.env` file in `app/` directory with Auth0 configuration
 - **Stale builds**: Use `--build` to rebuild if app behavior seems outdated
 
 #### Simulator Issues
@@ -362,17 +367,30 @@ APP_BUNDLE_ID=com.softwareone.marketplaceMobile
 Use the automated environment setup script for easy configuration:
 
 ```bash
-# Load configuration from .env file and set up test environment
+# Load configuration from .env file and set up test environment (iOS default)
 source ./scripts/setup-test-env.sh
 
-# Save configuration to .env.test file for later use
-./scripts/setup-test-env.sh --save
+# Setup for Android
+source ./scripts/setup-test-env.sh --platform android
+
+# Start a simulator/emulator by name
+source ./scripts/setup-test-env.sh --start-emulator "iPhone 16"
+source ./scripts/setup-test-env.sh --platform android --start-emulator "Pixel_8_API_34"
+
+# List available simulators and emulators
+source ./scripts/setup-test-env.sh --list-emulators
 ```
+
+**Available Options:**
+- `--platform <ios|android>`: Set the target platform (default: ios)
+- `--start-emulator <name>`: Start emulator/simulator by name
+- `--list-emulators`: List available emulators/simulators
+- `--help`: Show help message
 
 The setup script will automatically:
 - Load values from `app/.env` 
-- Detect booted iOS simulators
-- Configure Appium variables
+- Detect and optionally start iOS simulators or Android emulators
+- Configure platform-specific Appium variables
 - Set up Airtable OTP testing variables
 - Display current configuration
 

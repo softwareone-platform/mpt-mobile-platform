@@ -111,3 +111,6 @@ yarn-error.*
 # generated native folders
 ios/
 android/
+
+# Local planning documents (not for repository)
+documents/.plans/
