@@ -438,7 +438,8 @@ jobs:
 
   install-and-test-android:
     name: Install and Test Android App (Windows)
-    needs: build-android
+    # TEMPORARY: Skip build step to speed up testing. Remove this comment and restore 'needs: build-android' when tests pass
+    # needs: build-android
     # Use windows-2022 instead of windows-latest (2025) because Android Emulator 36.x
     # has known compatibility issues with Windows Server 2025, causing immediate crashes
     # with error code -1073741819 (access violation)
@@ -455,7 +456,9 @@ jobs:
         id: install-android
         uses: ./.github/actions/android-install-windows
         with:
-          artifact_name: ${{ needs.build-android.outputs.artifact_name }}
+          # TEMPORARY: Using direct download URL to skip build step. Restore artifact_name when tests pass:
+          # artifact_name: ${{ needs.build-android.outputs.artifact_name }}
+          download_url: https://github.com/softwareone-platform/mpt-mobile-platform/releases/download/android-windows-build-Release-10fc2e5651dfea5a07cafa386cc6d0f746aa0f60-17/app-release.apk
           api_level: ${{ env.API_LEVEL }}
           device_profile: ${{ env.DEVICE_PROFILE }}
 

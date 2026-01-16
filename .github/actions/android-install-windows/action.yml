@@ -604,11 +604,13 @@ runs:
         $BootSuccess = $false
         
         for ($i = 1; $i -le $BootTimeout; $i++) {
-          # Check 1: sys.boot_completed
-          $BootCompleted = (& $AdbPath -s $DeviceSerial shell getprop sys.boot_completed 2>$null).Trim()
+          # Check 1: sys.boot_completed (with null-safe handling)
+          $BootCompletedRaw = & $AdbPath -s $DeviceSerial shell getprop sys.boot_completed 2>$null
+          $BootCompleted = if ($BootCompletedRaw) { $BootCompletedRaw.Trim() } else { "" }
           
-          # Check 2: Boot animation stopped
-          $BootAnim = (& $AdbPath -s $DeviceSerial shell getprop init.svc.bootanim 2>$null).Trim()
+          # Check 2: Boot animation stopped (with null-safe handling)
+          $BootAnimRaw = & $AdbPath -s $DeviceSerial shell getprop init.svc.bootanim 2>$null
+          $BootAnim = if ($BootAnimRaw) { $BootAnimRaw.Trim() } else { "" }
           
           if ($BootCompleted -eq "1" -and $BootAnim -eq "stopped") {
             Write-Host "✅ Boot completed after $i seconds"
@@ -635,8 +637,10 @@ runs:
           
           $RecoveryTimeout = 120
           for ($i = 1; $i -le $RecoveryTimeout; $i++) {
-            $BootCompleted = (& $AdbPath -s $DeviceSerial shell getprop sys.boot_completed 2>$null).Trim()
-            $BootAnim = (& $AdbPath -s $DeviceSerial shell getprop init.svc.bootanim 2>$null).Trim()
+            $BootCompletedRaw = & $AdbPath -s $DeviceSerial shell getprop sys.boot_completed 2>$null
+            $BootCompleted = if ($BootCompletedRaw) { $BootCompletedRaw.Trim() } else { "" }
+            $BootAnimRaw = & $AdbPath -s $DeviceSerial shell getprop init.svc.bootanim 2>$null
+            $BootAnim = if ($BootAnimRaw) { $BootAnimRaw.Trim() } else { "" }
             
             if ($BootCompleted -eq "1" -and $BootAnim -eq "stopped") {
               Write-Host "✅ Recovery successful after $i seconds"
