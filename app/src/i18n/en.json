@@ -188,6 +188,12 @@
     "noTaskHeader": "No tasks on your side",
     "viewAll": "Showing {{showing}} of {{total}} (view all)"
   },
+  "creditMemosScreen": {
+    "emptyStateTitle": "No credit memos",
+    "emptyStateDescription": "No credit memos found.",
+    "errorTitle": "There was an error retrieving the data",
+    "errorDescription": "Try to refresh the data or change your filters"
+  },
   "status": {
     "Accepted": "Accepted",
     "Active": "Active",

@@ -1,4 +1,4 @@
-import { createApiError, ApiError } from '@/utils/apiError';
+import { createApiError, ApiError, isUnauthorisedError } from '@/utils/apiError';
 
 type MockError =
   | {
@@ -93,5 +93,51 @@ describe('createApiError', () => {
     expectedApiError.details = { code: 'SERVER_ERROR' };
 
     expect(createApiError(mockError)).toEqual(expectedApiError);
+  });
+});
+
+describe('isUnauthorisedError', () => {
+  it('returns false if passing null as param', () => {
+    expect(isUnauthorisedError(null)).toBe(false);
+  });
+
+  it('returns false if passing non-object values', () => {
+    expect(isUnauthorisedError(undefined)).toBe(false);
+    expect(isUnauthorisedError(123)).toBe(false);
+    expect(isUnauthorisedError('string')).toBe(false);
+    expect(isUnauthorisedError(true)).toBe(false);
+  });
+
+  it('returns false if passing object without status', () => {
+    const obj = { message: 'oops' };
+    expect(isUnauthorisedError(obj)).toBe(false);
+  });
+
+  it('returns false if passing object with non-numeric status', () => {
+    const obj = { status: '403', message: 'oops' };
+    expect(isUnauthorisedError(obj)).toBe(false);
+  });
+
+  it('returns true if status 401', () => {
+    const error: ApiError = { status: 401, message: 'Unauthorized', name: 'API Error' };
+    expect(isUnauthorisedError(error)).toBe(true);
+  });
+
+  it('returns true if status 403', () => {
+    const error: ApiError = { status: 403, message: 'Forbidden', name: 'API Error' };
+    expect(isUnauthorisedError(error)).toBe(true);
+  });
+
+  it('returns false for any other status code rather than 401 or 403', () => {
+    const error: ApiError = { status: 400, message: 'Bad Request', name: 'API Error' };
+    expect(isUnauthorisedError(error)).toBe(false);
+
+    const error2: ApiError = { status: 500, message: 'Server Error', name: 'API Error' };
+    expect(isUnauthorisedError(error2)).toBe(false);
+  });
+
+  it('works if extra properties exist', () => {
+    const error = { status: 403, foo: 'bar', message: 'Forbidden', name: 'API Error' };
+    expect(isUnauthorisedError(error)).toBe(true);
   });
 });
