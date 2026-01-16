@@ -71,11 +71,7 @@ describe('useUserApi', () => {
     });
 
     const expectedUrl =
-      `/v1/accounts/users` +
-      `?select=audit,accounts` +
-      `&order=name` +
-      `&offset=50` +
-      `&limit=25`;
+      `/v1/accounts/users` + `?select=audit,accounts` + `&order=name` + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
