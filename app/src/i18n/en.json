@@ -197,9 +197,7 @@
   },
   "usersScreen": {
     "emptyStateTitle": "No users",
-    "emptyStateDescription": "No users found.",
-    "errorTitle": "There was an error retrieving the data",
-    "errorDescription": "Try to refresh the data or change your filters"
+    "emptyStateDescription": "No users found."
   },
   "status": {
     "Accepted": "Accepted",
