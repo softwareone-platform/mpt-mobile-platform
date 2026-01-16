@@ -5,11 +5,6 @@ permissions:
   actions: read    # Required for downloading artifacts
 
 on:
-  # TEMPORARY: For testing on feature branch before merge - REMOVE BEFORE MERGE
-  push:
-    branches:
-      - 'feature/android-test-workflows'
-
   # Manual trigger
   workflow_dispatch:
     inputs:
