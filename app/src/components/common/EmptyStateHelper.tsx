@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
@@ -9,8 +10,8 @@ interface EmptyStateHelperProps {
   isError: boolean;
   isEmpty: boolean;
   isUnauthorised: boolean;
-  errorTitle: string;
-  errorDescription: string;
+  errorTitle?: string;
+  errorDescription?: string;
   emptyTitle: string;
   emptyDescription: string;
   loadingTestId?: string;
@@ -33,6 +34,8 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
   emptyTestId,
   children,
 }) => {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
@@ -52,8 +55,8 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
             size: 48,
             color: Color.brand.primary,
           }}
-          title={errorTitle}
-          description={errorDescription}
+          title={errorTitle || t('creditMemosScreen.errorTitle')}
+          description={errorDescription || t('creditMemosScreen.errorDescription')}
         />
       </View>
     );

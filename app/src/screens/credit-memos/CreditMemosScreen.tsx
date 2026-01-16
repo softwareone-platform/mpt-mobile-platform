@@ -28,8 +28,6 @@ const CreditMemosScreenContent = () => {
       loadingTestId={TestIDs.CREDIT_MEMOS_LOADING_INDICATOR}
       errorTestId={TestIDs.CREDIT_MEMOS_ERROR_STATE}
       emptyTestId={TestIDs.CREDIT_MEMOS_EMPTY_STATE}
-      errorTitle={t('creditMemosScreen.errorTitle')}
-      errorDescription={t('creditMemosScreen.errorDescription')}
       emptyTitle={t('creditMemosScreen.emptyStateTitle')}
       emptyDescription={t('creditMemosScreen.emptyStateDescription')}
     >
