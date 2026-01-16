@@ -77,3 +77,8 @@ jobs:
           airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
           airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
           airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
+          # ReportPortal configuration (enabled if API key is set)
+          report_portal_api_key: ${{ secrets.REPORT_PORTAL_API_KEY || '' }}
+          report_portal_endpoint: ${{ vars.REPORT_PORTAL_ENDPOINT }}
+          report_portal_project: ${{ vars.REPORT_PORTAL_PROJECT }}
+          report_portal_launch_name: 'iOS External Build Tests'

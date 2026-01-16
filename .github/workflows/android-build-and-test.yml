@@ -1,0 +1,429 @@
+name: Android Build and Appium Tests
+
+permissions:
+  contents: write  # Required for creating releases
+  actions: read    # Required for downloading artifacts
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: choice
+        options:
+          - test
+        default: 'test'
+      build-mode:
+        description: 'Build configuration'
+        required: true
+        type: choice
+        options:
+          - Debug
+          - Release
+        default: 'Release'
+      api-level:
+        description: 'Android API level for emulator'
+        required: false
+        type: string
+        default: '34'
+      device-profile:
+        description: 'Android emulator device profile'
+        required: false
+        type: string
+        default: 'pixel_6'
+
+  # Reusable workflow (called from other workflows)
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        type: string
+        default: 'test'
+      build-mode:
+        description: 'Build configuration'
+        required: false
+        type: string
+        default: 'Release'
+      api-level:
+        description: 'Android API level for emulator'
+        required: false
+        type: string
+        default: '34'
+      device-profile:
+        description: 'Android emulator device profile'
+        required: false
+        type: string
+        default: 'pixel_6'
+
+env:
+  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
+  API_LEVEL: ${{ github.event.inputs.api-level || '34' }}
+  DEVICE_PROFILE: ${{ github.event.inputs.device-profile || 'pixel_6' }}
+
+jobs:
+  build-android:
+    name: Build Android App
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: ./app
+
+    outputs:
+      apk_path: ${{ steps.find-apk.outputs.apk_path }}
+      artifact_name: ${{ steps.artifact-info.outputs.artifact_name }}
+      package_name: ${{ steps.verify-apk.outputs.package_name }}
+      release_tag: ${{ steps.create-release.outputs.release_tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            ./app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        id: gradle-cache
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ./app/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests before build
+        run: npm test
+
+      - name: Create .env file
+        run: |
+          cat > .env <<EOF
+          # Auth0 Configuration (Test Environment)
+          AUTH0_DOMAIN=login-test.pyracloud.com
+          AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID_TEST }}
+          AUTH0_AUDIENCE=https://api-test.pyracloud.com/
+          AUTH0_SCOPE=openid profile email offline_access
+          AUTH0_API_URL=https://api.s1.show/public/
+          AUTH0_OTP_DIGITS=6
+          AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          TEMPORARY_AUTH0_TOKEN=
+          EOF
+
+      - name: Verify .env file
+        run: |
+          echo "🔍 Verifying .env file..."
+          
+          # Check file exists
+          if [ ! -f ".env" ]; then
+            echo "❌ ERROR: .env file not created"
+            exit 1
+          fi
+          
+          # Show .env structure (masking sensitive values)
+          echo "📄 .env file contents (masked):"
+          while IFS= read -r line || [ -n "$line" ]; do
+            if [[ "$line" =~ ^[[:space:]]*# ]] || [[ -z "$line" ]]; then
+              echo "$line"
+            elif [[ "$line" =~ ^([A-Z_][A-Z0-9_]*)=(.*)$ ]]; then
+              key="${BASH_REMATCH[1]}"
+              value="${BASH_REMATCH[2]}"
+              if [ -n "$value" ]; then
+                echo "$key=***[${#value} chars]"
+              else
+                echo "$key=[EMPTY]"
+              fi
+            else
+              echo "$line"
+            fi
+          done < .env
+          
+          # Verify required variables have values
+          REQUIRED_VARS="AUTH0_DOMAIN AUTH0_CLIENT_ID AUTH0_SCHEME"
+          MISSING_VARS=""
+          
+          for var in $REQUIRED_VARS; do
+            value=$(grep "^$var=" .env | cut -d'=' -f2-)
+            if [ -z "$value" ]; then
+              MISSING_VARS="$MISSING_VARS $var"
+              echo "❌ $var is empty or missing"
+            else
+              echo "✅ $var is set"
+            fi
+          done
+          
+          if [ -n "$MISSING_VARS" ]; then
+            echo ""
+            echo "❌ ERROR: Missing required environment variables:$MISSING_VARS"
+            echo "Please ensure the AUTH0_CLIENT_ID_TEST secret is configured in GitHub repository settings."
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All required environment variables are set"
+
+      - name: Get version info
+        id: version
+        working-directory: ./app
+        run: |
+          # Create a temporary script to read from app.config.js with proper environment
+          cat > read_version.mjs << 'EOF'
+          import config from './app.config.js';
+          console.log(config.expo.version);
+          EOF
+          VERSION=$(node read_version.mjs)
+          rm read_version.mjs
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📱 Building version $VERSION"
+
+      - name: Configure build environment
+        working-directory: ./app
+        run: |
+          echo "🔧 Configuring build environment for ${{ env.BUILD_MODE }} mode..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Configuring for STANDALONE PRODUCTION app"
+            # Remove expo-dev-client for production builds to avoid Expo Dev Client UI
+            echo "📦 Removing expo-dev-client for production build..."
+            npm uninstall expo-dev-client
+            echo "✅ expo-dev-client removed"
+          else
+            echo "🛠️ Configuring for DEVELOPMENT app with Expo Dev Tools"
+          fi
+
+      - name: Expo prebuild (generate native Android project)
+        working-directory: ./app
+        run: |
+          echo "📦 Generating native Android project with Expo..."
+          
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            echo "🎯 Building standalone app (production-ready, no Expo Dev Client)"
+          else
+            echo "🛠️ Building development app (with Expo Dev Tools)"
+          fi
+          
+          npx expo prebuild --platform android --clean
+          echo "✅ Native Android project generated"
+
+      - name: Make Gradle wrapper executable
+        working-directory: ./app/android
+        run: chmod +x ./gradlew
+
+      - name: Build Android APK
+        working-directory: ./app/android
+        run: |
+          echo "🔨 Building Android APK in ${{ env.BUILD_MODE }} mode..."
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            ./gradlew assembleRelease --no-daemon --stacktrace
+          else
+            ./gradlew assembleDebug --no-daemon --stacktrace
+          fi
+          echo "✅ APK build completed"
+
+      - name: Find APK artifact
+        id: find-apk
+        working-directory: ./app
+        run: |
+          # Determine build type folder
+          if [ "${{ env.BUILD_MODE }}" = "Release" ]; then
+            BUILD_TYPE_FOLDER="release"
+          else
+            BUILD_TYPE_FOLDER="debug"
+          fi
+          
+          # Find the built APK
+          APK_PATH=$(find android/app/build/outputs/apk/$BUILD_TYPE_FOLDER -name "*.apk" -type f | head -n 1)
+
+          if [ -z "$APK_PATH" ]; then
+            echo "❌ APK not found in expected location"
+            echo "Searching entire build directory..."
+            find android/app/build -name "*.apk" -type f
+            exit 1
+          fi
+          
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "✅ Found APK at: $APK_PATH"
+
+      - name: Verify APK artifact
+        id: verify-apk
+        working-directory: ./app
+        run: |
+          APK_PATH="${{ steps.find-apk.outputs.apk_path }}"
+          
+          echo "🔍 Verifying APK: $APK_PATH"
+          
+          # Check file exists and get size
+          if [ ! -f "$APK_PATH" ]; then
+            echo "❌ APK file not found"
+            exit 1
+          fi
+          
+          # Get file size (compatible with both macOS and Linux)
+          SIZE=$(stat -c%s "$APK_PATH" 2>/dev/null || stat -f%z "$APK_PATH" 2>/dev/null)
+          echo "📦 APK size: $SIZE bytes"
+          
+          # Verify minimum size (should be at least 1MB)
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "❌ APK suspiciously small: $SIZE bytes"
+            exit 1
+          fi
+          
+          # Extract package name using aapt
+          AAPT_PATH=$(find $ANDROID_HOME/build-tools -name "aapt" | sort -V | tail -1)
+          
+          if [ -z "$AAPT_PATH" ]; then
+            echo "⚠️ aapt not found, using aapt2"
+            AAPT_PATH=$(find $ANDROID_HOME/build-tools -name "aapt2" | sort -V | tail -1)
+          fi
+          
+          if [ -n "$AAPT_PATH" ]; then
+            echo "Using aapt at: $AAPT_PATH"
+            PACKAGE_INFO=$($AAPT_PATH dump badging "$APK_PATH" 2>/dev/null || true)
+            FIRST_LINE=$(echo "$PACKAGE_INFO" | head -1)
+            echo "📋 Package info first line: $FIRST_LINE"
+            
+            # Extract package name from first line (format: package: name='...' versionCode='...' versionName='...')
+            PACKAGE_NAME=$(echo "$FIRST_LINE" | grep -o "name='[^']*'" | head -1 | sed "s/name='//;s/'//")
+            
+            if [ -z "$PACKAGE_NAME" ]; then
+              # Fallback: try to extract from AndroidManifest
+              PACKAGE_NAME="com.softwareone.marketplaceMobile"
+              echo "⚠️ Could not extract package name, using default: $PACKAGE_NAME"
+            fi
+          else
+            PACKAGE_NAME="com.softwareone.marketplaceMobile"
+            echo "⚠️ aapt not available, using default package name: $PACKAGE_NAME"
+          fi
+          
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "✅ APK verified: $APK_PATH ($SIZE bytes)"
+          echo "📦 Package name: $PACKAGE_NAME"
+
+      - name: Generate artifact info
+        id: artifact-info
+        run: |
+          ARTIFACT_NAME="android-apk-${{ env.BUILD_MODE }}-${{ steps.version.outputs.version }}-${{ github.sha }}"
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "📦 Artifact name: $ARTIFACT_NAME"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact-info.outputs.artifact_name }}
+          path: app/${{ steps.find-apk.outputs.apk_path }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Create downloadable release asset
+        if: github.event_name != 'pull_request'
+        id: create-release
+        working-directory: ./app
+        run: |
+          TAG_NAME="android-build-${{ env.BUILD_MODE }}-${{ github.sha }}-${{ github.run_number }}"
+          RELEASE_NAME="Android Build ${{ env.BUILD_MODE }} - ${{ steps.version.outputs.version }}"
+          
+          echo "🚀 Creating release: $RELEASE_NAME"
+          
+          APK_PATH="${{ steps.find-apk.outputs.apk_path }}"
+          
+          # Create release with APK
+          gh release create "$TAG_NAME" \
+            --title "$RELEASE_NAME" \
+            --notes "Automated Android build for commit ${{ github.sha }}" \
+            --prerelease \
+            "$APK_PATH#Android-APK-${{ env.BUILD_MODE }}.apk"
+          
+          echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          
+          echo "## 📦 Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Tag:** \`$TAG_NAME\`" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## Android Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Mode:** ${{ env.BUILD_MODE }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** ${{ steps.verify-apk.outputs.package_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ steps.find-apk.outputs.apk_path }}" ]; then
+            echo "✅ **Build Status:** Success" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Artifacts:" >> $GITHUB_STEP_SUMMARY
+            echo "- Android APK (${{ env.BUILD_MODE }}) uploaded" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build Status:** Failed or artifact not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  install-and-test-android:
+    name: Install and Test Android App
+    needs: build-android
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.environment || 'test' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install phase using composite action
+      - name: Install Android App
+        id: install-android
+        uses: ./.github/actions/android-install
+        with:
+          artifact_name: ${{ needs.build-android.outputs.artifact_name }}
+          api_level: ${{ env.API_LEVEL }}
+          device_profile: ${{ env.DEVICE_PROFILE }}
+
+      # Test phase using composite action
+      - name: Test Android App
+        uses: ./.github/actions/android-test
+        with:
+          device_serial: ${{ steps.install-android.outputs.device_serial }}
+          package_name: ${{ steps.install-android.outputs.package_name }}
+          api_level: ${{ env.API_LEVEL }}
+          device_name: ${{ env.DEVICE_PROFILE }}
+          node_version: '20'
+          appium_version: '3.1.1'
+          airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
+          airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
+          airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
+          airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
+          # ReportPortal configuration (optional)
+          report_portal_api_key: ${{ secrets.REPORT_PORTAL_API_KEY || '' }}
+          report_portal_endpoint: ${{ vars.REPORT_PORTAL_ENDPOINT }}
+          report_portal_project: ${{ vars.REPORT_PORTAL_PROJECT }}
+          report_portal_launch_name: "Android Appium Tests - ${{ inputs.build-mode || 'Release' }}"

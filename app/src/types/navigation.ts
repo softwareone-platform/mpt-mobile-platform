@@ -19,6 +19,7 @@ export type TabParamList = {
   invoices: undefined;
   creditMemos: undefined;
   statements: undefined;
+  users: undefined;
   more: undefined;
   moreMenu: undefined;
   ProfileRoot: undefined;

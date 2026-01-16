@@ -1,6 +1,6 @@
 const { $ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
-const { getSelector, selectors } = require('./utils/selectors');
+const { selectors } = require('./utils/selectors');
 
 class WelcomePage extends BasePage {
     constructor () {
@@ -8,30 +8,27 @@ class WelcomePage extends BasePage {
     }
 
     get logoImage () {
-        return $(getSelector({
-            ios: '//*[contains(@name, "FIXME!")]',
-            android: '(//android.widget.ImageView)[1]'
-        }));
+        return $(selectors.byResourceId('welcome-logo-image'));
     }
 
     get welcomeTitle () {
-        return $(selectors.byText('Welcome'));
+        return $(selectors.byResourceId('welcome-title-text'));
     }
 
     get enterEmailSubTitle () {
-        return $(selectors.byContainsText('Existing Marketplace users'));
+        return $(selectors.byResourceId('welcome-subtitle-text'));
     }
 
     get emailInput () {
-        return $(selectors.textField());
+        return $(selectors.byResourceId('welcome-email-input'));
     }
 
     get continueButton () {
-        return $(selectors.button('Continue'));
+        return $(selectors.byResourceId('welcome-continue-button'));
     }
 
     get troubleSigningInButton () {
-        return $(selectors.button('Trouble signing in?'));
+        return $(selectors.byResourceId('welcome-trouble-link'));
     }
 
     get emailRequiredErrorLabel () {

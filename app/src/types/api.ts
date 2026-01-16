@@ -150,3 +150,21 @@ export interface PaginatedResponse<T> {
   };
   data: T[];
 }
+
+export interface User {
+  id: string;
+  name: string;
+  status?: string;
+  icon?: string;
+  email?: string;
+  accounts?: UserAccount[];
+  audit?: {
+    created?: {
+      at?: string;
+    };
+    updated?: {
+      at?: string;
+    };
+  };
+  [key: string]: unknown;
+}

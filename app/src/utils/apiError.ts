@@ -20,3 +20,20 @@ export const createApiError = (error: unknown): ApiError => {
     details: axiosError?.response?.data,
   };
 };
+
+export const isUnauthorisedError = (error: unknown): boolean => {
+  if (error === null || typeof error !== 'object') {
+    return false;
+  }
+
+  const apiError = error as ApiError;
+  if (typeof apiError.status !== 'number') {
+    return false;
+  }
+
+  if (apiError.status === 401 || apiError.status === 403) {
+    return true;
+  }
+
+  return false;
+};

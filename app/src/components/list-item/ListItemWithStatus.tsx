@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
 
   textContainer: listItemStyle.textContainer,
 
-  title: linkStyle.linkRegular,
+  title: linkStyle.listItemLinkRegular,
 
   titleMain: listItemStyle.textAndStatus.title,
 
