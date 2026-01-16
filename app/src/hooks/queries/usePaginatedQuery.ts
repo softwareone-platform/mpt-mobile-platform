@@ -2,6 +2,7 @@ import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 
 import { DEFAULT_PAGE_SIZE } from '@/constants/api';
 import type { PaginatedResponse } from '@/types/api';
+import { isUnauthorisedError } from '@/utils/apiError';
 
 interface UsePaginatedQueryParams<T> {
   queryKey: readonly unknown[];
@@ -14,7 +15,7 @@ export function usePaginatedQuery<T>({
   queryFn,
   enabled = true,
 }: UsePaginatedQueryParams<T>) {
-  return useInfiniteQuery<
+  const query = useInfiniteQuery<
     PaginatedResponse<T>,
     Error,
     InfiniteData<PaginatedResponse<T>>,
@@ -33,4 +34,9 @@ export function usePaginatedQuery<T>({
     initialPageParam: 0,
     enabled,
   });
+
+  return {
+    ...query,
+    isUnauthorised: isUnauthorisedError(query.error),
+  };
 }
