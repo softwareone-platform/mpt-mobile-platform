@@ -324,27 +324,41 @@ The setup script will automatically:
 
 ### GitHub Actions Workflow
 
-The project includes a GitHub Actions workflow for Android E2E testing. The workflow:
+The project includes a GitHub Actions workflow for Android E2E testing at `.github/workflows/android-build-and-test.yml`. The workflow:
 
-- Runs on macOS runners (for better Android emulator performance)
+- Runs on Ubuntu runners with KVM hardware acceleration enabled
 - Sets up Android SDK and Java 17
-- Creates and starts an Android emulator
-- Builds the app
-- Runs Appium tests
+- Creates and starts an Android emulator with optimized CI settings
+- Builds the app (Release or Debug mode)
+- Runs Appium tests with UiAutomator2 driver
 - Uploads test results and screenshots as artifacts
+- Creates a GitHub Release with the APK for easy download
+
+#### Key Features
+
+- **KVM Acceleration**: Enables hardware virtualization for fast emulator boot
+- **Composite Actions**: Modular `android-install` and `android-test` actions for reusability
+- **Artifact Management**: APK uploaded as artifact and GitHub Release
+- **Airtable Integration**: OTP codes retrieved for authentication testing
+- **ReportPortal Integration**: Optional test reporting dashboard
 
 #### Triggering the Workflow
 
 The workflow triggers on:
-- Pushes to `main` or `develop` branches
-- Pull requests to `main`
-- Manual dispatch via GitHub Actions UI
+- Manual dispatch via GitHub Actions UI (workflow_dispatch)
+- Can be called from other workflows (workflow_call)
 
 #### Viewing Results
 
 1. Go to the **Actions** tab in GitHub
-2. Select the **Android E2E Tests** workflow
+2. Select the **Android Build and Appium Tests** workflow
 3. View test results and download artifacts
+
+#### Why Ubuntu Instead of Windows/macOS?
+
+- **Ubuntu with KVM** is 2-3x faster and more cost-effective than macOS runners
+- Windows runners lack nested virtualization support for Android emulators on GitHub Actions
+- KVM provides native hardware acceleration on Ubuntu larger runners
 
 ---
 
@@ -581,6 +595,3 @@ appium --address 127.0.0.1 --port 4723   # Start Appium server
 - [EXTENDING_TEST_FRAMEWORK.md](./EXTENDING_TEST_FRAMEWORK.md) - Adding new tests
 - [TEST_ELEMENT_IDENTIFICATION_STRATEGY.md](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) - TestID strategy
 
----
-
-**Note**: This guide focuses on macOS and Linux setup. For Windows-specific instructions, see [APPIUM_ANDROID_TESTING_WINDOWS.md](./APPIUM_ANDROID_TESTING_WINDOWS.md).

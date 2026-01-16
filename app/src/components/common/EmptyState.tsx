@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet } from 'react-native';
 
+import AnimatedIcon from '@/components/common/AnimatedIcon';
 import DynamicIcon from '@/components/common/DynamicIcon';
 import { screenStyle, emptyStateStyle } from '@/styles';
 import { Color } from '@/styles/tokens';
@@ -12,6 +13,7 @@ type EmptyStateProps = {
     size?: number;
     color?: string;
   };
+  animatedIcon?: boolean;
   title?: string;
   description?: string;
   testID?: string;
@@ -21,6 +23,7 @@ type EmptyStateProps = {
 
 const EmptyState = ({
   icon,
+  animatedIcon,
   title,
   description,
   testID,
@@ -35,19 +38,24 @@ const EmptyState = ({
   const DEFAULT_ICON_COLOR = Color.brand.primary;
   const DEFAULT_TITLE = t('common.message.noDataAvailable');
 
+  const renderIcon = () => {
+    if (!icon) return null;
+
+    const iconName = icon.name || DEFAULT_ICON_NAME;
+    const iconSize = icon.size || DEFAULT_ICON_SIZE;
+    const iconColor = icon.color || DEFAULT_ICON_COLOR;
+    const iconVariant = icon.variant || DEFAULT_ICON_VARIANT;
+
+    if (animatedIcon) {
+      return <AnimatedIcon name={iconName} size={iconSize} />;
+    }
+
+    return <DynamicIcon name={iconName} variant={iconVariant} size={iconSize} color={iconColor} />;
+  };
+
   return (
     <View testID={testID} style={styles.container}>
-      {icon && (
-        <View style={styles.iconWrapper}>
-          <DynamicIcon
-            name={icon.name || DEFAULT_ICON_NAME}
-            variant={icon.variant || DEFAULT_ICON_VARIANT}
-            size={icon.size || DEFAULT_ICON_SIZE}
-            color={icon.color || DEFAULT_ICON_COLOR}
-          />
-        </View>
-      )}
-
+      {icon && <View style={styles.iconWrapper}>{renderIcon()}</View>}
       <Text testID={titleTestID} style={styles.title}>
         {title || DEFAULT_TITLE}
       </Text>

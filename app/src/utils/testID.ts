@@ -82,6 +82,11 @@ export const TestIDs = {
   // Common
   HEADER_LOGO: 'header-logo-image',
   LOADING_INDICATOR: 'loading-indicator',
+
+  // Credit Memos Screen
+  CREDIT_MEMOS_LOADING_INDICATOR: 'credit-memos-loading-indicator',
+  CREDIT_MEMOS_ERROR_STATE: 'credit-memos-error-state',
+  CREDIT_MEMOS_EMPTY_STATE: 'credit-memos-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;

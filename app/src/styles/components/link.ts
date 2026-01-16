@@ -4,6 +4,7 @@ const linkCommon = {
   color: Color.brand.primary,
   fontWeight: Typography.fontWeight.regular,
 };
+
 export const linkStyle = {
   linkLarge: {
     ...linkCommon,
@@ -16,5 +17,10 @@ export const linkStyle = {
   linkSmall: {
     ...linkCommon,
     fontSize: Typography.fontSize.font2,
+  },
+  listItemLinkRegular: {
+    color: Color.alerts.info4,
+    fontWeight: Typography.fontWeight.regular,
+    fontSize: Typography.fontSize.font3,
   },
 } as const;
