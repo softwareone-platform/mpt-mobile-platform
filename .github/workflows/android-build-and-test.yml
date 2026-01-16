@@ -59,9 +59,9 @@ on:
         default: 'pixel_6'
 
 env:
-  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
-  API_LEVEL: ${{ github.event.inputs.api-level || '34' }}
-  DEVICE_PROFILE: ${{ github.event.inputs.device-profile || 'pixel_6' }}
+  BUILD_MODE: ${{ inputs.build-mode || github.event.inputs.build-mode || 'Release' }}
+  API_LEVEL: ${{ inputs.api-level || github.event.inputs.api-level || '34' }}
+  DEVICE_PROFILE: ${{ inputs.device-profile || github.event.inputs.device-profile || 'pixel_6' }}
 
 jobs:
   build-android:

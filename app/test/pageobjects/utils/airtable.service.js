@@ -12,11 +12,21 @@
 
 const https = require('https');
 
-// Configuration - set these via environment variables or hardcode for testing
-const AIRTABLE_API_TOKEN = process.env.AIRTABLE_API_TOKEN || 'YOUR_TOKEN_HERE';
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'YOUR_BASE_ID_HERE';
-const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'YOUR_TABLE_NAME_HERE';
-const AIRTABLE_FROM_EMAIL = process.env.AIRTABLE_FROM_EMAIL || 'AIRTABLE_FROM_EMAIL_HERE';
+// Configuration - use getter functions to read env vars lazily (after wdio.conf.js loads .env)
+const getAirtableConfig = () => {
+    const config = {
+        apiToken: process.env.AIRTABLE_API_TOKEN || 'YOUR_TOKEN_HERE',
+        baseId: process.env.AIRTABLE_BASE_ID || 'YOUR_BASE_ID_HERE',
+        tableName: process.env.AIRTABLE_TABLE_NAME || 'YOUR_TABLE_NAME_HERE',
+        fromEmail: process.env.AIRTABLE_FROM_EMAIL || 'AIRTABLE_FROM_EMAIL_HERE'
+    };
+    // Debug: Show first/last chars of token to verify it's loaded
+    const tokenPreview = config.apiToken.length > 10 
+        ? `${config.apiToken.substring(0, 8)}...${config.apiToken.substring(config.apiToken.length - 4)}`
+        : config.apiToken;
+    console.log(`  [Airtable Config] Token: ${tokenPreview}, BaseId: ${config.baseId}, Table: ${config.tableName}`);
+    return config;
+};
 
 /**
  * Makes a GET request to Airtable API
@@ -24,13 +34,14 @@ const AIRTABLE_FROM_EMAIL = process.env.AIRTABLE_FROM_EMAIL || 'AIRTABLE_FROM_EM
  * @returns {Promise<object>} - Parsed JSON response
  */
 function airtableRequest(endpoint) {
+    const config = getAirtableConfig();
     return new Promise((resolve, reject) => {
         const options = {
             hostname: 'api.airtable.com',
             path: endpoint,
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+                'Authorization': `Bearer ${config.apiToken}`,
                 'Content-Type': 'application/json'
             }
         };
@@ -59,16 +70,17 @@ function airtableRequest(endpoint) {
  * @returns {Promise<object>} - Updated record
  */
 function updateRecord(recordId, fields) {
+    const config = getAirtableConfig();
     return new Promise((resolve, reject) => {
-        const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
+        const encodedTableName = encodeURIComponent(config.tableName);
         const postData = JSON.stringify({ fields });
         
         const options = {
             hostname: 'api.airtable.com',
-            path: `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}/${recordId}`,
+            path: `/v0/${config.baseId}/${encodedTableName}/${recordId}`,
             method: 'PATCH',
             headers: {
-                'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
+                'Authorization': `Bearer ${config.apiToken}`,
                 'Content-Type': 'application/json',
                 'Content-Length': Buffer.byteLength(postData)
             }
@@ -125,17 +137,18 @@ function extractOTPFromBody(bodyText) {
  * @returns {Promise<{otp: string, record: object}|null>} - OTP and record, or null if not found
  */
 async function fetchOTPByEmail(email) {
+    const config = getAirtableConfig();
     console.log(`\n=== Fetching OTP for: ${email} ===`);
-    console.log(`  From Email filter: ${AIRTABLE_FROM_EMAIL}\n`);
+    console.log(`  From Email filter: ${config.fromEmail}\n`);
     
     try {
-        const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
+        const encodedTableName = encodeURIComponent(config.tableName);
         // Filter by "To Emails", "From Email" fields, exclude Processed, sort by "Created At" descending to get latest
         const filterFormula = encodeURIComponent(
-            `AND({To Emails}='${email}', {From Email}='${AIRTABLE_FROM_EMAIL}', {Status}!='Processed')`
+            `AND({To Emails}='${email}', {From Email}='${config.fromEmail}', {Status}!='Processed')`
         );
         const sortField = encodeURIComponent('Created At');
-        const endpoint = `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
+        const endpoint = `/v0/${config.baseId}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
         
         const response = await airtableRequest(endpoint);
         
@@ -178,8 +191,9 @@ async function fetchOTPByEmail(email) {
  * @throws {Error} - If timeout is reached without finding OTP
  */
 async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, afterTime = new Date()) {
+    const config = getAirtableConfig();
     console.log(`\n=== Waiting for OTP for: ${email} ===`);
-    console.log(`  From Email filter: ${AIRTABLE_FROM_EMAIL}`);
+    console.log(`  From Email filter: ${config.fromEmail}`);
     console.log(`  Timeout: ${timeoutMs / 1000}s, Poll interval: ${pollIntervalMs / 1000}s`);
     console.log(`  Looking for records after: ${afterTime.toISOString()}\n`);
     
@@ -191,13 +205,13 @@ async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, after
         console.log(`  Attempt ${attempts}...`);
         
         try {
-            const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
+            const encodedTableName = encodeURIComponent(config.tableName);
             // Filter by email, from email, exclude Processed, AND created after the specified time
             const filterFormula = encodeURIComponent(
-                `AND({To Emails}='${email}', {From Email}='${AIRTABLE_FROM_EMAIL}', {Status}!='Processed', IS_AFTER({Created At}, '${afterTime.toISOString()}'))`
+                `AND({To Emails}='${email}', {From Email}='${config.fromEmail}', {Status}!='Processed', IS_AFTER({Created At}, '${afterTime.toISOString()}'))`
             );
             const sortField = encodeURIComponent('Created At');
-            const endpoint = `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
+            const endpoint = `/v0/${config.baseId}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
             
             const response = await airtableRequest(endpoint);
             

@@ -495,10 +495,19 @@ if "%BUILD_APP%"=="true" (
 if "%SKIP_BUILD%"=="true" (
     echo [INFO] Installing existing APK from last build...
     
-    REM Try debug first, then release
-    set APK_PATH=android\app\build\outputs\apk\debug\app-debug.apk
+    REM Uninstall existing app first to ensure clean state
+    echo [INFO] Uninstalling existing app if present...
+    "!ANDROID_SDK!\platform-tools\adb.exe" uninstall !APP_PACKAGE! >nul 2>&1
+    if not errorlevel 1 (
+        echo [INFO] Previous installation removed
+    ) else (
+        echo [INFO] No previous installation found
+    )
+    
+    REM Try release first, then debug
+    set APK_PATH=android\app\build\outputs\apk\release\app-release.apk
     if not exist "!APK_PATH!" (
-        set APK_PATH=android\app\build\outputs\apk\release\app-release.apk
+        set APK_PATH=android\app\build\outputs\apk\debug\app-debug.apk
     )
     if not exist "!APK_PATH!" (
         echo [ERROR] No existing APK found
@@ -519,55 +528,64 @@ if "%SKIP_BUILD%"=="true" (
         )
     )
     echo [INFO] APK installed successfully
+    
+    REM Launch the app and bring to foreground
+    echo [INFO] Launching app...
+    "!ANDROID_SDK!\platform-tools\adb.exe" shell am start -n "!APP_PACKAGE!/!APP_ACTIVITY!" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER
+    if errorlevel 1 (
+        echo [WARNING] Failed to launch app automatically
+    ) else (
+        echo [INFO] App launched and in foreground
+    )
+    
+    REM Wait for app to fully load
+    timeout /t 3 /nobreak >nul
     echo.
 )
 
 REM Check if Appium is running
 echo [INFO] Checking Appium server status...
+set APPIUM_STARTED_BY_SCRIPT=false
 
 curl -s "http://%APPIUM_HOST%:%APPIUM_PORT%/status" >nul 2>&1
 if errorlevel 1 (
-    echo [INFO] Appium server not running. Starting Appium...
-    
-    REM Check if Appium is installed
-    where appium >nul 2>&1
-    if errorlevel 1 (
-        echo [ERROR] Appium not found in PATH
-        echo.
-        echo Please install Appium:
-        echo   npm install -g appium@3.1.1
-        echo   appium driver install uiautomator2
-        exit /b 1
-    )
+    echo [WARN] Appium server not running. Starting Appium...
     
     REM Start Appium in a new minimized window
     start "Appium Server" /min appium --address %APPIUM_HOST% --port %APPIUM_PORT% --log-level warn
     set APPIUM_STARTED_BY_SCRIPT=true
     
+    REM Wait for Appium to start (up to 30 seconds)
     echo [INFO] Waiting for Appium to start...
     set APPIUM_READY=false
-    for /l %%i in (1,1,30) do (
-        timeout /t 1 /nobreak >nul
-        curl -s "http://%APPIUM_HOST%:%APPIUM_PORT%/status" >nul 2>&1
-        if not errorlevel 1 (
-            set APPIUM_READY=true
-            goto :appium_ready
+    for /L %%i in (1,1,30) do (
+        if "!APPIUM_READY!"=="false" (
+            curl -s "http://%APPIUM_HOST%:%APPIUM_PORT%/status" >nul 2>&1
+            if not errorlevel 1 (
+                set APPIUM_READY=true
+                echo [INFO] Appium server is ready!
+            ) else (
+                timeout /t 1 /nobreak >nul
+            )
         )
     )
     
     if "!APPIUM_READY!"=="false" (
+        echo.
         echo [ERROR] Appium failed to start after 30 seconds
         echo.
-        echo Try starting Appium manually:
-        echo   appium --address 127.0.0.1 --port 4723
+        echo Make sure Appium is installed globally:
+        echo   npm install -g appium
+        echo.
+        echo Make sure UiAutomator2 driver is installed:
+        echo   appium driver list --installed
+        echo   appium driver install uiautomator2
+        echo.
         exit /b 1
     )
 ) else (
     echo [INFO] Appium server is already running
 )
-
-:appium_ready
-echo [INFO] Appium server is ready!
 echo.
 
 REM Determine test arguments
@@ -591,9 +609,14 @@ echo   Starting WebDriverIO Tests
 echo ============================================================
 echo.
 
-REM Run tests
-call npx wdio run wdio.conf.js %TEST_ARGS%
-set TEST_EXIT_CODE=%errorlevel%
+REM Change to app directory and run wdio
+REM Note: We stay within setlocal scope - npm/node inherits environment vars
+cd /d "!APP_DIR!"
+call npx wdio run wdio.conf.js !TEST_ARGS!
+set TEST_EXIT_CODE=!errorlevel!
+
+REM Return to project root
+cd /d "!PROJECT_ROOT!"
 
 echo.
 echo ============================================================
@@ -617,5 +640,15 @@ if %TEST_EXIT_CODE%==0 (
     echo   4. Check Appium server logs
 )
 echo.
+
+REM Stop Appium if we started it
+if "!APPIUM_STARTED_BY_SCRIPT!"=="true" (
+    echo [INFO] Stopping Appium server...
+    taskkill /FI "WINDOWTITLE eq Appium Server*" >nul 2>&1
+    REM Also try to kill by process name in case window title doesn't match
+    taskkill /F /IM node.exe /FI "WINDOWTITLE eq Appium Server*" >nul 2>&1
+    echo [INFO] Appium server stopped
+    echo.
+)
 
 exit /b %TEST_EXIT_CODE%
