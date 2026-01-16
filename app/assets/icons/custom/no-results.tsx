@@ -1,4 +1,4 @@
-import React from 'react';
+import { useId } from 'react';
 import { Svg, Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 type Props = {
@@ -18,10 +18,11 @@ c0-4.41-3.59-8-8-8C10.52,4,9.14,4.41,7.94,5.12z
 `;
 
 export default function NoResults({ size = 32 }: Props) {
+  const iconGradient = useId();
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Defs>
-        <LinearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <LinearGradient id={iconGradient} x1="0%" y1="0%" x2="100%" y2="0%">
           <Stop offset="0%" stopColor="#000000" />
           <Stop offset="33.3333%" stopColor="#392D9C" />
           <Stop offset="66.6667%" stopColor="#472AFF" />
@@ -29,7 +30,7 @@ export default function NoResults({ size = 32 }: Props) {
         </LinearGradient>
       </Defs>
 
-      <Path d={PATH_D} fill="url(#iconGradient)" />
+      <Path d={PATH_D} fill={`url(#${iconGradient})`} />
     </Svg>
   );
 }
