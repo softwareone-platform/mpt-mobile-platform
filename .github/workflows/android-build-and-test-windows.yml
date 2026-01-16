@@ -439,7 +439,10 @@ jobs:
   install-and-test-android:
     name: Install and Test Android App (Windows)
     needs: build-android
-    runs-on: windows-latest
+    # Use windows-2022 instead of windows-latest (2025) because Android Emulator 36.x
+    # has known compatibility issues with Windows Server 2025, causing immediate crashes
+    # with error code -1073741819 (access violation)
+    runs-on: windows-2022
     timeout-minutes: 75
     environment: ${{ inputs.environment || 'test' }}
 
