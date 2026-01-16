@@ -9,12 +9,13 @@ export function useUserApi() {
 
   const getUsers = useCallback(
     async (
+      accountId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<User>> => {
       const endpoint =
-        `/v1/accounts/users` +
-        `?select=audit,accounts` +
+        `/v1/accounts/accounts/${accountId}/users` +
+        `?select=audit,groups,modules,buyers` +
         `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;

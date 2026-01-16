@@ -36,12 +36,12 @@ describe('useUserApi', () => {
 
     let res;
     await act(async () => {
-      res = await api.getUsers();
+      res = await api.getUsers('ACC-0000-0001');
     });
 
     const expectedUrl =
-      `/v1/accounts/users` +
-      `?select=audit,accounts` +
+      `/v1/accounts/accounts/ACC-0000-0001/users` +
+      `?select=audit,groups,modules,buyers` +
       `&order=name` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -67,11 +67,15 @@ describe('useUserApi', () => {
 
     let res;
     await act(async () => {
-      res = await api.getUsers(50, 25);
+      res = await api.getUsers('ACC-0000-0001', 50, 25);
     });
 
     const expectedUrl =
-      `/v1/accounts/users` + `?select=audit,accounts` + `&order=name` + `&offset=50` + `&limit=25`;
+      `/v1/accounts/accounts/ACC-0000-0001/users` +
+      `?select=audit,groups,modules,buyers` +
+      `&order=name` +
+      `&offset=50` +
+      `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -123,11 +127,11 @@ describe('useUserApi', () => {
     let res2: PaginatedResponse<User> | undefined;
 
     await act(async () => {
-      res1 = await api.getUsers(0, 2);
+      res1 = await api.getUsers('ACC-0000-0001', 0, 2);
     });
 
     await act(async () => {
-      res2 = await api.getUsers(2, 2);
+      res2 = await api.getUsers('ACC-0000-0001', 2, 2);
     });
 
     expect(res1).toBeDefined();
@@ -181,7 +185,7 @@ describe('useUserApi', () => {
 
     let res;
     await act(async () => {
-      res = await api.getUsers();
+      res = await api.getUsers('ACC-0000-0001');
     });
 
     expect(res).toEqual(mockResponse);
@@ -199,6 +203,6 @@ describe('useUserApi', () => {
 
     mockGet.mockRejectedValueOnce(mockError);
 
-    await expect(api.getUsers()).rejects.toThrow('Network error');
+    await expect(api.getUsers('ACC-0000-0001')).rejects.toThrow('Network error');
   });
 });

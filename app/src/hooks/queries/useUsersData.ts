@@ -7,7 +7,7 @@ export const useUsersData = (userId: string | undefined, currentAccountId: strin
 
   return usePaginatedQuery<User>({
     queryKey: ['users', userId, currentAccountId],
-    queryFn: getUsers,
+    queryFn: (offset, limit) => getUsers(currentAccountId!, offset, limit),
     enabled: !!userId && !!currentAccountId,
   });
 };
