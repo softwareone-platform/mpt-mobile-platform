@@ -205,4 +205,36 @@ describe('useUserApi', () => {
 
     await expect(api.getUsers('ACC-0000-0001')).rejects.toThrow('Network error');
   });
+
+  // TODO: Remove this test when getAllUsers is properly implemented in administration context
+  it('calls getAllUsers with default parameters (placeholder for future implementation)', async () => {
+    const api = setup();
+    const mockResponse: PaginatedResponse<User> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 0,
+        },
+      },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getAllUsers();
+    });
+
+    const expectedUrl =
+      `/v1/accounts/users` +
+      `?select=audit,accounts` +
+      `&order=name` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
 });
