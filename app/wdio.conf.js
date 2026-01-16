@@ -192,15 +192,25 @@ exports.config = {
                 project: process.env.REPORT_PORTAL_PROJECT || 'default_personal',
                 launch: process.env.REPORT_PORTAL_LAUNCH_NAME || 'Appium Tests Launch',
                 description: process.env.REPORT_PORTAL_LAUNCH_DESCRIPTION || 'Appium tests against ReactNative Marketplace Mobile App',
-                // attributes: [{ key: 'key', value: 'value' }, { value: 'value' }],
                 attachPicturesToLogs: false,
-                reportSeleniumCommands: true,
+                reportSeleniumCommands: true,  // Disable to reduce API calls
                 seleniumCommandsLogLevel: 'debug',
                 autoAttachScreenshots: false,
-                screenshotsLogLevel: 'info',
+                screenshotsLogLevel: 'error',
+                mode: 'DEFAULT',  // Valid values: DEFAULT, DEBUG
+                launchUuidPrint: true,  // Print launch UUID for debugging
+                launchUuidPrintOutput: 'stdout',
+                debug: false,  // Disable debug logging to reduce noise
+                restClientConfig: {
+                    timeout: 5000,  // 5 second timeout for individual API calls
+                },
             }]
         ] : [])
     ],
+
+    // Reporter sync settings for ReportPortal
+    reporterSyncTimeout: 10000,  // 10 seconds max wait for reporter sync
+    reporterSyncInterval: 500,
 
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
@@ -214,6 +224,48 @@ exports.config = {
     // =====
     // Hooks
     // =====
+
+    /**
+     * Helper function to capture and save screenshot on test/hook failure
+     * @param {object} test - test object containing title and parent
+     * @param {string} prefix - prefix for the filename (e.g., hook name or test context)
+     */
+    captureFailureScreenshot: async function(test, prefix = '') {
+        try {
+            const path = require('path');
+            const timestamp = new Date()
+                .toISOString()
+                .replace(/[^0-9]/g, '')
+                .slice(0, -5)
+            const sanitizedPrefix = prefix ? prefix.replace(/ /g, '-') + '_' : '';
+            const sanitizedParent = (test.parent || '').replace(/ /g, '-');
+            const sanitizedTitle = test.title.replace(/ /g, '-');
+            const fileName = `${timestamp}_${sanitizedPrefix}${sanitizedParent ? sanitizedParent + '_' : ''}${sanitizedTitle}.png`
+            const filePath = path.resolve(__dirname, SCREENSHOT_FOLDER, fileName)
+            
+            console.log(`📸 Capturing screenshot: ${filePath}`)
+            await browser.saveScreenshot(filePath)
+            console.log(`✅ Screenshot saved: ${fileName}`)
+            
+            // Send screenshot to ReportPortal if configured
+            if (process.env.REPORT_PORTAL_API_KEY && process.env.REPORT_PORTAL_API_KEY !== 'value not set') {
+                try {
+                    const screenshotData = fs.readFileSync(filePath);
+                    const logMessage = prefix ? `Screenshot on ${prefix} failure: ${test.title}` : `Screenshot on failure: ${test.title}`;
+                    ReportingApi.log('ERROR', logMessage, {
+                        name: fileName,
+                        type: 'image/png',
+                        content: screenshotData.toString('base64')
+                    });
+                    console.log(`📤 Screenshot sent to ReportPortal`);
+                } catch (rpError) {
+                    console.warn('⚠️ Failed to send screenshot to ReportPortal:', rpError.message);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Failed to capture screenshot:', error.message);
+        }
+    },
     // WebdriverIO provides several hooks you can use to interfere with the test process in order to enhance
     // it and to build services around it. You can either apply a single function or an array of
     // methods to it. If one of them returns with a promise, WebdriverIO will wait until that promise got
@@ -223,7 +275,6 @@ exports.config = {
      * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
-    reporterSyncInterval: 1000,
     onPrepare: function () {
         const path = require('path');
         const screenshotDir = path.resolve(__dirname, SCREENSHOT_FOLDER);
@@ -302,8 +353,12 @@ exports.config = {
      * Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
      * afterEach in Mocha)
      */
-    // afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
-    // },
+    afterHook: async function (test, context, { error, passed }, hookName) {
+        // Capture screenshot if a hook (like beforeEach) fails
+        if (!passed && error) {
+            await this.captureFailureScreenshot(test, hookName);
+        }
+    },
     /**
      * Function to be executed after a test (in Mocha/Jasmine only)
      * @param {object}  test             test object
@@ -316,26 +371,7 @@ exports.config = {
      */
     afterTest: async function(test, context, { passed }) {
         if (!passed) {
-            try {
-                const path = require('path');
-                const timestamp = new Date()
-                    .toISOString()
-                    .replace(/[^0-9]/g, '')
-                    .slice(0, -5)
-                const fileName = `${timestamp}_${test.parent.replace(/ /g, '-')}_${test.title.replace(/ /g, '-')}.png`
-                const filePath = path.resolve(__dirname, SCREENSHOT_FOLDER, fileName)
-                
-                console.log(`📸 Capturing screenshot: ${filePath}`)
-                const screenshot = await browser.saveScreenshot(filePath)
-                console.log(`✅ Screenshot saved: ${fileName}`)
-                
-                ReportingApi.error(
-                    `Screenshot "${fileName}" captured for failing test: ${test.parent} / ${test.title}`,
-                    {name: fileName, type: 'image/png', content: screenshot.toString('base64')}
-                );
-            } catch (error) {
-                console.error('❌ Failed to capture screenshot:', error.message);
-            }
+            await this.captureFailureScreenshot(test);
         }
     },
 

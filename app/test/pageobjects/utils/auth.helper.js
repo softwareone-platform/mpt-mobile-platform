@@ -13,15 +13,8 @@ const POLL_INTERVAL_MS = 10000;
 async function isLoggedIn() {
     try {
         // Check if we're on the home page by looking for the spotlight header
-        const isHomeVisible = await homePage.spotlightHeader.isDisplayed().catch(() => false);
-        if (isHomeVisible) {
-            console.log('✓ User is already logged in');
-            return true;
-        }
-        
-        // Also check for the default text as a fallback
-        const isDefaultTextVisible = await homePage.defaultText.isDisplayed().catch(() => false);
-        if (isDefaultTextVisible) {
+        const isWelcomeVisible = await welcomePage.emailInput.isDisplayed().catch(() => true);
+        if (!isWelcomeVisible) {
             console.log('✓ User is already logged in');
             return true;
         }
@@ -114,7 +107,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
     
     // Wait for auto-submission and navigation to home page
     console.log(`⏳ Waiting for auto-submission to complete...`);
-    await homePage.spotlightHeader.waitForDisplayed({ timeout: 30000 });
+    await homePage.filterAll.waitForDisplayed({ timeout: 30000 });
     
     console.log('✅ Login completed successfully');
 }

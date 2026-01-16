@@ -3,6 +3,7 @@
 # Setup Test Environment Script
 # This script loads environment variables from app/.env and exports them for testing
 # Supports both iOS and Android platforms
+# Can also start iOS simulators or Android emulators by name
 
 set -e
 
@@ -19,6 +20,219 @@ ENV_FILE="$PROJECT_ROOT/app/.env"
 
 # Default to iOS platform if not specified
 PLATFORM="${PLATFORM:-ios}"
+START_EMULATOR=""
+EMULATOR_NAME=""
+
+# Function to display usage
+show_usage() {
+    echo -e "${BLUE}Usage:${NC}"
+    echo -e "  ${GREEN}source ./scripts/setup-test-env.sh [OPTIONS]${NC}"
+    echo ""
+    echo -e "${YELLOW}Options:${NC}"
+    echo -e "  ${GREEN}--platform <ios|android>${NC}     Set the platform (default: ios)"
+    echo -e "  ${GREEN}--start-emulator <name>${NC}      Start emulator/simulator by name"
+    echo -e "  ${GREEN}--list-emulators${NC}             List available emulators/simulators"
+    echo -e "  ${GREEN}--help${NC}                       Show this help message"
+    echo ""
+    echo -e "${YELLOW}Examples:${NC}"
+    echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform ios --start-emulator \"iPhone 16\"${NC}"
+    echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform android --start-emulator \"Pixel_8_API_34\"${NC}"
+    echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --list-emulators${NC}"
+    echo ""
+}
+
+# Function to list available emulators/simulators
+list_emulators() {
+    echo -e "${BLUE}============================================================${NC}"
+    echo -e "${BLUE}  Available Emulators/Simulators${NC}"
+    echo -e "${BLUE}============================================================${NC}"
+    echo ""
+    
+    echo -e "${YELLOW}iOS Simulators:${NC}"
+    if command -v xcrun &> /dev/null; then
+        xcrun simctl list devices available | grep -E "^\s+.+" | head -20
+    else
+        echo -e "  ${RED}xcrun not found - iOS simulators unavailable${NC}"
+    fi
+    
+    echo ""
+    echo -e "${YELLOW}Android Emulators:${NC}"
+    if command -v emulator &> /dev/null; then
+        emulator -list-avds 2>/dev/null || echo -e "  ${RED}No Android emulators found${NC}"
+    elif [ -n "$ANDROID_HOME" ] && [ -f "$ANDROID_HOME/emulator/emulator" ]; then
+        "$ANDROID_HOME/emulator/emulator" -list-avds 2>/dev/null || echo -e "  ${RED}No Android emulators found${NC}"
+    else
+        echo -e "  ${RED}Android emulator command not found${NC}"
+        echo -e "  ${YELLOW}Tip: Set ANDROID_HOME or add emulator to PATH${NC}"
+    fi
+    echo ""
+}
+
+# Function to start iOS simulator by name
+start_ios_simulator() {
+    local simulator_name="$1"
+    echo -e "${YELLOW}🚀 Starting iOS Simulator: $simulator_name${NC}"
+    
+    if ! command -v xcrun &> /dev/null; then
+        echo -e "${RED}❌ Error: xcrun not found. Xcode Command Line Tools required.${NC}"
+        return 1
+    fi
+    
+    # Find simulator UDID by name
+    local udid=$(xcrun simctl list devices available | grep "$simulator_name" | grep -oE "[A-F0-9-]{36}" | head -1)
+    
+    if [ -z "$udid" ]; then
+        echo -e "${RED}❌ Error: Simulator '$simulator_name' not found.${NC}"
+        echo -e "${YELLOW}Available simulators:${NC}"
+        xcrun simctl list devices available | grep -E "^\s+.+" | head -10
+        return 1
+    fi
+    
+    echo -e "  ${GREEN}✓${NC} Found simulator UDID: $udid"
+    
+    # Check if simulator is already booted
+    local state=$(xcrun simctl list devices | grep "$udid" | grep -o "(Booted)" || true)
+    
+    if [ -n "$state" ]; then
+        echo -e "  ${GREEN}✓${NC} Simulator already running"
+    else
+        echo -e "  ${YELLOW}⏳${NC} Booting simulator..."
+        xcrun simctl boot "$udid" 2>/dev/null || true
+        
+        # Open Simulator app
+        open -a Simulator
+        
+        # Wait for simulator to boot
+        local timeout=60
+        local count=0
+        while [ $count -lt $timeout ]; do
+            state=$(xcrun simctl list devices | grep "$udid" | grep -o "(Booted)" || true)
+            if [ -n "$state" ]; then
+                break
+            fi
+            sleep 1
+            count=$((count + 1))
+        done
+        
+        if [ -n "$state" ]; then
+            echo -e "  ${GREEN}✓${NC} Simulator booted successfully"
+        else
+            echo -e "${YELLOW}⚠${NC}  Simulator may still be starting..."
+        fi
+    fi
+    
+    # Export the UDID for use in tests
+    export DEVICE_UDID="$udid"
+    export DEVICE_NAME="$simulator_name"
+}
+
+# Function to start Android emulator by name
+start_android_emulator() {
+    local emulator_name="$1"
+    echo -e "${YELLOW}🚀 Starting Android Emulator: $emulator_name${NC}"
+    
+    # Find emulator command
+    local emulator_cmd=""
+    if command -v emulator &> /dev/null; then
+        emulator_cmd="emulator"
+    elif [ -n "$ANDROID_HOME" ] && [ -f "$ANDROID_HOME/emulator/emulator" ]; then
+        emulator_cmd="$ANDROID_HOME/emulator/emulator"
+    else
+        echo -e "${RED}❌ Error: Android emulator not found.${NC}"
+        echo -e "${YELLOW}Tip: Set ANDROID_HOME or add emulator to PATH${NC}"
+        return 1
+    fi
+    
+    # Check if emulator exists
+    local avd_exists=$("$emulator_cmd" -list-avds 2>/dev/null | grep -x "$emulator_name" || true)
+    
+    if [ -z "$avd_exists" ]; then
+        echo -e "${RED}❌ Error: Emulator '$emulator_name' not found.${NC}"
+        echo -e "${YELLOW}Available emulators:${NC}"
+        "$emulator_cmd" -list-avds 2>/dev/null
+        return 1
+    fi
+    
+    echo -e "  ${GREEN}✓${NC} Found emulator: $emulator_name"
+    
+    # Check if emulator is already running
+    if command -v adb &> /dev/null; then
+        local running=$(adb devices | grep -v "List" | grep "emulator" | grep "device$" || true)
+        if [ -n "$running" ]; then
+            echo -e "  ${GREEN}✓${NC} An Android emulator is already running"
+            local device_id=$(echo "$running" | head -1 | awk '{print $1}')
+            export DEVICE_UDID="$device_id"
+            export DEVICE_NAME="$emulator_name"
+            return 0
+        fi
+    fi
+    
+    echo -e "  ${YELLOW}⏳${NC} Starting emulator (this may take a moment)..."
+    
+    # Start emulator in background with no-snapshot-load for faster boot
+    "$emulator_cmd" -avd "$emulator_name" -no-snapshot-load -no-boot-anim &>/dev/null &
+    local emulator_pid=$!
+    
+    # Wait for emulator to boot
+    if command -v adb &> /dev/null; then
+        echo -e "  ${YELLOW}⏳${NC} Waiting for emulator to boot..."
+        local timeout=120
+        local count=0
+        while [ $count -lt $timeout ]; do
+            local device_ready=$(adb devices | grep -v "List" | grep "emulator" | grep "device$" || true)
+            if [ -n "$device_ready" ]; then
+                # Wait for boot animation to complete
+                local boot_complete=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)
+                if [ "$boot_complete" = "1" ]; then
+                    break
+                fi
+            fi
+            sleep 2
+            count=$((count + 2))
+            if [ $((count % 10)) -eq 0 ]; then
+                echo -e "  ${YELLOW}⏳${NC} Still waiting... ($count seconds)"
+            fi
+        done
+        
+        local device_id=$(adb devices | grep -v "List" | grep "emulator" | grep "device$" | head -1 | awk '{print $1}')
+        if [ -n "$device_id" ]; then
+            echo -e "  ${GREEN}✓${NC} Emulator booted successfully: $device_id"
+            export DEVICE_UDID="$device_id"
+        else
+            echo -e "${YELLOW}⚠${NC}  Emulator may still be starting..."
+        fi
+    fi
+    
+    export DEVICE_NAME="$emulator_name"
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --platform|-p)
+            PLATFORM="$2"
+            shift 2
+            ;;
+        --start-emulator|-e)
+            START_EMULATOR="true"
+            EMULATOR_NAME="$2"
+            shift 2
+            ;;
+        --list-emulators|-l)
+            list_emulators
+            return 0 2>/dev/null || exit 0
+            ;;
+        --help|-h)
+            show_usage
+            return 0 2>/dev/null || exit 0
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            show_usage
+            return 1 2>/dev/null || exit 1
+            ;;
+    esac
+done
 
 echo -e "${BLUE}============================================================${NC}"
 echo -e "${BLUE}  Test Environment Setup${NC}"
@@ -121,6 +335,16 @@ fi
 echo -e "  ${GREEN}✓${NC} Device: $DEVICE_NAME"
 echo -e "  ${GREEN}✓${NC} Platform Version: $PLATFORM_VERSION"
 
+# Start emulator/simulator if requested
+if [ "$START_EMULATOR" = "true" ] && [ -n "$EMULATOR_NAME" ]; then
+    echo ""
+    if [ "$PLATFORM_LOWER" = "android" ]; then
+        start_android_emulator "$EMULATOR_NAME"
+    else
+        start_ios_simulator "$EMULATOR_NAME"
+    fi
+fi
+
 # Set common Appium configuration
 export APPIUM_HOST="${APPIUM_HOST:-127.0.0.1}"
 export APPIUM_PORT="${APPIUM_PORT:-4723}"
@@ -161,9 +385,11 @@ echo ""
 echo -e "${BLUE}============================================================${NC}"
 echo ""
 echo -e "${YELLOW}Usage:${NC}"
-echo -e "  ${GREEN}source ./scripts/setup-test-env.sh${NC}              # Setup for iOS (default)"
-echo -e "  ${GREEN}PLATFORM=android source ./scripts/setup-test-env.sh${NC}  # Setup for Android"
-echo -e "  ${GREEN}. ./scripts/setup-test-env.sh${NC}                   # Shorthand"
+echo -e "  ${GREEN}source ./scripts/setup-test-env.sh${NC}                              # Setup for iOS (default)"
+echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform android${NC}           # Setup for Android"
+echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --start-emulator \"iPhone 16\"${NC}  # Start iOS simulator"
+echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform android --start-emulator \"Pixel_8_API_34\"${NC}"
+echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --list-emulators${NC}             # List available emulators"
 echo ""
 echo -e "${YELLOW}Run Tests:${NC}"
 echo -e "  ${GREEN}./scripts/run-local-test.sh --platform ios welcome${NC}"
