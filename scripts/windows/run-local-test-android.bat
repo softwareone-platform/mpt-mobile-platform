@@ -73,6 +73,8 @@ set VERBOSE=false
 set TEST_TARGET=
 set EMULATOR_NAME=
 set APPIUM_PID=
+set LIST_EMULATORS=false
+set START_EMULATOR_ONLY=false
 
 REM Parse command line arguments
 :parse_args
@@ -103,6 +105,24 @@ if /i "%~1"=="--emulator" (
     shift
     goto :parse_args
 )
+if /i "%~1"=="-e" (
+    set EMULATOR_NAME=%~2
+    shift
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="--start-emulator" (
+    set START_EMULATOR_ONLY=true
+    set EMULATOR_NAME=%~2
+    shift
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="--list-emulators" (
+    set LIST_EMULATORS=true
+    shift
+    goto :parse_args
+)
 if /i "%~1"=="--verbose" (
     set VERBOSE=true
     shift
@@ -129,15 +149,22 @@ echo.
 echo Usage: run-local-test-android.bat [options] [suite_name^|spec_file^|all]
 echo.
 echo Prerequisites:
+echo   - Windows 10/11 (64-bit)
+echo   - Android SDK with ANDROID_HOME environment variable set
+echo   - Java Development Kit (JDK) 17 (NOT Java 24+ which is incompatible)
+echo   - Node.js (version 20.x or later)
+echo   - Appium with UiAutomator2 driver installed globally
 echo   - .env file must exist in app\ directory with Auth0 configuration
-echo   - For --build: Android SDK must be installed
+echo   - Android device or emulator connected
 echo.
 echo Options:
-echo   --build, -b           Build the app before testing
-echo   --skip-build, -s      Skip build, install existing APK from last build
-echo   --emulator NAME       Specify Android emulator AVD name
-echo   --verbose, -v         Enable verbose output
-echo   --help, -h            Show this help message
+echo   --build, -b              Build the app before testing
+echo   --skip-build, -s         Skip build, install existing APK from last build
+echo   --emulator, -e NAME      Specify Android emulator AVD name to use
+echo   --start-emulator NAME    Start emulator and exit (no tests)
+echo   --list-emulators         List available Android emulators and exit
+echo   --verbose, -v            Enable verbose output
+echo   --help, -h               Show this help message
 echo.
 echo Examples:
 echo   run-local-test-android.bat welcome                         Run welcome suite
@@ -146,6 +173,8 @@ echo   run-local-test-android.bat .\test\specs\welcome.e2e.js     Run specific s
 echo   run-local-test-android.bat --build welcome                 Build and run tests
 echo   run-local-test-android.bat --skip-build all                Reuse last build
 echo   run-local-test-android.bat --emulator Pixel_8_API_34 welcome
+echo   run-local-test-android.bat --start-emulator Pixel_8_API_34 Start emulator only
+echo   run-local-test-android.bat --list-emulators                List available AVDs
 echo.
 echo Workflow:
 echo   1. First run: use --build to create fresh APK
@@ -161,24 +190,7 @@ echo   Android Local Test Runner (Windows)
 echo ============================================================
 echo.
 
-REM Validate test target
-if "%TEST_TARGET%"=="" (
-    echo [ERROR] Test target is required ^(suite name, spec file, or 'all'^)
-    echo.
-    echo Usage: run-local-test-android.bat [options] ^<test_target^>
-    echo Use --help for more information
-    exit /b 1
-)
-
-echo validate line 115
-if "%BUILD_APP%"=="true" if "%SKIP_BUILD%"=="true" (
-    echo [ERROR] --build and --skip-build cannot be used together
-    echo Use --build to create new APK, or --skip-build to reuse existing
-    exit /b 1
-)
-
-echo validate line 122
-REM Check for Android SDK
+REM Check for Android SDK first (needed for list-emulators and start-emulator)
 if not defined ANDROID_HOME (
     if not defined ANDROID_SDK_ROOT (
         echo [ERROR] ANDROID_HOME or ANDROID_SDK_ROOT not set
@@ -192,6 +204,83 @@ if not defined ANDROID_HOME (
 ) else (
     set ANDROID_SDK=!ANDROID_HOME!
 )
+
+set "ADB_EXE=!ANDROID_SDK!\platform-tools\adb.exe"
+set "EMULATOR_EXE=!ANDROID_SDK!\emulator\emulator.exe"
+
+REM Handle --list-emulators option
+if "%LIST_EMULATORS%"=="true" (
+    echo [INFO] Available Android Emulators:
+    echo.
+    if exist "!EMULATOR_EXE!" (
+        "!EMULATOR_EXE!" -list-avds 2>nul
+        if errorlevel 1 (
+            echo   No emulators found. Create one in Android Studio.
+        )
+    ) else (
+        echo   [ERROR] Emulator not found at !EMULATOR_EXE!
+    )
+    echo.
+    exit /b 0
+)
+
+REM Handle --start-emulator option
+if "%START_EMULATOR_ONLY%"=="true" (
+    if "%EMULATOR_NAME%"=="" (
+        echo [ERROR] Emulator name required with --start-emulator
+        echo.
+        echo Available emulators:
+        "!EMULATOR_EXE!" -list-avds 2>nul
+        exit /b 1
+    )
+    echo [INFO] Starting emulator: %EMULATOR_NAME%
+    echo.
+    
+    REM Check if device already connected
+    "!ADB_EXE!" devices | findstr /v "List" | findstr "device" >nul 2>&1
+    if not errorlevel 1 (
+        echo [INFO] Device already connected!
+        "!ADB_EXE!" devices
+        exit /b 0
+    )
+    
+    echo [INFO] Starting emulator process...
+    start "" "!EMULATOR_EXE!" -avd "!EMULATOR_NAME!" -gpu swiftshader_indirect
+    
+    echo [INFO] Waiting for emulator to boot...
+    "!ADB_EXE!" wait-for-device
+    
+    echo [INFO] Waiting for boot to complete...
+    :start_emu_boot_loop
+    set BOOT_COMPLETE=
+    for /f "delims=" %%a in ('call "!ADB_EXE!" shell getprop sys.boot_completed 2^>nul') do set "BOOT_COMPLETE=%%a"
+    if not "!BOOT_COMPLETE!"=="1" (
+        timeout /t 2 /nobreak >nul
+        goto :start_emu_boot_loop
+    )
+    
+    echo [SUCCESS] Emulator started and ready!
+    echo.
+    "!ADB_EXE!" devices
+    exit /b 0
+)
+
+REM Validate test target
+if "%TEST_TARGET%"=="" (
+    echo [ERROR] Test target is required ^(suite name, spec file, or 'all'^)
+    echo.
+    echo Usage: run-local-test-android.bat [options] ^<test_target^>
+    echo Use --help for more information
+    exit /b 1
+)
+
+if "%BUILD_APP%"=="true" if "%SKIP_BUILD%"=="true" (
+    echo [ERROR] --build and --skip-build cannot be used together
+    echo Use --build to create new APK, or --skip-build to reuse existing
+    exit /b 1
+)
+
+REM Android SDK already set above
 
 REM Configure environment variables for testing
 set PLATFORM_NAME=Android
@@ -211,14 +300,31 @@ if "%ENVIRONMENT%"=="qa" (
     set AUTH0_SCHEME=com.softwareone.marketplaceMobile
 )
 
+REM Load environment variables from .env file if it exists
+set "PROJECT_ROOT=%CD%"
+set "ENV_FILE=%PROJECT_ROOT%\app\.env"
+
+if exist "%ENV_FILE%" (
+    if "%VERBOSE%"=="true" echo [INFO] Loading environment variables from .env file...
+    for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
+        set "LINE=%%a"
+        REM Skip comments and empty lines
+        if not "!LINE:~0,1!"=="#" (
+            if not "%%a"=="" (
+                if not "%%b"=="" (
+                    set "%%a=%%b"
+                    if "%VERBOSE%"=="true" echo   [OK] Loaded: %%a
+                )
+            )
+        )
+    )
+)
+
 REM Start emulator if specified
 if "%EMULATOR_NAME%"=="" goto :skip_emulator_section
 
 echo [INFO] Starting emulator: %EMULATOR_NAME%
-echo [DEBUG] ANDROID_SDK=!ANDROID_SDK!
-
-set "ADB_EXE=!ANDROID_SDK!\platform-tools\adb.exe"
-set "EMULATOR_EXE=!ANDROID_SDK!\emulator\emulator.exe"
+if "%VERBOSE%"=="true" echo [DEBUG] ANDROID_SDK=!ANDROID_SDK!
 
 REM Check if device already connected
 "!ADB_EXE!" devices | findstr /v "List" | findstr "device" >nul 2>&1
@@ -228,7 +334,7 @@ if not errorlevel 1 (
 )
 
 echo [INFO] Starting emulator process...
-start "" "!EMULATOR_EXE!" -avd "!EMULATOR_NAME!" -no-snapshot -no-audio
+start "" "!EMULATOR_EXE!" -avd "!EMULATOR_NAME!" -gpu swiftshader_indirect
 
 echo [INFO] Waiting for emulator to boot...
 "!ADB_EXE!" wait-for-device
@@ -293,7 +399,7 @@ cd /d "%APP_DIR%"
 
 REM Handle build options
 if "%BUILD_APP%"=="true" (
-    echo [INFO] Building Android app...
+    echo [INFO] Building standalone Android APK for testing in RELEASE mode...
     echo.
     
     REM Validate .env file exists
@@ -303,11 +409,86 @@ if "%BUILD_APP%"=="true" (
         exit /b 1
     )
     
-    call "%SCRIPT_DIR%deploy-android.bat"
+    echo [INFO] Using .env file for standalone build...
+    
+    REM Check for node_modules
+    if not exist "node_modules" (
+        echo [INFO] Installing Node.js dependencies...
+        call npm ci
+        if errorlevel 1 (
+            echo [ERROR] npm ci failed
+            exit /b 1
+        )
+    )
+    
+    REM Uninstall existing app
+    echo [INFO] Uninstalling existing app if present...
+    "!ADB_EXE!" -s "!DEVICE_UDID!" uninstall com.softwareone.marketplaceMobile >nul 2>&1
+    
+    REM Clean previous builds
+    echo [INFO] Cleaning previous builds...
+    if exist "android\app\build\outputs\apk" rd /s /q "android\app\build\outputs\apk" >nul 2>&1
+    
+    REM Prebuild native Android project (like bash script does)
+    echo [INFO] Generating native Android project with Expo prebuild...
+    if "%VERBOSE%"=="true" (
+        call npx expo prebuild --platform android --clean
+    ) else (
+        call npx expo prebuild --platform android --clean >nul 2>&1
+    )
     if errorlevel 1 (
-        echo [ERROR] Build failed
+        echo [ERROR] Expo prebuild failed
         exit /b 1
     )
+    echo [INFO] Native Android project generated
+    
+    REM Build standalone APK using Gradle (Release mode - no Expo dev server)
+    echo [INFO] Building standalone APK in Release mode...
+    cd android
+    
+    if "%VERBOSE%"=="true" (
+        call gradlew.bat assembleRelease
+    ) else (
+        call gradlew.bat assembleRelease 2>&1 | findstr /i "BUILD SUCCESS FAILURE ERROR"
+    )
+    if errorlevel 1 (
+        echo [ERROR] Gradle build failed
+        cd /d "%APP_DIR%"
+        exit /b 1
+    )
+    
+    cd /d "%APP_DIR%"
+    
+    REM Verify APK was created
+    set "APK_PATH=android\app\build\outputs\apk\release\app-release.apk"
+    if not exist "!APK_PATH!" (
+        echo [ERROR] APK not found at !APK_PATH!
+        echo Build may have failed. Check the output above.
+        exit /b 1
+    )
+    
+    echo [INFO] APK built successfully: !APK_PATH!
+    
+    REM Install the APK
+    echo [INFO] Installing APK on device !DEVICE_UDID!...
+    "!ADB_EXE!" -s "!DEVICE_UDID!" install -r "!APK_PATH!"
+    if errorlevel 1 (
+        echo [WARNING] Install failed, trying with -t flag...
+        "!ADB_EXE!" -s "!DEVICE_UDID!" install -r -t "!APK_PATH!"
+        if errorlevel 1 (
+            echo [ERROR] APK installation failed
+            exit /b 1
+        )
+    )
+    
+    echo [INFO] APK installed successfully
+    
+    REM Launch the app
+    echo [INFO] Launching app...
+    "!ADB_EXE!" -s "!DEVICE_UDID!" shell am start -n com.softwareone.marketplaceMobile/.MainActivity
+    timeout /t 2 /nobreak >nul
+    
+    echo [INFO] Android app built and deployed in Release mode
     echo.
 )
 

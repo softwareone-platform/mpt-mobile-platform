@@ -6,21 +6,24 @@
     This script provides a PowerShell alternative for running Appium tests on Android.
     It handles building, deploying, and testing Android applications with better
     error handling and modern scripting features compared to batch files.
+    
+    The build process creates a RELEASE APK (not debug) to avoid the Expo development
+    UI appearing during tests. It uses 'expo prebuild' followed by 'gradlew assembleRelease'.
 
 .PARAMETER Build
-    Build the app before testing. Requires -Environment and -ClientId.
+    Build the app before testing in RELEASE mode. Uses .env file for configuration.
 
 .PARAMETER SkipBuild
     Skip build and install existing app from last build.
 
-.PARAMETER Environment
-    Set environment preset: dev, test, or qa. Required when using -Build.
-
-.PARAMETER ClientId
-    Set Auth0 client ID. Required when using -Build.
-
 .PARAMETER EmulatorName
     Specify Android emulator AVD name to start.
+
+.PARAMETER StartEmulatorOnly
+    Start the specified emulator and exit without running tests.
+
+.PARAMETER ListEmulators
+    List available Android emulators and exit.
 
 .PARAMETER TestTarget
     Suite name, spec file path, or 'all' to run all tests.
@@ -30,8 +33,8 @@
     Run the welcome test suite with currently installed app.
 
 .EXAMPLE
-    .\run-local-test-android.ps1 -Build -Environment dev -ClientId abc123 welcome
-    Build for dev environment and run welcome suite.
+    .\run-local-test-android.ps1 -Build welcome
+    Build RELEASE APK using .env configuration and run welcome suite.
 
 .EXAMPLE
     .\run-local-test-android.ps1 -SkipBuild all
@@ -42,29 +45,52 @@
     Start specific emulator and run welcome suite.
 
 .EXAMPLE
+    .\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_34"
+    Start emulator and exit without running tests.
+
+.EXAMPLE
+    .\run-local-test-android.ps1 -ListEmulators
+    List all available Android emulators.
+
+.EXAMPLE
     .\run-local-test-android.ps1 .\test\specs\welcome.e2e.js
     Run a specific spec file.
 
 .NOTES
-    Requires:
+    Prerequisites:
+    - Windows 10/11 (64-bit)
     - Android SDK with ANDROID_HOME environment variable set
-    - Java 17 (JAVA_HOME set)
-    - Node.js 20+
+    - Java Development Kit (JDK) 17 (NOT Java 24+ which is incompatible)
+    - Node.js (version 20.x or later)
     - Appium with UiAutomator2 driver installed globally
+    - .env file in app\ directory with Auth0 configuration
+    - Android device or emulator connected
 #>
 
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Test')]
 param(
+    [Parameter(ParameterSetName = 'Test')]
+    [Parameter(ParameterSetName = 'Build')]
     [switch]$Build,
+    
+    [Parameter(ParameterSetName = 'Test')]
+    [Parameter(ParameterSetName = 'Build')]
     [switch]$SkipBuild,
     
-    [ValidateSet("dev", "test", "qa")]
-    [string]$Environment,
-    
-    [string]$ClientId,
+    [Parameter(ParameterSetName = 'Test')]
+    [Parameter(ParameterSetName = 'Build')]
+    [Parameter(ParameterSetName = 'StartEmulator')]
+    [Alias('e')]
     [string]$EmulatorName,
     
-    [Parameter(Position = 0, Mandatory = $true)]
+    [Parameter(ParameterSetName = 'StartEmulator', Mandatory = $true)]
+    [switch]$StartEmulatorOnly,
+    
+    [Parameter(ParameterSetName = 'ListEmulators', Mandatory = $true)]
+    [switch]$ListEmulators,
+    
+    [Parameter(Position = 0, ParameterSetName = 'Test')]
+    [Parameter(Position = 0, ParameterSetName = 'Build')]
     [string]$TestTarget
 )
 
@@ -142,31 +168,44 @@ function Get-AndroidDevice {
     return $devices | Select-Object -First 1
 }
 
+function Import-EnvFile {
+    param([string]$EnvFilePath)
+    
+    if (-not (Test-Path $EnvFilePath)) {
+        return $false
+    }
+    
+    $envContent = Get-Content $EnvFilePath
+    foreach ($line in $envContent) {
+        # Skip comments and empty lines
+        if ($line -match "^\s*#" -or [string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+        
+        # Parse key=value
+        if ($line -match "^([^=]+)=(.*)$") {
+            $key = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            
+            # Remove surrounding quotes if present
+            if ($value -match '^"(.*)"$' -or $value -match "^'(.*)'$") {
+                $value = $matches[1]
+            }
+            
+            # Set environment variable
+            [Environment]::SetEnvironmentVariable($key, $value, "Process")
+        }
+    }
+    return $true
+}
+
 #endregion
 
 #region Main Script
 
 Write-Header "Android Local Test Runner (PowerShell)"
 
-# Validate parameters
-if ($Build -and $SkipBuild) {
-    Write-ErrorMsg "-Build and -SkipBuild cannot be used together"
-    exit 1
-}
-
-if ($Build) {
-    if (-not $Environment) {
-        Write-ErrorMsg "-Environment is required when using -Build"
-        Write-Host "Available environments: dev, test, qa" -ForegroundColor Yellow
-        exit 1
-    }
-    if (-not $ClientId) {
-        Write-ErrorMsg "-ClientId is required when using -Build"
-        exit 1
-    }
-}
-
-# Check for Android SDK
+# Check for Android SDK first (needed for list-emulators and start-emulator)
 $AndroidSdk = $env:ANDROID_HOME
 if (-not $AndroidSdk) {
     $AndroidSdk = $env:ANDROID_SDK_ROOT
@@ -185,14 +224,102 @@ if (-not (Test-Path $AndroidSdk)) {
     exit 1
 }
 
-Write-Info "Using Android SDK: $AndroidSdk"
-
 # Set up paths
 $AdbPath = Join-Path $AndroidSdk "platform-tools\adb.exe"
 $EmulatorPath = Join-Path $AndroidSdk "emulator\emulator.exe"
 
 if (-not (Test-Path $AdbPath)) {
     Write-ErrorMsg "ADB not found at: $AdbPath"
+    exit 1
+}
+
+Write-Info "Using Android SDK: $AndroidSdk"
+
+# Handle -ListEmulators option
+if ($ListEmulators) {
+    Write-Host ""
+    Write-Info "Available Android Emulators:"
+    Write-Host ""
+    
+    if (Test-Path $EmulatorPath) {
+        $avdList = & $EmulatorPath -list-avds 2>$null
+        if ($avdList) {
+            $avdList | ForEach-Object { Write-Host "  $_" -ForegroundColor Cyan }
+        } else {
+            Write-Host "  No emulators found. Create one in Android Studio." -ForegroundColor Yellow
+        }
+    } else {
+        Write-ErrorMsg "Emulator not found at: $EmulatorPath"
+    }
+    Write-Host ""
+    exit 0
+}
+
+# Handle -StartEmulatorOnly option
+if ($StartEmulatorOnly) {
+    if (-not $EmulatorName) {
+        Write-ErrorMsg "Emulator name required with -StartEmulatorOnly"
+        Write-Host ""
+        Write-Host "Available emulators:" -ForegroundColor Yellow
+        & $EmulatorPath -list-avds 2>$null | ForEach-Object { Write-Host "  $_" }
+        exit 1
+    }
+    
+    Write-Info "Starting emulator: $EmulatorName"
+    Write-Host ""
+    
+    # Check if device already connected
+    $existingDevice = Get-AndroidDevice -AdbPath $AdbPath
+    if ($existingDevice) {
+        Write-Success "Device already connected: $existingDevice"
+        & $AdbPath devices
+        exit 0
+    }
+    
+    # Start emulator with software GPU rendering to avoid driver issues
+    Write-Info "Starting emulator process..."
+    Start-Process -FilePath $EmulatorPath -ArgumentList "-avd", $EmulatorName, "-gpu", "swiftshader_indirect" -WindowStyle Normal
+    
+    Write-Info "Waiting for emulator to boot..."
+    & $AdbPath wait-for-device
+    
+    Write-Info "Waiting for boot to complete..."
+    $bootTimeout = 120
+    $bootTimer = 0
+    while ($bootTimer -lt $bootTimeout) {
+        $bootComplete = & $AdbPath shell getprop sys.boot_completed 2>$null
+        if ($bootComplete -eq "1") {
+            Write-Success "Emulator started and ready!"
+            Write-Host ""
+            & $AdbPath devices
+            exit 0
+        }
+        Start-Sleep -Seconds 2
+        $bootTimer += 2
+    }
+    
+    Write-ErrorMsg "Emulator boot timeout after $bootTimeout seconds"
+    exit 1
+}
+
+# Load environment variables from .env file
+$ProjectRoot = Get-Location
+$EnvFile = Join-Path $ProjectRoot "app\.env"
+
+if (Test-Path $EnvFile) {
+    Write-Info "Loading environment variables from .env file..."
+    if (Import-EnvFile -EnvFilePath $EnvFile) {
+        Write-Success "Environment variables loaded"
+    }
+    Write-Host ""
+}
+
+# Validate test target
+if (-not $TestTarget) {
+    Write-ErrorMsg "Test target is required (suite name, spec file, or 'all')"
+    Write-Host ""
+    Write-Host "Usage: .\run-local-test-android.ps1 [options] <test_target>" -ForegroundColor Yellow
+    Write-Host "Use Get-Help .\run-local-test-android.ps1 for more information" -ForegroundColor Yellow
     exit 1
 }
 
@@ -204,38 +331,14 @@ $env:APP_ACTIVITY = ".MainActivity"
 $env:APPIUM_HOST = "127.0.0.1"
 $env:APPIUM_PORT = "4723"
 
-# Configure Auth0 based on environment
-if ($Environment) {
-    $envConfig = @{
-        "dev" = @{
-            Domain = "login-dev.pyracloud.com"
-            Audience = "https://api-dev.pyracloud.com/"
-            ApiUrl = "https://api.s1.today/public/"
-        }
-        "test" = @{
-            Domain = "login-test.pyracloud.com"
-            Audience = "https://api-test.pyracloud.com/"
-            ApiUrl = "https://api.s1.show/public/"
-        }
-        "qa" = @{
-            Domain = "login-qa.pyracloud.com"
-            Audience = "https://api-qa.pyracloud.com/"
-            ApiUrl = "https://api.s1.live/public/"
-        }
-    }
-    
-    $config = $envConfig[$Environment]
-    $env:AUTH0_DOMAIN = $config.Domain
-    $env:AUTH0_AUDIENCE = $config.Audience
-    $env:AUTH0_API_URL = $config.ApiUrl
-    $env:AUTH0_SCOPE = "openid profile email offline_access"
-    $env:AUTH0_OTP_DIGITS = "6"
-    $env:AUTH0_SCHEME = "com.softwareone.marketplaceMobile"
-    
-    if ($ClientId) {
-        $env:AUTH0_CLIENT_ID = $ClientId
-    }
+# Validate build parameters
+if ($Build -and $SkipBuild) {
+    Write-ErrorMsg "-Build and -SkipBuild cannot be used together"
+    exit 1
 }
+
+# Note: -Environment and -ClientId are no longer required for -Build
+# The build now uses .env file like the bash script does
 
 # Start emulator if specified
 if ($EmulatorName) {
@@ -259,8 +362,8 @@ if ($EmulatorName) {
             exit 1
         }
         
-        # Start emulator
-        Start-Process -FilePath $EmulatorPath -ArgumentList "-avd", $EmulatorName, "-no-snapshot", "-no-audio" -WindowStyle Minimized
+        # Start emulator with software GPU to avoid driver issues
+        Start-Process -FilePath $EmulatorPath -ArgumentList "-avd", $EmulatorName, "-gpu", "swiftshader_indirect" -WindowStyle Minimized
         
         Write-Info "Waiting for emulator to boot..."
         & $AdbPath wait-for-device
@@ -326,18 +429,96 @@ Set-Location $AppDir
 
 # Handle build options
 if ($Build) {
-    Write-Info "Building Android app..."
+    Write-Info "Building standalone Android APK for testing in RELEASE mode..."
     Write-Host ""
     
-    $deployScript = Join-Path $ScriptDir "deploy-android.bat"
-    $deployResult = & cmd /c "$deployScript --env $Environment --client-id $ClientId" 2>&1
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-ErrorMsg "Build failed"
-        Write-Host $deployResult
+    # Validate .env file exists
+    if (-not (Test-Path ".env")) {
+        Write-ErrorMsg "No .env file found"
+        Write-Host "Please create a .env file in app directory with required configuration" -ForegroundColor Yellow
         exit 1
     }
     
+    Write-Info "Using .env file for standalone build..."
+    
+    # Check for node_modules
+    if (-not (Test-Path "node_modules")) {
+        Write-Info "Installing Node.js dependencies..."
+        & npm ci
+        if ($LASTEXITCODE -ne 0) {
+            Write-ErrorMsg "npm ci failed"
+            exit 1
+        }
+    }
+    
+    # Uninstall existing app
+    Write-Info "Uninstalling existing app if present..."
+    & $AdbPath -s $env:DEVICE_UDID uninstall "com.softwareone.marketplaceMobile" 2>$null
+    
+    # Clean previous builds
+    Write-Info "Cleaning previous builds..."
+    if (Test-Path "android\app\build\outputs\apk") {
+        Remove-Item -Path "android\app\build\outputs\apk" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    
+    # Prebuild native Android project (like bash script does)
+    Write-Info "Generating native Android project with Expo prebuild..."
+    & npx expo prebuild --platform android --clean 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-ErrorMsg "Expo prebuild failed"
+        exit 1
+    }
+    Write-Success "Native Android project generated"
+    
+    # Build standalone APK using Gradle (Release mode - no Expo dev server)
+    Write-Info "Building standalone APK in Release mode..."
+    Set-Location android
+    
+    & .\gradlew.bat assembleRelease 2>&1 | ForEach-Object {
+        if ($_ -match "BUILD|SUCCESS|FAILURE|ERROR") { Write-Host $_ }
+    }
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-ErrorMsg "Gradle build failed"
+        Set-Location $AppDir
+        exit 1
+    }
+    
+    Set-Location $AppDir
+    
+    # Verify APK was created
+    $apkPath = "android\app\build\outputs\apk\release\app-release.apk"
+    if (-not (Test-Path $apkPath)) {
+        Write-ErrorMsg "APK not found at $apkPath"
+        Write-Host "Build may have failed. Check the output above." -ForegroundColor Yellow
+        exit 1
+    }
+    
+    Write-Success "APK built successfully: $apkPath"
+    
+    # Install the APK
+    Write-Info "Installing APK on device $env:DEVICE_UDID..."
+    $installResult = & $AdbPath -s $env:DEVICE_UDID install -r $apkPath 2>&1
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-WarningMsg "Install failed, trying with -t flag..."
+        $installResult = & $AdbPath -s $env:DEVICE_UDID install -r -t $apkPath 2>&1
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-ErrorMsg "APK installation failed"
+            Write-Host $installResult
+            exit 1
+        }
+    }
+    
+    Write-Success "APK installed successfully"
+    
+    # Launch the app
+    Write-Info "Launching app..."
+    & $AdbPath -s $env:DEVICE_UDID shell am start -n "com.softwareone.marketplaceMobile/.MainActivity"
+    Start-Sleep -Seconds 2
+    
+    Write-Success "Android app built and deployed in Release mode"
     Write-Host ""
 }
 
