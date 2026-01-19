@@ -203,6 +203,10 @@
     "emptyStateTitle": "No orders",
     "emptyStateDescription": "No orders found."
   },
+  "subscriptionsScreen": {
+    "emptyStateTitle": "No subscriptions",
+    "emptyStateDescription": "No subscriptions found."
+  },
   "status": {
     "Accepted": "Accepted",
     "Active": "Active",
