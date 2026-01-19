@@ -402,7 +402,6 @@ jobs:
 
       - name: Create version bump PR
         if: success() && inputs.version_bump != 'none'
-        working-directory: .
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -415,7 +414,7 @@ jobs:
 
           # Create a new branch for the version bump
           git checkout -b "$BRANCH_NAME"
-          git add app/app.config.js
+          git add app.config.js
           git commit -m "chore: bump version to ${VERSION} build ${BUILD} [skip ci]"
           git push origin "$BRANCH_NAME"
 
@@ -444,7 +443,6 @@ jobs:
 
       - name: Create release tag
         if: success()
-        working-directory: .
         run: |
           TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}"
           git tag -a "$TAG" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }}"
