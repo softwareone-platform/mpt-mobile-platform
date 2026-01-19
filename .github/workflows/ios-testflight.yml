@@ -172,11 +172,12 @@ jobs:
           echo "New build number: $NEW_BUILD"
 
           # Update version and buildNumber in app.config.js
+          # Handle both single and double quotes in the config file
           node -e "
             const fs = require('fs');
             let configContent = fs.readFileSync('app.config.js', 'utf8');
-            configContent = configContent.replace(/version: \"[^\"]+\"/, 'version: \"$NEW_VERSION\"');
-            configContent = configContent.replace(/buildNumber: \"[^\"]+\"/, 'buildNumber: \"$NEW_BUILD\"');
+            configContent = configContent.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$NEW_VERSION'\");
+            configContent = configContent.replace(/buildNumber: ['\"][^'\"]+['\"]/, \"buildNumber: '$NEW_BUILD'\");
             fs.writeFileSync('app.config.js', configContent);
           "
 
@@ -189,6 +190,41 @@ jobs:
           echo "Generating native iOS project with Expo..."
           npx expo prebuild --platform ios --clean
           echo "Native iOS project generated"
+
+      - name: Update Info.plist with correct build number
+        run: |
+          NEW_BUILD="${{ steps.version.outputs.build }}"
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+          
+          # Find the Info.plist file
+          INFO_PLIST=$(find ios -name "Info.plist" -path "*/SoftwareOne/*" | head -1)
+          if [ -z "$INFO_PLIST" ]; then
+            INFO_PLIST=$(find ios -name "Info.plist" -not -path "*/Pods/*" -not -path "*/build/*" | head -1)
+          fi
+          
+          if [ -z "$INFO_PLIST" ]; then
+            echo "::error::Could not find Info.plist"
+            exit 1
+          fi
+          
+          echo "Found Info.plist at: $INFO_PLIST"
+          
+          # Update CFBundleVersion (build number) and CFBundleShortVersionString (version)
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$INFO_PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $NEW_VERSION" "$INFO_PLIST"
+          
+          echo "Updated Info.plist:"
+          echo "  CFBundleVersion: $(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$INFO_PLIST")"
+          echo "  CFBundleShortVersionString: $(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$INFO_PLIST")"
+          
+          # Also update project.pbxproj to ensure version consistency
+          PBXPROJ=$(find ios -name "project.pbxproj" | head -1)
+          if [ -n "$PBXPROJ" ]; then
+            echo "Updating $PBXPROJ with build number $NEW_BUILD"
+            sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = $NEW_BUILD;/g" "$PBXPROJ"
+            sed -i '' "s/MARKETING_VERSION = [^;]*;/MARKETING_VERSION = $NEW_VERSION;/g" "$PBXPROJ"
+            echo "Updated project.pbxproj"
+          fi
 
       - name: Configure Xcode project with Team ID
         run: |
