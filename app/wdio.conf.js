@@ -1,7 +1,17 @@
 const fs = require('fs');
+const path = require('path');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
 
 const SCREENSHOT_FOLDER = '../screenshots';
+
+// Generate timestamped log directory for this test run
+const getLogDir = () => {
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const platform = (process.env.PLATFORM_NAME || 'iOS').toLowerCase();
+    return path.join('test-results', 'logs', `${platform}-${timestamp}`);
+};
+const LOG_OUTPUT_DIR = getLogDir();
 
 // Platform detection helpers
 const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
@@ -52,6 +62,12 @@ exports.config = {
     runner: 'local',
     hostname: process.env.APPIUM_HOST || 'localhost',
     port: parseInt(process.env.APPIUM_PORT, 10) || 4723,
+    //
+    // ===================
+    // Log Output Directory
+    // ===================
+    // Directory to store all logs from the test run (timestamped per run)
+    outputDir: LOG_OUTPUT_DIR,
     //
     // ==================
     // Specify Test Files
@@ -113,9 +129,10 @@ exports.config = {
     // Define all options that are relevant for the WebdriverIO instance here
     //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
-    logLevel: 'info',
+    logLevel: 'warn',
     //
     // Set specific log levels per logger
+    // Silence verbose webdriver/appium logs while keeping test framework output
     // loggers:
     // - webdriver, webdriverio
     // - @wdio/browserstack-service, @wdio/lighthouse-service, @wdio/sauce-service
@@ -124,6 +141,13 @@ exports.config = {
     // - @wdio/sumologic-reporter
     // - @wdio/cli, @wdio/config, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
+    logLevels: {
+        webdriver: 'warn',
+        webdriverio: 'warn',
+        '@wdio/local-runner': 'info',
+        '@wdio/mocha-framework': 'info',
+        '@wdio/cli': 'info',
+    },
     // logLevels: {
     //     webdriver: 'info',
     //     '@wdio/appium-service': 'info'
