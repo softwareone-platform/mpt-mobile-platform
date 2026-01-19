@@ -172,11 +172,12 @@ jobs:
           echo "New build number: $NEW_BUILD"
 
           # Update version and buildNumber in app.config.js
+          # Handle both single and double quotes in the config file
           node -e "
             const fs = require('fs');
             let configContent = fs.readFileSync('app.config.js', 'utf8');
-            configContent = configContent.replace(/version: \"[^\"]+\"/, 'version: \"$NEW_VERSION\"');
-            configContent = configContent.replace(/buildNumber: \"[^\"]+\"/, 'buildNumber: \"$NEW_BUILD\"');
+            configContent = configContent.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$NEW_VERSION'\");
+            configContent = configContent.replace(/buildNumber: ['\"][^'\"]+['\"]/, \"buildNumber: '$NEW_BUILD'\");
             fs.writeFileSync('app.config.js', configContent);
           "
 
