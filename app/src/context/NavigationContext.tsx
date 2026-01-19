@@ -9,6 +9,7 @@ import {
   InvoicesScreen,
   CreditMemosScreen,
   StatementsScreen,
+  UsersScreen,
 } from '@/screens';
 import type { TabItem, TabParamList } from '@/types/navigation';
 
@@ -33,6 +34,7 @@ const DEFAULT_SECONDARY_TABS: TabItem<keyof TabParamList>[] = [
   { name: 'creditMemos', icon: 'description', component: CreditMemosScreen },
   { name: 'invoices', icon: 'receipt-long', component: InvoicesScreen },
   { name: 'statements', icon: 'receipt', component: StatementsScreen },
+  { name: 'users', icon: 'how-to-reg', component: UsersScreen },
 ];
 
 export const NavigationDataProvider = ({ children }: { children: ReactNode }) => {
