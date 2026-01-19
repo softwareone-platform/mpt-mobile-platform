@@ -30,7 +30,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.softwareone.marketplaceMobile',
-      buildNumber: '7',
+      buildNumber: '8',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
