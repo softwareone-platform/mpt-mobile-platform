@@ -20,10 +20,6 @@ const getAirtableConfig = () => {
         tableName: process.env.AIRTABLE_TABLE_NAME || 'YOUR_TABLE_NAME_HERE',
         fromEmail: process.env.AIRTABLE_FROM_EMAIL || 'AIRTABLE_FROM_EMAIL_HERE'
     };
-    // Debug: Check if token is configured (avoid logging sensitive token characters)
-    const hasToken = config.apiToken && config.apiToken !== 'YOUR_TOKEN_HERE';
-    const tokenStatus = hasToken ? `(set, length: ${config.apiToken.length})` : '(not set)';
-    console.log(`  [Airtable Config] Token: ${tokenStatus}, BaseId: ${config.baseId}, Table: ${config.tableName}`);
     return config;
 };
 
