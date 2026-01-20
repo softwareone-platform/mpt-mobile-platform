@@ -202,6 +202,10 @@
     "emptyStateTitle": "No users",
     "emptyStateDescription": "No users found."
   },
+  "ordersScreen": {
+    "emptyStateTitle": "No orders",
+    "emptyStateDescription": "No orders found."
+  },
   "status": {
     "Accepted": "Accepted",
     "Active": "Active",

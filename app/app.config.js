@@ -21,6 +21,7 @@ export default {
           customScheme: AUTH0_SCHEME,
         },
       ],
+      './plugins/withNetworkSecurityConfig',
     ],
     splash: {
       image: './assets/splash-icon.png',
@@ -30,7 +31,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.softwareone.marketplaceMobile',
-      buildNumber: '5',
+      buildNumber: '9',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },

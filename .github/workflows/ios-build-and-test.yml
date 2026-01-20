@@ -33,6 +33,27 @@ on:
         required: false
         type: string
         default: 'iPhone 16'
+      test-suite:
+        description: 'Test suite to run'
+        required: false
+        type: choice
+        options:
+          - welcome
+          - home
+          - navigation
+          - failing
+          - all
+        default: 'welcome'
+      test-spec:
+        description: 'Specific test file to run (overrides test-suite)'
+        required: false
+        type: string
+        default: ''
+      artifact-url:
+        description: 'URL to pre-built app artifact (skips build if provided)'
+        required: false
+        type: string
+        default: ''
 
   # Reusable workflow (called from other workflows)
   workflow_call:
@@ -57,6 +78,21 @@ on:
         required: false
         type: string
         default: 'iPhone 16'
+      test-suite:
+        description: 'Test suite to run'
+        required: false
+        type: string
+        default: 'welcome'
+      test-spec:
+        description: 'Specific test file to run (overrides test-suite)'
+        required: false
+        type: string
+        default: ''
+      artifact-url:
+        description: 'URL to pre-built app artifact (skips build if provided)'
+        required: false
+        type: string
+        default: ''
 
 env:
   BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
@@ -66,6 +102,8 @@ env:
 jobs:
   build-ios:
     name: Build iOS App
+    # Skip build if artifact-url is provided
+    if: ${{ inputs.artifact-url == '' && github.event.inputs.artifact-url == '' }}
     runs-on: macos-latest
     timeout-minutes: 45
 
@@ -403,6 +441,11 @@ jobs:
           echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
           echo "download_url: \"$ASSET_URL\"" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Copy-Paste for Local Testing:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "./scripts/run-local-test.sh --platform ios --build-from-artifact $ASSET_URL welcome" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -426,6 +469,8 @@ jobs:
   install-and-test-ios:
     name: Install and Test iOS App
     needs: build-ios
+    # Always run, but handle skipped build job
+    if: ${{ always() && (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') }}
     runs-on: macos-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment || 'test' }}
@@ -439,17 +484,18 @@ jobs:
         id: install-ios
         uses: ./.github/actions/ios-install
         with:
-          artifact_name: ${{ needs.build-ios.outputs.artifact_name }}
-          ios_version: ${{ inputs.platform-version || '26.0' }}
-          device_name: ${{ inputs.device-name || 'iPhone 16' }}
+          artifact_name: ${{ needs.build-ios.outputs.artifact_name || '' }}
+          download_url: ${{ inputs.artifact-url || github.event.inputs.artifact-url || '' }}
+          ios_version: ${{ inputs.platform-version || github.event.inputs.platform-version || '26.0' }}
+          device_name: ${{ inputs.device-name || github.event.inputs.device-name || 'iPhone 16' }}
           
       # Test phase using composite action template  
       - name: Test iOS App
         uses: ./.github/actions/ios-test
         with:
           device_uuid: ${{ steps.install-ios.outputs.device_udid }}
-          ios_version: ${{ inputs.platform-version || '26.0' }}
-          device_name: ${{ inputs.device-name || 'iPhone 16' }}
+          ios_version: ${{ inputs.platform-version || github.event.inputs.platform-version || '26.0' }}
+          device_name: ${{ inputs.device-name || github.event.inputs.device-name || 'iPhone 16' }}
           node_version: '20'
           appium_version: '3.1.1'
           app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
@@ -458,6 +504,9 @@ jobs:
           airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
           airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
           airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
+          # Test selection
+          test_suite: ${{ inputs.test-suite || github.event.inputs.test-suite || 'welcome' }}
+          test_spec: ${{ inputs.test-spec || github.event.inputs.test-spec || '' }}
           # ReportPortal configuration (optional)
           report_portal_api_key: ${{ secrets.REPORT_PORTAL_API_KEY || '' }}
           report_portal_endpoint: ${{ vars.REPORT_PORTAL_ENDPOINT }}
