@@ -103,12 +103,12 @@ function Write-Header {
 
 function Test-AppiumServer {
     param(
-        [string]$TestHost = "127.0.0.1",
+        [string]$Host = "127.0.0.1",
         [int]$Port = 4723
     )
     
     try {
-        Invoke-WebRequest -Uri "http://${TestHost}:${Port}/status" -TimeoutSec 2 -ErrorAction SilentlyContinue
+        $response = Invoke-WebRequest -Uri "http://${Host}:${Port}/status" -TimeoutSec 2 -ErrorAction SilentlyContinue
         return $true
     }
     catch {
@@ -118,13 +118,13 @@ function Test-AppiumServer {
 
 function Wait-ForAppium {
     param(
-        [string]$TestHost = "127.0.0.1",
+        [string]$Host = "127.0.0.1",
         [int]$Port = 4723,
         [int]$TimeoutSeconds = 30
     )
     
     for ($i = 1; $i -le $TimeoutSeconds; $i++) {
-        if (Test-AppiumServer -TestHost $TestHost -Port $Port) {
+        if (Test-AppiumServer -Host $Host -Port $Port) {
             return $true
         }
         Start-Sleep -Seconds 1
@@ -314,7 +314,7 @@ Write-Host ""
 
 # Get project directories
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
+$ProjectRoot = Split-Path -Parent $ScriptDir
 $AppDir = Join-Path $ProjectRoot "app"
 
 if (-not (Test-Path $AppDir)) {

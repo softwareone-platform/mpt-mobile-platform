@@ -8,64 +8,6 @@ REM
 REM This script automates the process of building, deploying, and
 REM running Appium tests on Android devices or emulators.
 REM ============================================================
-REM
-REM CHANGELOG - January 15, 2026:
-REM ============================================================
-REM Fixed multiple critical issues for Windows batch file execution:
-REM
-REM 1. PATH RESOLUTION FIX (Line 221):
-REM    - Changed from: set "PROJECT_ROOT=%~dp0.."
-REM    - Changed to: set "PROJECT_ROOT=%CD%"
-REM    - Reason: Script is executed from project root, not from scripts\windows\
-REM    - This fixed incorrect path calculations when username contains dots
-REM      (e.g., magdalena.komuda) which caused "filename syntax is incorrect" errors
-REM
-REM 2. EMULATOR SECTION RESTRUCTURE (Lines 159-196):
-REM    - Moved :skip_emulator_section label OUTSIDE of if block
-REM    - Reason: Labels inside if (...) blocks break batch file context
-REM    - Prevents ") was unexpected at this time" syntax errors
-REM    - Allows proper goto :skip_emulator_section when device already connected
-REM
-REM 3. ADB COMMAND FIXES (Lines 168, 190, 195):
-REM    - Changed for /f loops to use "call" wrapper
-REM    - Example: for /f "delims=" %%a in ('call "!ADB_EXE!" devices ...')
-REM    - Reason: Direct execution of quoted paths with dots fails in batch
-REM    - The "call" command properly handles paths with special characters
-REM
-REM 4. HELPER VARIABLES (Lines 163-164):
-REM    - Added: set "ADB_EXE=!ANDROID_SDK!\platform-tools\adb.exe"
-REM    - Added: set "EMULATOR_EXE=!ANDROID_SDK!\emulator\emulator.exe"
-REM    - Reason: Simplifies command execution and improves readability
-REM    - Avoids repeated path concatenation in critical sections
-REM
-REM 5. BOOT WAIT LOOP FIX (Lines 188-193):
-REM    - Changed loop label from inside if block to separate structure
-REM    - Added explicit BOOT_COMPLETE variable initialization
-REM    - Used "call" wrapper for adb shell command
-REM    - Reason: Original structure caused loop to never execute properly
-REM
-REM 6. DEVICE DETECTION FIX (Lines 195-201):
-REM    - Updated to use nested for /f loops with call wrapper
-REM    - Changed: for /f "delims=" %%d in ('call "!ADB_EXE!" devices ...')
-REM    - Added tokens=1 extraction: for /f "tokens=1" %%u in ("%%d")
-REM    - Reason: Properly extracts device UDID from adb devices output
-REM
-REM 7. DEBUG OUTPUT ADDED (Lines 223-225):
-REM    - Added: echo [DEBUG] SCRIPT_DIR, PROJECT_ROOT, APP_DIR
-REM    - Reason: Helps troubleshoot path resolution issues
-REM    - Critical for Windows environments with special characters in paths
-REM
-REM WINDOWS BATCH FILE GOTCHAS DOCUMENTED:
-REM - Labels inside if blocks terminate the block scope
-REM - Paths with dots in username require "call" wrapper in for /f loops
-REM - %~dp0 gives script location, %CD% gives working directory
-REM - for /f with quoted paths needs: for /f "delims=" %%a in ('call "!VAR!"')
-REM - goto commands inside if blocks need labels placed outside
-REM - Device detection requires nested loops to properly extract UDID
-REM
-REM These fixes enable Appium Android testing on Windows with usernames
-REM containing special characters and ensure proper emulator/device handling.
-REM ============================================================
 
 set BUILD_APP=false
 set SKIP_BUILD=false
@@ -121,7 +63,6 @@ set TEST_TARGET=%~1
 shift
 goto :parse_args
 
-:show_help
 echo.
 echo Android Local Test Runner for Windows
 echo ======================================
@@ -170,14 +111,12 @@ if "%TEST_TARGET%"=="" (
     exit /b 1
 )
 
-echo validate line 115
 if "%BUILD_APP%"=="true" if "%SKIP_BUILD%"=="true" (
     echo [ERROR] --build and --skip-build cannot be used together
     echo Use --build to create new APK, or --skip-build to reuse existing
     exit /b 1
 )
 
-echo validate line 122
 REM Check for Android SDK
 if not defined ANDROID_HOME (
     if not defined ANDROID_SDK_ROOT (
@@ -202,6 +141,7 @@ set APPIUM_HOST=127.0.0.1
 set APPIUM_PORT=4723
 
 REM Get script directory and navigate to app folder
+)
 if "%ENVIRONMENT%"=="qa" (
     set AUTH0_DOMAIN=login-qa.pyracloud.com
     set AUTH0_AUDIENCE=https://api-qa.pyracloud.com/
@@ -212,43 +152,34 @@ if "%ENVIRONMENT%"=="qa" (
 )
 
 REM Start emulator if specified
-if "%EMULATOR_NAME%"=="" goto :skip_emulator_section
-
-echo [INFO] Starting emulator: %EMULATOR_NAME%
-echo [DEBUG] ANDROID_SDK=!ANDROID_SDK!
-
-set "ADB_EXE=!ANDROID_SDK!\platform-tools\adb.exe"
-set "EMULATOR_EXE=!ANDROID_SDK!\emulator\emulator.exe"
-
-REM Check if device already connected
-"!ADB_EXE!" devices | findstr /v "List" | findstr "device" >nul 2>&1
-if not errorlevel 1 (
-    echo [INFO] Device already connected, skipping emulator start
-    goto :skip_emulator_section
+if not "%EMULATOR_NAME%"=="" (
+    echo [INFO] Starting emulator: %EMULATOR_NAME%
+    
+    REM Check if emulator already running
+    for /f "tokens=1" %%d in ('"!ANDROID_SDK!\platform-tools\adb.exe" devices ^| findstr /v "List" ^| findstr "device"') do (
+        echo [INFO] Device already connected: %%d
+        goto :skip_emulator_start
+    )
+    
+    start "" "!ANDROID_SDK!\emulator\emulator.exe" -avd "%EMULATOR_NAME%" -no-snapshot -no-audio
+    
+    echo [INFO] Waiting for emulator to boot...
+    "!ANDROID_SDK!\platform-tools\adb.exe" wait-for-device
+    
+    :wait_boot_loop
+    for /f %%a in ('"!ANDROID_SDK!\platform-tools\adb.exe" shell getprop sys.boot_completed 2^>nul') do set BOOT_COMPLETE=%%a
+    if not "!BOOT_COMPLETE!"=="1" (
+        timeout /t 2 /nobreak >nul
+        goto :wait_boot_loop
+    )
+    echo [INFO] Emulator boot complete!
+    
+    :skip_emulator_start
 )
 
-echo [INFO] Starting emulator process...
-start "" "!EMULATOR_EXE!" -avd "!EMULATOR_NAME!" -no-snapshot -no-audio
-
-echo [INFO] Waiting for emulator to boot...
-"!ADB_EXE!" wait-for-device
-
-REM Wait for boot to complete
-echo [INFO] Waiting for boot to complete...
-:wait_boot_loop
-set BOOT_COMPLETE=
-for /f "delims=" %%a in ('call "!ADB_EXE!" shell getprop sys.boot_completed 2^>nul') do set "BOOT_COMPLETE=%%a"
-if not "!BOOT_COMPLETE!"=="1" (
-    timeout /t 2 /nobreak >nul
-    goto :wait_boot_loop    scripts\windows\run-local-test-android.bat --emulator "Pixel8API34" welcome
-)
-echo [INFO] Emulator boot complete!
-
-:skip_emulator_section
 REM Get device UDID
-set DEVICE_UDID=
-for /f "delims=" %%d in ('call "!ADB_EXE!" devices ^| findstr /v "List" ^| findstr "device"') do (
-    for /f "tokens=1" %%u in ("%%d") do set "DEVICE_UDID=%%u"
+for /f "tokens=1" %%d in ('"!ANDROID_SDK!\platform-tools\adb.exe" devices ^| findstr /v "List" ^| findstr "device"') do (
+    set DEVICE_UDID=%%d
     goto :found_device
 )
 
@@ -275,14 +206,9 @@ echo        APPIUM_PORT: %APPIUM_PORT%
 echo.
 
 REM Get script and project directories
-REM Assuming script is run from project root directory
-set "PROJECT_ROOT=%CD%"
-set "SCRIPT_DIR=%PROJECT_ROOT%\scripts\windows\"
-set "APP_DIR=%PROJECT_ROOT%\app"
-
-echo [DEBUG] SCRIPT_DIR=%SCRIPT_DIR%
-echo [DEBUG] PROJECT_ROOT=%PROJECT_ROOT%
-echo [DEBUG] APP_DIR=%APP_DIR%
+set SCRIPT_DIR=%~dp0
+set PROJECT_ROOT=%SCRIPT_DIR%..
+set APP_DIR=%PROJECT_ROOT%\app
 
 if not exist "%APP_DIR%" (
     echo [ERROR] App directory not found at %APP_DIR%
