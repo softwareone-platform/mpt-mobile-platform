@@ -807,8 +807,11 @@ All items should show `[OK]` in green. Example:
 ### 7.2 Run Comprehensive Environment Validation
 
 ```powershell
-# Alternative: batch file version
-cmd /c "scripts\windows\setup-android-env.bat"
+# PowerShell version
+.\scripts\windows\setup-test-env.ps1
+
+# Or batch file version
+scripts\windows\setup-test-env.bat
 ```
 
 **Expected Output Checklist:**
@@ -973,7 +976,7 @@ scripts\windows\run-local-test-android.bat --start-emulator Pixel_8_API_34
 
 | Task | PowerShell Command | Batch Command |
 |------|-------------------|---------------|
-| Check environment | `.\scripts\windows\setup-test-env.ps1` | `scripts\windows\setup-android-env.bat` |
+| Check environment | `.\scripts\windows\setup-test-env.ps1` | `scripts\windows\setup-test-env.bat` |
 | List devices | `adb devices` | `adb devices` |
 | List emulators | `.\scripts\windows\run-local-test-android.ps1 -ListEmulators` | `scripts\windows\run-local-test-android.bat --list-emulators` |
 | Start emulator | `.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_34"` | `scripts\windows\run-local-test-android.bat --start-emulator Pixel_8_API_34` |
@@ -1348,7 +1351,7 @@ if ($failedCount -eq 0) {
 - [ ] vsts-npm-auth configured (for @swo packages)
 - [ ] Project dependencies installed (`npm install` in app folder)
 - [ ] `.env` file configured with Auth0 credentials
-- [ ] Environment check passes: `scripts\windows\setup-android-env.bat`
+- [ ] Environment check passes: `scripts\windows\setup-test-env.bat`
 
 ---
 
@@ -1389,8 +1392,9 @@ if ($failedCount -eq 0) {
 
 ## Need Help?
 
-- Run `scripts\windows\setup-android-env.bat` to diagnose issues
+- Run `scripts\windows\setup-test-env.bat` to setup environment and load .env
 - Run `.\scripts\windows\setup-test-env.ps1` to verify environment variables
+- Run `.\scripts\windows\setup-test-env.ps1 -ListEmulators` to see available emulators
 - Check [APPIUM_ANDROID_TESTING_WINDOWS.md](../APPIUM_ANDROID_TESTING_WINDOWS.md) for detailed testing guide
 - Check [LOCAL_BUILD_ANDROID.md](../LOCAL_BUILD_ANDROID.md) for build instructions
 

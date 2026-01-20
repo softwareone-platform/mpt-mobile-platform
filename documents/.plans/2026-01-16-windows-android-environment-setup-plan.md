@@ -16,18 +16,17 @@ This plan outlines the steps to check and install all prerequisites needed for A
 
 ### 1.1 Run Existing Environment Check Script
 
-First, run the built-in environment check to see what's already installed:
+First, run the environment setup script to configure and check what's installed:
 
 ```batch
 cd c:\work\mpt-mobile-platform
-scripts\windows\setup-android-env.bat
+scripts\windows\setup-test-env.bat
 ```
 
-This script will check:
-- [ ] Java 17 installation
-- [ ] JAVA_HOME environment variable
-- [ ] Android SDK (ANDROID_HOME)
-- [ ] ADB (Android Debug Bridge)
+This script will:
+- Load environment variables from .env file
+- Configure platform-specific settings
+- Detect connected devices
 - [ ] Node.js
 - [ ] Appium with UiAutomator2 driver
 
@@ -220,8 +219,8 @@ emulator -avd Pixel_8_API_34
 ```batch
 cd c:\work\mpt-mobile-platform
 
-REM Using the Windows deployment script
-scripts\windows\deploy-android.bat
+REM Build and deploy using the test script
+scripts\windows\run-local-test-android.bat --build welcome
 ```
 
 Or manually:
@@ -252,10 +251,10 @@ scripts\windows\run-local-test-android.bat --build welcome
 Run the setup script one more time to confirm everything is configured:
 
 ```batch
-scripts\windows\setup-android-env.bat
+scripts\windows\setup-test-env.bat
 ```
 
-All items should show **[OK]**.
+Environment should be loaded and device detected.
 
 ---
 
@@ -263,11 +262,11 @@ All items should show **[OK]**.
 
 | Task | Command |
 |------|---------|
-| Check environment | `scripts\windows\setup-android-env.bat` |
+| Setup environment | `scripts\windows\setup-test-env.bat` |
 | List connected devices | `adb devices` |
-| List emulators | `emulator -list-avds` |
-| Start emulator | `emulator -avd Pixel_8_API_34` |
-| Deploy app | `scripts\windows\deploy-android.bat` |
+| List emulators | `scripts\windows\setup-test-env.bat --list-emulators` |
+| Start emulator | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34` |
+| Build and test | `scripts\windows\run-local-test-android.bat --build welcome` |
 | Run tests | `scripts\windows\run-local-test-android.bat welcome` |
 | Run all tests | `scripts\windows\run-local-test-android.bat all` |
 | Install Appium | `npm install -g appium@3.1.1` |
