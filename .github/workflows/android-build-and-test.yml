@@ -33,6 +33,27 @@ on:
         required: false
         type: string
         default: 'pixel_6'
+      test-suite:
+        description: 'Test suite to run'
+        required: false
+        type: choice
+        options:
+          - welcome
+          - home
+          - navigation
+          - failing
+          - all
+        default: 'welcome'
+      test-spec:
+        description: 'Specific test file to run (overrides test-suite)'
+        required: false
+        type: string
+        default: ''
+      artifact-url:
+        description: 'URL to pre-built app artifact (skips build if provided)'
+        required: false
+        type: string
+        default: ''
 
   # Reusable workflow (called from other workflows)
   workflow_call:
@@ -57,6 +78,21 @@ on:
         required: false
         type: string
         default: 'pixel_6'
+      test-suite:
+        description: 'Test suite to run'
+        required: false
+        type: string
+        default: 'welcome'
+      test-spec:
+        description: 'Specific test file to run (overrides test-suite)'
+        required: false
+        type: string
+        default: ''
+      artifact-url:
+        description: 'URL to pre-built app artifact (skips build if provided)'
+        required: false
+        type: string
+        default: ''
 
 env:
   BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
@@ -66,6 +102,8 @@ env:
 jobs:
   build-android:
     name: Build Android App
+    # Skip build if artifact-url is provided
+    if: ${{ inputs.artifact-url == '' && github.event.inputs.artifact-url == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -341,6 +379,37 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
+      - name: Generate artifact download URL
+        id: artifact-url
+        run: |
+          ARTIFACT_NAME="${{ steps.artifact-info.outputs.artifact_name }}"
+          
+          # Create download URL that can be used in other workflows
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          # Also create a direct API URL for programmatic access
+          API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          echo "download_url=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          
+          echo "## 📦 Artifact Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact Name:** \`$ARTIFACT_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Download URL:** [$DOWNLOAD_URL]($DOWNLOAD_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "**API URL:** \`$API_URL\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Use in Other Workflows:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
+          echo "- name: Download Build Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "  uses: actions/download-artifact@v4" >> $GITHUB_STEP_SUMMARY
+          echo "  with:" >> $GITHUB_STEP_SUMMARY
+          echo "    name: $ARTIFACT_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "    github-token: \${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_STEP_SUMMARY
+          echo "    repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "    run-id: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
       - name: Create downloadable release asset
         if: github.event_name != 'pull_request'
         id: create-release
@@ -360,10 +429,21 @@ jobs:
             --prerelease \
             "$APK_PATH#Android-APK-${{ env.BUILD_MODE }}.apk"
           
-          echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          # Get the release asset download URL
+          ASSET_URL=$(gh release view "$TAG_NAME" --json assets --jq '.assets[0].url')
           
-          echo "## 📦 Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "asset_url=$ASSET_URL" >> $GITHUB_OUTPUT
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Release Asset Created:" >> $GITHUB_STEP_SUMMARY
           echo "**Release Tag:** \`$TAG_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Asset URL:** [$ASSET_URL]($ASSET_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Copy-Paste for Local Testing:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "./scripts/run-local-test.sh --platform android --build-from-artifact $ASSET_URL welcome" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -390,6 +470,8 @@ jobs:
   install-and-test-android:
     name: Install and Test Android App
     needs: build-android
+    # Always run, but handle skipped build job
+    if: ${{ always() && (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment || 'test' }}
@@ -398,12 +480,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Download from artifact URL if provided (skips build scenario)
+      - name: Download from artifact URL
+        if: ${{ inputs.artifact-url != '' || github.event.inputs.artifact-url != '' }}
+        run: |
+          ARTIFACT_URL="${{ inputs.artifact-url || github.event.inputs.artifact-url }}"
+          echo "📥 Downloading pre-built artifact from URL..."
+          echo "   URL: $ARTIFACT_URL"
+          mkdir -p ./downloaded-apk
+          
+          # Check if it's a direct APK or a zip
+          if [[ "$ARTIFACT_URL" == *.apk ]]; then
+            curl -L -f -o ./downloaded-apk/app.apk "$ARTIFACT_URL"
+          else
+            curl -L -f -o ./downloaded-apk/app.zip "$ARTIFACT_URL"
+            unzip -q ./downloaded-apk/app.zip -d ./downloaded-apk/
+          fi
+          echo "✅ Artifact downloaded successfully"
+          ls -la ./downloaded-apk/
+
       # Install phase using composite action
       - name: Install Android App
         id: install-android
         uses: ./.github/actions/android-install
         with:
-          artifact_name: ${{ needs.build-android.outputs.artifact_name }}
+          artifact_name: ${{ needs.build-android.outputs.artifact_name || '' }}
           api_level: ${{ env.API_LEVEL }}
           device_profile: ${{ env.DEVICE_PROFILE }}
 
@@ -422,6 +523,9 @@ jobs:
           airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
           airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
           airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
+          # Test selection
+          test_suite: ${{ inputs.test-suite || github.event.inputs.test-suite || 'welcome' }}
+          test_spec: ${{ inputs.test-spec || github.event.inputs.test-spec || '' }}
           # ReportPortal configuration (optional)
           report_portal_api_key: ${{ secrets.REPORT_PORTAL_API_KEY || '' }}
           report_portal_endpoint: ${{ vars.REPORT_PORTAL_ENDPOINT }}
