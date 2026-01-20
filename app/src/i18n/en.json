@@ -1,7 +1,9 @@
 {
   "common": {
     "message": {
-      "noDataAvailable": "No data available"
+      "noDataAvailable": "No data available",
+      "errorGettingDataTitle": "There was an error retrieving the data",
+      "errorGettingDataDescription": "Try to refresh the data or change your filters"
     },
     "action": {
       "signOut": "Sign out"
@@ -191,9 +193,10 @@
   },
   "creditMemosScreen": {
     "emptyStateTitle": "No credit memos",
-    "emptyStateDescription": "No credit memos found.",
-    "errorTitle": "There was an error retrieving the data",
-    "errorDescription": "Try to refresh the data or change your filters"
+    "emptyStateDescription": "No credit memos found."
+  },
+  "creditMemoDetailsScreen": {
+    "title": "Credit Memo"
   },
   "usersScreen": {
     "emptyStateTitle": "No users",

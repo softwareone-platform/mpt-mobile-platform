@@ -3,13 +3,13 @@ import { FlatList, ActivityIndicator } from 'react-native';
 import ListItemWithStatus from '@/components/list-item/ListItemWithStatus';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { screenStyle } from '@/styles';
-import type { ListItemConfig } from '@/types/lists';
+import type { ListItemConfig, ListItemWithStatusProps } from '@/types/lists';
 import { mapToListItemProps } from '@/utils/list';
 
 type ListViewProps<T extends object> = {
   data: T[];
   config: ListItemConfig;
-  onItemPress?: (item: T) => void;
+  onItemPress?: (item: ListItemWithStatusProps) => void;
 
   isFetchingNext?: boolean;
   hasMore?: boolean;
@@ -35,12 +35,14 @@ export function ListView<T extends object>({
         const isFirst = index === 0;
         const isLast = index === data.length - 1;
 
+        const mapped = mapToListItemProps(item as Record<string, unknown>, config);
+
         return (
           <ListItemWithStatus
-            {...mapToListItemProps(item as Record<string, unknown>, config)}
+            {...mapped}
             isFirst={isFirst}
             isLast={isLast}
-            onPress={() => onItemPress?.(item)}
+            onPress={() => onItemPress?.(mapped)}
           />
         );
       }}

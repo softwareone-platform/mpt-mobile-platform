@@ -1,4 +1,7 @@
 import type { NavigationProp, RouteProp } from '@react-navigation/native';
+import { ComponentType } from 'react';
+
+import { ListItemWithStatusProps } from './lists';
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -18,12 +21,19 @@ export type TabParamList = {
   agreements: undefined;
   invoices: undefined;
   creditMemos: undefined;
+  creditMemoDetails: {
+    headerProps: ListItemWithStatusProps;
+  };
   statements: undefined;
   users: undefined;
   more: undefined;
   moreMenu: undefined;
   ProfileRoot: undefined;
 };
+
+export type MenuRouteName = {
+  [K in keyof TabParamList]: TabParamList[K] extends undefined ? K : never;
+}[keyof TabParamList];
 
 export type ScreenComponent<
   ParamList extends Record<string, object | undefined>,
@@ -36,7 +46,8 @@ export type ScreenComponent<
 export type TabItem<RouteName extends keyof TabParamList = keyof TabParamList> = {
   name: RouteName;
   icon: string;
-  component?: ScreenComponent<TabParamList, RouteName>;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  component?: ComponentType<any>;
 };
 
 export type ProfileStackParamList = {

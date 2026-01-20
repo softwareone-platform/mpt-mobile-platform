@@ -55,8 +55,8 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
             size: 48,
             color: Color.brand.primary,
           }}
-          title={errorTitle || t('creditMemosScreen.errorTitle')}
-          description={errorDescription || t('creditMemosScreen.errorDescription')}
+          title={errorTitle || t('common.message.errorGettingDataTitle')}
+          description={errorDescription || t('common.message.errorGettingDataDescription')}
         />
       </View>
     );
