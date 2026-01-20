@@ -97,6 +97,11 @@ export const TestIDs = {
   ORDERS_LOADING_INDICATOR: 'orders-loading-indicator',
   ORDERS_ERROR_STATE: 'orders-error-state',
   ORDERS_EMPTY_STATE: 'orders-empty-state',
+
+  // Subscriptions Screen
+  SUBSCRIPTIONS_LOADING_INDICATOR: 'subscriptions-loading-indicator',
+  SUBSCRIPTIONS_ERROR_STATE: 'subscriptions-error-state',
+  SUBSCRIPTIONS_EMPTY_STATE: 'subscriptions-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;
