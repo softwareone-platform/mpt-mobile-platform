@@ -1,0 +1,14 @@
+{
+  "message": {
+    "noDataAvailable": "No data available",
+    "errorGettingDataTitle": "There was an error retrieving the data",
+    "errorGettingDataDescription": "Try to refresh the data or change your filters"
+  },
+  "action": {
+    "signOut": "Sign out"
+  },
+  "legal": {
+    "termsOfUse": "Terms of use",
+    "privacyPolicy": "Privacy policy"
+  }
+}

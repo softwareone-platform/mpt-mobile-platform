@@ -1,0 +1,44 @@
+{
+  "profileScreen": {
+    "yourProfile": "Your Profile",
+    "switchAccount": "Switch Account",
+    "tabs": {
+      "all": "All accounts",
+      "favourites": "Favorites",
+      "recent": "Recents"
+    },
+    "accountsEmptyState": {
+      "all": {
+        "title": "No accounts",
+        "description": "You don't have access to any accounts."
+      },
+      "favourites": {
+        "title": "No favourites",
+        "description": "You don't have any favorites right now."
+      },
+      "recent": {
+        "title": "No recent accounts",
+        "description": "You haven't accessed any accounts recently."
+      }
+    }
+  },
+  "userSettingsScreen": {
+    "userDetails": "User Details",
+    "communication": "Communication",
+    "personalInformation": "Personal Information",
+    "regionalSettings": "Regional Settings",
+    "security": "Security",
+    "notificationSettings": "Notification Settings",
+    "emailSettings": "Email Settings"
+  },
+  "personalInformationScreen": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "E-mail",
+    "phone": "Phone number"
+  },
+  "usersScreen": {
+    "emptyStateTitle": "No users",
+    "emptyStateDescription": "No users found."
+  }
+}
