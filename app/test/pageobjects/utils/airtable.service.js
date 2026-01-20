@@ -1,9 +1,9 @@
 /**
  * Airtable Service - Utility for fetching OTP codes from Airtable
- * 
+ *
  * Usage:
  *   node airtable.service.js
- * 
+ *
  * Set environment variables:
  *   AIRTABLE_API_TOKEN - Your Airtable Personal Access Token
  *   AIRTABLE_BASE_ID - The Base ID (starts with 'app')
@@ -46,21 +46,21 @@ function airtableRequest(endpoint) {
             }
         };
 
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(JSON.parse(data));
-                } else {
-                    reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
-                }
-            });
-        });
-
-        req.on('error', reject);
-        req.end();
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(JSON.parse(data));
+        } else {
+          reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
+        }
+      });
     });
+
+    req.on('error', reject);
+    req.end();
+  });
 }
 
 /**
@@ -86,22 +86,22 @@ function updateRecord(recordId, fields) {
             }
         };
 
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(JSON.parse(data));
-                } else {
-                    reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
-                }
-            });
-        });
-
-        req.on('error', reject);
-        req.write(postData);
-        req.end();
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(JSON.parse(data));
+        } else {
+          reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
+        }
+      });
     });
+
+    req.on('error', reject);
+    req.write(postData);
+    req.end();
+  });
 }
 
 /**
@@ -110,15 +110,15 @@ function updateRecord(recordId, fields) {
  * @returns {Promise<object>} - Updated record
  */
 async function markAsProcessed(recordId) {
-    console.log(`  Marking record ${recordId} as Processed...`);
-    try {
-        const result = await updateRecord(recordId, { Status: 'Processed' });
-        console.log(`  ✓ Record marked as Processed`);
-        return result;
-    } catch (error) {
-        console.error(`  ⚠ Failed to mark as Processed: ${error.message}`);
-        throw error;
-    }
+  console.info(`  Marking record ${recordId} as Processed...`);
+  try {
+    const result = await updateRecord(recordId, { Status: 'Processed' });
+    console.info(`  ✓ Record marked as Processed`);
+    return result;
+  } catch (error) {
+    console.error(`  ⚠ Failed to mark as Processed: ${error.message}`);
+    throw error;
+  }
 }
 
 /**
@@ -127,8 +127,8 @@ async function markAsProcessed(recordId) {
  * @returns {string|null} - The 6-digit OTP code or null if not found
  */
 function extractOTPFromBody(bodyText) {
-    const match = bodyText.match(/verification code is:\s*(\d{6})/i);
-    return match ? match[1] : null;
+  const match = bodyText.match(/verification code is:\s*(\d{6})/i);
+  return match ? match[1] : null;
 }
 
 /**
@@ -241,9 +241,9 @@ async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, after
 }
 
 module.exports = {
-    fetchOTPByEmail,
-    waitForOTP,
-    extractOTPFromBody,
-    markAsProcessed,
-    updateRecord
+  fetchOTPByEmail,
+  waitForOTP,
+  extractOTPFromBody,
+  markAsProcessed,
+  updateRecord,
 };

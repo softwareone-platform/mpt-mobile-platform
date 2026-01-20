@@ -20,6 +20,15 @@ if (fs.existsSync(envPath)) {
 
 const SCREENSHOT_FOLDER = '../screenshots';
 
+// Generate timestamped log directory for this test run
+const getLogDir = () => {
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const platform = (process.env.PLATFORM_NAME || 'iOS').toLowerCase();
+    return path.join('test-results', 'logs', `${platform}-${timestamp}`);
+};
+const LOG_OUTPUT_DIR = getLogDir();
+
 // Platform detection helpers
 const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
 
@@ -69,6 +78,12 @@ exports.config = {
     runner: 'local',
     hostname: process.env.APPIUM_HOST || 'localhost',
     port: parseInt(process.env.APPIUM_PORT, 10) || 4723,
+    //
+    // ===================
+    // Log Output Directory
+    // ===================
+    // Directory to store all logs from the test run (timestamped per run)
+    outputDir: LOG_OUTPUT_DIR,
     //
     // ==================
     // Specify Test Files
@@ -130,9 +145,10 @@ exports.config = {
     // Define all options that are relevant for the WebdriverIO instance here
     //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
-    logLevel: 'info',
+    logLevel: 'warn',
     //
     // Set specific log levels per logger
+    // Silence verbose webdriver/appium logs while keeping test framework output
     // loggers:
     // - webdriver, webdriverio
     // - @wdio/browserstack-service, @wdio/lighthouse-service, @wdio/sauce-service
@@ -141,6 +157,13 @@ exports.config = {
     // - @wdio/sumologic-reporter
     // - @wdio/cli, @wdio/config, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
+    logLevels: {
+        webdriver: 'warn',
+        webdriverio: 'warn',
+        '@wdio/local-runner': 'info',
+        '@wdio/mocha-framework': 'info',
+        '@wdio/cli': 'info',
+    },
     // logLevels: {
     //     webdriver: 'info',
     //     '@wdio/appium-service': 'info'
@@ -292,7 +315,7 @@ exports.config = {
      * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
-    onPrepare: function () {
+    onPrepare: function (config, capabilities) {
         const path = require('path');
         const screenshotDir = path.resolve(__dirname, SCREENSHOT_FOLDER);
         
@@ -302,6 +325,51 @@ exports.config = {
         } else {
             console.log(`Screenshot directory ready: ${screenshotDir}`);
         }
+
+        // Log test execution configuration
+        const platform = (process.env.PLATFORM_NAME || 'iOS').toUpperCase();
+        const specs = config.specs || [];
+        const suites = config.suites || {};
+        
+        // Detect if running specific suite or spec from command line
+        const cliArgs = process.argv.join(' ');
+        const suiteMatch = cliArgs.match(/--suite\s+(\S+)/);
+        const specMatch = cliArgs.match(/--spec\s+(\S+)/);
+        
+        console.log('');
+        console.log('╔══════════════════════════════════════════════════════════════════╗');
+        console.log('║                    🧪 TEST EXECUTION CONFIGURATION               ║');
+        console.log('╠══════════════════════════════════════════════════════════════════╣');
+        console.log(`║  Platform:   ${platform.padEnd(52)}║`);
+        
+        if (specMatch) {
+            // Running specific spec file
+            const specFile = specMatch[1];
+            console.log(`║  Mode:       Specific Test File                                  ║`);
+            console.log(`║  Test File:  ${specFile.padEnd(52)}║`);
+        } else if (suiteMatch) {
+            // Running specific suite
+            const suiteName = suiteMatch[1];
+            const suiteSpecs = suites[suiteName] || [];
+            console.log(`║  Mode:       Test Suite                                          ║`);
+            console.log(`║  Suite:      ${suiteName.padEnd(52)}║`);
+            if (suiteSpecs.length > 0) {
+                console.log(`║  Files:      ${suiteSpecs.length} spec file(s)                                      ║`);
+                suiteSpecs.forEach((spec, i) => {
+                    const shortSpec = spec.replace('./test/specs/', '');
+                    console.log(`║              ${(i + 1) + '. ' + shortSpec.padEnd(50)}║`);
+                });
+            }
+        } else {
+            // Running all specs
+            console.log(`║  Mode:       All Test Specs                                      ║`);
+            console.log(`║  Specs:      ${specs.length} spec pattern(s) configured                       ║`);
+        }
+        
+        console.log('╠══════════════════════════════════════════════════════════════════╣');
+        console.log(`║  Log Dir:    ${LOG_OUTPUT_DIR.padEnd(52)}║`);
+        console.log('╚══════════════════════════════════════════════════════════════════╝');
+        console.log('');
     },
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
@@ -340,8 +408,15 @@ exports.config = {
      * @param {Array.<String>} specs        List of spec file paths that are to be run
      * @param {object}         browser      instance of created browser/device session
      */
-    // before: function () {
-    // },
+    before: function (capabilities, specs) {
+        // Log spec file being executed
+        const specFile = specs && specs.length > 0 ? specs[0] : 'unknown';
+        const shortSpec = specFile.replace(/.*\/test\/specs\//, '');
+        console.log('');
+        console.log('┌──────────────────────────────────────────────────────────────────┐');
+        console.log(`│  📄 SPEC FILE: ${shortSpec.padEnd(50)}│`);
+        console.log('└──────────────────────────────────────────────────────────────────┘');
+    },
     /**
      * Runs before a WebdriverIO command gets executed.
      * @param {string} commandName hook command name
@@ -353,13 +428,19 @@ exports.config = {
      * Hook that gets executed before the suite starts
      * @param {object} suite suite details
      */
-    // beforeSuite: function (suite) {
-    // },
+    beforeSuite: function (suite) {
+        // Log suite (describe block) being executed
+        console.log('');
+        console.log(`  📦 SUITE: ${suite.title}`);
+        console.log('  ' + '─'.repeat(60));
+    },
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
-    // beforeTest: function (test, context) {
-    // },
+    beforeTest: function (test, context) {
+        // Log individual test (it block) being executed
+        console.log(`    🧪 TEST: ${test.title}`);
+    },
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha)
@@ -386,7 +467,12 @@ exports.config = {
      * @param {boolean} result.passed    true if test has passed, otherwise false
      * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    afterTest: async function(test, context, { passed }) {
+    afterTest: async function(test, context, { passed, duration }) {
+        // Log test result
+        const status = passed ? '✅ PASS' : '❌ FAIL';
+        const durationStr = duration ? ` (${(duration / 1000).toFixed(2)}s)` : '';
+        console.log(`       ${status}${durationStr}`);
+        
         if (!passed) {
             await this.captureFailureScreenshot(test);
         }

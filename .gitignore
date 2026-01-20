@@ -114,3 +114,5 @@ android/
 
 # Local planning documents (not for repository)
 documents/.plans/
+app/.editorconfig
+.gitattributes
