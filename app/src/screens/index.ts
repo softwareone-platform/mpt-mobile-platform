@@ -1,10 +1,9 @@
-export { default as SpotlightScreen } from './spotlight/SpotlightScreen';
-export { default as OrdersScreen } from './orders/OrdersScreen';
-export { default as SubscriptionsScreen } from './subscriptions/SubscriptionsScreen';
-export { default as AgreementsScreen } from './agreements/AgreementsScreen';
-export { default as InvoicesScreen } from './invoices/InvoicesScreen';
-export { default as CreditMemosScreen } from './credit-memos/CreditMemosScreen';
-export { default as StatementsScreen } from './statements/StatementsScreen';
-export { default as UsersScreen } from './users/UsersScreen';
+// Re-export screens from modules for backward compatibility
+export { SpotlightScreen } from '@/modules/home';
+export { OrdersScreen, SubscriptionsScreen, AgreementsScreen } from '@/modules/marketplace';
+export { CreditMemosScreen, InvoicesScreen, StatementsScreen } from '@/modules/billing';
+export { UsersScreen } from '@/modules/settings';
+
+// Auth and Loading screens (not part of domain modules)
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

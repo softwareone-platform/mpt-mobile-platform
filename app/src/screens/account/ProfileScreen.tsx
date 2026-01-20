@@ -9,7 +9,7 @@ import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import Tabs, { TabData } from '@/components/tabs/Tabs';
 import { isFeatureEnabled } from '@/config/feature-flags/featureFlags';
-import { useAccount } from '@/context/AccountContext';
+import { useAccount } from '@/modules/home';
 import { cardStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
 import { FormattedUserAccounts } from '@/types/api';
 import type { ProfileStackParamList } from '@/types/navigation';

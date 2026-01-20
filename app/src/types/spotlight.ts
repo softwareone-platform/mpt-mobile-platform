@@ -1,24 +1,7 @@
-export type SpotlightTemplateName =
-  | 'savedOrdersClient'
-  | 'queryingOrders'
-  | 'processingOrders'
-  | 'savedOrdersOperations'
-  | 'longRunningOrders'
-  | 'renewingSubscriptions'
-  | 'expiringSubscriptions'
-  | 'pendingInvites'
-  | 'pendingInvitesOfMyClients'
-  | 'expiredInvites'
-  | 'expiredInvitesOfMyClients'
-  | 'mismatchingBuyersClient'
-  | 'mismatchingBuyersOfMyClients'
-  | 'buyersWithBlockedSellerConnectionsOfMyClients'
-  | 'expiringSubscriptionsOfMyClients'
-  | 'unpaidInvoices'
-  | 'invoicesPastDue'
-  | 'unpaidInvoicesOfMyClients'
-  | 'invoicesPastDueOfMyClients'
-  | 'queryingEnrollments'
-  | 'processingEnrollments'
-  | 'longRunningEnrollmentsOfMyClients'
-  | 'inProgressJournals';
+// Re-export spotlight types from home module for backward compatibility
+export type {
+  SpotlightItem,
+  SpotlightTopItem,
+  SpotlightData,
+  SpotlightTemplateName,
+} from '@/modules/home';

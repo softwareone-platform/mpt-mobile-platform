@@ -4,7 +4,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
 import Avatar from '@/components/avatar/Avatar';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
-import { useAccount } from '@/context/AccountContext';
+import { useAccount } from '@/modules/home';
 import { avatarStyle } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';

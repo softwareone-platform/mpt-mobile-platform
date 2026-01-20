@@ -4,7 +4,7 @@ import { View, ScrollView, Text, StyleSheet, ActivityIndicator } from 'react-nat
 import AccountSummary from '@/components/account-summary/AccountSummary';
 import EmptyState from '@/components/common/EmptyState';
 import NavigationItemWithText from '@/components/navigation-item/NavigationItemWithText';
-import { useAccount } from '@/context/AccountContext';
+import { useAccount } from '@/modules/home';
 import { cardStyle, screenStyle, Spacing } from '@/styles';
 import { Color } from '@/styles/tokens';
 import { formatPhoneNumber } from '@/utils/formatting';

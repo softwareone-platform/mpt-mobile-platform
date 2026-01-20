@@ -10,7 +10,7 @@ import AccountToolbarButton from './AccountToolbarButton';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { useNavigationData } from '@/context/NavigationContext';
-import CreditMemoDetailsScreen from '@/screens/credit-memos/CreditMemoDetailsScreen';
+import { CreditMemoDetailsScreen } from '@/modules/billing';
 import { Color, navigationStyle } from '@/styles';
 import { TabParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';

@@ -1,16 +1,10 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
-import {
-  SpotlightScreen,
-  OrdersScreen,
-  SubscriptionsScreen,
-  AgreementsScreen,
-  InvoicesScreen,
-  CreditMemosScreen,
-  StatementsScreen,
-  UsersScreen,
-} from '@/screens';
+import { SpotlightScreen } from '@/modules/home';
+import { OrdersScreen, SubscriptionsScreen, AgreementsScreen } from '@/modules/marketplace';
+import { InvoicesScreen, CreditMemosScreen, StatementsScreen } from '@/modules/billing';
+import { UsersScreen } from '@/modules/settings';
 import type { TabItem, MenuRouteName } from '@/types/navigation';
 
 type NavigationDataContextType = {

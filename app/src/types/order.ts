@@ -1,13 +1,2 @@
-export interface Order {
-  id: string;
-  status: string;
-
-  audit?: {
-    created?: {
-      at?: string;
-    };
-    updated?: {
-      at?: string;
-    };
-  };
-}
+// Re-export order types from marketplace module for backward compatibility
+export type { Order } from '@/modules/marketplace';
