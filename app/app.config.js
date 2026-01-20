@@ -21,6 +21,7 @@ export default {
           customScheme: AUTH0_SCHEME,
         },
       ],
+      './plugins/withNetworkSecurityConfig',
     ],
     splash: {
       image: './assets/splash-icon.png',
