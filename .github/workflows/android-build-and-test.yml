@@ -480,31 +480,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Download from artifact URL if provided (skips build scenario)
-      - name: Download from artifact URL
-        if: ${{ inputs.artifact-url != '' || github.event.inputs.artifact-url != '' }}
-        run: |
-          ARTIFACT_URL="${{ inputs.artifact-url || github.event.inputs.artifact-url }}"
-          echo "📥 Downloading pre-built artifact from URL..."
-          echo "   URL: $ARTIFACT_URL"
-          mkdir -p ./downloaded-apk
-          
-          # Check if it's a direct APK or a zip
-          if [[ "$ARTIFACT_URL" == *.apk ]]; then
-            curl -L -f -o ./downloaded-apk/app.apk "$ARTIFACT_URL"
-          else
-            curl -L -f -o ./downloaded-apk/app.zip "$ARTIFACT_URL"
-            unzip -q ./downloaded-apk/app.zip -d ./downloaded-apk/
-          fi
-          echo "✅ Artifact downloaded successfully"
-          ls -la ./downloaded-apk/
-
       # Install phase using composite action
       - name: Install Android App
         id: install-android
         uses: ./.github/actions/android-install
         with:
           artifact_name: ${{ needs.build-android.outputs.artifact_name || '' }}
+          download_url: ${{ inputs.artifact-url || github.event.inputs.artifact-url || '' }}
           api_level: ${{ env.API_LEVEL }}
           device_profile: ${{ env.DEVICE_PROFILE }}
 

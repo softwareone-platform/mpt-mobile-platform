@@ -478,18 +478,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Download from artifact URL if provided (skips build scenario)
-      - name: Download from artifact URL
-        if: ${{ inputs.artifact-url != '' || github.event.inputs.artifact-url != '' }}
-        run: |
-          ARTIFACT_URL="${{ inputs.artifact-url || github.event.inputs.artifact-url }}"
-          echo "📥 Downloading pre-built artifact from URL..."
-          echo "   URL: $ARTIFACT_URL"
-          mkdir -p ./downloaded-app
-          curl -L -f -o ./downloaded-app/app_bundle.zip "$ARTIFACT_URL"
-          echo "✅ Artifact downloaded successfully"
-          ls -la ./downloaded-app/
         
       # Install phase using composite action template
       - name: Install iOS App
@@ -497,7 +485,7 @@ jobs:
         uses: ./.github/actions/ios-install
         with:
           artifact_name: ${{ needs.build-ios.outputs.artifact_name || '' }}
-          download_url: ${{ (inputs.artifact-url != '' || github.event.inputs.artifact-url != '') && '' || '' }}
+          download_url: ${{ inputs.artifact-url || github.event.inputs.artifact-url || '' }}
           ios_version: ${{ inputs.platform-version || github.event.inputs.platform-version || '26.0' }}
           device_name: ${{ inputs.device-name || github.event.inputs.device-name || 'iPhone 16' }}
           
