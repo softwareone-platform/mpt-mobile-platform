@@ -1,0 +1,10 @@
+{
+  "ordersScreen": {
+    "emptyStateTitle": "No orders",
+    "emptyStateDescription": "No orders found."
+  },
+  "subscriptionsScreen": {
+    "emptyStateTitle": "No subscriptions",
+    "emptyStateDescription": "No subscriptions found."
+  }
+}

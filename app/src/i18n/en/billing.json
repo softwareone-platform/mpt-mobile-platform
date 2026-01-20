@@ -1,0 +1,9 @@
+{
+  "creditMemosScreen": {
+    "emptyStateTitle": "No credit memos",
+    "emptyStateDescription": "No credit memos found."
+  },
+  "creditMemoDetailsScreen": {
+    "title": "Credit Memo"
+  }
+}

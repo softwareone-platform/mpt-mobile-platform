@@ -1,0 +1,18 @@
+{
+  "moreMenuTitle": "More",
+  "headerBackTitle": "Back",
+  "profile": "Profile",
+  "userSettings": "User Settings",
+  "personalInformation": "Personal Information",
+  "tabs": {
+    "spotlight": "Spotlight",
+    "orders": "Orders",
+    "subscriptions": "Subscriptions",
+    "more": "More",
+    "agreements": "Agreements",
+    "creditMemos": "Credit Memos",
+    "invoices": "Invoices",
+    "statements": "Statements",
+    "users": "Users"
+  }
+}
