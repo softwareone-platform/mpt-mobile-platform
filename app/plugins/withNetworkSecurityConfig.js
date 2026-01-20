@@ -1,6 +1,7 @@
-const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
+
+const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 
 const NETWORK_SECURITY_CONFIG = `<?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
@@ -40,7 +41,7 @@ function withNetworkSecurityConfigFile(config) {
         'src',
         'main',
         'res',
-        'xml'
+        'xml',
       );
 
       // Create xml directory if it doesn't exist
