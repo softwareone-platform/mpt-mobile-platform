@@ -106,4 +106,27 @@ export const listItemStyle = {
       borderBottomRightRadius: BorderRadius.xl,
     },
   },
+  detailsHeaderContainer: {
+    backgroundColor: Color.brand.white,
+    paddingHorizontal: Spacing.spacing2,
+    paddingBottom: Spacing.spacing2,
+    flexDirection: 'column',
+    borderBottomWidth: 1,
+    borderBottomColor: separatorStyle.nonOpaque.borderColor,
+  },
+  detailsHeaderTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
+  detailsHeaderTitle: {
+    fontSize: Typography.fontSize.font5,
+    color: Color.labels.primary,
+  },
+  detailsHeaderSubtitle: {
+    fontSize: Typography.fontSize.font2,
+    marginTop: Spacing.spacing1,
+    color: Color.gray.gray4,
+  },
 } as const;

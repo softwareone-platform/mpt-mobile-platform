@@ -11,25 +11,25 @@ import {
   StatementsScreen,
   UsersScreen,
 } from '@/screens';
-import type { TabItem, TabParamList } from '@/types/navigation';
+import type { TabItem, MenuRouteName } from '@/types/navigation';
 
 type NavigationDataContextType = {
-  mainTabsData: TabItem<keyof TabParamList>[];
-  secondaryTabsData: TabItem<keyof TabParamList>[];
-  setMainTabsData: React.Dispatch<React.SetStateAction<TabItem<keyof TabParamList>[]>>;
-  setSecondaryTabsData: React.Dispatch<React.SetStateAction<TabItem<keyof TabParamList>[]>>;
+  mainTabsData: TabItem<MenuRouteName>[];
+  secondaryTabsData: TabItem<MenuRouteName>[];
+  setMainTabsData: React.Dispatch<React.SetStateAction<TabItem<MenuRouteName>[]>>;
+  setSecondaryTabsData: React.Dispatch<React.SetStateAction<TabItem<MenuRouteName>[]>>;
 };
 
 const NavigationDataContext = createContext<NavigationDataContextType | undefined>(undefined);
 
-const DEFAULT_MAIN_TABS: TabItem<keyof TabParamList>[] = [
+const DEFAULT_MAIN_TABS: TabItem<MenuRouteName>[] = [
   { name: 'spotlight', icon: 'flare', component: SpotlightScreen },
   { name: 'orders', icon: 'shopping-basket', component: OrdersScreen },
   { name: 'subscriptions', icon: 'sell', component: SubscriptionsScreen },
   { name: 'more', icon: 'more-horiz' },
 ];
 
-const DEFAULT_SECONDARY_TABS: TabItem<keyof TabParamList>[] = [
+const DEFAULT_SECONDARY_TABS: TabItem<MenuRouteName>[] = [
   { name: 'agreements', icon: 'assignment', component: AgreementsScreen },
   { name: 'creditMemos', icon: 'description', component: CreditMemosScreen },
   { name: 'invoices', icon: 'receipt-long', component: InvoicesScreen },
@@ -38,10 +38,9 @@ const DEFAULT_SECONDARY_TABS: TabItem<keyof TabParamList>[] = [
 ];
 
 export const NavigationDataProvider = ({ children }: { children: ReactNode }) => {
-  const [mainTabsData, setMainTabsData] =
-    useState<TabItem<keyof TabParamList>[]>(DEFAULT_MAIN_TABS);
+  const [mainTabsData, setMainTabsData] = useState<TabItem<MenuRouteName>[]>(DEFAULT_MAIN_TABS);
   const [secondaryTabsData, setSecondaryTabsData] =
-    useState<TabItem<keyof TabParamList>[]>(DEFAULT_SECONDARY_TABS);
+    useState<TabItem<MenuRouteName>[]>(DEFAULT_SECONDARY_TABS);
 
   return (
     <NavigationDataContext.Provider

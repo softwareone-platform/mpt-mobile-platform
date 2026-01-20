@@ -10,6 +10,7 @@ import AccountToolbarButton from './AccountToolbarButton';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { useNavigationData } from '@/context/NavigationContext';
+import CreditMemoDetailsScreen from '@/screens/credit-memos/CreditMemoDetailsScreen';
 import { Color, navigationStyle } from '@/styles';
 import { TabParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
@@ -84,6 +85,21 @@ const SecondaryTabs = () => {
           />
         ) : null,
       )}
+      <Stack.Screen
+        name="creditMemoDetails"
+        component={CreditMemoDetailsScreen}
+        options={({ route }) => ({
+          title: t('creditMemoDetailsScreen.title'),
+          headerTintColor: Color.brand.primary,
+          headerBackTitle: t('navigation.headerBackTitle'),
+          headerBackTitleStyle: styles.headerBackTitle,
+          headerTitleStyle: styles.headerTitle,
+          headerShadowVisible: false,
+          headerStyle: {
+            elevation: 0,
+          },
+        })}
+      />
     </Stack.Navigator>
   );
 };
