@@ -8,6 +8,47 @@ REM
 REM This script builds and deploys the Android app to an emulator
 REM or connected device for Appium testing.
 REM ============================================================
+REM
+REM CHANGELOG - January 15, 2026:
+REM ============================================================
+REM Fixed multiple critical issues for Windows batch file execution:
+REM
+REM 1. PATH RESOLUTION FIX (Line 132):
+REM    - Changed from: set "PROJECT_ROOT=%~dp0.."
+REM    - Changed to: set "PROJECT_ROOT=%CD%"
+REM    - Reason: Script is executed from project root, not from scripts\windows\
+REM    - This fixed incorrect path calculations when username contains dots
+REM      (e.g., magdalena.komuda) which caused batch parsing errors
+REM
+REM 2. LABEL POSITIONING FIX (Line 213):
+REM    - Moved :skip_emulator_start label OUTSIDE of if block
+REM    - Reason: Labels inside if (...) blocks break batch file context
+REM    - This prevented ") was unexpected at this time" syntax errors
+REM    - Critical for maintaining directory context through control flow
+REM
+REM 3. DIRECTORY CONTEXT FIX (Lines 216, 254):
+REM    - Added explicit: cd /d "%APP_DIR%" after :skip_emulator_start label
+REM    - Added explicit: cd /d "%APP_DIR%" inside debug build else block
+REM    - Reason: Label jumps can cause directory changes to be lost
+REM    - Ensures npx expo run:android executes from correct directory
+REM    - Without this, "package.json not found" errors occur
+REM
+REM 4. DEBUG OUTPUT ADDED (Lines 149, 256-262):
+REM    - Added: echo [DEBUG] Changed to directory: %CD%
+REM    - Added: echo [DEBUG] Current directory: %CD%
+REM    - Added: Package.json existence check with debug output
+REM    - Reason: Helps troubleshoot directory context issues in batch files
+REM
+REM WINDOWS BATCH FILE GOTCHAS DOCUMENTED:
+REM - Labels inside if blocks terminate the block scope
+REM - cd commands inside if blocks can be lost on label jumps
+REM - Paths with dots in username require special handling
+REM - %~dp0 gives script location, %CD% gives working directory
+REM - Use "cd /d" instead of "cd" to change drives and directories
+REM
+REM These fixes enable Android app building on Windows with usernames
+REM containing special characters and ensure proper execution flow.
+REM ============================================================
 
 set BUILD_TYPE=debug
 set EMULATOR_NAME=
@@ -128,13 +169,14 @@ for /f "tokens=3" %%v in ('java -version 2^>^&1 ^| findstr /i "version"') do (
 echo [INFO] Java version: !JAVA_VER!
 
 REM Get script directory and navigate to app folder
-set SCRIPT_DIR=%~dp0
-set PROJECT_ROOT=%SCRIPT_DIR%..
-set APP_DIR=%PROJECT_ROOT%\app
+REM Assuming script is run from project root directory
+set "PROJECT_ROOT=%CD%"
+set "SCRIPT_DIR=%PROJECT_ROOT%\scripts\windows\"
+set "APP_DIR=%PROJECT_ROOT%\app"
 
 if not exist "%APP_DIR%" (
     echo [ERROR] App directory not found at %APP_DIR%
-    echo Make sure you're running this script from the project root or scripts directory
+    echo Make sure you're running this script from the project root directory
     exit /b 1
 )
 
@@ -143,6 +185,7 @@ echo [INFO] App directory: %APP_DIR%
 echo.
 
 cd /d "%APP_DIR%"
+echo [DEBUG] Changed to directory: %CD%
 
 REM Check for node_modules
 if not exist "node_modules" (
@@ -167,47 +210,51 @@ echo [INFO] Using .env configuration
 echo.
 
 REM Start emulator if specified
-if not "%EMULATOR_NAME%"=="" (
-    echo [INFO] Starting emulator: %EMULATOR_NAME%
-    
-    REM Check if emulator exists
-    "!ANDROID_SDK!\emulator\emulator.exe" -list-avds | findstr /i "%EMULATOR_NAME%" >nul 2>&1
-    if errorlevel 1 (
-        echo [ERROR] Emulator '%EMULATOR_NAME%' not found
-        echo.
-        echo Available emulators:
-        "!ANDROID_SDK!\emulator\emulator.exe" -list-avds
-        echo.
-        exit /b 1
-    )
-    
-    REM Start emulator in background
-    start "" "!ANDROID_SDK!\emulator\emulator.exe" -avd "%EMULATOR_NAME%" -no-snapshot -no-audio
-    
-    echo [INFO] Waiting for device to be ready...
-    "!ANDROID_SDK!\platform-tools\adb.exe" wait-for-device
-    
-    REM Wait for boot to complete
-    echo [INFO] Waiting for boot to complete...
-    set BOOT_TIMEOUT=120
-    set BOOT_COUNTER=0
-    
-    :wait_boot
-    if !BOOT_COUNTER! geq !BOOT_TIMEOUT! (
-        echo [ERROR] Emulator boot timeout after !BOOT_TIMEOUT! seconds
-        exit /b 1
-    )
-    
-    for /f %%a in ('"!ANDROID_SDK!\platform-tools\adb.exe" shell getprop sys.boot_completed 2^>nul') do set BOOT_COMPLETE=%%a
-    if not "!BOOT_COMPLETE!"=="1" (
-        timeout /t 2 /nobreak >nul
-        set /a BOOT_COUNTER+=2
-        goto :wait_boot
-    )
-    
-    echo [INFO] Emulator boot complete!
+if "%EMULATOR_NAME%"=="" goto :skip_emulator_start
+
+echo [INFO] Starting emulator: %EMULATOR_NAME%
+
+REM Check if emulator exists
+"!ANDROID_SDK!\emulator\emulator.exe" -list-avds | findstr /i "%EMULATOR_NAME%" >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Emulator '%EMULATOR_NAME%' not found
     echo.
+    echo Available emulators:
+    "!ANDROID_SDK!\emulator\emulator.exe" -list-avds
+    echo.
+    exit /b 1
 )
+
+REM Start emulator in background
+start "" "!ANDROID_SDK!\emulator\emulator.exe" -avd "%EMULATOR_NAME%" -no-snapshot -no-audio
+
+echo [INFO] Waiting for device to be ready...
+"!ANDROID_SDK!\platform-tools\adb.exe" wait-for-device
+
+REM Wait for boot to complete
+echo [INFO] Waiting for boot to complete...
+set BOOT_TIMEOUT=120
+set BOOT_COUNTER=0
+
+:wait_boot
+if !BOOT_COUNTER! geq !BOOT_TIMEOUT! (
+    echo [ERROR] Emulator boot timeout after !BOOT_TIMEOUT! seconds
+    exit /b 1
+)
+
+for /f %%a in ('"!ANDROID_SDK!\platform-tools\adb.exe" shell getprop sys.boot_completed 2^>nul') do set BOOT_COMPLETE=%%a
+if not "!BOOT_COMPLETE!"=="1" (
+    timeout /t 2 /nobreak >nul
+    set /a BOOT_COUNTER+=2
+    goto :wait_boot
+)
+
+echo [INFO] Emulator boot complete!
+echo.
+
+:skip_emulator_start
+REM Ensure we're in the app directory before building
+cd /d "%APP_DIR%"
 
 REM Build the app
 echo [INFO] Building Android app (%BUILD_TYPE%)...
@@ -245,7 +292,19 @@ if "%BUILD_TYPE%"=="release" (
 ) else (
     echo [INFO] Building Debug APK with Expo...
     
-    call npx expo run:android --no-install
+    REM Ensure we're in the app directory
+    cd /d "%APP_DIR%"
+    
+    echo [DEBUG] Current directory: %CD%
+    echo [DEBUG] Checking package.json exists: 
+    if exist "package.json" (
+        echo [DEBUG] package.json found in %CD%
+    ) else (
+        echo [ERROR] package.json NOT found in %CD%
+        exit /b 1
+    )
+    
+    call npx --yes expo run:android
     if errorlevel 1 (
         echo [ERROR] Debug build failed
         exit /b 1
