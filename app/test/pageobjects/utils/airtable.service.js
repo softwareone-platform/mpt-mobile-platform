@@ -20,11 +20,10 @@ const getAirtableConfig = () => {
         tableName: process.env.AIRTABLE_TABLE_NAME || 'YOUR_TABLE_NAME_HERE',
         fromEmail: process.env.AIRTABLE_FROM_EMAIL || 'AIRTABLE_FROM_EMAIL_HERE'
     };
-    // Debug: Show first/last chars of token to verify it's loaded
-    const tokenPreview = config.apiToken.length > 10 
-        ? `${config.apiToken.substring(0, 8)}...${config.apiToken.substring(config.apiToken.length - 4)}`
-        : config.apiToken;
-    console.log(`  [Airtable Config] Token: ${tokenPreview}, BaseId: ${config.baseId}, Table: ${config.tableName}`);
+    // Debug: Check if token is configured (avoid logging sensitive token characters)
+    const hasToken = config.apiToken && config.apiToken !== 'YOUR_TOKEN_HERE';
+    const tokenStatus = hasToken ? `(set, length: ${config.apiToken.length})` : '(not set)';
+    console.log(`  [Airtable Config] Token: ${tokenStatus}, BaseId: ${config.baseId}, Table: ${config.tableName}`);
     return config;
 };
 
