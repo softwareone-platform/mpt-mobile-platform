@@ -5,9 +5,16 @@
 .DESCRIPTION
     This script loads environment variables from app\.env and exports them for testing.
     Supports both Android (and future iOS) platforms.
+    Can also list and start Android emulators.
 
 .PARAMETER Platform
     Target platform: android or ios (default: android)
+
+.PARAMETER ListEmulators
+    List available Android emulators and exit.
+
+.PARAMETER StartEmulator
+    Start Android emulator by AVD name.
 
 .EXAMPLE
     .\setup-test-env.ps1
@@ -18,8 +25,16 @@
     Setup for Android
 
 .EXAMPLE
-    .\setup-test-env.ps1 -Platform ios
-    Setup for iOS (future)
+    .\setup-test-env.ps1 -ListEmulators
+    List available Android emulators
+
+.EXAMPLE
+    .\setup-test-env.ps1 -StartEmulator "Pixel_8_API_34"
+    Start specific emulator
+
+.EXAMPLE
+    .\setup-test-env.ps1 -StartEmulator "Pixel_8_API_34" -Platform android
+    Start emulator and setup for Android
 
 .NOTES
     Requires:
@@ -27,10 +42,22 @@
     - Android SDK with ANDROID_HOME environment variable set (for Android)
 #>
 
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Setup')]
 param(
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'StartEmulator')]
     [ValidateSet("android", "ios")]
-    [string]$Platform = "android"
+    [Alias('p')]
+    [string]$Platform = "android",
+
+    [Parameter(ParameterSetName = 'ListEmulators', Mandatory = $true)]
+    [Alias('l')]
+    [switch]$ListEmulators,
+
+    [Parameter(ParameterSetName = 'StartEmulator')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Alias('e')]
+    [string]$StartEmulator
 )
 
 #region Helper Functions
@@ -64,6 +91,56 @@ function Write-WarningMsg {
     Write-Host "[WARNING] $Message" -ForegroundColor Yellow
 }
 
+function Get-AndroidSdkPath {
+    $sdk = $env:ANDROID_HOME
+    if (-not $sdk) {
+        $sdk = $env:ANDROID_SDK_ROOT
+    }
+    return $sdk
+}
+
+function Get-EmulatorPath {
+    $sdk = Get-AndroidSdkPath
+    if ($sdk) {
+        $emulatorPath = Join-Path $sdk "emulator\emulator.exe"
+        if (Test-Path $emulatorPath) {
+            return $emulatorPath
+        }
+    }
+    # Try PATH
+    $emulator = Get-Command emulator -ErrorAction SilentlyContinue
+    if ($emulator) {
+        return $emulator.Source
+    }
+    return $null
+}
+
+function Get-AdbPath {
+    $sdk = Get-AndroidSdkPath
+    if ($sdk) {
+        $adbPath = Join-Path $sdk "platform-tools\adb.exe"
+        if (Test-Path $adbPath) {
+            return $adbPath
+        }
+    }
+    # Try PATH
+    $adb = Get-Command adb -ErrorAction SilentlyContinue
+    if ($adb) {
+        return $adb.Source
+    }
+    return $null
+}
+
+function Get-AndroidDevice {
+    param([string]$AdbPath)
+    
+    $devices = & $AdbPath devices 2>$null | 
+        Select-String "device$" | 
+        ForEach-Object { ($_ -split "\s+")[0] }
+    
+    return $devices | Select-Object -First 1
+}
+
 function Write-ConfigItem {
     param(
         [string]$Label,
@@ -86,6 +163,115 @@ function Write-ConfigItem {
 #region Main Script
 
 Write-Header "Test Environment Setup (Windows)"
+
+# Handle -ListEmulators option
+if ($ListEmulators) {
+    Write-Host ""
+    Write-Host "[Android Emulators]" -ForegroundColor Yellow
+    
+    $emulatorPath = Get-EmulatorPath
+    if ($emulatorPath) {
+        Write-Host ""
+        $avdList = & $emulatorPath -list-avds 2>$null
+        if ($avdList) {
+            $avdList | ForEach-Object { Write-Host "  $_" -ForegroundColor Cyan }
+        } else {
+            Write-Host "  No Android emulators found. Create one in Android Studio." -ForegroundColor Yellow
+        }
+    } else {
+        Write-ErrorMsg "Android emulator command not found"
+        Write-Host "  Tip: Set ANDROID_HOME or add emulator to PATH" -ForegroundColor Yellow
+    }
+    
+    Write-Host ""
+    Write-Host "[iOS Simulators]" -ForegroundColor Yellow
+    Write-Host "  iOS simulators are not available on Windows." -ForegroundColor Gray
+    Write-Host "  Use macOS for iOS development and testing." -ForegroundColor Gray
+    Write-Host ""
+    exit 0
+}
+
+# Handle -StartEmulator option
+if ($StartEmulator) {
+    Write-Info "Starting Android Emulator: $StartEmulator"
+    Write-Host ""
+    
+    $emulatorPath = Get-EmulatorPath
+    if (-not $emulatorPath) {
+        Write-ErrorMsg "Android emulator not found"
+        Write-Host "  Tip: Set ANDROID_HOME or add emulator to PATH" -ForegroundColor Yellow
+        exit 1
+    }
+    
+    # Check if emulator exists in the list
+    $avdList = & $emulatorPath -list-avds 2>$null
+    if ($avdList -notcontains $StartEmulator) {
+        Write-ErrorMsg "Emulator '$StartEmulator' not found"
+        Write-Host ""
+        Write-Host "Available emulators:" -ForegroundColor Yellow
+        $avdList | ForEach-Object { Write-Host "  $_" }
+        exit 1
+    }
+    
+    Write-Host "  [OK] Found emulator: $StartEmulator" -ForegroundColor Green
+    
+    # Check if an emulator is already running
+    $adbPath = Get-AdbPath
+    if ($adbPath) {
+        $existingDevice = Get-AndroidDevice -AdbPath $adbPath
+        if ($existingDevice -and $existingDevice -match "emulator") {
+            Write-Host "  [OK] An Android emulator is already running: $existingDevice" -ForegroundColor Green
+            $env:DEVICE_UDID = $existingDevice
+        } else {
+            Write-Info "Starting emulator (this may take a moment)..."
+            
+            # Start emulator in background
+            Start-Process -FilePath $emulatorPath -ArgumentList "-avd", $StartEmulator, "-no-snapshot-load", "-no-boot-anim" -WindowStyle Normal
+            
+            Write-Info "Waiting for emulator to boot..."
+            
+            $timeout = 120
+            $timer = 0
+            
+            while ($timer -lt $timeout) {
+                # Check if emulator device appears
+                $device = Get-AndroidDevice -AdbPath $adbPath
+                if ($device -and $device -match "emulator") {
+                    # Check if boot completed
+                    $bootComplete = & $adbPath -s $device shell getprop sys.boot_completed 2>$null
+                    $bootComplete = $bootComplete -replace '\s',''
+                    
+                    if ($bootComplete -eq "1") {
+                        Write-Host "  [OK] Emulator booted successfully: $device" -ForegroundColor Green
+                        $env:DEVICE_UDID = $device
+                        break
+                    }
+                }
+                
+                Start-Sleep -Seconds 2
+                $timer += 2
+                
+                if ($timer % 10 -eq 0) {
+                    Write-Info "Still waiting... ($timer seconds)"
+                }
+            }
+            
+            if ($timer -ge $timeout) {
+                # One final check
+                $device = Get-AndroidDevice -AdbPath $adbPath
+                if ($device) {
+                    Write-Host "  [OK] Emulator running: $device" -ForegroundColor Green
+                    $env:DEVICE_UDID = $device
+                } else {
+                    Write-WarningMsg "Emulator may still be starting..."
+                }
+            }
+        }
+    }
+    
+    $env:DEVICE_NAME = $StartEmulator
+    Write-Host ""
+}
 
 # Get project root
 $ProjectRoot = Get-Location
@@ -251,12 +437,14 @@ Write-Host ""
 Write-Host ("=" * 60) -ForegroundColor Blue
 Write-Host ""
 Write-Host "Usage:" -ForegroundColor Yellow
-Write-Host "  .\setup-test-env.ps1                  # Setup for Android (default)" -ForegroundColor Green
-Write-Host "  .\setup-test-env.ps1 -Platform android # Setup for Android" -ForegroundColor Green
+Write-Host "  .\setup-test-env.ps1                              # Setup for Android (default)" -ForegroundColor Green
+Write-Host "  .\setup-test-env.ps1 -Platform android            # Setup for Android" -ForegroundColor Green
+Write-Host "  .\setup-test-env.ps1 -ListEmulators               # List available emulators" -ForegroundColor Green
+Write-Host "  .\setup-test-env.ps1 -StartEmulator Pixel_8_API_34 # Start specific emulator" -ForegroundColor Green
 Write-Host ""
 Write-Host "Run Tests:" -ForegroundColor Yellow
 Write-Host "  .\run-local-test-android.ps1 welcome" -ForegroundColor Green
-Write-Host "  .\run-local-test-android.ps1 -Build -Environment dev -ClientId YOUR_ID welcome" -ForegroundColor Green
+Write-Host "  .\run-local-test-android.ps1 -Build welcome" -ForegroundColor Green
 Write-Host ""
 
 #endregion

@@ -5,15 +5,19 @@ REM ============================================================
 REM Setup Test Environment Script for Windows
 REM This script loads environment variables from app\.env and exports them for testing
 REM Supports both Android (and future iOS) platforms
+REM Can also start Android emulators by name
 REM
-REM Usage: setup-test-env.bat [--platform android|ios]
+REM Usage: setup-test-env.bat [--platform android|ios] [--start-emulator <name>] [--list-emulators]
 REM ============================================================
 
 set PLATFORM=android
+set START_EMULATOR=
+set EMULATOR_NAME=
+set LIST_EMULATORS=
 
 REM Parse command line arguments
 :parse_args
-if "%~1"=="" goto :main
+if "%~1"=="" goto :check_list_emulators
 if /i "%~1"=="--platform" (
     set PLATFORM=%~2
     shift
@@ -26,10 +30,38 @@ if /i "%~1"=="-p" (
     shift
     goto :parse_args
 )
+if /i "%~1"=="--start-emulator" (
+    set START_EMULATOR=true
+    set EMULATOR_NAME=%~2
+    shift
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="-e" (
+    set START_EMULATOR=true
+    set EMULATOR_NAME=%~2
+    shift
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="--list-emulators" (
+    set LIST_EMULATORS=true
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="-l" (
+    set LIST_EMULATORS=true
+    shift
+    goto :parse_args
+)
 if /i "%~1"=="--help" goto :show_help
 if /i "%~1"=="-h" goto :show_help
 shift
 goto :parse_args
+
+:check_list_emulators
+if "%LIST_EMULATORS%"=="true" goto :list_emulators
+goto :main
 
 :show_help
 echo.
@@ -37,17 +69,22 @@ echo Setup Test Environment Script for Windows
 echo ==========================================
 echo.
 echo This script loads environment variables from app\.env and exports them for testing.
+echo It can also list and start Android emulators.
 echo.
 echo Usage: setup-test-env.bat [options]
 echo.
 echo Options:
-echo   --platform, -p PLATFORM  Target platform: android or ios (default: android)
-echo   --help, -h               Show this help message
+echo   --platform, -p PLATFORM       Target platform: android or ios (default: android)
+echo   --start-emulator, -e NAME     Start Android emulator by AVD name
+echo   --list-emulators, -l          List available Android emulators
+echo   --help, -h                    Show this help message
 echo.
 echo Examples:
-echo   setup-test-env.bat                      Setup for Android (default)
-echo   setup-test-env.bat --platform android   Setup for Android
-echo   setup-test-env.bat -p ios               Setup for iOS (future)
+echo   setup-test-env.bat                                    Setup for Android (default)
+echo   setup-test-env.bat --platform android                 Setup for Android
+echo   setup-test-env.bat --list-emulators                   List available emulators
+echo   setup-test-env.bat --start-emulator Pixel_8_API_34    Start specific emulator
+echo   setup-test-env.bat -e Pixel_8_API_34 -p android       Start emulator and setup
 echo.
 echo Required .env Variables:
 echo   AUTH0_DOMAIN              Auth0 domain
@@ -65,6 +102,197 @@ echo   AIRTABLE_BASE_ID          Airtable base ID
 echo   AIRTABLE_TABLE_NAME       Airtable table name
 echo   AIRTABLE_FROM_EMAIL       From email for OTP
 echo.
+exit /b 0
+
+REM ============================================================
+REM List available emulators
+REM ============================================================
+:list_emulators
+echo.
+echo ============================================================
+echo   Available Emulators/Simulators
+echo ============================================================
+echo.
+
+echo [Android Emulators]
+call :find_emulator_cmd
+if defined EMULATOR_CMD (
+    echo.
+    "%EMULATOR_CMD%" -list-avds 2>nul
+    if errorlevel 1 (
+        echo   No Android emulators found
+    )
+) else (
+    echo   Android emulator command not found
+    echo   Tip: Set ANDROID_HOME or add emulator to PATH
+)
+
+echo.
+echo [iOS Simulators]
+echo   iOS simulators are not available on Windows.
+echo   Use macOS for iOS development and testing.
+echo.
+exit /b 0
+
+REM ============================================================
+REM Find emulator command
+REM ============================================================
+:find_emulator_cmd
+set "EMULATOR_CMD="
+where emulator >nul 2>&1
+if not errorlevel 1 (
+    for /f "delims=" %%i in ('where emulator 2^>nul') do (
+        set "EMULATOR_CMD=%%i"
+        goto :emulator_found
+    )
+)
+if defined ANDROID_HOME (
+    if exist "%ANDROID_HOME%\emulator\emulator.exe" (
+        set "EMULATOR_CMD=%ANDROID_HOME%\emulator\emulator.exe"
+        goto :emulator_found
+    )
+)
+if defined ANDROID_SDK_ROOT (
+    if exist "%ANDROID_SDK_ROOT%\emulator\emulator.exe" (
+        set "EMULATOR_CMD=%ANDROID_SDK_ROOT%\emulator\emulator.exe"
+        goto :emulator_found
+    )
+)
+:emulator_found
+exit /b 0
+
+REM ============================================================
+REM Find ADB command
+REM ============================================================
+:find_adb_cmd
+set "ADB_CMD="
+where adb >nul 2>&1
+if not errorlevel 1 (
+    for /f "delims=" %%i in ('where adb 2^>nul') do (
+        set "ADB_CMD=%%i"
+        goto :adb_found
+    )
+)
+if defined ANDROID_HOME (
+    if exist "%ANDROID_HOME%\platform-tools\adb.exe" (
+        set "ADB_CMD=%ANDROID_HOME%\platform-tools\adb.exe"
+        goto :adb_found
+    )
+)
+if defined ANDROID_SDK_ROOT (
+    if exist "%ANDROID_SDK_ROOT%\platform-tools\adb.exe" (
+        set "ADB_CMD=%ANDROID_SDK_ROOT%\platform-tools\adb.exe"
+        goto :adb_found
+    )
+)
+:adb_found
+exit /b 0
+
+REM ============================================================
+REM Start Android emulator
+REM ============================================================
+:start_android_emulator
+echo.
+echo [INFO] Starting Android Emulator: %EMULATOR_NAME%
+echo.
+
+call :find_emulator_cmd
+if not defined EMULATOR_CMD (
+    echo [ERROR] Android emulator not found.
+    echo         Tip: Set ANDROID_HOME or add emulator to PATH
+    exit /b 1
+)
+
+REM Check if emulator exists in the list
+set "AVD_EXISTS="
+for /f "delims=" %%a in ('"%EMULATOR_CMD%" -list-avds 2^>nul') do (
+    if "%%a"=="%EMULATOR_NAME%" set "AVD_EXISTS=true"
+)
+
+if not defined AVD_EXISTS (
+    echo [ERROR] Emulator '%EMULATOR_NAME%' not found.
+    echo.
+    echo Available emulators:
+    "%EMULATOR_CMD%" -list-avds 2>nul
+    exit /b 1
+)
+
+echo   [OK] Found emulator: %EMULATOR_NAME%
+
+REM Check if an emulator is already running using temp file
+call :find_adb_cmd
+if defined ADB_CMD (
+    "%ADB_CMD%" devices 2>nul > "%TEMP%\adb_devices.tmp"
+    findstr /C:"emulator" "%TEMP%\adb_devices.tmp" | findstr /C:"device" >nul 2>&1
+    if not errorlevel 1 (
+        for /f "tokens=1" %%d in ('findstr /C:"emulator" "%TEMP%\adb_devices.tmp" ^| findstr /C:"device"') do (
+            echo   [OK] An Android emulator is already running: %%d
+            set "DEVICE_UDID=%%d"
+            del "%TEMP%\adb_devices.tmp" 2>nul
+            goto :emulator_started
+        )
+    )
+    del "%TEMP%\adb_devices.tmp" 2>nul
+)
+
+echo   [INFO] Starting emulator (this may take a moment)...
+
+REM Start emulator in background
+start "" /B "%EMULATOR_CMD%" -avd "%EMULATOR_NAME%" -no-snapshot-load -no-boot-anim >nul 2>&1
+
+REM Wait for emulator to boot
+if defined ADB_CMD (
+    echo   [INFO] Waiting for emulator to boot...
+    
+    set /a TIMEOUT=120
+    set /a COUNT=0
+    
+    :wait_boot_loop
+    if !COUNT! geq !TIMEOUT! goto :boot_timeout
+    
+    REM Check if emulator device appears using temp file
+    "%ADB_CMD%" devices 2>nul > "%TEMP%\adb_devices.tmp"
+    findstr /C:"emulator" "%TEMP%\adb_devices.tmp" | findstr /C:"device" >nul 2>&1
+    if not errorlevel 1 (
+        REM Get the device ID
+        for /f "tokens=1" %%d in ('findstr /C:"emulator" "%TEMP%\adb_devices.tmp" ^| findstr /C:"device"') do (
+            REM Check if boot completed
+            "%ADB_CMD%" -s %%d shell getprop sys.boot_completed 2>nul > "%TEMP%\boot_status.tmp"
+            set /p BOOT_STATUS=<"%TEMP%\boot_status.tmp"
+            set "BOOT_STATUS=!BOOT_STATUS: =!"
+            if "!BOOT_STATUS!"=="1" (
+                set "DEVICE_UDID=%%d"
+                echo   [OK] Emulator booted successfully: %%d
+                del "%TEMP%\adb_devices.tmp" 2>nul
+                del "%TEMP%\boot_status.tmp" 2>nul
+                goto :emulator_started
+            )
+            del "%TEMP%\boot_status.tmp" 2>nul
+        )
+    )
+    del "%TEMP%\adb_devices.tmp" 2>nul
+    
+    timeout /t 2 /nobreak >nul
+    set /a COUNT+=2
+    set /a MOD=!COUNT! %% 10
+    if !MOD!==0 echo   [INFO] Still waiting... ^(!COUNT! seconds^)
+    goto :wait_boot_loop
+    
+    :boot_timeout
+    REM One final check
+    "%ADB_CMD%" devices 2>nul > "%TEMP%\adb_devices.tmp"
+    for /f "tokens=1" %%d in ('findstr /C:"emulator" "%TEMP%\adb_devices.tmp" ^| findstr /C:"device" 2^>nul') do (
+        set "DEVICE_UDID=%%d"
+        echo   [OK] Emulator running: %%d
+        del "%TEMP%\adb_devices.tmp" 2>nul
+        goto :emulator_started
+    )
+    del "%TEMP%\adb_devices.tmp" 2>nul
+    echo   [WARNING] Emulator may still be starting...
+)
+
+:emulator_started
+set "DEVICE_NAME=%EMULATOR_NAME%"
 exit /b 0
 
 :main
@@ -108,14 +336,23 @@ echo [INFO] Loading environment variables from .env file...
 echo.
 
 REM Load and export variables from .env
-for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
-    set "LINE=%%a"
-    REM Skip comments and empty lines
-    if not "!LINE:~0,1!"=="#" (
-        if not "%%a"=="" (
-            if not "%%b"=="" (
-                set "%%a=%%b"
-                echo   [OK] Exported: %%a
+REM Read each line and process valid KEY=VALUE pairs
+for /f "usebackq delims=" %%L in ("%ENV_FILE%") do (
+    set "LINE=%%L"
+    REM Skip empty lines and comments (lines starting with #)
+    if defined LINE (
+        set "FIRST_CHAR=!LINE:~0,1!"
+        if not "!FIRST_CHAR!"=="#" (
+            REM Check if line contains = (valid assignment)
+            echo !LINE! | findstr /C:"=" >nul 2>&1
+            if not errorlevel 1 (
+                REM Extract variable name (before =)
+                for /f "tokens=1 delims==" %%N in ("!LINE!") do (
+                    set "VAR_NAME=%%N"
+                )
+                REM Set the full line as environment variable
+                set "!LINE!"
+                echo   [OK] Exported: !VAR_NAME!
             )
         )
     )
@@ -125,62 +362,87 @@ echo.
 echo [INFO] Setting up platform-specific configuration...
 echo.
 
-REM Normalize platform name
-set PLATFORM_LOWER=%PLATFORM%
-for %%a in (a b c d e f g h i j k l m n o p q r s t u v w x y z) do set PLATFORM_LOWER=!PLATFORM_LOWER:%%a=%%a!
+REM Normalize platform name and use goto for cleaner flow
+if /i "%PLATFORM%"=="android" goto :setup_android
+if /i "%PLATFORM%"=="ios" goto :setup_ios
+goto :setup_android
 
-if /i "%PLATFORM_LOWER%"=="android" (
-    REM Android configuration
-    set PLATFORM_NAME=Android
-    set AUTOMATION_NAME=UiAutomator2
-    set APP_PACKAGE=com.softwareone.marketplaceMobile
-    set APP_ACTIVITY=.MainActivity
-    
-    echo   [OK] Platform: Android
-    echo   [OK] Automation: UiAutomator2
-    echo   [OK] Package: !APP_PACKAGE!
-    echo   [OK] Activity: !APP_ACTIVITY!
-    
-    REM Try to detect connected Android devices
-    if defined ANDROID_HOME (
-        set "ADB_EXE=!ANDROID_HOME!\platform-tools\adb.exe"
-    ) else if defined ANDROID_SDK_ROOT (
-        set "ADB_EXE=!ANDROID_SDK_ROOT!\platform-tools\adb.exe"
-    ) else (
-        set "ADB_EXE="
+:setup_android
+REM Android configuration
+set PLATFORM_NAME=Android
+set AUTOMATION_NAME=UiAutomator2
+set APP_PACKAGE=com.softwareone.marketplaceMobile
+set APP_ACTIVITY=.MainActivity
+
+echo   [OK] Platform: Android
+echo   [OK] Automation: UiAutomator2
+echo   [OK] Package: %APP_PACKAGE%
+echo   [OK] Activity: %APP_ACTIVITY%
+
+REM Start emulator if requested
+if "%START_EMULATOR%"=="true" (
+    if defined EMULATOR_NAME (
+        call :start_android_emulator
     )
-    
-    if defined ADB_EXE (
-        if exist "!ADB_EXE!" (
-            for /f "tokens=1" %%d in ('"!ADB_EXE!" devices ^| findstr /v "List" ^| findstr "device"') do (
-                set DEVICE_UDID=%%d
-                echo   [OK] Device detected: !DEVICE_UDID!
-                goto :device_found
-            )
-            echo   [WARNING] No Android devices detected
-            :device_found
-        )
-    )
-    
-    if not defined DEVICE_NAME set DEVICE_NAME=Pixel 8
-    if not defined PLATFORM_VERSION set PLATFORM_VERSION=14
-) else (
-    REM iOS configuration (for future use)
-    set PLATFORM_NAME=iOS
-    set AUTOMATION_NAME=XCUITest
-    set APP_BUNDLE_ID=com.softwareone.marketplaceMobile
-    
-    echo   [OK] Platform: iOS
-    echo   [OK] Automation: XCUITest
-    echo   [OK] Bundle ID: !APP_BUNDLE_ID!
-    
-    if not defined DEVICE_UDID set DEVICE_UDID=963A992A-A208-4EF4-B7F9-7B2A569EC133
-    if not defined DEVICE_NAME set DEVICE_NAME=iPhone 16
-    if not defined PLATFORM_VERSION set PLATFORM_VERSION=26.0
 )
 
+REM Try to detect connected Android devices if no device set yet
+if not defined DEVICE_UDID (
+    REM Find ADB command inline
+    set "ADB_CMD="
+    where adb >nul 2>&1
+    if not errorlevel 1 (
+        for /f "delims=" %%i in ('where adb 2^>nul') do set "ADB_CMD=%%i"
+    )
+    if not defined ADB_CMD if defined ANDROID_HOME (
+        if exist "%ANDROID_HOME%\platform-tools\adb.exe" set "ADB_CMD=%ANDROID_HOME%\platform-tools\adb.exe"
+    )
+    if not defined ADB_CMD if defined ANDROID_SDK_ROOT (
+        if exist "%ANDROID_SDK_ROOT%\platform-tools\adb.exe" set "ADB_CMD=%ANDROID_SDK_ROOT%\platform-tools\adb.exe"
+    )
+    
+    if defined ADB_CMD (
+        "!ADB_CMD!" devices 2>nul > "%TEMP%\adb_devices.tmp"
+        REM Parse devices - filter out header and look for 'device' status
+        for /f "tokens=1" %%a in ('findstr /C:"device" "%TEMP%\adb_devices.tmp" ^| findstr /V /C:"List"') do (
+            set "DEVICE_UDID=%%a"
+            echo   [OK] Device detected: %%a
+            del "%TEMP%\adb_devices.tmp" 2>nul
+            goto :android_device_done
+        )
+        del "%TEMP%\adb_devices.tmp" 2>nul
+        echo   [WARNING] No Android devices detected
+    ) else (
+        echo   [WARNING] ADB not found - cannot detect devices
+    )
+)
+:android_device_done
+
+if not defined DEVICE_NAME set DEVICE_NAME=Pixel 8
+if not defined PLATFORM_VERSION set PLATFORM_VERSION=14
+goto :platform_done
+
+:setup_ios
+REM iOS configuration (for future use - not fully supported on Windows)
+set PLATFORM_NAME=iOS
+set AUTOMATION_NAME=XCUITest
+set APP_BUNDLE_ID=com.softwareone.marketplaceMobile
+
+echo   [OK] Platform: iOS
+echo   [OK] Automation: XCUITest
+echo   [OK] Bundle ID: %APP_BUNDLE_ID%
+echo.
+echo   [WARNING] iOS testing requires macOS. This configuration is for reference only.
+
+if not defined DEVICE_UDID set DEVICE_UDID=963A992A-A208-4EF4-B7F9-7B2A569EC133
+if not defined DEVICE_NAME set DEVICE_NAME=iPhone 16
+if not defined PLATFORM_VERSION set PLATFORM_VERSION=26.0
+goto :platform_done
+
+:platform_done
 echo   [OK] Device: %DEVICE_NAME%
 echo   [OK] Platform Version: %PLATFORM_VERSION%
+if defined DEVICE_UDID echo   [OK] Device UDID: %DEVICE_UDID%
 
 REM Set common Appium configuration
 if not defined APPIUM_HOST set APPIUM_HOST=127.0.0.1
@@ -222,8 +484,10 @@ echo.
 echo ============================================================
 echo.
 echo Usage:
-echo   scripts\windows\setup-test-env.bat                Setup for Android (default)
-echo   scripts\windows\setup-test-env.bat -p android     Setup for Android
+echo   scripts\windows\setup-test-env.bat                              Setup for Android (default)
+echo   scripts\windows\setup-test-env.bat -p android                   Setup for Android
+echo   scripts\windows\setup-test-env.bat --list-emulators             List available emulators
+echo   scripts\windows\setup-test-env.bat -e Pixel_8_API_34            Start emulator and setup
 echo.
 echo Run Tests:
 echo   scripts\windows\run-local-test-android.bat welcome

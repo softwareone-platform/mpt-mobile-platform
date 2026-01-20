@@ -463,9 +463,11 @@ if ($Build) {
     
     # Prebuild native Android project (like bash script does)
     Write-Info "Generating native Android project with Expo prebuild..."
-    & npx expo prebuild --platform android --clean 2>&1 | Out-Null
+    # Use cmd to run expo prebuild to avoid PowerShell treating warnings as errors
+    $prebuildResult = cmd /c "npx expo prebuild --platform android --clean 2>&1"
     if ($LASTEXITCODE -ne 0) {
         Write-ErrorMsg "Expo prebuild failed"
+        Write-Host $prebuildResult
         exit 1
     }
     Write-Success "Native Android project generated"
@@ -474,11 +476,18 @@ if ($Build) {
     Write-Info "Building standalone APK in Release mode..."
     Set-Location android
     
+    # Temporarily disable error action for Gradle (it outputs warnings to stderr)
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    
     & .\gradlew.bat assembleRelease 2>&1 | ForEach-Object {
         if ($_ -match "BUILD|SUCCESS|FAILURE|ERROR") { Write-Host $_ }
     }
+    $gradleExitCode = $LASTEXITCODE
     
-    if ($LASTEXITCODE -ne 0) {
+    $ErrorActionPreference = $oldErrorAction
+    
+    if ($gradleExitCode -ne 0) {
         Write-ErrorMsg "Gradle build failed"
         Set-Location $AppDir
         exit 1
