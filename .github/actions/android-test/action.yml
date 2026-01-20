@@ -63,6 +63,15 @@ inputs:
     description: 'Name for the test launch in ReportPortal'
     required: false
     default: 'Android Appium Tests'
+  # Test Selection
+  test_suite:
+    description: 'Test suite to run (welcome, home, navigation, failing, all)'
+    required: false
+    default: 'welcome'
+  test_spec:
+    description: 'Specific test file to run (overrides test_suite if provided)'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -373,9 +382,22 @@ runs:
           exit 1
         fi
         
+        # Determine test command based on inputs
+        TEST_SUITE="${{ inputs.test_suite }}"
+        TEST_SPEC="${{ inputs.test_spec }}"
+        
         echo ""
         echo "🚀 Starting WDIO tests..."
-        npx wdio run wdio.conf.js --suite welcome
+        if [ -n "$TEST_SPEC" ]; then
+          echo "📋 Running specific test file: $TEST_SPEC"
+          npx wdio run wdio.conf.js --spec "$TEST_SPEC"
+        elif [ "$TEST_SUITE" = "all" ]; then
+          echo "📋 Running all test suites"
+          npx wdio run wdio.conf.js
+        else
+          echo "📋 Running test suite: $TEST_SUITE"
+          npx wdio run wdio.conf.js --suite "$TEST_SUITE"
+        fi
 
     - name: Upload Appium logs
       if: always()

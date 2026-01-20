@@ -1,9 +1,9 @@
 /**
  * Airtable Service - Utility for fetching OTP codes from Airtable
- * 
+ *
  * Usage:
  *   node airtable.service.js
- * 
+ *
  * Set environment variables:
  *   AIRTABLE_API_TOKEN - Your Airtable Personal Access Token
  *   AIRTABLE_BASE_ID - The Base ID (starts with 'app')
@@ -24,32 +24,32 @@ const AIRTABLE_FROM_EMAIL = process.env.AIRTABLE_FROM_EMAIL || 'AIRTABLE_FROM_EM
  * @returns {Promise<object>} - Parsed JSON response
  */
 function airtableRequest(endpoint) {
-    return new Promise((resolve, reject) => {
-        const options = {
-            hostname: 'api.airtable.com',
-            path: endpoint,
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
-                'Content-Type': 'application/json'
-            }
-        };
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.airtable.com',
+      path: endpoint,
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+    };
 
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(JSON.parse(data));
-                } else {
-                    reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
-                }
-            });
-        });
-
-        req.on('error', reject);
-        req.end();
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(JSON.parse(data));
+        } else {
+          reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
+        }
+      });
     });
+
+    req.on('error', reject);
+    req.end();
+  });
 }
 
 /**
@@ -59,37 +59,37 @@ function airtableRequest(endpoint) {
  * @returns {Promise<object>} - Updated record
  */
 function updateRecord(recordId, fields) {
-    return new Promise((resolve, reject) => {
-        const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
-        const postData = JSON.stringify({ fields });
-        
-        const options = {
-            hostname: 'api.airtable.com',
-            path: `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}/${recordId}`,
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${AIRTABLE_API_TOKEN}`,
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(postData)
-            }
-        };
+  return new Promise((resolve, reject) => {
+    const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
+    const postData = JSON.stringify({ fields });
 
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(JSON.parse(data));
-                } else {
-                    reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
-                }
-            });
-        });
+    const options = {
+      hostname: 'api.airtable.com',
+      path: `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}/${recordId}`,
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_API_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData),
+      },
+    };
 
-        req.on('error', reject);
-        req.write(postData);
-        req.end();
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(JSON.parse(data));
+        } else {
+          reject(new Error(`Airtable API error: ${res.statusCode} - ${data}`));
+        }
+      });
     });
+
+    req.on('error', reject);
+    req.write(postData);
+    req.end();
+  });
 }
 
 /**
@@ -98,15 +98,15 @@ function updateRecord(recordId, fields) {
  * @returns {Promise<object>} - Updated record
  */
 async function markAsProcessed(recordId) {
-    console.log(`  Marking record ${recordId} as Processed...`);
-    try {
-        const result = await updateRecord(recordId, { Status: 'Processed' });
-        console.log(`  ✓ Record marked as Processed`);
-        return result;
-    } catch (error) {
-        console.error(`  ⚠ Failed to mark as Processed: ${error.message}`);
-        throw error;
-    }
+  console.info(`  Marking record ${recordId} as Processed...`);
+  try {
+    const result = await updateRecord(recordId, { Status: 'Processed' });
+    console.info(`  ✓ Record marked as Processed`);
+    return result;
+  } catch (error) {
+    console.error(`  ⚠ Failed to mark as Processed: ${error.message}`);
+    throw error;
+  }
 }
 
 /**
@@ -115,8 +115,8 @@ async function markAsProcessed(recordId) {
  * @returns {string|null} - The 6-digit OTP code or null if not found
  */
 function extractOTPFromBody(bodyText) {
-    const match = bodyText.match(/verification code is:\s*(\d{6})/i);
-    return match ? match[1] : null;
+  const match = bodyText.match(/verification code is:\s*(\d{6})/i);
+  return match ? match[1] : null;
 }
 
 /**
@@ -125,46 +125,46 @@ function extractOTPFromBody(bodyText) {
  * @returns {Promise<{otp: string, record: object}|null>} - OTP and record, or null if not found
  */
 async function fetchOTPByEmail(email) {
-    console.log(`\n=== Fetching OTP for: ${email} ===`);
-    console.log(`  From Email filter: ${AIRTABLE_FROM_EMAIL}\n`);
-    
-    try {
-        const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
-        // Filter by "To Emails", "From Email" fields, exclude Processed, sort by "Created At" descending to get latest
-        const filterFormula = encodeURIComponent(
-            `AND({To Emails}='${email}', {From Email}='${AIRTABLE_FROM_EMAIL}', {Status}!='Processed')`
-        );
-        const sortField = encodeURIComponent('Created At');
-        const endpoint = `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
-        
-        const response = await airtableRequest(endpoint);
-        
-        if (response.records && response.records.length > 0) {
-            const record = response.records[0];
-            const bodyPlain = record.fields['Body Plain'] || '';
-            const otp = extractOTPFromBody(bodyPlain);
-            
-            if (otp) {
-                console.log(`✓ Found OTP: ${otp}`);
-                console.log(`  Created At: ${record.fields['Created At']}`);
-                console.log(`  Subject: ${record.fields['Subject']}`);
-                
-                // Mark record as Processed
-                await markAsProcessed(record.id);
-                
-                return { otp, record };
-            } else {
-                console.log('⚠ Record found but no OTP code in body');
-                return null;
-            }
-        } else {
-            console.log(`⚠ No email records found for: ${email}`);
-            return null;
-        }
-    } catch (error) {
-        console.error('✗ Error fetching OTP:', error.message);
-        throw error;
+  console.info(`\n=== Fetching OTP for: ${email} ===`);
+  console.info(`  From Email filter: ${AIRTABLE_FROM_EMAIL}\n`);
+
+  try {
+    const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
+    // Filter by "To Emails", "From Email" fields, exclude Processed, sort by "Created At" descending to get latest
+    const filterFormula = encodeURIComponent(
+      `AND({To Emails}='${email}', {From Email}='${AIRTABLE_FROM_EMAIL}', {Status}!='Processed')`,
+    );
+    const sortField = encodeURIComponent('Created At');
+    const endpoint = `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
+
+    const response = await airtableRequest(endpoint);
+
+    if (response.records && response.records.length > 0) {
+      const record = response.records[0];
+      const bodyPlain = record.fields['Body Plain'] || '';
+      const otp = extractOTPFromBody(bodyPlain);
+
+      if (otp) {
+        console.info(`✓ Found OTP: ${otp}`);
+        console.info(`  Created At: ${record.fields['Created At']}`);
+        console.info(`  Subject: ${record.fields['Subject']}`);
+
+        // Mark record as Processed
+        await markAsProcessed(record.id);
+
+        return { otp, record };
+      } else {
+        console.info('⚠ Record found but no OTP code in body');
+        return null;
+      }
+    } else {
+      console.info(`⚠ No email records found for: ${email}`);
+      return null;
     }
+  } catch (error) {
+    console.error('✗ Error fetching OTP:', error.message);
+    throw error;
+  }
 }
 
 /**
@@ -178,58 +178,58 @@ async function fetchOTPByEmail(email) {
  * @throws {Error} - If timeout is reached without finding OTP
  */
 async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, afterTime = new Date()) {
-    console.log(`\n=== Waiting for OTP for: ${email} ===`);
-    console.log(`  From Email filter: ${AIRTABLE_FROM_EMAIL}`);
-    console.log(`  Timeout: ${timeoutMs / 1000}s, Poll interval: ${pollIntervalMs / 1000}s`);
-    console.log(`  Looking for records after: ${afterTime.toISOString()}\n`);
-    
-    const startTime = Date.now();
-    let attempts = 0;
-    
-    while (Date.now() - startTime < timeoutMs) {
-        attempts++;
-        console.log(`  Attempt ${attempts}...`);
-        
-        try {
-            const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
-            // Filter by email, from email, exclude Processed, AND created after the specified time
-            const filterFormula = encodeURIComponent(
-                `AND({To Emails}='${email}', {From Email}='${AIRTABLE_FROM_EMAIL}', {Status}!='Processed', IS_AFTER({Created At}, '${afterTime.toISOString()}'))`
-            );
-            const sortField = encodeURIComponent('Created At');
-            const endpoint = `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
-            
-            const response = await airtableRequest(endpoint);
-            
-            if (response.records && response.records.length > 0) {
-                const record = response.records[0];
-                const bodyPlain = record.fields['Body Plain'] || '';
-                const otp = extractOTPFromBody(bodyPlain);
-                
-                if (otp) {
-                    console.log(`\n✓ OTP found after ${attempts} attempt(s): ${otp}`);
-                    
-                    // Mark record as Processed
-                    await markAsProcessed(record.id);
-                    
-                    return { otp, record };
-                }
-            }
-        } catch (error) {
-            console.log(`  Error on attempt ${attempts}: ${error.message}`);
+  console.info(`\n=== Waiting for OTP for: ${email} ===`);
+  console.info(`  From Email filter: ${AIRTABLE_FROM_EMAIL}`);
+  console.info(`  Timeout: ${timeoutMs / 1000}s, Poll interval: ${pollIntervalMs / 1000}s`);
+  console.info(`  Looking for records after: ${afterTime.toISOString()}\n`);
+
+  const startTime = Date.now();
+  let attempts = 0;
+
+  while (Date.now() - startTime < timeoutMs) {
+    attempts++;
+    console.info(`  Attempt ${attempts}...`);
+
+    try {
+      const encodedTableName = encodeURIComponent(AIRTABLE_TABLE_NAME);
+      // Filter by email, from email, exclude Processed, AND created after the specified time
+      const filterFormula = encodeURIComponent(
+        `AND({To Emails}='${email}', {From Email}='${AIRTABLE_FROM_EMAIL}', {Status}!='Processed', IS_AFTER({Created At}, '${afterTime.toISOString()}'))`,
+      );
+      const sortField = encodeURIComponent('Created At');
+      const endpoint = `/v0/${AIRTABLE_BASE_ID}/${encodedTableName}?filterByFormula=${filterFormula}&sort[0][field]=${sortField}&sort[0][direction]=desc&maxRecords=1`;
+
+      const response = await airtableRequest(endpoint);
+
+      if (response.records && response.records.length > 0) {
+        const record = response.records[0];
+        const bodyPlain = record.fields['Body Plain'] || '';
+        const otp = extractOTPFromBody(bodyPlain);
+
+        if (otp) {
+          console.info(`\n✓ OTP found after ${attempts} attempt(s): ${otp}`);
+
+          // Mark record as Processed
+          await markAsProcessed(record.id);
+
+          return { otp, record };
         }
-        
-        // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+      }
+    } catch (error) {
+      console.info(`  Error on attempt ${attempts}: ${error.message}`);
     }
-    
-    throw new Error(`Timeout: No OTP found for ${email} after ${timeoutMs / 1000} seconds`);
+
+    // Wait before next poll
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+
+  throw new Error(`Timeout: No OTP found for ${email} after ${timeoutMs / 1000} seconds`);
 }
 
 module.exports = {
-    fetchOTPByEmail,
-    waitForOTP,
-    extractOTPFromBody,
-    markAsProcessed,
-    updateRecord
+  fetchOTPByEmail,
+  waitForOTP,
+  extractOTPFromBody,
+  markAsProcessed,
+  updateRecord,
 };
