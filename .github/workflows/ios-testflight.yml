@@ -458,8 +458,8 @@ jobs:
       - name: Create release tag
         if: success()
         run: |
-          TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}"
-          git tag -a "$TAG" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }}"
+          TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ inputs.environment }}"
+          git tag -a "$TAG" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }} (${{ inputs.environment }})"
           git push origin "$TAG"
 
       - name: Clean up sensitive files
