@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import AvatarIcon from '@/components/avatar/Avatar';
 import Chip from '@/components/chip/Chip';
 import { statusList } from '@/constants/status';
-import { listItemStyle, separatorStyle } from '@/styles';
+import { listItemStyle } from '@/styles';
 import type { ListItemWithStatusProps } from '@/types/lists';
 import { getStatus } from '@/utils/list';
 
@@ -40,10 +40,7 @@ const DetailsHeader = ({ id, imagePath, title, subtitle, statusText }: ListItemW
 };
 
 const styles = StyleSheet.create({
-  screenHeader: {
-    ...listItemStyle.detailsHeaderContainer,
-    ...separatorStyle.nativeDivider,
-  },
+  screenHeader: listItemStyle.detailsHeaderContainer,
   topRow: listItemStyle.detailsHeaderTopRow,
   textWrapper: listItemStyle.textContainer,
   title: listItemStyle.detailsHeaderTitle,

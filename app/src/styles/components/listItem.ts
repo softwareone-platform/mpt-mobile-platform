@@ -111,6 +111,8 @@ export const listItemStyle = {
     paddingHorizontal: Spacing.spacing2,
     paddingBottom: Spacing.spacing2,
     flexDirection: 'column',
+    borderBottomWidth: 1,
+    borderBottomColor: separatorStyle.nonOpaque.borderColor,
   },
   detailsHeaderTopRow: {
     flexDirection: 'row',

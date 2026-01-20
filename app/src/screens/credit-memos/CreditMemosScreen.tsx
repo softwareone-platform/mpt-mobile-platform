@@ -44,7 +44,6 @@ const CreditMemosScreenContent = () => {
         config={listItemConfigNoImageNoSubtitle}
         onItemPress={(mapped) =>
           navigation.navigate('creditMemoDetails', {
-            id: mapped.id,
             headerProps: mapped,
           })
         }

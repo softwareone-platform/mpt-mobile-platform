@@ -1,4 +1,5 @@
 import type { NavigationProp, RouteProp } from '@react-navigation/native';
+import { ComponentType } from 'react';
 
 import { ListItemWithStatusProps } from './lists';
 
@@ -21,7 +22,6 @@ export type TabParamList = {
   invoices: undefined;
   creditMemos: undefined;
   creditMemoDetails: {
-    id: string;
     headerProps: ListItemWithStatusProps;
   };
   statements: undefined;
@@ -46,7 +46,8 @@ export type ScreenComponent<
 export type TabItem<RouteName extends keyof TabParamList = keyof TabParamList> = {
   name: RouteName;
   icon: string;
-  component?: ScreenComponent<TabParamList, RouteName>;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  component?: ComponentType<any>;
 };
 
 export type ProfileStackParamList = {

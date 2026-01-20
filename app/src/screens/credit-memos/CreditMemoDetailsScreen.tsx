@@ -21,7 +21,6 @@ const CreditMemoDetailsScreen = () => {
         subtitle={headerData.subtitle}
         imagePath={headerData.imagePath}
         statusText={headerData.statusText}
-        testID="credit-memo-details-header"
       />
       <DetailsView />
     </View>
