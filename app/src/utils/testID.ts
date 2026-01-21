@@ -83,7 +83,6 @@ export const TestIDs = {
   AGREEMENTS_LOADING_INDICATOR: 'agreements-loading-indicator',
   AGREEMENTS_ERROR_STATE: 'agreements-error-state',
   AGREEMENTS_EMPTY_STATE: 'agreements-empty-state',
-  AGREEMENTS_ITEM_PREFIX: 'agreements-item',
 
   // Common
   HEADER_LOGO: 'header-logo-image',

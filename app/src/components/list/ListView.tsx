@@ -10,7 +10,6 @@ type ListViewProps<T extends object> = {
   data: T[];
   config: ListItemConfig;
   onItemPress?: (item: ListItemWithStatusProps) => void;
-  testIdPrefix?: string;
 
   isFetchingNext?: boolean;
   hasMore?: boolean;
@@ -21,7 +20,6 @@ export function ListView<T extends object>({
   data,
   config,
   onItemPress,
-  testIdPrefix,
   isFetchingNext,
   hasMore,
   fetchNext,
@@ -45,7 +43,6 @@ export function ListView<T extends object>({
             isFirst={isFirst}
             isLast={isLast}
             onPress={() => onItemPress?.(mapped)}
-            testID={testIdPrefix ? `${testIdPrefix}-${mapped.id}` : undefined}
           />
         );
       }}

@@ -37,7 +37,6 @@ const AgreementsScreenContent = () => {
         hasMore={hasMoreAgreements}
         fetchNext={fetchAgreements}
         config={listItemConfigAgreements}
-        testIdPrefix={TestIDs.AGREEMENTS_ITEM_PREFIX}
         onItemPress={(item) => console.info(item.id)}
       />
     </StatusMessage>
