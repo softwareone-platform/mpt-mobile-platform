@@ -56,6 +56,14 @@
     .\run-local-test-android.ps1 .\test\specs\welcome.e2e.js
     Run a specific spec file.
 
+.EXAMPLE
+    .\run-local-test-android.ps1 -List all
+    List all test cases without running them.
+
+.EXAMPLE
+    .\run-local-test-android.ps1 -DryRun spotlight
+    List tests in spotlight suite without running them.
+
 .NOTES
     Prerequisites:
     - Windows 10/11 (64-bit)
@@ -89,8 +97,13 @@ param(
     [Parameter(ParameterSetName = 'ListEmulators', Mandatory = $true)]
     [switch]$ListEmulators,
     
+    [Parameter(ParameterSetName = 'ListTests', Mandatory = $true)]
+    [Alias('DryRun')]
+    [switch]$List,
+    
     [Parameter(Position = 0, ParameterSetName = 'Test')]
     [Parameter(Position = 0, ParameterSetName = 'Build')]
+    [Parameter(Position = 0, ParameterSetName = 'ListTests')]
     [string]$TestTarget
 )
 
@@ -199,6 +212,99 @@ function Import-EnvFile {
     return $true
 }
 
+function Get-TestList {
+    param([string]$Target)
+    
+    $ProjectRoot = Get-Location
+    $SpecsDir = Join-Path $ProjectRoot "app\test\specs"
+    $SpecFiles = @()
+    
+    # Determine which files to scan based on target
+    if ($Target -eq "all") {
+        $SpecFiles = Get-ChildItem -Path $SpecsDir -Filter "*.e2e.js" -File
+    }
+    elseif ($Target -match "\.js$") {
+        # It's a spec file path
+        $filePath = Join-Path $ProjectRoot "app\$Target"
+        if (Test-Path $filePath) {
+            $SpecFiles = @(Get-Item $filePath)
+        }
+    }
+    else {
+        # It's a suite name - map to file
+        $suiteMap = @{
+            "welcome" = "welcome.e2e.js"
+            "home" = "home.e2e.js"
+            "navigation" = "navigation.e2e.js"
+            "spotlight" = "spotlight-filters.e2e.js"
+            "profile" = "profile.e2e.js"
+            "personalInformation" = "personal-information.e2e.js"
+            "personal" = "personal-information.e2e.js"
+            "failing" = "failing.e2e.js"
+        }
+        
+        if ($suiteMap.ContainsKey($Target)) {
+            $filePath = Join-Path $SpecsDir $suiteMap[$Target]
+            if (Test-Path $filePath) {
+                $SpecFiles = @(Get-Item $filePath)
+            }
+        }
+        else {
+            Write-ErrorMsg "Unknown suite: $Target"
+            Write-Host "Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing" -ForegroundColor Yellow
+            return
+        }
+    }
+    
+    Write-Host ""
+    Write-Host ("=" * 72) -ForegroundColor Blue
+    Write-Host "                      TEST DISCOVERY (DRY RUN)" -ForegroundColor Blue
+    Write-Host ("=" * 72) -ForegroundColor Blue
+    Write-Host ""
+    
+    $totalFiles = 0
+    $totalDescribes = 0
+    $totalTests = 0
+    
+    foreach ($file in $SpecFiles) {
+        if (Test-Path $file.FullName) {
+            $totalFiles++
+            Write-Host "[FILE] $($file.Name)" -ForegroundColor Cyan
+            Write-Host ("─" * 72)
+            
+            $lineNum = 0
+            $content = Get-Content $file.FullName
+            
+            foreach ($line in $content) {
+                $lineNum++
+                
+                # Check for describe blocks
+                if ($line -match '^\s*describe\s*\(\s*[''"]([^''"]+)[''"]') {
+                    $name = $matches[1]
+                    Write-Host "  [DESCRIBE] $name (L$lineNum)" -ForegroundColor Yellow
+                    $totalDescribes++
+                }
+                
+                # Check for it blocks
+                if ($line -match '^\s*it\s*\(\s*[''"]([^''"]+)[''"]') {
+                    $name = $matches[1]
+                    Write-Host "    [TEST] $name (L$lineNum)" -ForegroundColor Green
+                    $totalTests++
+                }
+            }
+            Write-Host ""
+        }
+        else {
+            Write-WarningMsg "File not found: $($file.FullName)"
+        }
+    }
+    
+    Write-Host ("=" * 72) -ForegroundColor Blue
+    Write-Host "Summary: $totalTests test(s) in $totalDescribes describe block(s) across $totalFiles file(s)" -ForegroundColor Cyan
+    Write-Host ("=" * 72) -ForegroundColor Blue
+    Write-Host ""
+}
+
 #endregion
 
 #region Main Script
@@ -234,6 +340,17 @@ if (-not (Test-Path $AdbPath)) {
 }
 
 Write-Info "Using Android SDK: $AndroidSdk"
+
+# Handle -List / -DryRun option
+if ($List) {
+    if (-not $TestTarget) {
+        Write-ErrorMsg "Test target is required with -List option (suite name, spec file, or 'all')"
+        Write-Host "Example: .\run-local-test-android.ps1 -List all" -ForegroundColor Yellow
+        exit 1
+    }
+    Get-TestList -Target $TestTarget
+    exit 0
+}
 
 # Handle -ListEmulators option
 if ($ListEmulators) {

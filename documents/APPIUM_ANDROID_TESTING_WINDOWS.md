@@ -56,8 +56,8 @@ scripts\windows\run-local-test-android.bat all
 | Build + test | `scripts\windows\run-local-test-android.bat --build welcome` |
 | Reuse last build | `scripts\windows\run-local-test-android.bat --skip-build welcome` |
 | Test specific file | `scripts\windows\run-local-test-android.bat .\test\specs\welcome.e2e.js` |
-| Run all tests | `scripts\windows\run-local-test-android.bat all` |
-
+| Run all tests | `scripts\windows\run-local-test-android.bat all` || List all tests | `scripts\windows\run-local-test-android.bat --list all` |
+| List suite tests | `scripts\windows\run-local-test-android.bat --dry-run welcome` |
 ---
 
 ## Environment Setup
@@ -310,6 +310,7 @@ Main testing script that handles the complete workflow.
 | `--build`, `-b` | Build the app before testing |
 | `--skip-build`, `-s` | Install existing APK from last build |
 | `--emulator` | Specify emulator AVD name to start |
+| `--list`, `--dry-run` | List all test cases without running them |
 | `--verbose`, `-v` | Enable verbose output |
 | `--help`, `-h` | Show help message |
 
@@ -333,6 +334,7 @@ PowerShell alternative to the batch script with enhanced error handling.
 | `-Build` | Build the app before testing (requires `.env` file) |
 | `-SkipBuild` | Skip build and install existing APK from last build |
 | `-EmulatorName` | Specify emulator AVD name to start |
+| `-List`, `-DryRun` | List all test cases without running them |
 | `TestTarget` | Suite name, spec file, or 'all' (required) |
 
 ---

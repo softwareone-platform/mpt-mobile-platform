@@ -49,15 +49,16 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
   // Clear any previous input
   await welcomePage.clearText(welcomePage.emailInput).catch(() => {});
 
-  // Enter email
+  // Enter email (typeText now has built-in retry logic)
   console.info(`⌨️  Entering email: ${email}`);
   await welcomePage.typeText(welcomePage.emailInput, email);
 
-  // Verify the email was entered correctly
+  // Final verification - the email should be correct after typeText's retries
   const enteredValue = await welcomePage.emailInput.getAttribute('value');
   if (enteredValue !== email) {
-    throw new Error(`Email entry failed. Expected: ${email}, Got: ${enteredValue}`);
+    throw new Error(`Email entry failed after all retries. Expected: ${email}, Got: ${enteredValue}`);
   }
+  console.info('✓ Email entered successfully');
 
   // Record timestamp before requesting OTP
   const beforeOTPRequest = new Date();

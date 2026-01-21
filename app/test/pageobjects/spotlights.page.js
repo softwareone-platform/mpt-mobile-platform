@@ -73,7 +73,12 @@ class SpotlightsPage extends BasePage {
 
   // ========== Account Button ==========
   get accountButton() {
-    return $(selectors.byResourceId('nav-account-button'));
+    return $(
+      getSelector({
+        ios: '~nav-account-button',
+        android: '//*[@resource-id="nav-account-button"]',
+      }),
+    );
   }
 
   // ========== Navigation Tabs ==========
@@ -449,29 +454,26 @@ class SpotlightsPage extends BasePage {
 
   /**
    * Reset filter scroll position to show 'All' filter at the start
-   * Always performs at least one scroll right to ensure we're at the leftmost position,
-   * even if 'All' is already visible (it might be partially scrolled)
+   * Optimized: checks if already visible before scrolling
    */
   async resetFilterScrollPosition() {
-    // Always scroll right a few times to ensure we're at the leftmost position
-    // This handles cases where filters are partially scrolled from previous tests
-    const guaranteedScrolls = 3;
-    for (let i = 0; i < guaranteedScrolls; i++) {
+    // Quick check if already at start position
+    const alreadyVisible = await this.filterAll.isDisplayed().catch(() => false);
+    
+    if (alreadyVisible) {
+      // One scroll right to ensure we're fully at start, not partially scrolled
       await this.horizontalSwipeOnFilters('right');
-      await browser.pause(200);
+      await browser.pause(150);
+      return;
     }
 
-    // Verify 'All' filter is now visible
-    const isVisible = await this.filterAll.isDisplayed().catch(() => false);
-    if (!isVisible) {
-      // If still not visible after guaranteed scrolls, try a few more
-      const maxAdditionalScrolls = 3;
-      for (let i = 0; i < maxAdditionalScrolls; i++) {
-        await this.horizontalSwipeOnFilters('right');
-        await browser.pause(200);
-        const nowVisible = await this.filterAll.isDisplayed().catch(() => false);
-        if (nowVisible) break;
-      }
+    // Full reset needed - scroll right until All is visible
+    const maxScrolls = 5;
+    for (let i = 0; i < maxScrolls; i++) {
+      await this.horizontalSwipeOnFilters('right');
+      await browser.pause(150);
+      const nowVisible = await this.filterAll.isDisplayed().catch(() => false);
+      if (nowVisible) return;
     }
   }
 

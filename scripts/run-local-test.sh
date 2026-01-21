@@ -17,6 +17,7 @@ SKIP_BUILD=false
 VERBOSE=false
 PLATFORM="ios"  # Default platform
 ARTIFACT_URL=""  # URL to download pre-built artifact
+DRY_RUN=false  # List tests without running
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -41,6 +42,10 @@ while [[ $# -gt 0 ]]; do
             VERBOSE=true
             shift
             ;;
+        --list|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
         --help|-h)
             echo "Usage: $0 [options] [suite_name|spec_file|all]"
             echo ""
@@ -53,6 +58,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --build, -b                      Build release version of the app before testing"
             echo "  --skip-build, -s                 Skip build and install existing app from last build"
             echo "  --build-from-artifact URL        Download and install app from artifact URL (zip or apk)"
+            echo "  --list, --dry-run                List all test cases without running them"
             echo "  --verbose, -v                    Enable verbose output"
             echo "  --help, -h                       Show this help message"
             echo ""
@@ -66,6 +72,8 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 --skip-build all                       # Install last build and run all tests"
             echo "  $0 --build-from-artifact URL welcome      # Download artifact (zip) and run tests"
             echo "  $0 --platform android --build-from-artifact URL.apk welcome  # Download APK directly"
+            echo "  $0 --list all                             # List all tests without running"
+            echo "  $0 --dry-run spotlight                    # List tests in spotlight suite"
             exit 0
             ;;
         -*)
@@ -167,6 +175,111 @@ log() {
             echo "$message"
             ;;
     esac
+}
+
+# Function to list tests without running them (dry run)
+list_tests() {
+    local target="$1"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local project_root="$(dirname "$script_dir")"
+    local app_dir="$project_root/app"
+    local specs_dir="$app_dir/test/specs"
+    local spec_files=()
+    
+    # Determine which files to scan based on target
+    if [ "$target" = "all" ]; then
+        spec_files=("$specs_dir"/*.e2e.js)
+    elif [[ "$target" == *.js ]]; then
+        # It's a spec file path
+        if [[ "$target" == /* ]]; then
+            spec_files=("$target")
+        else
+            spec_files=("$app_dir/$target")
+        fi
+    else
+        # It's a suite name - look up in wdio.conf.js suites
+        case "$target" in
+            welcome) spec_files=("$specs_dir/welcome.e2e.js") ;;
+            home) spec_files=("$specs_dir/home.e2e.js") ;;
+            navigation) spec_files=("$specs_dir/navigation.e2e.js") ;;
+            spotlight) spec_files=("$specs_dir/spotlight-filters.e2e.js") ;;
+            profile) spec_files=("$specs_dir/profile.e2e.js") ;;
+            personalInformation|personal) spec_files=("$specs_dir/personal-information.e2e.js") ;;
+            failing) spec_files=("$specs_dir/failing.e2e.js") ;;
+            *) 
+                echo "❌ Unknown suite: $target"
+                echo "Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing"
+                exit 1
+                ;;
+        esac
+    fi
+    
+    echo ""
+    echo "╔══════════════════════════════════════════════════════════════════════╗"
+    echo "║                      📋 TEST DISCOVERY (DRY RUN)                     ║"
+    echo "╚══════════════════════════════════════════════════════════════════════════╝"
+    echo ""
+    
+    local total_files=0
+    local total_describes=0
+    local total_tests=0
+    
+    for file in "${spec_files[@]}"; do
+        if [ -f "$file" ]; then
+            ((total_files++))
+            local filename=$(basename "$file")
+            echo "📄 $filename"
+            echo "────────────────────────────────────────────────────────────────"
+            
+            # Process file line by line to extract describe and it blocks
+            local line_num=0
+            while IFS= read -r line || [ -n "$line" ]; do
+                ((line_num++))
+                
+                # Check for describe blocks
+                if echo "$line" | grep -qE "^\s*describe\s*\("; then
+                    # Extract the test name (handle both single and double quotes)
+                    local name=$(echo "$line" | sed -E "s/.*describe\s*\(\s*['\"]([^'\"]+)['\"].*/\1/")
+                    
+                    # Determine indentation level for visual hierarchy
+                    local leading_spaces="${line%%[![:space:]]*}"
+                    local indent_level=$((${#leading_spaces} / 4))
+                    local indent=""
+                    for ((i=0; i<indent_level; i++)); do
+                        indent="${indent}  "
+                    done
+                    
+                    echo "${indent}📦 $name (L$line_num)"
+                    ((total_describes++))
+                fi
+                
+                # Check for it blocks
+                if echo "$line" | grep -qE "^\s*it\s*\("; then
+                    # Extract the test name
+                    local name=$(echo "$line" | sed -E "s/.*it\s*\(\s*['\"]([^'\"]+)['\"].*/\1/")
+                    
+                    # Determine indentation level
+                    local leading_spaces="${line%%[![:space:]]*}"
+                    local indent_level=$((${#leading_spaces} / 4))
+                    local indent=""
+                    for ((i=0; i<indent_level; i++)); do
+                        indent="${indent}  "
+                    done
+                    
+                    echo "${indent}🧪 $name (L$line_num)"
+                    ((total_tests++))
+                fi
+            done < "$file"
+            
+            echo ""
+        else
+            echo "⚠️  File not found: $file"
+        fi
+    done
+    
+    echo "════════════════════════════════════════════════════════════════════════"
+    echo "📊 Summary: $total_tests test(s) in $total_describes describe block(s) across $total_files file(s)"
+    echo ""
 }
 
 # Function to download and install app from artifact URL
@@ -516,6 +629,12 @@ install_existing_app() {
     xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
     log "✅ Existing app installed on simulator" "info"
 }
+
+# Handle dry run mode - list tests and exit
+if [ "$DRY_RUN" = true ]; then
+    list_tests "$TEST_TARGET"
+    exit 0
+fi
 
 # Handle build options
 if [ -n "$ARTIFACT_URL" ]; then

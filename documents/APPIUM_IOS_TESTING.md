@@ -159,6 +159,7 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 #   --build, -b           Build release version of the app before testing
 #   --skip-build, -s      Skip build and install existing app from last build
 #   --build-from-artifact Download and install app from artifact URL (zip or apk)
+#   --list, --dry-run     List all test cases without running them
 #   --verbose, -v         Enable verbose output for debugging
 #   --help, -h            Show help message
 ```
@@ -167,6 +168,7 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 - ✅ **Automatic build** (optional): Builds Release configuration using Expo prebuild + xcodebuild
 - ✅ **Fast iteration**: Reuses last build for quick testing cycles with `--skip-build`
 - ✅ **Artifact support**: Download and install app from artifact URL with `--build-from-artifact`
+- ✅ **Test discovery**: List all tests without running them with `--list` or `--dry-run`
 - ✅ **Simulator management**: Boots simulator and installs app automatically
 - ✅ **Appium lifecycle**: Starts/stops Appium server as needed
 - ✅ **Flexible execution**: Run from project root or scripts directory
@@ -386,6 +388,24 @@ source ./scripts/setup-test-env.sh --list-emulators
 - `--start-emulator <name>`: Start emulator/simulator by name
 - `--list-emulators`: List available emulators/simulators
 - `--help`: Show help message
+
+### Test Discovery
+
+List all available tests without running them:
+
+```bash
+# List all tests
+./scripts/run-local-test.sh --list all
+
+# List tests for a specific suite
+./scripts/run-local-test.sh --dry-run welcome
+./scripts/run-local-test.sh --list spotlight
+
+# List tests for a specific spec file
+./scripts/run-local-test.sh --list ./test/specs/navigation.e2e.js
+```
+
+This is useful for discovering available tests before running them, or for CI/CD pipelines that need to know test counts.
 
 The setup script will automatically:
 - Load values from `app/.env` 
