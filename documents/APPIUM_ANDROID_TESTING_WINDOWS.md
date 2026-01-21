@@ -30,11 +30,11 @@ This guide covers how to set up and run Appium tests for Android on Windows. It 
 ### 🚀 Fastest Workflow
 
 ```batch
-REM 1. First time: Verify your environment
-scripts\windows\setup-android-env.bat
+REM 1. Create .env file in app\ directory with Auth0 configuration
+REM See app\.env.example for required variables
 
-REM 2. Create .env file in app\ directory with Auth0 configuration
-REM See app\.env for required variables
+REM 2. Setup environment and verify
+scripts\windows\setup-test-env.bat
 
 REM 3. Build and test (first run)
 scripts\windows\run-local-test-android.bat --build welcome
@@ -50,7 +50,9 @@ scripts\windows\run-local-test-android.bat all
 
 | Scenario | Command |
 |----------|---------|
-| Check environment | `scripts\windows\setup-android-env.bat` |
+| Setup environment | `scripts\windows\setup-test-env.bat` |
+| List emulators | `scripts\windows\setup-test-env.bat --list-emulators` |
+| Start emulator | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34` |
 | Build + test | `scripts\windows\run-local-test-android.bat --build welcome` |
 | Reuse last build | `scripts\windows\run-local-test-android.bat --skip-build welcome` |
 | Test specific file | `scripts\windows\run-local-test-android.bat .\test\specs\welcome.e2e.js` |
@@ -213,20 +215,22 @@ To test on a physical Android device:
 
 ### 7. Verify Environment
 
-Run the setup helper to check everything:
+Run the setup script to load environment and check connectivity:
 
 ```batch
-scripts\windows\setup-android-env.bat
+scripts\windows\setup-test-env.bat
 ```
 
-This will verify:
-- ✅ Java installation and version
-- ✅ JAVA_HOME environment variable
-- ✅ Android SDK installation
-- ✅ ADB availability
-- ✅ Node.js installation
-- ✅ Appium and UiAutomator2 driver
-- ✅ Connected devices and available emulators
+This will:
+- ✅ Load environment variables from .env file
+- ✅ Configure platform-specific settings (Android/iOS)
+- ✅ Detect connected devices
+- ✅ Display configuration summary
+
+To list available emulators:
+```batch
+scripts\windows\setup-test-env.bat --list-emulators
+```
 
 ---
 
@@ -281,16 +285,14 @@ Alternative with better error handling:
 For more control over the process:
 
 ```batch
-REM 1. Build the APK
-scripts\windows\deploy-android.bat
+REM 1. Setup environment
+scripts\windows\setup-test-env.bat
 
 REM 2. Start Appium server (in separate terminal)
 appium --address 127.0.0.1 --port 4723
 
-REM 3. Run tests
-cd app
-set PLATFORM_NAME=Android
-npx wdio run wdio.conf.js --suite welcome
+REM 3. Run tests (this will build if needed)
+scripts\windows\run-local-test-android.bat --build welcome
 ```
 
 ---
@@ -311,22 +313,16 @@ Main testing script that handles the complete workflow.
 | `--verbose`, `-v` | Enable verbose output |
 | `--help`, `-h` | Show help message |
 
-### `scripts\windows\deploy-android.bat`
+### `scripts\windows\setup-test-env.bat` / `setup-test-env.ps1`
 
-Builds and deploys the Android app.
-
-**Prerequisites:** .env file must exist in app\ directory with Auth0 configuration
+Sets up the test environment by loading .env variables and configuring platform settings.
 
 | Option | Description |
 |--------|-------------|
-| `--release`, `-r` | Build release version |
-| `--debug`, `-d` | Build debug version (default) |
-| `--emulator` | Specify emulator to start |
-| `--verbose`, `-v` | Enable verbose output |
-
-### `scripts\windows\setup-android-env.bat`
-
-Checks and validates your development environment.
+| `--platform`, `-p` | Target platform: android or ios (default: android) |
+| `--list-emulators`, `-l` | List available Android emulators |
+| `--start-emulator`, `-e` | Start Android emulator by AVD name |
+| `--help`, `-h` | Show help message |
 
 ### `scripts\windows\run-local-test-android.ps1`
 

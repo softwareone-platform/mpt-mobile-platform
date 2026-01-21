@@ -95,9 +95,9 @@ on:
         default: ''
 
 env:
-  BUILD_MODE: ${{ github.event.inputs.build-mode || 'Release' }}
-  PLATFORM_VERSION: ${{ github.event.inputs.platform-version || '26.0' }}
-  DEVICE_NAME: ${{ github.event.inputs.device-name || 'iPhone 16' }}
+  BUILD_MODE: ${{ inputs.build-mode || github.event.inputs.build-mode || 'Release' }}
+  PLATFORM_VERSION: ${{ inputs.platform-version || github.event.inputs.platform-version || '26.0' }}
+  DEVICE_NAME: ${{ inputs.device-name || github.event.inputs.device-name || 'iPhone 16' }}
 
 jobs:
   build-ios:
