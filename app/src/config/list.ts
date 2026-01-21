@@ -20,3 +20,10 @@ export const listItemConfigNoImageNoSubtitle: ListItemConfig = {
   title: 'id',
   status: 'status',
 };
+
+export const listItemConfigAgreements: ListItemConfig = {
+  id: 'id',
+  title: 'name',
+  subtitle: 'id',
+  status: 'status',
+};
