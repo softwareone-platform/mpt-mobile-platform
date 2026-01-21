@@ -15,7 +15,7 @@ export function useAgreementApi() {
     ): Promise<PaginatedResponse<Agreement>> => {
       const endpoint =
         `/v1/commerce/agreements` +
-        `?select=product,audit,seller.address,listing,licensee.eligibility` +
+        `?select=audit` +
         `&filter(group.buyers)` +
         `&and(ne(status,"Draft"),ne(status,"Failed"))` +
         `&order=externalIds.client` +
