@@ -13,6 +13,9 @@ class BasePage {
   async typeText(element, text, maxRetries = 3) {
     await element.waitForDisplayed();
     
+    // Android uses 'text' attribute, iOS uses 'value'
+    const textAttribute = this.isAndroid() ? 'text' : 'value';
+    
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       // Clear any existing text first
       await element.clearValue().catch(() => {});
@@ -23,7 +26,7 @@ class BasePage {
       await browser.pause(200);
       
       // Verify the text was entered correctly
-      const enteredValue = await element.getAttribute('value');
+      const enteredValue = await element.getAttribute(textAttribute);
       if (enteredValue === text) {
         return; // Success
       }
