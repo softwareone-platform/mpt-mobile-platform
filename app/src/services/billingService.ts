@@ -44,7 +44,7 @@ export function useBillingApi() {
     ): Promise<PaginatedResponse<Invoice>> => {
       const endpoint =
         `/v1/billing/invoices` +
-        `?select=-*,id,documentNo,status,audit.created.at,audit.updated.at` +
+        `?select=-*,id,status,audit.created.at` +
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}` +

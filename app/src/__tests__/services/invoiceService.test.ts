@@ -42,7 +42,7 @@ describe('useBillingApi - Invoices', () => {
 
     const expectedUrl =
       `/v1/billing/invoices` +
-      `?select=-*,id,documentNo,status,audit.created.at,audit.updated.at` +
+      `?select=-*,id,status,audit.created.at` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=${DEFAULT_OFFSET}` +
@@ -74,7 +74,7 @@ describe('useBillingApi - Invoices', () => {
 
     const expectedUrl =
       `/v1/billing/invoices` +
-      `?select=-*,id,documentNo,status,audit.created.at,audit.updated.at` +
+      `?select=-*,id,status,audit.created.at` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=50` +
