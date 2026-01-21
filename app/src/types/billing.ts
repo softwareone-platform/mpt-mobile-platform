@@ -11,6 +11,23 @@ export interface CreditMemo {
   audit?: Record<string, unknown>;
 }
 
+export interface CreditMemoDetails {
+  id: string;
+  documentNo: string;
+  status: string;
+
+  postingDate: string;
+  documentDate: string;
+
+  buyerName: string;
+  sellerName: string;
+  sellerCountry?: string;
+
+  totalAmount?: number;
+  currency?: string;
+  audit: unknown;
+}
+
 export interface Invoice {
   id: string;
   documentNo: string;

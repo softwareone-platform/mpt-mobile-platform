@@ -12,6 +12,7 @@ interface BillingContextValue {
   creditMemosError: boolean;
   isUnauthorised: boolean;
   fetchCreditMemos: () => void;
+  selectedCreditMemoId?: string;
 }
 
 const BillingContext = createContext<BillingContextValue | undefined>(undefined);
@@ -34,21 +35,28 @@ export const BillingProvider = ({ children }: { children: ReactNode }) => {
 
   const creditMemos = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
-  return (
-    <BillingContext.Provider
-      value={{
-        creditMemos,
-        creditMemosLoading: isLoading,
-        creditMemosFetchingNext: isFetchingNextPage,
-        hasMoreCreditMemos: !!hasNextPage,
-        creditMemosError: isError,
-        isUnauthorised,
-        fetchCreditMemos: fetchNextPage,
-      }}
-    >
-      {children}
-    </BillingContext.Provider>
+  const value = useMemo(
+    () => ({
+      creditMemos,
+      creditMemosLoading: isLoading,
+      creditMemosFetchingNext: isFetchingNextPage,
+      hasMoreCreditMemos: !!hasNextPage,
+      creditMemosError: isError,
+      isUnauthorised,
+      fetchCreditMemos: fetchNextPage,
+    }),
+    [
+      creditMemos,
+      isLoading,
+      isFetchingNextPage,
+      hasNextPage,
+      isError,
+      isUnauthorised,
+      fetchNextPage,
+    ],
   );
+
+  return <BillingContext.Provider value={value}>{children}</BillingContext.Provider>;
 };
 
 export const useBilling = () => {
