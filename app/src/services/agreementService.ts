@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse } from '@/types/api';
 import type { Agreement } from '@/types/agreement';
+import type { PaginatedResponse } from '@/types/api';
 
 export function useAgreementApi() {
   const api = useApi();
