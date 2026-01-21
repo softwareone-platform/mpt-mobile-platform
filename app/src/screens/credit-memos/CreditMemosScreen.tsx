@@ -42,11 +42,11 @@ const CreditMemosScreenContent = () => {
         hasMore={hasMoreCreditMemos}
         fetchNext={fetchCreditMemos}
         config={listItemConfigNoImageNoSubtitle}
-        onItemPress={(mapped) =>
+        onItemPress={(mapped) => {
           navigation.navigate('creditMemoDetails', {
             headerProps: mapped,
-          })
-        }
+          });
+        }}
       />
     </StatusMessage>
   );

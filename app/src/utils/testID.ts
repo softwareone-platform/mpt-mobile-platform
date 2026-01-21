@@ -93,6 +93,11 @@ export const TestIDs = {
   CREDIT_MEMOS_ERROR_STATE: 'credit-memos-error-state',
   CREDIT_MEMOS_EMPTY_STATE: 'credit-memos-empty-state',
 
+  // Credit Memo Details Screen
+  CREDIT_MEMO_DETAILS_LOADING_INDICATOR: 'credit-memo-details-loading-indicator',
+  CREDIT_MEMO_DETAILS_ERROR_STATE: 'credit-memo-details-error-state',
+  CREDIT_MEMO_DETAILS_EMPTY_STATE: 'credit-memo-details-empty-state',
+
   // Users Screen
   USERS_LOADING_INDICATOR: 'users-loading-indicator',
   USERS_ERROR_STATE: 'users-error-state',

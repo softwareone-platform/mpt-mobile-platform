@@ -4,6 +4,8 @@
     "emptyStateDescription": "No credit memos found."
   },
   "creditMemoDetailsScreen": {
-    "title": "Credit Memo"
+    "title": "Credit Memo",
+    "emptyStateTitle": "No credit memo details",
+    "emptyStateDescription": "No credit memo details found."
   }
 }
