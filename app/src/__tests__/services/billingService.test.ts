@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useBillingApi } from '@/services/billingService';
 import type { PaginatedResponse } from '@/types/api';
-import type { CreditMemo } from '@/types/billing';
+import type { CreditMemo, CreditMemoDetails } from '@/types/billing';
 
 const mockGet = jest.fn();
 
@@ -124,5 +124,59 @@ describe('useBillingApi', () => {
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
     expect(res2!.data.map((item) => item.id)).toEqual(['CM3', 'CM4']);
+  });
+});
+
+describe('useBillingApi – getCreditMemoDetails', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls api.get with correct endpoint and returns mapped data', async () => {
+    const creditMemoId = 'CRD-4164-9427-6482-9469';
+
+    const mockResponse: CreditMemoDetails = {
+      id: creditMemoId,
+      documentNo: 'CH-CM-160386',
+      status: 'Issued',
+      postingDate: '2026-01-20T00:00:00.000Z',
+      documentDate: '2026-01-20T00:00:00.000Z',
+      buyerName: 'Siemens Canada Limited',
+      sellerName: 'SoftwareONE Switzerland',
+      sellerCountry: 'CH',
+      totalAmount: 32.43,
+      currency: 'USD',
+      audit: {},
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    const { result } = renderHook(() => useBillingApi());
+
+    let data: CreditMemoDetails | undefined;
+
+    await act(async () => {
+      data = await result.current.getCreditMemoDetails(creditMemoId);
+    });
+
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(mockGet).toHaveBeenCalledWith(
+      `/v1/billing/credit-memos/${creditMemoId}?select=seller.address.country,audit,statement,statement.ledger.owner`,
+    );
+
+    expect(data).toEqual(mockResponse);
+  });
+
+  it('throws if api.get rejects', async () => {
+    const creditMemoId = 'CRD-1';
+    const error = new Error('Network error');
+
+    mockGet.mockRejectedValueOnce(error);
+
+    const { result } = renderHook(() => useBillingApi());
+
+    await expect(result.current.getCreditMemoDetails(creditMemoId)).rejects.toThrow(
+      'Network error',
+    );
   });
 });
