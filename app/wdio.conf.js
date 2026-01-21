@@ -2,6 +2,22 @@ const fs = require('fs');
 const path = require('path');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
 
+// Load .env file if it exists (for local development and Windows batch execution)
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine && !trimmedLine.startsWith('#')) {
+            const [key, ...valueParts] = trimmedLine.split('=');
+            const value = valueParts.join('='); // Handle values with '=' in them
+            if (key && value && !process.env[key]) {
+                process.env[key] = value;
+            }
+        }
+    });
+}
+
 const SCREENSHOT_FOLDER = '../screenshots';
 
 // Generate timestamped log directory for this test run

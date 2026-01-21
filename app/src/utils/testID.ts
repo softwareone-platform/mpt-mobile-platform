@@ -79,6 +79,11 @@ export const TestIDs = {
   SPOTLIGHT_CARD_FOOTER_PREFIX: 'spotlight-card-footer',
   SPOTLIGHT_ITEM_PREFIX: 'spotlight-item',
 
+  // Agreements Screen
+  AGREEMENTS_LOADING_INDICATOR: 'agreements-loading-indicator',
+  AGREEMENTS_ERROR_STATE: 'agreements-error-state',
+  AGREEMENTS_EMPTY_STATE: 'agreements-empty-state',
+
   // Common
   HEADER_LOGO: 'header-logo-image',
   LOADING_INDICATOR: 'loading-indicator',
