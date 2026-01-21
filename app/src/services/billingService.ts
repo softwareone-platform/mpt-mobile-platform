@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse } from '@/types/api';
-import type { CreditMemo } from '@/types/billing';
+import type { CreditMemo, CreditMemoDetails } from '@/types/billing';
 
 export function useBillingApi() {
   const api = useApi();
@@ -26,10 +26,22 @@ export function useBillingApi() {
     [api],
   );
 
+  const getCreditMemoDetails = useCallback(
+    async (creditMemoId: string): Promise<CreditMemoDetails> => {
+      const endpoint =
+        `/v1/billing/credit-memos/${creditMemoId}` +
+        `?select=seller.address.country,audit,statement,statement.ledger.owner`;
+
+      return api.get<CreditMemoDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getCreditMemos,
+      getCreditMemoDetails,
     }),
-    [getCreditMemos],
+    [getCreditMemos, getCreditMemoDetails],
   );
 }

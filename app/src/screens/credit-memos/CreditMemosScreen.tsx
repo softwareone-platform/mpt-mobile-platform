@@ -18,6 +18,7 @@ const CreditMemosScreenContent = () => {
     hasMoreCreditMemos,
     isUnauthorised,
     fetchCreditMemos,
+    selectCreditMemo,
   } = useBilling();
 
   const { t } = useTranslation();
@@ -42,11 +43,12 @@ const CreditMemosScreenContent = () => {
         hasMore={hasMoreCreditMemos}
         fetchNext={fetchCreditMemos}
         config={listItemConfigNoImageNoSubtitle}
-        onItemPress={(mapped) =>
+        onItemPress={(mapped) => {
+          selectCreditMemo(mapped.id);
           navigation.navigate('creditMemoDetails', {
             headerProps: mapped,
-          })
-        }
+          });
+        }}
       />
     </StatusMessage>
   );
