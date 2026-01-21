@@ -21,23 +21,21 @@ on:
         type: choice
         options:
           - test
+          - qa
           - prod
 
 env:
   NODE_VERSION: '20'
   XCODE_VERSION: '16.0'
-  APP_BUNDLE_ID: 'com.softwareone.marketplaceMobile'
   DEVELOPMENT_TEAM: '47PY6J2KQC'
-  APP_STORE_APP_ID: '6752612555'
-  PROVISIONING_PROFILE_SPECIFIER: 'SoftwareONE Marketplace Mobile App Store'
 
 jobs:
   deploy-testflight:
     name: Build and Deploy to TestFlight
     runs-on: macos-latest
     timeout-minutes: 60
-    # Use target environment for Auth0 config (AUTH0_CLIENT_ID secret)
-    # iOS signing secrets are at repository level
+    # Environment provides: Auth0 config, iOS provisioning profile, app bundle ID, app store ID
+    # Repository-level secrets: distribution certificate, App Store Connect API keys
     environment:
       name: ${{ inputs.environment }}
       url: https://appstoreconnect.apple.com
@@ -185,6 +183,21 @@ jobs:
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
 
+      - name: Update bundle identifier for environment
+        run: |
+          BUNDLE_ID="${{ vars.APP_BUNDLE_ID }}"
+          echo "Setting bundle identifier to: $BUNDLE_ID"
+
+          # Update bundleIdentifier in app.config.js
+          node -e "
+            const fs = require('fs');
+            let configContent = fs.readFileSync('app.config.js', 'utf8');
+            configContent = configContent.replace(/bundleIdentifier: ['\"][^'\"]+['\"]/, \"bundleIdentifier: '$BUNDLE_ID'\");
+            fs.writeFileSync('app.config.js', configContent);
+          "
+
+          echo "Bundle identifier updated in app.config.js"
+
       - name: Prebuild iOS native project
         run: |
           echo "Generating native iOS project with Expo..."
@@ -288,7 +301,7 @@ jobs:
 
       - name: Install Provisioning Profile
         run: |
-          # iOS signing secrets are at repository level
+          # Provisioning profile is environment-specific (test/qa/prod)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
 
@@ -315,7 +328,7 @@ jobs:
             -destination "generic/platform=iOS" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="${{ env.PROVISIONING_PROFILE_SPECIFIER }}" \
+            PROVISIONING_PROFILE_SPECIFIER="${{ vars.IOS_PROVISIONING_PROFILE_NAME }}" \
             DEVELOPMENT_TEAM="${{ env.DEVELOPMENT_TEAM }}" \
             archive
 
@@ -342,8 +355,8 @@ jobs:
             <string>Apple Distribution</string>
             <key>provisioningProfiles</key>
             <dict>
-              <key>${{ env.APP_BUNDLE_ID }}</key>
-              <string>${{ env.PROVISIONING_PROFILE_SPECIFIER }}</string>
+              <key>${{ vars.APP_BUNDLE_ID }}</key>
+              <string>${{ vars.IOS_PROVISIONING_PROFILE_NAME }}</string>
             </dict>
             <key>uploadSymbols</key>
             <true/>
@@ -445,8 +458,8 @@ jobs:
       - name: Create release tag
         if: success()
         run: |
-          TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}"
-          git tag -a "$TAG" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }}"
+          TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ inputs.environment }}"
+          git tag -a "$TAG" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }} (${{ inputs.environment }})"
           git push origin "$TAG"
 
       - name: Clean up sensitive files
@@ -468,11 +481,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "**Build Number:** ${{ steps.version.outputs.build }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Bundle ID:** ${{ env.APP_BUNDLE_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Bundle ID:** ${{ vars.APP_BUNDLE_ID }}" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. Wait 10-15 minutes for App Store Connect processing" >> $GITHUB_STEP_SUMMARY
-          echo "2. Check TestFlight: [App Store Connect](https://appstoreconnect.apple.com/apps/${{ env.APP_STORE_APP_ID }}/testflight/ios)" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check TestFlight: [App Store Connect](https://appstoreconnect.apple.com/apps/${{ vars.APP_STORE_APP_ID }}/testflight/ios)" >> $GITHUB_STEP_SUMMARY
           echo "3. Merge the version bump PR to sync build numbers" >> $GITHUB_STEP_SUMMARY
           echo "4. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
