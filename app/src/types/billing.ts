@@ -10,3 +10,18 @@ export interface CreditMemo {
   price?: Record<string, unknown>;
   audit?: Record<string, unknown>;
 }
+
+export interface Invoice {
+  id: string;
+  documentNo: string;
+  status?: string;
+
+  audit?: {
+    created?: {
+      at?: string;
+    };
+    updated?: {
+      at?: string;
+    };
+  };
+}

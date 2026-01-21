@@ -27,3 +27,9 @@ export const listItemConfigAgreements: ListItemConfig = {
   subtitle: 'id',
   status: 'status',
 };
+
+export const listItemConfigInvoices: ListItemConfig = {
+  id: 'id',
+  title: 'id',
+  status: 'status',
+};

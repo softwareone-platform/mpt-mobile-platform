@@ -5,5 +5,9 @@
   },
   "creditMemoDetailsScreen": {
     "title": "Credit Memo"
+  },
+  "invoicesScreen": {
+    "emptyStateTitle": "No invoices",
+    "emptyStateDescription": "No invoices found."
   }
 }
