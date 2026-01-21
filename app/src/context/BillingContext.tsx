@@ -1,9 +1,8 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
-import { useCreditMemoDetailsData } from '@/hooks/queries/useCreditMemoDetailsData';
 import { useCreditMemosData } from '@/hooks/queries/useCreditMemosData';
-import type { CreditMemo, CreditMemoDetails } from '@/types/billing';
+import type { CreditMemo } from '@/types/billing';
 
 interface BillingContextValue {
   creditMemos: CreditMemo[];
@@ -14,11 +13,6 @@ interface BillingContextValue {
   isUnauthorised: boolean;
   fetchCreditMemos: () => void;
   selectedCreditMemoId?: string;
-  selectCreditMemo: (id: string) => void;
-  selectedCreditMemo?: CreditMemoDetails;
-  selectedCreditMemoLoading: boolean;
-  selectedCreditMemoError: boolean;
-  selectedCreditMemoUnauthorised: boolean;
 }
 
 const BillingContext = createContext<BillingContextValue | undefined>(undefined);
@@ -28,8 +22,6 @@ export const BillingProvider = ({ children }: { children: ReactNode }) => {
 
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
-
-  const [selectedCreditMemoId, setSelectedCreditMemoId] = useState<string | undefined>(undefined);
 
   const {
     data,
@@ -43,13 +35,6 @@ export const BillingProvider = ({ children }: { children: ReactNode }) => {
 
   const creditMemos = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
-  const {
-    data: selectedCreditMemo,
-    isLoading: selectedCreditMemoLoading,
-    isError: selectedCreditMemoError,
-    isUnauthorised: selectedCreditMemoUnauthorised,
-  } = useCreditMemoDetailsData(selectedCreditMemoId, userId, currentAccountId);
-
   const value = useMemo(
     () => ({
       creditMemos,
@@ -59,12 +44,6 @@ export const BillingProvider = ({ children }: { children: ReactNode }) => {
       creditMemosError: isError,
       isUnauthorised,
       fetchCreditMemos: fetchNextPage,
-      selectedCreditMemoId,
-      selectCreditMemo: setSelectedCreditMemoId,
-      selectedCreditMemo,
-      selectedCreditMemoLoading,
-      selectedCreditMemoError,
-      selectedCreditMemoUnauthorised,
     }),
     [
       creditMemos,
@@ -74,11 +53,6 @@ export const BillingProvider = ({ children }: { children: ReactNode }) => {
       isError,
       isUnauthorised,
       fetchNextPage,
-      selectedCreditMemoId,
-      selectedCreditMemo,
-      selectedCreditMemoLoading,
-      selectedCreditMemoError,
-      selectedCreditMemoUnauthorised,
     ],
   );
 
