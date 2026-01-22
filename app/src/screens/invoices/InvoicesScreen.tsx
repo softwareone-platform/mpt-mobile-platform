@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
-import { listItemConfigInvoices } from '@/config/list';
+import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useInvoices, InvoicesProvider } from '@/context/InvoicesContext';
 import { TestIDs } from '@/utils/testID';
 
@@ -36,7 +36,7 @@ const InvoicesScreenContent = () => {
         isFetchingNext={invoicesFetchingNext}
         hasMore={hasMoreInvoices}
         fetchNext={fetchInvoices}
-        config={listItemConfigInvoices}
+        config={listItemConfigNoImageNoSubtitle}
         onItemPress={(item) => console.info(item.id)}
       />
     </StatusMessage>

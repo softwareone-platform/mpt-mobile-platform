@@ -20,9 +20,3 @@ export const listItemConfigNoImageNoSubtitle: ListItemConfig = {
   title: 'id',
   status: 'status',
 };
-
-export const listItemConfigInvoices: ListItemConfig = {
-  id: 'id',
-  title: 'id',
-  status: 'status',
-};
