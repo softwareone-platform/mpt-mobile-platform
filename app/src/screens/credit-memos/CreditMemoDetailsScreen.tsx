@@ -29,6 +29,11 @@ const CreditMemoDetailsScreen = () => {
     isUnauthorised,
   } = useCreditMemoDetailsData(headerData.id, userId, currentAccountId);
 
+  console.info(
+    'CreditMemoDetailsScreen rendered with creditMemoDetails:',
+    JSON.stringify(creditMemoDetails, null, 2),
+  );
+
   return (
     <StatusMessage
       isLoading={isLoading}
