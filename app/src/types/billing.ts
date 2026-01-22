@@ -27,3 +27,18 @@ export interface CreditMemoDetails {
   currency?: string;
   audit: unknown;
 }
+
+export interface Invoice {
+  id: string;
+  documentNo: string;
+  status?: string;
+
+  audit?: {
+    created?: {
+      at?: string;
+    };
+    updated?: {
+      at?: string;
+    };
+  };
+}
