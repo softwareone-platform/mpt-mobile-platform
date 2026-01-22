@@ -21,13 +21,6 @@ export const listItemConfigNoImageNoSubtitle: ListItemConfig = {
   status: 'status',
 };
 
-export const listItemConfigAgreements: ListItemConfig = {
-  id: 'id',
-  title: 'name',
-  subtitle: 'id',
-  status: 'status',
-};
-
 export const listItemConfigInvoices: ListItemConfig = {
   id: 'id',
   title: 'id',

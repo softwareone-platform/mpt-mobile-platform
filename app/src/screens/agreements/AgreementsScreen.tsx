@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
-import { listItemConfigAgreements } from '@/config/list';
+import { listItemConfigNoImage } from '@/config/list';
 import { useAgreements, AgreementsProvider } from '@/context/AgreementsContext';
 import { TestIDs } from '@/utils/testID';
 
@@ -36,7 +36,7 @@ const AgreementsScreenContent = () => {
         isFetchingNext={agreementsFetchingNext}
         hasMore={hasMoreAgreements}
         fetchNext={fetchAgreements}
-        config={listItemConfigAgreements}
+        config={listItemConfigNoImage}
         onItemPress={(item) => console.info(item.id)}
       />
     </StatusMessage>
