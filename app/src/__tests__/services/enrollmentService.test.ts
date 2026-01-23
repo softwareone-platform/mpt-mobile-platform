@@ -136,7 +136,10 @@ describe('useProgramApi - getEnrollments', () => {
     expect(res1).toBeDefined();
     expect(res1!.data.length).toBe(2);
     expect(res1!.data.map((item) => item.id)).toEqual(['ENR-1234-7564-2273', 'ENR-1234-7564-3476']);
-    expect(res1!.data.map((item) => item.name)).toEqual(['ENR-1234-7564-2273', 'ENR-1234-7564-3476']);
+    expect(res1!.data.map((item) => item.name)).toEqual([
+      'ENR-1234-7564-2273',
+      'ENR-1234-7564-3476',
+    ]);
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
