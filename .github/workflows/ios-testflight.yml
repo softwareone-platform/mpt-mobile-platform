@@ -103,6 +103,7 @@ jobs:
           AUTH0_API_URL=${{ vars.AUTH0_API_URL }}
           AUTH0_OTP_DIGITS=${{ vars.AUTH0_OTP_DIGITS }}
           AUTH0_SCHEME=${{ vars.AUTH0_SCHEME }}
+          APP_BUNDLE_ID=${{ vars.APP_BUNDLE_ID }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"
@@ -182,21 +183,6 @@ jobs:
           echo "Updated app.config.js with version $NEW_VERSION and build number $NEW_BUILD"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
-
-      - name: Update bundle identifier for environment
-        run: |
-          BUNDLE_ID="${{ vars.APP_BUNDLE_ID }}"
-          echo "Setting bundle identifier to: $BUNDLE_ID"
-
-          # Update bundleIdentifier in app.config.js
-          node -e "
-            const fs = require('fs');
-            let configContent = fs.readFileSync('app.config.js', 'utf8');
-            configContent = configContent.replace(/bundleIdentifier: ['\"][^'\"]+['\"]/, \"bundleIdentifier: '$BUNDLE_ID'\");
-            fs.writeFileSync('app.config.js', configContent);
-          "
-
-          echo "Bundle identifier updated in app.config.js"
 
       - name: Prebuild iOS native project
         run: |
