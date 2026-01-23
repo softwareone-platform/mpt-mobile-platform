@@ -5,9 +5,8 @@ const { AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_SCHEME, APP_BUNDLE_ID, APP_ENVIRONM
 const bundleId = APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile';
 
 // Determine asset paths based on environment (test, qa, or prod)
-const assetPath = APP_ENVIRONMENT && APP_ENVIRONMENT !== 'prod'
-  ? `./assets/${APP_ENVIRONMENT}`
-  : './assets';
+const assetPath =
+  APP_ENVIRONMENT && APP_ENVIRONMENT !== 'prod' ? `./assets/${APP_ENVIRONMENT}` : './assets';
 const iconPath = `${assetPath}/icon.png`;
 const androidIconPath = `${assetPath}/android_icon.png`;
 
