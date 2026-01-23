@@ -127,6 +127,11 @@ export const TestIDs = {
   PROGRAMS_LOADING_INDICATOR: 'programs-loading-indicator',
   PROGRAMS_ERROR_STATE: 'programs-error-state',
   PROGRAMS_EMPTY_STATE: 'programs-empty-state',
+
+  // Enrollments Screen
+  ENROLLMENTS_LOADING_INDICATOR: 'enrollments-loading-indicator',
+  ENROLLMENTS_ERROR_STATE: 'enrollments-error-state',
+  ENROLLMENTS_EMPTY_STATE: 'enrollments-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;
