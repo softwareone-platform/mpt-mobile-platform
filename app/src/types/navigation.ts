@@ -28,6 +28,8 @@ export type TabParamList = {
   users: undefined;
   programs: undefined;
   enrollments: undefined;
+  licensees: undefined;
+  buyers: undefined;
   more: undefined;
   moreMenu: undefined;
   ProfileRoot: undefined;

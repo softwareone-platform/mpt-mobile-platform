@@ -32,7 +32,7 @@ const en = {
   // Module: Program (programs, enrollments, certificates)
   ...program,
 
-  // Module: Settings (profile, users, account settings)
+  // Module: Settings (profile, users, account settings, buyers, licensees)
   ...settings,
 };
 

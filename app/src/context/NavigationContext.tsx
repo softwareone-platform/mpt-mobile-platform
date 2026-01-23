@@ -12,6 +12,8 @@ import {
   UsersScreen,
   ProgramsScreen,
   EnrollmentsScreen,
+  LicenseesScreen,
+  BuyersScreen,
 } from '@/screens';
 import type { TabItem, MenuRouteName } from '@/types/navigation';
 
@@ -39,6 +41,8 @@ const DEFAULT_SECONDARY_TABS: TabItem<MenuRouteName>[] = [
   { name: 'users', icon: 'how-to-reg', component: UsersScreen },
   { name: 'programs', icon: 'assignment', component: ProgramsScreen },
   { name: 'enrollments', icon: 'receipt-long', component: EnrollmentsScreen },
+  { name: 'licensees', icon: 'how-to-reg', component: LicenseesScreen },
+  { name: 'buyers', icon: 'assignment', component: BuyersScreen },
 ];
 
 export const NavigationDataProvider = ({ children }: { children: ReactNode }) => {

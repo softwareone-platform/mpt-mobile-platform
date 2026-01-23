@@ -8,5 +8,7 @@ export { default as StatementsScreen } from './statements/StatementsScreen';
 export { default as UsersScreen } from './users/UsersScreen';
 export { default as ProgramsScreen } from './programs/ProgramsScreen';
 export { default as EnrollmentsScreen } from './programs/EnrollmentsScreen';
+export { default as LicenseesScreen } from './settings/LicenseesScreen';
+export { default as BuyersScreen } from './settings/BuyersScreen';
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

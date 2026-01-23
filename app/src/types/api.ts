@@ -168,3 +168,17 @@ export interface User {
   };
   [key: string]: unknown;
 }
+
+export interface Licensee {
+  id: string;
+  name: string;
+  status?: string;
+  icon?: string;
+}
+
+export interface Buyer {
+  id: string;
+  name: string;
+  status?: string;
+  icon?: string;
+}
