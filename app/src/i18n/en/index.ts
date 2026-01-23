@@ -3,10 +3,10 @@ import billing from './billing.json';
 import home from './home.json';
 import marketplace from './marketplace.json';
 import navigation from './navigation.json';
+import program from './program.json';
 import settings from './settings.json';
 import shared from './shared.json';
 import status from './status.json';
-import program from './program.json';
 
 // Follows module structure from documents/menu.md
 const en = {
