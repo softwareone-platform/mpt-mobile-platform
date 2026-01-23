@@ -1,6 +1,7 @@
 const { expect } = require('@wdio/globals');
 
 const homePage = require('../pageobjects/spotlights.page');
+const { restartApp } = require('../pageobjects/utils/app.helper');
 const { AIRTABLE_EMAIL } = require('../pageobjects/utils/auth.helper');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const verifyPage = require('../pageobjects/verify.page');
@@ -108,5 +109,15 @@ describe('Welcome page of application', () => {
 
     // After OTP entry, check for successful login (app auto-submits)
     await expect(homePage.header.logoTitle).toBeDisplayed();
+  });
+
+  it('should keep user logged in after app restart', async () => {
+    // Restart the app
+    await restartApp();
+
+    // Verify user is still logged in by checking for home page elements
+    await homePage.header.logoTitle.waitForDisplayed({ timeout: 15000 });
+    await expect(homePage.header.logoTitle).toBeDisplayed();
+    console.log('✅ User is still logged in after app restart');
   });
 });

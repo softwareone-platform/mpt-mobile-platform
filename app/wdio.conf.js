@@ -1,22 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
 
 // Load .env file if it exists (for local development and Windows batch execution)
-const envPath = path.join(__dirname, '.env');
-if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    envContent.split('\n').forEach(line => {
-        const trimmedLine = line.trim();
-        if (trimmedLine && !trimmedLine.startsWith('#')) {
-            const [key, ...valueParts] = trimmedLine.split('=');
-            const value = valueParts.join('='); // Handle values with '=' in them
-            if (key && value && !process.env[key]) {
-                process.env[key] = value;
-            }
-        }
-    });
-}
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const SCREENSHOT_FOLDER = '../screenshots';
 
@@ -112,7 +100,10 @@ exports.config = {
         welcome: ['./test/specs/welcome.e2e.js'],
         home: ['./test/specs/home.e2e.js'],
         navigation: ['./test/specs/navigation.e2e.js'],
-        failing: ['./test/specs/failing.e2e.js']
+        spotlight: ['./test/specs/spotlight-filters.e2e.js'],
+        profile: ['./test/specs/profile.e2e.js'],
+        personalInformation: ['./test/specs/personal-information.e2e.js'],
+        logout: ['./test/specs/logout.e2e.js'],
     },
     //
     // ============
