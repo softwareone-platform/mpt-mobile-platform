@@ -36,7 +36,7 @@ const DEFAULT_SECONDARY_TABS: TabItem<MenuRouteName>[] = [
   { name: 'invoices', icon: 'receipt-long', component: InvoicesScreen },
   { name: 'statements', icon: 'receipt', component: StatementsScreen },
   { name: 'users', icon: 'how-to-reg', component: UsersScreen },
-  { name: 'programs', icon: 'handshake', component: ProgramsScreen },
+  { name: 'programs', icon: 'assignment', component: ProgramsScreen },
 ];
 
 export const NavigationDataProvider = ({ children }: { children: ReactNode }) => {

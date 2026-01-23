@@ -15,7 +15,8 @@ export function useProgramApi() {
     ): Promise<PaginatedResponse<Program>> => {
       const endpoint =
         `/v1/program/programs` +
-        `?audit&ne(status,%22Deleted%22)` +
+        `?select=audit&ne(status,%22Deleted%22)` +
+        `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
