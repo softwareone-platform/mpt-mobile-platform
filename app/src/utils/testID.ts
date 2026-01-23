@@ -119,9 +119,9 @@ export const TestIDs = {
   INVOICES_EMPTY_STATE: 'invoices-empty-state',
 
   // Programs Screen
-  PROGRAMS_LOADING_INDICATOR: 'invoices-loading-indicator',
-  PROGRAMS_ERROR_STATE: 'invoices-error-state',
-  PROGRAMS_EMPTY_STATE: 'invoices-empty-state',
+  PROGRAMS_LOADING_INDICATOR: 'programs-loading-indicator',
+  PROGRAMS_ERROR_STATE: 'programs-error-state',
+  PROGRAMS_EMPTY_STATE: 'programs-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;
