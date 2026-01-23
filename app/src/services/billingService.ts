@@ -48,8 +48,7 @@ export function useBillingApi() {
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}` +
-        // `&limit=${limit}`;
-        `&limit=0`;
+        `&limit=${limit}`;
 
       return api.get<PaginatedResponse<Invoice>>(endpoint);
     },
