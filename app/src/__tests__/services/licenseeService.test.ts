@@ -110,7 +110,7 @@ describe('useUserApi - getLicensees', () => {
         {
           id: 'LCE-2003-8003-0003',
           name: 'Enterprise Licensee Inc',
-          status: 'Pending',
+          status: 'Enabled',
           icon: '/path/to/enterprise-icon.png',
         } as Licensee,
         {
