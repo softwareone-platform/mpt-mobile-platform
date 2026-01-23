@@ -1,7 +1,7 @@
 const { $ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
-const { selectors, getSelector } = require('./utils/selectors');
+const { selectors, getSelector, isAndroid } = require('./utils/selectors');
 
 class VerifyPage extends BasePage {
   constructor() {
@@ -147,8 +147,11 @@ class VerifyPage extends BasePage {
     const inputs = this.otpInputs;
     let otp = '';
 
+    // Android uses 'text' attribute, iOS uses 'value'
+    const textAttribute = isAndroid() ? 'text' : 'value';
+    
     for (const input of inputs) {
-      const value = (await input.getAttribute('value')) || (await input.getAttribute('name')) || '';
+      const value = (await input.getAttribute(textAttribute)) || (await input.getAttribute('name')) || '';
       otp += value;
     }
 

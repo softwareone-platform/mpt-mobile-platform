@@ -10,9 +10,49 @@ class BasePage {
     await element.click();
   }
 
-  async typeText(element, text) {
+  async typeText(element, text, maxRetries = 3) {
     await element.waitForDisplayed();
-    await element.setValue(text);
+    
+    // Android uses 'text' attribute, iOS uses 'value'
+    const textAttribute = this.isAndroid() ? 'text' : 'value';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      // Clear any existing text first
+      await element.clearValue().catch(() => {});
+      await browser.pause(100);
+      
+      // Type the text
+      await element.setValue(text);
+      await browser.pause(200);
+      
+      // Verify the text was entered correctly
+      const enteredValue = await element.getAttribute(textAttribute);
+      if (enteredValue === text) {
+        return; // Success
+      }
+      
+      console.warn(`⚠️  Text entry attempt ${attempt}/${maxRetries} failed. Expected: "${text}", Got: "${enteredValue}"`);
+      
+      if (attempt < maxRetries) {
+        // Clear and retry
+        await element.clearValue().catch(() => {});
+        await browser.pause(300);
+      }
+    }
+    
+    // Final attempt - try character by character for iOS
+    if (this.isIOS()) {
+      console.info('🔄 Attempting character-by-character input...');
+      await element.clearValue().catch(() => {});
+      await browser.pause(100);
+      await element.click();
+      await browser.pause(100);
+      
+      for (const char of text) {
+        await element.addValue(char);
+        await browser.pause(50);
+      }
+    }
   }
 
   async clearText(element) {

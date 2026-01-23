@@ -75,6 +75,7 @@ set EMULATOR_NAME=
 set APPIUM_PID=
 set LIST_EMULATORS=false
 set START_EMULATOR_ONLY=false
+set DRY_RUN=false
 
 REM Parse command line arguments
 :parse_args
@@ -96,6 +97,16 @@ if /i "%~1"=="--skip-build" (
 )
 if /i "%~1"=="-s" (
     set SKIP_BUILD=true
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="--list" (
+    set DRY_RUN=true
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="--dry-run" (
+    set DRY_RUN=true
     shift
     goto :parse_args
 )
@@ -163,6 +174,7 @@ echo   --skip-build, -s         Skip build, install existing APK from last build
 echo   --emulator, -e NAME      Specify Android emulator AVD name to use
 echo   --start-emulator NAME    Start emulator and exit (no tests)
 echo   --list-emulators         List available Android emulators and exit
+echo   --list, --dry-run        List all test cases without running them
 echo   --verbose, -v            Enable verbose output
 echo   --help, -h               Show this help message
 echo.
@@ -175,6 +187,8 @@ echo   run-local-test-android.bat --skip-build all                Reuse last bui
 echo   run-local-test-android.bat --emulator Pixel_8_API_34 welcome
 echo   run-local-test-android.bat --start-emulator Pixel_8_API_34 Start emulator only
 echo   run-local-test-android.bat --list-emulators                List available AVDs
+echo   run-local-test-android.bat --list all                      List all tests
+echo   run-local-test-android.bat --dry-run spotlight             List spotlight tests
 echo.
 echo Workflow:
 echo   1. First run: use --build to create fresh APK
@@ -262,6 +276,12 @@ if "%START_EMULATOR_ONLY%"=="true" (
     echo [SUCCESS] Emulator started and ready!
     echo.
     "!ADB_EXE!" devices
+    exit /b 0
+)
+
+REM Handle --list / --dry-run option
+if "%DRY_RUN%"=="true" (
+    call :list_tests "%TEST_TARGET%"
     exit /b 0
 )
 
@@ -652,3 +672,92 @@ if "!APPIUM_STARTED_BY_SCRIPT!"=="true" (
 )
 
 exit /b %TEST_EXIT_CODE%
+REM ============================================================
+REM Function: list_tests - List tests without running (dry run)
+REM ============================================================
+:list_tests
+setlocal EnableDelayedExpansion
+set "TARGET=%~1"
+set "PROJECT_ROOT=%CD%"
+set "SPECS_DIR=%PROJECT_ROOT%\app\test\specs"
+
+echo.
+echo ========================================================================
+echo                       TEST DISCOVERY (DRY RUN)
+echo ========================================================================
+echo.
+
+REM Determine which files to scan based on target
+set "SPEC_FILES="
+if /i "%TARGET%"=="all" (
+    set "SPEC_FILES=%SPECS_DIR%\*.e2e.js"
+) else if "%TARGET:~-3%"==".js" (
+    REM It's a spec file path
+    set "SPEC_FILES=%PROJECT_ROOT%\app\%TARGET%"
+) else (
+    REM It's a suite name - map to file
+    if /i "%TARGET%"=="welcome" set "SPEC_FILES=%SPECS_DIR%\welcome.e2e.js"
+    if /i "%TARGET%"=="home" set "SPEC_FILES=%SPECS_DIR%\home.e2e.js"
+    if /i "%TARGET%"=="navigation" set "SPEC_FILES=%SPECS_DIR%\navigation.e2e.js"
+    if /i "%TARGET%"=="spotlight" set "SPEC_FILES=%SPECS_DIR%\spotlight-filters.e2e.js"
+    if /i "%TARGET%"=="profile" set "SPEC_FILES=%SPECS_DIR%\profile.e2e.js"
+    if /i "%TARGET%"=="personalInformation" set "SPEC_FILES=%SPECS_DIR%\personal-information.e2e.js"
+    if /i "%TARGET%"=="personal" set "SPEC_FILES=%SPECS_DIR%\personal-information.e2e.js"
+    if /i "%TARGET%"=="failing" set "SPEC_FILES=%SPECS_DIR%\failing.e2e.js"
+)
+
+if "%SPEC_FILES%"=="" (
+    echo [ERROR] Unknown suite: %TARGET%
+    echo Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing
+    endlocal
+    exit /b 1
+)
+
+set TOTAL_FILES=0
+set TOTAL_DESCRIBES=0
+set TOTAL_TESTS=0
+
+for %%F in (%SPEC_FILES%) do (
+    if exist "%%F" (
+        set /a TOTAL_FILES+=1
+        echo [FILE] %%~nxF
+        echo ------------------------------------------------------------------------
+        
+        set LINE_NUM=0
+        for /f "usebackq delims=" %%L in ("%%F") do (
+            set /a LINE_NUM+=1
+            set "LINE=%%L"
+            
+            REM Check for describe blocks
+            echo !LINE! | findstr /r /c:"^[ ]*describe[ ]*([ ]*['\"]" >nul 2>&1
+            if not errorlevel 1 (
+                REM Extract describe name (simplified extraction)
+                for /f "tokens=2 delims='\"" %%N in ("!LINE!") do (
+                    echo   [DESCRIBE] %%N ^(L!LINE_NUM!^)
+                    set /a TOTAL_DESCRIBES+=1
+                )
+            )
+            
+            REM Check for it blocks
+            echo !LINE! | findstr /r /c:"^[ ]*it[ ]*([ ]*['\"]" >nul 2>&1
+            if not errorlevel 1 (
+                REM Extract test name (simplified extraction)
+                for /f "tokens=2 delims='\"" %%N in ("!LINE!") do (
+                    echo     [TEST] %%N ^(L!LINE_NUM!^)
+                    set /a TOTAL_TESTS+=1
+                )
+            )
+        )
+        echo.
+    ) else (
+        echo [WARNING] File not found: %%F
+    )
+)
+
+echo ========================================================================
+echo Summary: !TOTAL_TESTS! test^(s^) in !TOTAL_DESCRIBES! describe block^(s^) across !TOTAL_FILES! file^(s^)
+echo ========================================================================
+echo.
+
+endlocal
+exit /b 0

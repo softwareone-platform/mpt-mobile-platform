@@ -59,6 +59,8 @@ emulator -avd YOUR_EMULATOR_NAME
 | Test specific file | `./scripts/run-local-test.sh --platform android ./test/specs/welcome.e2e.js` |
 | Run all tests | `./scripts/run-local-test.sh --platform android all` |
 | Test from artifact | `./scripts/run-local-test.sh --platform android --build-from-artifact URL welcome` |
+| List all tests | `./scripts/run-local-test.sh --list all` |
+| List suite tests | `./scripts/run-local-test.sh --dry-run welcome` |
 
 ---
 
@@ -258,6 +260,12 @@ The primary way to run tests on Android:
 
 # Use verbose output for debugging
 ./scripts/run-local-test.sh --platform android --verbose welcome
+
+# List all available tests (without running)
+./scripts/run-local-test.sh --list all
+
+# List tests for a specific suite
+./scripts/run-local-test.sh --dry-run spotlight
 ```
 
 ### Using NPM Scripts
@@ -310,6 +318,20 @@ source ./scripts/setup-test-env.sh --list-emulators
 - `--start-emulator <name>`: Start emulator by AVD name
 - `--list-emulators`: List available emulators
 - `--help`: Show help message
+
+### Test Discovery
+
+List all available tests without running them:
+
+```bash
+# List all tests
+./scripts/run-local-test.sh --list all
+
+# List tests for a specific suite
+./scripts/run-local-test.sh --dry-run welcome
+```
+
+This is useful for discovering available tests before running them.
 
 The setup script will automatically:
 - Load values from `app/.env`
