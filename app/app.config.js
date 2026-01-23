@@ -1,6 +1,8 @@
 import 'dotenv/config';
 
-const { AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_SCHEME } = process.env;
+const { AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_SCHEME, APP_BUNDLE_ID } = process.env;
+
+const bundleId = APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile';
 
 export default {
   expo: {
@@ -30,7 +32,7 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.softwareone.marketplaceMobile.show',
+      bundleIdentifier: bundleId,
       buildNumber: '1',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
@@ -48,7 +50,7 @@ export default {
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
-      package: 'com.softwareone.marketplaceMobile',
+      package: bundleId,
     },
     web: {
       favicon: './assets/favicon.png',
