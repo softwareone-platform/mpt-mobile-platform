@@ -104,6 +104,7 @@ jobs:
           AUTH0_OTP_DIGITS=${{ vars.AUTH0_OTP_DIGITS }}
           AUTH0_SCHEME=${{ vars.AUTH0_SCHEME }}
           APP_BUNDLE_ID=${{ vars.APP_BUNDLE_ID }}
+          APP_ENVIRONMENT=${{ inputs.environment }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"
@@ -411,6 +412,21 @@ jobs:
 
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+
+          # Always create version bump PR from main branch
+          # This ensures the PR only contains version changes, even when deploying from a feature branch
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+
+          # Apply version bump to main branch
+          node -e "
+            const fs = require('fs');
+            let configContent = fs.readFileSync('app.config.js', 'utf8');
+            configContent = configContent.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$VERSION'\");
+            configContent = configContent.replace(/buildNumber: ['\"][^'\"]+['\"]/, \"buildNumber: '$BUILD'\");
+            fs.writeFileSync('app.config.js', configContent);
+          "
 
           # Create a new branch for the version bump
           git checkout -b "$BRANCH_NAME"
