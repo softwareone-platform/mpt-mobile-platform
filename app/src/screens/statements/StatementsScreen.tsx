@@ -1,11 +1,52 @@
-import { View, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
-const StatementsScreen = () => {
+import StatusMessage from '@/components/common/EmptyStateHelper';
+import { ListView } from '@/components/list/ListView';
+import { listItemConfigNoImageNoSubtitle } from '@/config/list';
+import { useStatements, StatementsProvider } from '@/context/StatementsContext';
+import { TestIDs } from '@/utils/testID';
+
+const StatementsScreenContent = () => {
+  const {
+    statements,
+    statementsLoading,
+    statementsError,
+    statementsFetchingNext,
+    hasMoreStatements,
+    isUnauthorised,
+    fetchStatements,
+  } = useStatements();
+
+  const { t } = useTranslation();
+
   return (
-    <View>
-      <Text>Statements Screen</Text>
-    </View>
+    <StatusMessage
+      isLoading={statementsLoading}
+      isError={!!statementsError}
+      isEmpty={statements.length === 0}
+      isUnauthorised={isUnauthorised}
+      loadingTestId={TestIDs.STATEMENTS_LOADING_INDICATOR}
+      errorTestId={TestIDs.STATEMENTS_ERROR_STATE}
+      emptyTestId={TestIDs.STATEMENTS_EMPTY_STATE}
+      emptyTitle={t('statementsScreen.emptyStateTitle')}
+      emptyDescription={t('statementsScreen.emptyStateDescription')}
+    >
+      <ListView
+        data={statements}
+        isFetchingNext={statementsFetchingNext}
+        hasMore={hasMoreStatements}
+        fetchNext={fetchStatements}
+        config={listItemConfigNoImageNoSubtitle}
+        onItemPress={(item) => console.info(item.id)}
+      />
+    </StatusMessage>
   );
 };
+
+const StatementsScreen = () => (
+  <StatementsProvider>
+    <StatementsScreenContent />
+  </StatementsProvider>
+);
 
 export default StatementsScreen;

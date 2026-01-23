@@ -6,6 +6,7 @@ import navigation from './navigation.json';
 import settings from './settings.json';
 import shared from './shared.json';
 import status from './status.json';
+import program from './program.json';
 
 // Follows module structure from documents/menu.md
 const en = {
@@ -27,6 +28,9 @@ const en = {
 
   // Module: Billing (credit memos, invoices, statements)
   ...billing,
+
+  // Module: Program (programs, enrollments, certificates)
+  ...program,
 
   // Module: Settings (profile, users, account settings)
   ...settings,
