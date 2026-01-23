@@ -10,6 +10,7 @@ import {
   CreditMemosScreen,
   StatementsScreen,
   UsersScreen,
+  ProgramsScreen,
 } from '@/screens';
 import type { TabItem, MenuRouteName } from '@/types/navigation';
 
@@ -35,6 +36,7 @@ const DEFAULT_SECONDARY_TABS: TabItem<MenuRouteName>[] = [
   { name: 'invoices', icon: 'receipt-long', component: InvoicesScreen },
   { name: 'statements', icon: 'receipt', component: StatementsScreen },
   { name: 'users', icon: 'how-to-reg', component: UsersScreen },
+  { name: 'programs', icon: 'assignment', component: ProgramsScreen },
 ];
 
 export const NavigationDataProvider = ({ children }: { children: ReactNode }) => {
