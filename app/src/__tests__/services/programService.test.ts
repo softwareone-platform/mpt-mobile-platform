@@ -89,14 +89,14 @@ describe('useProgramApi', () => {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
-          id: 'PRG-0001',
+          id: 'PRG-0001-0001',
           name: 'Partner Program',
-          status: 'Active',
+          status: 'Published',
         } as Program,
         {
-          id: 'PRG-0002',
+          id: 'PRG-0002-0002',
           name: 'Reseller Program',
-          status: 'Active',
+          status: 'Published',
         } as Program,
       ],
     };
@@ -105,14 +105,14 @@ describe('useProgramApi', () => {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
-          id: 'PRG-0003',
+          id: 'PRG-0003-0003',
           name: 'Enterprise Program',
-          status: 'Inactive',
+          status: 'Unpublished',
         } as Program,
         {
-          id: 'PRG-0004',
+          id: 'PRG-0004-0004',
           name: 'Starter Program',
-          status: 'Active',
+          status: 'Published',
         } as Program,
       ],
     };
@@ -133,21 +133,21 @@ describe('useProgramApi', () => {
 
     expect(res1).toBeDefined();
     expect(res1!.data.length).toBe(2);
-    expect(res1!.data.map((item) => item.id)).toEqual(['PRG-0001', 'PRG-0002']);
+    expect(res1!.data.map((item) => item.id)).toEqual(['PRG-0001-0001', 'PRG-0002-0002']);
     expect(res1!.data.map((item) => item.name)).toEqual(['Partner Program', 'Reseller Program']);
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
-    expect(res2!.data.map((item) => item.id)).toEqual(['PRG-0003', 'PRG-0004']);
-    expect(res2!.data.map((item) => item.status)).toEqual(['Inactive', 'Active']);
+    expect(res2!.data.map((item) => item.id)).toEqual(['PRG-0003-0003', 'PRG-0004-0004']);
+    expect(res2!.data.map((item) => item.status)).toEqual(['Unpublished', 'Published']);
   });
 
   it('returns correct program data structure', async () => {
     const api = setup();
     const mockProgram: Program = {
-      id: 'PRG-1234',
+      id: 'PRG-1234-1234',
       name: 'Premium Program',
-      status: 'Active',
+      status: 'Published',
       icon: 'program-icon.png',
     };
 
@@ -171,9 +171,9 @@ describe('useProgramApi', () => {
 
     expect(res).toEqual(mockResponse);
     expect(res!.data[0]).toMatchObject({
-      id: 'PRG-1234',
+      id: 'PRG-1234-1234',
       name: 'Premium Program',
-      status: 'Active',
+      status: 'Published',
     });
   });
 
