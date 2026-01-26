@@ -48,6 +48,29 @@ describe('apiClient interceptors', () => {
     expect(result.headers.Authorization).toBeUndefined();
   });
 
+  it('skips Authorization header when noAuth flag is set', async () => {
+    (getAccessTokenAsync as jest.Mock).mockResolvedValue('mock-token');
+
+    const config: InternalAxiosRequestConfig & { noAuth?: boolean } = {
+      headers: {} as InternalAxiosRequestConfig['headers'],
+      noAuth: true,
+    } as InternalAxiosRequestConfig & { noAuth?: boolean };
+
+    const result = await (
+      apiClient.interceptors.request as unknown as {
+        handlers: Array<{
+          fulfilled: (
+            config: InternalAxiosRequestConfig & { noAuth?: boolean },
+          ) => Promise<InternalAxiosRequestConfig>;
+        }>;
+      }
+    ).handlers[0].fulfilled(config);
+
+    expect(result.headers.Authorization).toBeUndefined();
+    expect((result as { noAuth?: boolean }).noAuth).toBeUndefined();
+    expect(getAccessTokenAsync).not.toHaveBeenCalled();
+  });
+
   it('calls createApiError on request error', async () => {
     const mockError = new Error('fail');
     (createApiError as jest.Mock).mockReturnValue({ name: 'API Error' });
