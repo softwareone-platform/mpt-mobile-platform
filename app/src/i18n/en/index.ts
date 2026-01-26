@@ -4,6 +4,7 @@ import details from './details.json';
 import home from './home.json';
 import marketplace from './marketplace.json';
 import navigation from './navigation.json';
+import program from './program.json';
 import settings from './settings.json';
 import shared from './shared.json';
 import status from './status.json';
@@ -28,6 +29,9 @@ const en = {
 
   // Module: Billing (credit memos, invoices, statements)
   ...billing,
+
+  // Module: Program (programs, enrollments, certificates)
+  ...program,
 
   // Module: Settings (profile, users, account settings)
   ...settings,

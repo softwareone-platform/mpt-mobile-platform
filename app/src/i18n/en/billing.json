@@ -7,5 +7,13 @@
     "title": "Credit Memo",
     "emptyStateTitle": "No credit memo details",
     "emptyStateDescription": "No credit memo details found."
+  },
+  "invoicesScreen": {
+    "emptyStateTitle": "No invoices",
+    "emptyStateDescription": "No invoices found."
+  },
+  "statementsScreen": {
+    "emptyStateTitle": "No statements",
+    "emptyStateDescription": "No statements found."
   }
 }

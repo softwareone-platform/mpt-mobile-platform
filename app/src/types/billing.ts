@@ -31,3 +31,32 @@ export interface CreditMemoDetails {
     totalGT: number;
   };
 }
+
+export interface Invoice {
+  id: string;
+  documentNo: string;
+  status?: string;
+
+  audit?: {
+    created?: {
+      at?: string;
+    };
+    updated?: {
+      at?: string;
+    };
+  };
+}
+
+export interface Statement {
+  id: string;
+  status: string;
+
+  audit?: {
+    created?: {
+      at?: string;
+    };
+    updated?: {
+      at?: string;
+    };
+  };
+}

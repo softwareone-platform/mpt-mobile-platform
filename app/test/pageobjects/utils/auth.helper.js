@@ -1,6 +1,7 @@
 const homePage = require('../spotlights.page');
 const verifyPage = require('../verify.page');
 const welcomePage = require('../welcome.page');
+const { isAndroid } = require('./selectors');
 
 const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'not-set';
 const OTP_TIMEOUT_MS = 120000;
@@ -49,15 +50,18 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
   // Clear any previous input
   await welcomePage.clearText(welcomePage.emailInput).catch(() => {});
 
-  // Enter email
+  // Enter email (typeText now has built-in retry logic)
   console.info(`⌨️  Entering email: ${email}`);
   await welcomePage.typeText(welcomePage.emailInput, email);
 
-  // Verify the email was entered correctly
-  const enteredValue = await welcomePage.emailInput.getAttribute('value');
+  // Final verification - the email should be correct after typeText's retries
+  // Android uses 'text' attribute, iOS uses 'value'
+  const textAttribute = isAndroid() ? 'text' : 'value';
+  const enteredValue = await welcomePage.emailInput.getAttribute(textAttribute);
   if (enteredValue !== email) {
-    throw new Error(`Email entry failed. Expected: ${email}, Got: ${enteredValue}`);
+    throw new Error(`Email entry failed after all retries. Expected: ${email}, Got: ${enteredValue}`);
   }
+  console.info('✓ Email entered successfully');
 
   // Record timestamp before requesting OTP
   const beforeOTPRequest = new Date();
