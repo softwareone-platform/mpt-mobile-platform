@@ -40,25 +40,29 @@ class ProfilePage extends BasePage {
   get currentUserCard() {
     return $(
       getSelector({
-        ios: '//*[contains(@name, "USR-")]',
+        ios: '~profile-user-item',
         android: '//*[@resource-id="profile-user-item"]',
       }),
     );
   }
 
   get currentUserName() {
+    // On iOS, user name is part of the profile-user-item label
+    // On Android, it's a separate TextView
     return $(
       getSelector({
-        ios: '//*[contains(@name, "USR-")]/preceding-sibling::*[1]',
+        ios: '~profile-user-item',
         android: '//*[@resource-id="profile-user-item"]//android.widget.TextView[1]',
       }),
     );
   }
 
   get currentUserId() {
+    // On iOS, user ID is part of the profile-user-item label
+    // On Android, it's a separate TextView
     return $(
       getSelector({
-        ios: '//*[contains(@name, "USR-")]',
+        ios: '~profile-user-item',
         android: '//*[@resource-id="profile-user-item"]//android.widget.TextView[contains(@text, "USR-")]',
       }),
     );
@@ -212,11 +216,23 @@ class ProfilePage extends BasePage {
   }
 
   async getCurrentUserName() {
-    return await this.getText(this.currentUserName);
+    const text = await this.getText(this.currentUserName);
+    // On iOS, label format is "Name, USR-XXXX-XXXX, " - extract the name part
+    if (text && text.includes('USR-')) {
+      const match = text.match(/^([^,]+),\s*USR-/);
+      return match ? match[1].trim() : text;
+    }
+    return text;
   }
 
   async getCurrentUserId() {
-    return await this.getText(this.currentUserId);
+    const text = await this.getText(this.currentUserId);
+    // On iOS, label format is "Name, USR-XXXX-XXXX, " - extract the USR-XXXX-XXXX part
+    if (text && text.includes('USR-')) {
+      const match = text.match(/USR-\d{4}-\d{4}/);
+      return match ? match[0] : text;
+    }
+    return text;
   }
 
   async scrollToAccount(index) {

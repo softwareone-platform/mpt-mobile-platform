@@ -3,6 +3,7 @@ const { expect } = require('@wdio/globals');
 const spotlightsPage = require('../pageobjects/spotlights.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureHomePage } = require('../pageobjects/utils/navigation.page');
+const { apiClient } = require('../utils/api-client');
 
 /**
  * Spotlight Filter Tests - Optimized Structure
@@ -19,6 +20,7 @@ describe('Spotlight Filter Chips', () => {
   // Section data flags - set once in before() to avoid redundant checks
   let sectionData = {};
   let hasSpotlightsData = false;
+  let apiDataAvailable = false;
 
   before(async function () {
     this.timeout(150000);
@@ -33,16 +35,32 @@ describe('Spotlight Filter Chips', () => {
       return;
     }
 
-    // Check section data availability ONCE and cache results
-    // These determine which filter tests can verify positive visibility
-    sectionData = {
-      hasSubscriptions: await spotlightsPage.isSubscriptionsSectionVisible().catch(() => false),
-      hasJournals: await spotlightsPage.isJournalsSectionVisible().catch(() => false),
-      hasBuyers: await spotlightsPage.isBuyersSectionVisible().catch(() => false),
-      hasEnrollments: await spotlightsPage.isEnrollmentsSectionVisible().catch(() => false),
-    };
-
-    console.log(`📊 Spotlight section data:`, sectionData);
+    // Use API to check section data availability - more reliable than UI checks
+    // UI checks can fail if cards are below viewport
+    try {
+      sectionData = await apiClient.getSpotlightDataAvailability();
+      apiDataAvailable = true;
+      console.log(`📊 Spotlight section data (from API):`, {
+        hasSubscriptions: sectionData.hasSubscriptions,
+        hasJournals: sectionData.hasJournals,
+        hasBuyers: sectionData.hasBuyers,
+        hasEnrollments: sectionData.hasEnrollments,
+        hasOrders: sectionData.hasOrders,
+        hasUsers: sectionData.hasUsers,
+        hasInvoices: sectionData.hasInvoices,
+      });
+      console.log(`📊 Raw spotlight counts:`, sectionData._counts);
+    } catch (apiError) {
+      console.log(`⚠️ API check failed, falling back to UI checks: ${apiError.message}`);
+      // Fallback to UI-based checks if API fails
+      sectionData = {
+        hasSubscriptions: await spotlightsPage.isSubscriptionsSectionVisible().catch(() => false),
+        hasJournals: await spotlightsPage.isJournalsSectionVisible().catch(() => false),
+        hasBuyers: await spotlightsPage.isBuyersSectionVisible().catch(() => false),
+        hasEnrollments: await spotlightsPage.isEnrollmentsSectionVisible().catch(() => false),
+      };
+      console.log(`📊 Spotlight section data (from UI fallback):`, sectionData);
+    }
   });
 
   // ========== FILTER UI BASICS ==========
