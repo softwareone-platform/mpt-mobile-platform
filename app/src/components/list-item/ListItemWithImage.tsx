@@ -2,13 +2,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 import AvatarIcon from '@/components/avatar/Avatar';
-import { Color, listItemStyle } from '@/styles';
+import { Color, linkStyle, listItemStyle } from '@/styles';
 
 type Props = {
   id: string;
   imagePath?: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
+  subtitleLink?: boolean;
+  hideImage?: boolean;
   isLast?: boolean;
   isSelected?: boolean;
   isUpdatingSelection?: boolean;
@@ -21,6 +23,8 @@ const ListItemWithImage = ({
   imagePath,
   title,
   subtitle,
+  subtitleLink,
+  hideImage,
   isLast,
   isSelected,
   isUpdatingSelection,
@@ -28,15 +32,21 @@ const ListItemWithImage = ({
   testID,
 }: Props) => (
   <TouchableOpacity testID={testID} style={styles.container} onPress={onPress} activeOpacity={0.7}>
-    <View style={styles.avatarWrapper}>
-      <AvatarIcon id={id} imagePath={imagePath} size={44} />
-    </View>
+    {!hideImage && (
+      <View style={styles.avatarWrapper}>
+        <AvatarIcon id={id} imagePath={imagePath} size={44} />
+      </View>
+    )}
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
       <View style={styles.textContainer}>
         <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
           {title}
         </Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        {subtitleLink ? (
+          <Text style={styles.subtitleLink}>{subtitle}</Text>
+        ) : (
+          <Text style={styles.subtitle}>{subtitle}</Text>
+        )}
       </View>
       {isUpdatingSelection ? (
         <ActivityIndicator size="small" color={Color.brand.primary} />
@@ -58,6 +68,7 @@ const styles = StyleSheet.create({
   textContainer: listItemStyle.textContainer,
   title: listItemStyle.title,
   subtitle: listItemStyle.textAndImage.subtitle,
+  subtitleLink: linkStyle.listItemLinkRegular,
 });
 
 export default ListItemWithImage;
