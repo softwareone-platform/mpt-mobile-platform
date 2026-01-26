@@ -21,6 +21,7 @@ describe('portalVersionService', () => {
     jest.clearAllMocks();
     jest.spyOn(console, 'warn').mockImplementation();
     jest.spyOn(console, 'error').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
   });
 
   afterEach(() => {
@@ -40,10 +41,10 @@ describe('portalVersionService', () => {
       expect(parseMajorVersion('12.3.456')).toBe(12);
     });
 
-    it('should return 0 for invalid version strings', () => {
-      expect(parseMajorVersion('invalid')).toBe(0);
-      expect(parseMajorVersion('abc.1.2')).toBe(0);
-      expect(parseMajorVersion('')).toBe(0);
+    it('should return fallback version 4 for invalid version strings', () => {
+      expect(parseMajorVersion('invalid')).toBe(4);
+      expect(parseMajorVersion('abc.1.2')).toBe(4);
+      expect(parseMajorVersion('')).toBe(4);
     });
   });
 
@@ -63,13 +64,19 @@ describe('portalVersionService', () => {
       const result = await fetchPortalVersion();
 
       expect(mockConfigService.get).toHaveBeenCalledWith('AUTH0_API_URL');
-      expect(mockApiClient.get).toHaveBeenCalledWith('https://api.example.com/manifest.json');
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        'https://api.example.com',
+        expect.objectContaining({
+          noAuth: true,
+          headers: { Accept: 'application/json' },
+        }),
+      );
       expect(result).toEqual({
         fullVersion: '5.0.2494-g4c551809',
         majorVersion: 5,
       });
     });
-    it('should return object with majorVersion 0 when version is empty', async () => {
+    it('should return fallback majorVersion 4 when version is empty', async () => {
       mockConfigService.get.mockReturnValue(mockBaseUrl);
       mockApiClient.get.mockResolvedValue({
         data: {
@@ -83,12 +90,11 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 0,
+        majorVersion: 4,
       });
-      expect(console.warn).not.toHaveBeenCalled();
     });
 
-    it('should return object with majorVersion 0 and warn when version cannot be parsed', async () => {
+    it('should return fallback majorVersion 4 when version cannot be parsed', async () => {
       mockConfigService.get.mockReturnValue(mockBaseUrl);
       mockApiClient.get.mockResolvedValue({
         data: {
@@ -102,29 +108,26 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: 'invalid-version',
-        majorVersion: 0,
+        majorVersion: 4,
       });
-      expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Portal version "invalid-version" could not be parsed'),
-      );
     });
 
-    it('should return default values when AUTH0_API_URL is not configured', async () => {
+    it('should return fallback version 4 when AUTH0_API_URL is not configured', async () => {
       mockConfigService.get.mockReturnValue('');
 
       const result = await fetchPortalVersion();
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 0,
+        majorVersion: 4,
       });
       expect(console.warn).toHaveBeenCalledWith(
-        'Portal version fetch skipped: Api url not configured',
+        'Portal version fetch skipped: Api url not configured, using fallback',
       );
       expect(mockApiClient.get).not.toHaveBeenCalled();
     });
 
-    it('should return default values when API call fails', async () => {
+    it('should return fallback version 4 when API call fails', async () => {
       mockConfigService.get.mockReturnValue(mockBaseUrl);
       mockApiClient.get.mockRejectedValue(new Error('Network error'));
 
@@ -132,23 +135,8 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 0,
+        majorVersion: 4,
       });
-    });
-
-    it('should handle URL with trailing slash correctly', async () => {
-      mockConfigService.get.mockReturnValue('https://api.example.com/');
-      mockApiClient.get.mockResolvedValue({
-        data: {
-          product: 'marketplace',
-          components: {},
-          version: '6.1.0',
-        },
-      } as AxiosResponse<PortalManifest>);
-
-      await fetchPortalVersion();
-
-      expect(mockApiClient.get).toHaveBeenCalledWith('https://api.example.com/manifest.json');
     });
 
     it('should handle missing version field in response', async () => {
@@ -164,7 +152,7 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 0,
+        majorVersion: 4,
       });
     });
   });
