@@ -20,6 +20,14 @@ class SubscriptionsPage extends BasePage {
     return $(selectors.byAccessibilityId('subscriptions-empty-state'));
   }
 
+  get noSubscriptionsTitle() {
+    return $(selectors.byText('No subscriptions'));
+  }
+
+  get noSubscriptionsDescription() {
+    return $(selectors.byText('No subscriptions found.'));
+  }
+
   get errorState() {
     return $(selectors.byAccessibilityId('subscriptions-error-state'));
   }
@@ -35,6 +43,20 @@ class SubscriptionsPage extends BasePage {
     }
     // Screen is ready when either empty state or content is shown
     await browser.pause(500);
+  }
+
+  /**
+   * Check if the subscriptions page has any subscriptions (not showing empty state)
+   * @returns {Promise<boolean>} True if subscriptions exist, false if empty state is shown
+   */
+  async hasSubscriptions() {
+    try {
+      const emptyStateVisible = await this.emptyState.isDisplayed();
+      return !emptyStateVisible;
+    } catch {
+      // If emptyState selector throws, assume subscriptions exist
+      return true;
+    }
   }
 }
 

@@ -978,8 +978,10 @@ scripts\windows\run-local-test-android.bat --start-emulator Pixel_8_API_34
 |------|-------------------|---------------|
 | Check environment | `.\scripts\windows\setup-test-env.ps1` | `scripts\windows\setup-test-env.bat` |
 | List devices | `adb devices` | `adb devices` |
-| List emulators | `.\scripts\windows\run-local-test-android.ps1 -ListEmulators` | `scripts\windows\run-local-test-android.bat --list-emulators` |
-| Start emulator | `.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_34"` | `scripts\windows\run-local-test-android.bat --start-emulator Pixel_8_API_34` |
+| List emulators | `.\scripts\windows\setup-test-env.ps1 -ListEmulators` | `scripts\windows\setup-test-env.bat --list-emulators` |
+| Start emulator | `.\scripts\windows\setup-test-env.ps1 -StartEmulator "Pixel_8_API_34"` | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34` |
+| Start Appium | `.\scripts\windows\setup-test-env.ps1 -StartAppium` | `scripts\windows\setup-test-env.bat --start-appium` |
+| Stop Appium | `.\scripts\windows\setup-test-env.ps1 -StopAppium` | `scripts\windows\setup-test-env.bat --stop-appium` |
 | Run test suite | `.\scripts\windows\run-local-test-android.ps1 welcome` | `scripts\windows\run-local-test-android.bat welcome` |
 | Run all tests | `.\scripts\windows\run-local-test-android.ps1 all` | `scripts\windows\run-local-test-android.bat all` |
 | Build and test | `.\scripts\windows\run-local-test-android.ps1 -Build welcome` | `scripts\windows\run-local-test-android.bat --build welcome` |
@@ -1395,6 +1397,8 @@ if ($failedCount -eq 0) {
 - Run `scripts\windows\setup-test-env.bat` to setup environment and load .env
 - Run `.\scripts\windows\setup-test-env.ps1` to verify environment variables
 - Run `.\scripts\windows\setup-test-env.ps1 -ListEmulators` to see available emulators
+- Run `.\scripts\windows\setup-test-env.ps1 -StartAppium` to start Appium with inspector
+- Run `.\scripts\windows\setup-test-env.ps1 -StopAppium` to stop Appium server
 - Check [APPIUM_ANDROID_TESTING_WINDOWS.md](../APPIUM_ANDROID_TESTING_WINDOWS.md) for detailed testing guide
 - Check [LOCAL_BUILD_ANDROID.md](../LOCAL_BUILD_ANDROID.md) for build instructions
 

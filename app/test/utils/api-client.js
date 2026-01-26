@@ -122,6 +122,91 @@ class ApiClient {
     // Adjust based on actual API response structure
     return response.data || response.accounts || response;
   }
+
+  // ========== Orders Methods ==========
+
+  /**
+   * Get orders list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of orders to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by order status (Draft, Quoted, Completed, etc.)
+   * @returns {Promise<object>} - Orders list response
+   * 
+   * @example
+   * // Get all orders
+   * const orders = await apiClient.getOrders();
+   * 
+   * // Get orders with pagination
+   * const orders = await apiClient.getOrders({ limit: 10, offset: 0 });
+   * 
+   * // Get orders by status
+   * const draftOrders = await apiClient.getOrders({ status: 'Draft' });
+   */
+  async getOrders(options = {}) {
+    let endpoint = '/public/v1/commerce/orders';
+    
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+    
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+    
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific order by ID
+   * @param {string} orderId - Order ID in format ORD-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Order details
+   * 
+   * @example
+   * const order = await apiClient.getOrderById('ORD-3760-9768-9099');
+   */
+  async getOrderById(orderId) {
+    // Validate orderId format
+    if (!orderId || !/^ORD-\d{4}-\d{4}-\d{4}$/.test(orderId)) {
+      throw new Error(`Invalid orderId format: "${orderId}". Expected format: ORD-XXXX-XXXX-XXXX`);
+    }
+    
+    return this.get(`/public/v1/commerce/orders/${orderId}`);
+  }
+
+  /**
+   * Get orders count
+   * @returns {Promise<number>} - Total number of orders
+   */
+  async getOrdersCount() {
+    const response = await this.getOrders({ limit: 1 });
+    return response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any orders
+   * @returns {Promise<boolean>}
+   */
+  async hasOrders() {
+    const count = await this.getOrdersCount();
+    return count > 0;
+  }
+
+  /**
+   * Get orders by status
+   * @param {string} status - Order status (Draft, Quoted, Completed, Deleted, Failed)
+   * @returns {Promise<Array>} - Array of orders with the specified status
+   */
+  async getOrdersByStatus(status) {
+    const validStatuses = ['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    }
+    
+    const response = await this.getOrders({ status });
+    return response.data || response;
+  }
 }
 
 // Export singleton instance

@@ -22,6 +22,7 @@ ENV_FILE="$PROJECT_ROOT/app/.env"
 PLATFORM="${PLATFORM:-ios}"
 START_EMULATOR=""
 EMULATOR_NAME=""
+START_APPIUM=""
 
 # Function to display usage
 show_usage() {
@@ -31,12 +32,19 @@ show_usage() {
     echo -e "${YELLOW}Options:${NC}"
     echo -e "  ${GREEN}--platform <ios|android>${NC}     Set the platform (default: ios)"
     echo -e "  ${GREEN}--start-emulator <name>${NC}      Start emulator/simulator by name"
+    echo -e "  ${GREEN}--start-appium${NC}               Start Appium server with inspector plugin"
+    echo -e "                                 - Runs on port \${APPIUM_PORT:-4723}"
+    echo -e "                                 - Inspector UI: http://localhost:4723/inspector"
+    echo -e "                                 - Auto-installs inspector plugin if missing"
+    echo -e "  ${GREEN}--stop-appium${NC}                Stop all running Appium processes"
     echo -e "  ${GREEN}--list-emulators${NC}             List available emulators/simulators"
     echo -e "  ${GREEN}--help${NC}                       Show this help message"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
     echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform ios --start-emulator \"iPhone 16\"${NC}"
     echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform android --start-emulator \"Pixel_8_API_34\"${NC}"
+    echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --start-appium${NC}"
+    echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --stop-appium${NC}"
     echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --list-emulators${NC}"
     echo ""
 }
@@ -206,6 +214,98 @@ start_android_emulator() {
     export DEVICE_NAME="$emulator_name"
 }
 
+# Function to start Appium server with inspector plugin
+start_appium_server() {
+    echo -e "${YELLOW}🚀 Starting Appium server with inspector plugin...${NC}"
+    
+    if ! command -v appium &> /dev/null; then
+        echo -e "${RED}❌ Error: Appium not found. Please install it with: npm install -g appium${NC}"
+        return 1
+    fi
+    
+    # Check if Appium is already running
+    if lsof -i:${APPIUM_PORT:-4723} &> /dev/null; then
+        echo -e "  ${YELLOW}⚠${NC}  Appium may already be running on port ${APPIUM_PORT:-4723}"
+        echo -e "  ${YELLOW}⚠${NC}  Kill existing process with: lsof -ti:${APPIUM_PORT:-4723} | xargs kill -9"
+        return 1
+    fi
+    
+    # Check if inspector plugin is installed
+    local inspector_installed=$(appium plugin list --installed 2>&1 | grep -c "inspector" || true)
+    if [ "$inspector_installed" -eq 0 ]; then
+        echo -e "  ${YELLOW}⚠${NC}  Inspector plugin not installed. Installing..."
+        appium plugin install inspector
+    fi
+    
+    echo -e "  ${GREEN}✓${NC} Starting Appium on port ${APPIUM_PORT:-4723} with inspector plugin"
+    echo -e "  ${BLUE}ℹ${NC}  Inspector URL: http://localhost:${APPIUM_PORT:-4723}/inspector"
+    echo ""
+    
+    # Start Appium in background, redirect output to /dev/null
+    appium --use-plugins=inspector --allow-cors --port "${APPIUM_PORT:-4723}" >/dev/null 2>&1 &
+    local appium_pid=$!
+    
+    # Wait a moment for Appium to start
+    sleep 2
+    
+    # Check if Appium started successfully
+    if kill -0 $appium_pid 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} Appium server started (PID: $appium_pid)"
+        export APPIUM_PID=$appium_pid
+    else
+        echo -e "${RED}❌ Error: Appium failed to start${NC}"
+        return 1
+    fi
+}
+
+# Function to stop all running Appium processes
+stop_appium_server() {
+    echo -e "${YELLOW}🛑 Stopping Appium server...${NC}"
+    
+    local killed_count=0
+    
+    # Kill processes on Appium port
+    local port_pids=$(lsof -ti:${APPIUM_PORT:-4723} 2>/dev/null || true)
+    if [ -n "$port_pids" ]; then
+        echo -e "  ${YELLOW}⏳${NC} Killing processes on port ${APPIUM_PORT:-4723}..."
+        echo "$port_pids" | xargs kill -9 2>/dev/null || true
+        killed_count=$((killed_count + $(echo "$port_pids" | wc -l)))
+    fi
+    
+    # Kill any remaining Appium node processes
+    local appium_pids=$(pgrep -f "appium" 2>/dev/null || true)
+    if [ -n "$appium_pids" ]; then
+        echo -e "  ${YELLOW}⏳${NC} Killing Appium processes..."
+        echo "$appium_pids" | xargs kill -9 2>/dev/null || true
+        killed_count=$((killed_count + $(echo "$appium_pids" | wc -l)))
+    fi
+    
+    # Clean up any orphaned node processes running Appium
+    local node_appium_pids=$(pgrep -f "node.*appium" 2>/dev/null || true)
+    if [ -n "$node_appium_pids" ]; then
+        echo -e "  ${YELLOW}⏳${NC} Killing node Appium processes..."
+        echo "$node_appium_pids" | xargs kill -9 2>/dev/null || true
+        killed_count=$((killed_count + $(echo "$node_appium_pids" | wc -l)))
+    fi
+    
+    # Clear the exported PID if set
+    unset APPIUM_PID
+    
+    if [ $killed_count -gt 0 ]; then
+        echo -e "  ${GREEN}✓${NC} Stopped Appium processes"
+    else
+        echo -e "  ${GREEN}✓${NC} No Appium processes were running"
+    fi
+    
+    # Verify port is free
+    sleep 1
+    if lsof -i:${APPIUM_PORT:-4723} &> /dev/null; then
+        echo -e "  ${YELLOW}⚠${NC}  Port ${APPIUM_PORT:-4723} may still be in use"
+    else
+        echo -e "  ${GREEN}✓${NC} Port ${APPIUM_PORT:-4723} is now free"
+    fi
+}
+
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -217,6 +317,14 @@ while [[ $# -gt 0 ]]; do
             START_EMULATOR="true"
             EMULATOR_NAME="$2"
             shift 2
+            ;;
+        --start-appium|-a)
+            START_APPIUM="true"
+            shift
+            ;;
+        --stop-appium)
+            stop_appium_server
+            return 0 2>/dev/null || exit 0
             ;;
         --list-emulators|-l)
             list_emulators
@@ -349,6 +457,12 @@ fi
 export APPIUM_HOST="${APPIUM_HOST:-127.0.0.1}"
 export APPIUM_PORT="${APPIUM_PORT:-4723}"
 
+# Start Appium server if requested
+if [ "$START_APPIUM" = "true" ]; then
+    echo ""
+    start_appium_server
+fi
+
 echo ""
 echo -e "${GREEN}✅ Environment setup complete!${NC}"
 echo ""
@@ -388,6 +502,7 @@ echo -e "${YELLOW}Usage:${NC}"
 echo -e "  ${GREEN}source ./scripts/setup-test-env.sh${NC}                              # Setup for iOS (default)"
 echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform android${NC}           # Setup for Android"
 echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --start-emulator \"iPhone 16\"${NC}  # Start iOS simulator"
+echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --start-appium${NC}               # Start Appium with inspector"
 echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --platform android --start-emulator \"Pixel_8_API_34\"${NC}"
 echo -e "  ${GREEN}source ./scripts/setup-test-env.sh --list-emulators${NC}             # List available emulators"
 echo ""

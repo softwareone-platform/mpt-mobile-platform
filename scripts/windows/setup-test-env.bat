@@ -14,6 +14,8 @@ set PLATFORM=android
 set START_EMULATOR=
 set EMULATOR_NAME=
 set LIST_EMULATORS=
+set START_APPIUM=
+set STOP_APPIUM=
 
 REM Parse command line arguments
 :parse_args
@@ -54,12 +56,28 @@ if /i "%~1"=="-l" (
     shift
     goto :parse_args
 )
+if /i "%~1"=="--start-appium" (
+    set START_APPIUM=true
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="-a" (
+    set START_APPIUM=true
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="--stop-appium" (
+    set STOP_APPIUM=true
+    shift
+    goto :parse_args
+)
 if /i "%~1"=="--help" goto :show_help
 if /i "%~1"=="-h" goto :show_help
 shift
 goto :parse_args
 
 :check_list_emulators
+if "%STOP_APPIUM%"=="true" goto :stop_appium
 if "%LIST_EMULATORS%"=="true" goto :list_emulators
 goto :main
 
@@ -76,6 +94,8 @@ echo.
 echo Options:
 echo   --platform, -p PLATFORM       Target platform: android or ios (default: android)
 echo   --start-emulator, -e NAME     Start Android emulator by AVD name
+echo   --start-appium, -a            Start Appium server with inspector plugin
+echo   --stop-appium                 Stop all running Appium processes
 echo   --list-emulators, -l          List available Android emulators
 echo   --help, -h                    Show this help message
 echo.
@@ -84,6 +104,8 @@ echo   setup-test-env.bat                                    Setup for Android (
 echo   setup-test-env.bat --platform android                 Setup for Android
 echo   setup-test-env.bat --list-emulators                   List available emulators
 echo   setup-test-env.bat --start-emulator Pixel_8_API_34    Start specific emulator
+echo   setup-test-env.bat --start-appium                     Start Appium with inspector
+echo   setup-test-env.bat --stop-appium                      Stop Appium server
 echo   setup-test-env.bat -e Pixel_8_API_34 -p android       Start emulator and setup
 echo.
 echo Required .env Variables:
@@ -132,6 +154,108 @@ echo [iOS Simulators]
 echo   iOS simulators are not available on Windows.
 echo   Use macOS for iOS development and testing.
 echo.
+exit /b 0
+
+REM ============================================================
+REM Stop Appium server
+REM ============================================================
+:stop_appium
+echo.
+echo [INFO] Stopping Appium server...
+echo.
+
+set KILLED_COUNT=0
+if not defined APPIUM_PORT set APPIUM_PORT=4723
+
+REM Kill processes on Appium port using netstat and taskkill
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":%APPIUM_PORT%" ^| findstr "LISTENING" 2^>nul') do (
+    if not "%%p"=="0" (
+        echo   [INFO] Killing process on port %APPIUM_PORT% (PID: %%p)...
+        taskkill /F /PID %%p >nul 2>&1
+        set /a KILLED_COUNT+=1
+    )
+)
+
+REM Kill any node processes running appium
+for /f "tokens=2" %%p in ('tasklist /FI "IMAGENAME eq node.exe" /FO LIST 2^>nul ^| findstr "PID:"') do (
+    wmic process where "ProcessId=%%p" get CommandLine 2>nul | findstr /I "appium" >nul 2>&1
+    if not errorlevel 1 (
+        echo   [INFO] Killing Appium node process (PID: %%p)...
+        taskkill /F /PID %%p >nul 2>&1
+        set /a KILLED_COUNT+=1
+    )
+)
+
+REM Also try killing by window title pattern
+taskkill /F /FI "WINDOWTITLE eq appium*" >nul 2>&1
+
+if !KILLED_COUNT! gtr 0 (
+    echo   [OK] Stopped Appium processes
+) else (
+    echo   [OK] No Appium processes were running
+)
+
+REM Verify port is free
+timeout /t 1 /nobreak >nul
+netstat -ano | findstr ":%APPIUM_PORT%" | findstr "LISTENING" >nul 2>&1
+if errorlevel 1 (
+    echo   [OK] Port %APPIUM_PORT% is now free
+) else (
+    echo   [WARNING] Port %APPIUM_PORT% may still be in use
+)
+
+echo.
+exit /b 0
+
+REM ============================================================
+REM Start Appium server with inspector
+REM ============================================================
+:start_appium_server
+echo.
+echo [INFO] Starting Appium server with inspector plugin...
+echo.
+
+REM Check if Appium is installed
+where appium >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Appium not found. Please install it with: npm install -g appium
+    exit /b 1
+)
+
+if not defined APPIUM_PORT set APPIUM_PORT=4723
+
+REM Check if port is already in use
+netstat -ano | findstr ":%APPIUM_PORT%" | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+    echo   [WARNING] Appium may already be running on port %APPIUM_PORT%
+    echo   [WARNING] Stop it with: setup-test-env.bat --stop-appium
+    exit /b 1
+)
+
+REM Check if inspector plugin is installed
+appium plugin list --installed 2>&1 | findstr /I "inspector" >nul 2>&1
+if errorlevel 1 (
+    echo   [WARNING] Inspector plugin not installed. Installing...
+    appium plugin install inspector
+)
+
+echo   [OK] Starting Appium on port %APPIUM_PORT% with inspector plugin
+echo   [INFO] Inspector URL: http://localhost:%APPIUM_PORT%/inspector
+echo.
+
+REM Start Appium in background (minimized window)
+start /MIN "Appium Server" appium --use-plugins=inspector --allow-cors --port %APPIUM_PORT%
+
+timeout /t 2 /nobreak >nul
+
+REM Check if Appium started (port is now listening)
+netstat -ano | findstr ":%APPIUM_PORT%" | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+    echo   [OK] Appium server started
+) else (
+    echo   [WARNING] Appium may still be starting...
+)
+
 exit /b 0
 
 REM ============================================================
@@ -448,6 +572,11 @@ REM Set common Appium configuration
 if not defined APPIUM_HOST set APPIUM_HOST=127.0.0.1
 if not defined APPIUM_PORT set APPIUM_PORT=4723
 
+REM Start Appium server if requested
+if "%START_APPIUM%"=="true" (
+    call :start_appium_server
+)
+
 echo.
 echo [SUCCESS] Environment setup complete!
 echo.
@@ -488,6 +617,8 @@ echo   scripts\windows\setup-test-env.bat                              Setup for
 echo   scripts\windows\setup-test-env.bat -p android                   Setup for Android
 echo   scripts\windows\setup-test-env.bat --list-emulators             List available emulators
 echo   scripts\windows\setup-test-env.bat -e Pixel_8_API_34            Start emulator and setup
+echo   scripts\windows\setup-test-env.bat --start-appium               Start Appium with inspector
+echo   scripts\windows\setup-test-env.bat --stop-appium                Stop Appium server
 echo.
 echo Run Tests:
 echo   scripts\windows\run-local-test-android.bat welcome

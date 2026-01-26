@@ -74,6 +74,28 @@ class ProfilePage extends BasePage {
     );
   }
 
+  // ========== Empty State (No Accounts) ==========
+  get noAccountsTitle() {
+    return $(selectors.byText('No accounts'));
+  }
+
+  get noAccountsDescription() {
+    return $(selectors.byText("You don't have access to any accounts."));
+  }
+
+  /**
+   * Check if user has any accounts to switch to
+   * @returns {Promise<boolean>} true if accounts exist, false if empty state
+   */
+  async hasAccounts() {
+    try {
+      const accountItem = await this.firstAccountItem;
+      return await accountItem.isDisplayed();
+    } catch {
+      return false;
+    }
+  }
+
   // ========== Account List Items ==========
   // First account item (can be used as reference for pattern)
   get firstAccountItem() {

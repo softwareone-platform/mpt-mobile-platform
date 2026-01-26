@@ -57,7 +57,15 @@ param(
     [Parameter(ParameterSetName = 'StartEmulator')]
     [Parameter(ParameterSetName = 'Setup')]
     [Alias('e')]
-    [string]$StartEmulator
+    [string]$StartEmulator,
+
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'StartEmulator')]
+    [Alias('a')]
+    [switch]$StartAppium,
+
+    [Parameter(ParameterSetName = 'StopAppium', Mandatory = $true)]
+    [switch]$StopAppium
 )
 
 #region Helper Functions
@@ -141,6 +149,107 @@ function Get-AndroidDevice {
     return $devices | Select-Object -First 1
 }
 
+function Start-AppiumServer {
+    Write-Info "Starting Appium server with inspector plugin..."
+    
+    # Check if Appium is installed
+    $appium = Get-Command appium -ErrorAction SilentlyContinue
+    if (-not $appium) {
+        Write-ErrorMsg "Appium not found. Please install it with: npm install -g appium"
+        return $false
+    }
+    
+    $port = if ($env:APPIUM_PORT) { $env:APPIUM_PORT } else { "4723" }
+    
+    # Check if port is already in use
+    $portInUse = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+    if ($portInUse) {
+        Write-WarningMsg "Appium may already be running on port $port"
+        Write-WarningMsg "Stop it with: .\setup-test-env.ps1 -StopAppium"
+        return $false
+    }
+    
+    # Check if inspector plugin is installed
+    $pluginList = & appium plugin list --installed 2>&1
+    if ($pluginList -notmatch "inspector") {
+        Write-WarningMsg "Inspector plugin not installed. Installing..."
+        & appium plugin install inspector
+    }
+    
+    Write-Host "  [OK] Starting Appium on port $port with inspector plugin" -ForegroundColor Green
+    Write-Host "  [INFO] Inspector URL: http://localhost:$port/inspector" -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Start Appium in background (hidden window)
+    $appiumProcess = Start-Process -FilePath "appium" -ArgumentList "--use-plugins=inspector", "--allow-cors", "--port", $port -PassThru -WindowStyle Hidden
+    
+    Start-Sleep -Seconds 2
+    
+    if ($appiumProcess -and -not $appiumProcess.HasExited) {
+        Write-Host "  [OK] Appium server started (PID: $($appiumProcess.Id))" -ForegroundColor Green
+        $env:APPIUM_PID = $appiumProcess.Id
+        return $true
+    } else {
+        Write-ErrorMsg "Appium failed to start"
+        return $false
+    }
+}
+
+function Stop-AppiumServer {
+    Write-Info "Stopping Appium server..."
+    
+    $killedCount = 0
+    $port = if ($env:APPIUM_PORT) { $env:APPIUM_PORT } else { "4723" }
+    
+    # Kill processes on Appium port
+    $portProcesses = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | 
+        Select-Object -ExpandProperty OwningProcess -Unique
+    
+    foreach ($pid in $portProcesses) {
+        try {
+            Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+            $killedCount++
+        } catch {}
+    }
+    
+    # Kill any Appium node processes
+    $appiumProcesses = Get-Process -Name "node" -ErrorAction SilentlyContinue | 
+        Where-Object { $_.CommandLine -match "appium" -or $_.Path -match "appium" }
+    
+    foreach ($proc in $appiumProcesses) {
+        try {
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            $killedCount++
+        } catch {}
+    }
+    
+    # Also try killing by name pattern
+    Get-Process | Where-Object { $_.ProcessName -match "appium" } | ForEach-Object {
+        try {
+            Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+            $killedCount++
+        } catch {}
+    }
+    
+    # Clear the exported PID
+    $env:APPIUM_PID = $null
+    
+    if ($killedCount -gt 0) {
+        Write-Host "  [OK] Stopped Appium processes" -ForegroundColor Green
+    } else {
+        Write-Host "  [OK] No Appium processes were running" -ForegroundColor Green
+    }
+    
+    # Verify port is free
+    Start-Sleep -Seconds 1
+    $portStillInUse = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+    if ($portStillInUse) {
+        Write-WarningMsg "Port $port may still be in use"
+    } else {
+        Write-Host "  [OK] Port $port is now free" -ForegroundColor Green
+    }
+}
+
 function Write-ConfigItem {
     param(
         [string]$Label,
@@ -163,6 +272,12 @@ function Write-ConfigItem {
 #region Main Script
 
 Write-Header "Test Environment Setup (Windows)"
+
+# Handle -StopAppium option
+if ($StopAppium) {
+    Stop-AppiumServer
+    exit 0
+}
 
 # Handle -ListEmulators option
 if ($ListEmulators) {
@@ -398,6 +513,12 @@ Write-ConfigItem -Label "Platform Version" -Value $env:PLATFORM_VERSION
 if (-not $env:APPIUM_HOST) { $env:APPIUM_HOST = "127.0.0.1" }
 if (-not $env:APPIUM_PORT) { $env:APPIUM_PORT = "4723" }
 
+# Start Appium server if requested
+if ($StartAppium) {
+    Write-Host ""
+    Start-AppiumServer
+}
+
 Write-Host ""
 Write-Success "Environment setup complete!"
 
@@ -441,6 +562,8 @@ Write-Host "  .\setup-test-env.ps1                              # Setup for Andr
 Write-Host "  .\setup-test-env.ps1 -Platform android            # Setup for Android" -ForegroundColor Green
 Write-Host "  .\setup-test-env.ps1 -ListEmulators               # List available emulators" -ForegroundColor Green
 Write-Host "  .\setup-test-env.ps1 -StartEmulator Pixel_8_API_34 # Start specific emulator" -ForegroundColor Green
+Write-Host "  .\setup-test-env.ps1 -StartAppium                  # Start Appium with inspector" -ForegroundColor Green
+Write-Host "  .\setup-test-env.ps1 -StopAppium                   # Stop Appium server" -ForegroundColor Green
 Write-Host ""
 Write-Host "Run Tests:" -ForegroundColor Yellow
 Write-Host "  .\run-local-test-android.ps1 welcome" -ForegroundColor Green

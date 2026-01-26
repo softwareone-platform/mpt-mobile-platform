@@ -108,6 +108,8 @@ describe('Welcome page of application', () => {
     console.info(`⏳ Waiting for auto-submission to complete...`);
 
     // After OTP entry, check for successful login (app auto-submits)
+    // Login can take a while, so we use a longer timeout
+    await homePage.header.logoTitle.waitForDisplayed({ timeout: 30000 });
     await expect(homePage.header.logoTitle).toBeDisplayed();
   });
 
