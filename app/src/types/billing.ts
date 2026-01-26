@@ -42,3 +42,17 @@ export interface Invoice {
     };
   };
 }
+
+export interface Statement {
+  id: string;
+  status: string;
+
+  audit?: {
+    created?: {
+      at?: string;
+    };
+    updated?: {
+      at?: string;
+    };
+  };
+}
