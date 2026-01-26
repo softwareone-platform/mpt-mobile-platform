@@ -421,8 +421,9 @@ jobs:
 
           # Always create version bump PR from main branch
           # This ensures the PR only contains version changes, even when deploying from a feature branch
+          # Discard local changes (version was bumped for build) before switching to main
           git fetch origin main
-          git checkout main
+          git checkout -f main
           git reset --hard origin/main
 
           # Apply version bump to main branch
