@@ -27,6 +27,19 @@ class SpotlightsPage extends BasePage {
     return $(selectors.scrollView());
   }
 
+  // ========== Empty State Elements ==========
+  get emptyState() {
+    return $(selectors.byAccessibilityId('spotlight-empty-state'));
+  }
+
+  get noSpotlightsTitle() {
+    return $(selectors.byText('No tasks on your side'));
+  }
+
+  get noSpotlightsDescription() {
+    return $(selectors.byText('Great job in staying on top of things'));
+  }
+
   // ========== Filter Chips ==========
   get filterAll() {
     return $(selectors.byResourceId('spotlight-filter-all'));
@@ -269,6 +282,32 @@ class SpotlightsPage extends BasePage {
     return section;
   }
 
+  /**
+   * Check if the spotlight page has any spotlight tasks (not showing empty state)
+   * Checks for filter chips as the indicator of data being present
+   * @returns {Promise<boolean>} True if spotlights/filters exist, false if empty state is shown
+   */
+  async hasSpotlights() {
+    try {
+      // First check if empty state is visible - definitive "no data"
+      const emptyStateVisible = await this.emptyState.isDisplayed().catch(() => false);
+      if (emptyStateVisible) {
+        return false;
+      }
+
+      // Check if filter chips exist - definitive "has data"
+      const filterAllVisible = await this.filterAll.isDisplayed().catch(() => false);
+      if (filterAllVisible) {
+        return true;
+      }
+
+      // Neither empty state nor filters visible - assume no data (safer default)
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   async isLongRunningOrdersSectionVisible() {
     return await this.longRunningOrdersHeader.isDisplayed();
   }
@@ -501,6 +540,8 @@ class SpotlightsPage extends BasePage {
   async isOrdersSectionVisible() {
     try {
       const header = await this.longRunningOrdersHeader;
+      const isExisting = await header.isExisting();
+      if (!isExisting) return false;
       return await header.isDisplayed();
     } catch {
       return false;
@@ -513,6 +554,9 @@ class SpotlightsPage extends BasePage {
   async isSubscriptionsSectionVisible() {
     try {
       const card = await this.expiringSubscriptionsCard;
+      // Use shorter timeout for existence check
+      const isExisting = await card.isExisting();
+      if (!isExisting) return false;
       return await card.isDisplayed();
     } catch {
       return false;

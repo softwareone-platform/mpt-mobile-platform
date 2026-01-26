@@ -103,6 +103,7 @@ exports.config = {
         spotlight: ['./test/specs/spotlight-filters.e2e.js'],
         profile: ['./test/specs/profile.e2e.js'],
         personalInformation: ['./test/specs/personal-information.e2e.js'],
+        orders: ['./test/specs/orders.e2e.js'],
         logout: ['./test/specs/logout.e2e.js'],
     },
     //
@@ -458,13 +459,27 @@ exports.config = {
      * @param {boolean} result.passed    true if test has passed, otherwise false
      * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    afterTest: async function(test, context, { passed, duration }) {
-        // Log test result
-        const status = passed ? '✅ PASS' : '❌ FAIL';
+    afterTest: async function(test, context, { passed, duration, error }) {
+        // Determine test status - check if test was skipped
+        // Mocha's this.skip() throws an error with specific patterns
+        const isMochaSkip = error && (
+            error.name === 'Pending' ||
+            (error.message && error.message.match(/^sync skip|^async skip/i))
+        );
+        const isSkipped = test.pending || isMochaSkip;
+        
+        let status;
+        if (isSkipped) {
+            status = '⏭️  SKIP';
+        } else if (passed) {
+            status = '✅ PASS';
+        } else {
+            status = '❌ FAIL';
+        }
         const durationStr = duration ? ` (${(duration / 1000).toFixed(2)}s)` : '';
         console.log(`       ${status}${durationStr}`);
         
-        if (!passed) {
+        if (!passed && !isSkipped) {
             await this.captureFailureScreenshot(test);
         }
     },

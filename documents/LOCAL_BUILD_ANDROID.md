@@ -16,6 +16,12 @@ scripts\windows\setup-test-env.bat --list-emulators
 REM Start emulator
 scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34
 
+REM Start Appium server with inspector plugin
+scripts\windows\setup-test-env.bat --start-appium
+
+REM Stop Appium server
+scripts\windows\setup-test-env.bat --stop-appium
+
 REM Build and run E2E tests
 scripts\windows\run-local-test-android.bat --build welcome
 ```

@@ -13,7 +13,7 @@ describe('Logout Functionality', () => {
     // Set timeout for login flow
     this.timeout(150000);
     await ensureLoggedIn();
-    await navigation.ensureHomePage();
+    await navigation.ensureHomePage({ resetFilters: false });
   });
 
   describe('Sign Out Flow', () => {

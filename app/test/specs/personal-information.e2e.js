@@ -18,7 +18,7 @@ describe('Personal Information Page', () => {
     await ensureLoggedIn();
 
     // Navigate to Profile page and get user ID
-    await navigation.ensureHomePage();
+    await navigation.ensureHomePage({ resetFilters: false });
     await headingPage.navAccountButton.click();
     await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: 10000 });
 

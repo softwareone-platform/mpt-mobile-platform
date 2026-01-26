@@ -52,8 +52,8 @@ scripts\windows\run-local-test-android.bat all
 |----------|---------|
 | Setup environment | `scripts\windows\setup-test-env.bat` |
 | List emulators | `scripts\windows\setup-test-env.bat --list-emulators` |
-| Start emulator | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34` |
-| Build + test | `scripts\windows\run-local-test-android.bat --build welcome` |
+| Start emulator | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34` || Start Appium | `scripts\windows\setup-test-env.bat --start-appium` |
+| Stop Appium | `scripts\windows\setup-test-env.bat --stop-appium` || Build + test | `scripts\windows\run-local-test-android.bat --build welcome` |
 | Reuse last build | `scripts\windows\run-local-test-android.bat --skip-build welcome` |
 | Test specific file | `scripts\windows\run-local-test-android.bat .\test\specs\welcome.e2e.js` |
 | Run all tests | `scripts\windows\run-local-test-android.bat all` || List all tests | `scripts\windows\run-local-test-android.bat --list all` |
@@ -323,6 +323,8 @@ Sets up the test environment by loading .env variables and configuring platform 
 | `--platform`, `-p` | Target platform: android or ios (default: android) |
 | `--list-emulators`, `-l` | List available Android emulators |
 | `--start-emulator`, `-e` | Start Android emulator by AVD name |
+| `--start-appium`, `-a` | Start Appium server with inspector plugin |
+| `--stop-appium` | Stop all running Appium processes |
 | `--help`, `-h` | Show help message |
 
 ### `scripts\windows\run-local-test-android.ps1`
