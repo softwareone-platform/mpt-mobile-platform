@@ -39,7 +39,12 @@ class OrdersPage extends BasePage {
   }
 
   get accountButton() {
-    return $(selectors.byAccessibilityId('nav-account-button'));
+    return $(
+      getSelector({
+        ios: '~nav-account-button',
+        android: '//*[@resource-id="nav-account-button"]',
+      }),
+    );
   }
 
   // ========== Empty State Elements ==========

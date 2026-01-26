@@ -248,8 +248,8 @@ selectors.scrollView()              // Find scroll container (no params)
 selectors.switchElement()           // Find toggle switch (no params)
 
 // ID-based selectors:
-selectors.byAccessibilityId(id)     // Find by accessibility ID (works with testID)
-selectors.byResourceId(id)          // Find by resource ID (accessibility ID on iOS, resource-id on Android)
+selectors.byResourceId(id)          // **RECOMMENDED for testID** - Find by resource ID (~id on iOS, @resource-id on Android)
+selectors.byAccessibilityId(id)     // Find by accessibility ID (~id) - works with accessibilityLabel, NOT testID on Android!
 selectors.byContentDesc(desc)       // Find by content-desc (Android) / accessibility ID (iOS)
 selectors.byStartsWithResourceId(prefix) // Find where resource-id/name starts with prefix
 selectors.accessibleByIndex(index)  // Find accessible/clickable element by 1-based index
@@ -257,6 +257,12 @@ selectors.accessibleByIndex(index)  // Find accessible/clickable element by 1-ba
 // Pattern-based selectors for spotlight items:
 selectors.staticTextByIdPrefixAndPattern(idPrefix, textPattern) // Find by ID prefix and text pattern
 selectors.spotlightItemsByPrefix(prefix) // Find spotlight items by entity prefix (ORD, SUB, etc.)
+
+```
+
+> ⚠️ **Critical Android Distinction**:
+> - **`byResourceId(id)`** → Use for React Native `testID` prop. On Android, `testID` maps to `resource-id` attribute.
+> - **`byAccessibilityId(id)`** → Uses `~id` selector which maps to `content-desc` on Android. Use for `accessibilityLabel`, NOT `testID`!
 
 // Low-level helper functions:
 isAndroid()                         // Returns true if running on Android
@@ -386,9 +392,19 @@ get logoImage () {
 // App component:
 <Button testID="submit-button" />
 
-// Page object:
-get submitButton () { return $(selectors.byAccessibilityId('submit-button')); }
+// Page object - use byResourceId for testID (NOT byAccessibilityId!)
+get submitButton () { return $(selectors.byResourceId('submit-button')); }
+
+// Or with explicit platform handling:
+get submitButton () {
+    return $(getSelector({
+        ios: '~submit-button',
+        android: '//*[@resource-id="submit-button"]'
+    }));
+}
 ```
+
+> ⚠️ **Important**: On Android, `testID` maps to `resource-id`, NOT `content-desc`. The `byAccessibilityId()` helper uses `~id` which looks at `content-desc` on Android, so it won't find elements with `testID`. Always use `byResourceId()` for `testID`-based elements.
 
 > **See:** [TEST_ELEMENT_IDENTIFICATION_STRATEGY.md](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) for comprehensive testID implementation guidance.
 

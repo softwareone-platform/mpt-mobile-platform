@@ -39,8 +39,8 @@ describe('Welcome page of application', () => {
   });
 
   it('to complete OTP flow with valid email and retrieve OTP from Airtable', async function () {
-    // Set timeout for this specific test
-    this.timeout(otpTimeoutMs + 8000);
+    // Set timeout for this specific test (OTP retrieval can take up to 260s + 90s for auth flow)
+    this.timeout(otpTimeoutMs + 120000);
 
     // Clear any previous input
     await welcomePage.clearText(welcomePage.emailInput);
@@ -108,8 +108,11 @@ describe('Welcome page of application', () => {
     console.info(`⏳ Waiting for auto-submission to complete...`);
 
     // After OTP entry, check for successful login (app auto-submits)
-    // Login can take a while, so we use a longer timeout
-    await homePage.header.logoTitle.waitForDisplayed({ timeout: 30000 });
+    // Login can take a while (auth0, token exchange, user data fetch), so we use a longer timeout
+    // The full auth flow can take 60+ seconds in some cases
+    console.info(`⏳ Waiting for home page to load (timeout: 90s)...`);
+    await homePage.header.logoTitle.waitForDisplayed({ timeout: 90000 });
+    console.info(`✅ Home page loaded successfully`);
     await expect(homePage.header.logoTitle).toBeDisplayed();
   });
 
