@@ -16,10 +16,15 @@ const apiClient: AxiosInstance = axios.create({
 
 /**
  * Request Interceptor
- * Adds Authorization header automatically.
+ * Adds Authorization header automatically unless noAuth flag is set.
  */
 apiClient.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig & { noAuth?: boolean }) => {
+    if (config.noAuth) {
+      delete config.noAuth;
+      return config;
+    }
+
     const token = await getAccessTokenAsync();
 
     if (token) {
