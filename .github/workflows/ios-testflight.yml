@@ -51,6 +51,12 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Save build commit SHA
+        id: build_commit
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "Build commit: $(git rev-parse HEAD)"
+
       - name: Select Xcode version
         run: |
           echo "Selecting Xcode ${{ env.XCODE_VERSION }}"
@@ -104,6 +110,7 @@ jobs:
           AUTH0_OTP_DIGITS=${{ vars.AUTH0_OTP_DIGITS }}
           AUTH0_SCHEME=${{ vars.AUTH0_SCHEME }}
           APP_BUNDLE_ID=${{ vars.APP_BUNDLE_ID }}
+          APP_ENVIRONMENT=${{ inputs.environment }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"
@@ -412,6 +419,22 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
+          # Always create version bump PR from main branch
+          # This ensures the PR only contains version changes, even when deploying from a feature branch
+          # Discard local changes (version was bumped for build) before switching to main
+          git fetch origin main
+          git checkout -f main
+          git reset --hard origin/main
+
+          # Apply version bump to main branch
+          node -e "
+            const fs = require('fs');
+            let configContent = fs.readFileSync('app.config.js', 'utf8');
+            configContent = configContent.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$VERSION'\");
+            configContent = configContent.replace(/buildNumber: ['\"][^'\"]+['\"]/, \"buildNumber: '$BUILD'\");
+            fs.writeFileSync('app.config.js', configContent);
+          "
+
           # Create a new branch for the version bump
           git checkout -b "$BRANCH_NAME"
           git add app.config.js
@@ -445,8 +468,17 @@ jobs:
         if: success()
         run: |
           TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ inputs.environment }}"
-          git tag -a "$TAG" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }} (${{ inputs.environment }})"
-          git push origin "$TAG"
+          BUILD_COMMIT="${{ steps.build_commit.outputs.sha }}"
+
+          # Check if tag already exists
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::warning::Tag $TAG already exists, skipping tag creation"
+          else
+            # Create tag on the original build commit, not current HEAD
+            git tag -a "$TAG" "$BUILD_COMMIT" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }} (${{ inputs.environment }})"
+            git push origin "$TAG"
+            echo "Created tag $TAG on commit $BUILD_COMMIT"
+          fi
 
       - name: Clean up sensitive files
         if: always()

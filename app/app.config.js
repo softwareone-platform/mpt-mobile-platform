@@ -1,16 +1,22 @@
 import 'dotenv/config';
 
-const { AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_SCHEME, APP_BUNDLE_ID } = process.env;
+const { AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_SCHEME, APP_BUNDLE_ID, APP_ENVIRONMENT } = process.env;
 
 const bundleId = APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile';
+
+// Determine asset paths based on environment (test, qa, or prod)
+const assetPath =
+  APP_ENVIRONMENT && APP_ENVIRONMENT !== 'prod' ? `./assets/${APP_ENVIRONMENT}` : './assets';
+const iconPath = `${assetPath}/icon.png`;
+const androidIconPath = `${assetPath}/android_icon.png`;
 
 export default {
   expo: {
     name: 'SoftwareOne',
     slug: 'softwareone-marketplace-mobile',
-    version: '1.3.1',
+    version: '1.3.2',
     orientation: 'portrait',
-    icon: './assets/icon.png',
+    icon: iconPath,
     scheme: AUTH0_SCHEME,
     userInterfaceStyle: 'light',
     newArchEnabled: true,
@@ -45,7 +51,7 @@ export default {
         backgroundColor: '#ffffff',
       },
       adaptiveIcon: {
-        foregroundImage: './assets/android_icon.png',
+        foregroundImage: androidIconPath,
         backgroundColor: '#ffffff',
       },
       edgeToEdgeEnabled: true,
