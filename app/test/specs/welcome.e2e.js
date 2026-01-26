@@ -102,6 +102,9 @@ describe('Welcome page of application', () => {
       `⏱️  Time from OTP creation to entry start: ${(beforeSubmit - new Date(result.record.fields['Created At'])) / 1000}s`,
     );
     await verifyPage.enterOTP(result.otp);
+    const afterOTPEntry = new Date();
+    console.info(`✅ OTP entry completed at: ${afterOTPEntry.toISOString()}`);
+    console.info(`⏱️  OTP entry took: ${(afterOTPEntry - beforeSubmit) / 1000}s`);
 
     // Note: The app auto-submits when 6 digits are entered (via useEffect)
     // So we DON'T need to click the verify button - just wait for navigation
@@ -110,18 +113,74 @@ describe('Welcome page of application', () => {
     // After OTP entry, check for successful login (app auto-submits)
     // Login can take a while (auth0, token exchange, user data fetch), so we use a longer timeout
     // The full auth flow can take 60+ seconds in some cases
-    console.info(`⏳ Waiting for home page to load (timeout: 90s)...`);
-    await homePage.header.logoTitle.waitForDisplayed({ timeout: 90000 });
+    const beforeHomeWait = new Date();
+    console.info(`⏳ [${beforeHomeWait.toISOString()}] Starting to wait for home page (timeout: 90s)...`);
+    
+    // Add periodic logging while waiting
+    const waitTimeout = 90000;
+    const pollInterval = 10000;
+    let elapsed = 0;
+    let homePageFound = false;
+    
+    while (elapsed < waitTimeout && !homePageFound) {
+      const checkStart = new Date();
+      try {
+        // Check if home page is visible (short timeout for quick polling)
+        await homePage.header.logoTitle.waitForDisplayed({ timeout: pollInterval });
+        homePageFound = true;
+        const foundAt = new Date();
+        console.info(`✅ [${foundAt.toISOString()}] Home page FOUND after ${(foundAt - beforeHomeWait) / 1000}s`);
+      } catch {
+        elapsed += pollInterval;
+        const now = new Date();
+        console.info(`⏳ [${now.toISOString()}] Still waiting for home page... (${elapsed / 1000}s elapsed, ${(waitTimeout - elapsed) / 1000}s remaining)`);
+        
+        // Log what's currently visible on screen for debugging
+        try {
+          const currentPageSource = await browser.getPageSource();
+          // Check for common elements to understand current state
+          const hasSpotlight = currentPageSource.includes('Spotlight');
+          const hasWelcome = currentPageSource.includes('Welcome');
+          const hasVerify = currentPageSource.includes('Verify') || currentPageSource.includes('verification');
+          const hasError = currentPageSource.includes('error') || currentPageSource.includes('Error');
+          console.info(`   📍 Page state: Spotlight=${hasSpotlight}, Welcome=${hasWelcome}, Verify=${hasVerify}, Error=${hasError}`);
+        } catch (e) {
+          console.info(`   ⚠️ Could not get page source: ${e.message}`);
+        }
+      }
+    }
+    
+    if (!homePageFound) {
+      const failedAt = new Date();
+      console.error(`❌ [${failedAt.toISOString()}] Home page NOT found after ${(failedAt - beforeHomeWait) / 1000}s`);
+      throw new Error(`Home page not displayed after ${waitTimeout / 1000}s timeout`);
+    }
+    
     console.info(`✅ Home page loaded successfully`);
     await expect(homePage.header.logoTitle).toBeDisplayed();
+    
+    // Log completion time for the entire OTP test
+    const testEnd = new Date();
+    console.info(`🏁 [${testEnd.toISOString()}] OTP test completed. Total auth flow time: ${(testEnd - afterOTPEntry) / 1000}s`);
   });
 
   it('should keep user logged in after app restart', async () => {
+    const restartTestStart = new Date();
+    console.info(`🔄 [${restartTestStart.toISOString()}] Starting app restart test`);
+    
     // Restart the app
+    const beforeRestart = new Date();
+    console.info(`🔄 [${beforeRestart.toISOString()}] Calling restartApp()...`);
     await restartApp();
+    const afterRestart = new Date();
+    console.info(`✅ [${afterRestart.toISOString()}] restartApp() completed in ${(afterRestart - beforeRestart) / 1000}s`);
 
     // Verify user is still logged in by checking for home page elements
+    const beforeCheck = new Date();
+    console.info(`⏳ [${beforeCheck.toISOString()}] Waiting for home page after restart (timeout: 15s)...`);
     await homePage.header.logoTitle.waitForDisplayed({ timeout: 15000 });
+    const afterCheck = new Date();
+    console.info(`✅ [${afterCheck.toISOString()}] Home page found after ${(afterCheck - beforeCheck) / 1000}s`);
     await expect(homePage.header.logoTitle).toBeDisplayed();
     console.log('✅ User is still logged in after app restart');
   });
