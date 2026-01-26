@@ -188,13 +188,44 @@ runs:
         
         SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
         
-        # Install required components
-        $SDKMANAGER "system-images;android-${{ inputs.api_level }};google_apis;${{ inputs.arch }}" --verbose
-        $SDKMANAGER "emulator" --verbose
-        $SDKMANAGER "platform-tools" --verbose
-        $SDKMANAGER "platforms;android-${{ inputs.api_level }}" --verbose
+        # Note: The Ubuntu 24.04 runner image comes with pre-installed Android SDK components:
+        # - platform-tools (36.x)
+        # - platforms;android-34, android-35, android-36 (and extensions)
+        # - build-tools for 34, 35, 36
+        # See: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
+        #
+        # However, the following are NOT pre-installed and must be downloaded:
+        # - Android Emulator
+        # - System images (required for AVD creation)
         
-        echo "✅ SDK components installed"
+        # Check if system image is already installed (it typically isn't on fresh runners)
+        SYSTEM_IMAGE="system-images;android-${{ inputs.api_level }};google_apis;${{ inputs.arch }}"
+        if $SDKMANAGER --list_installed 2>/dev/null | grep -q "$SYSTEM_IMAGE"; then
+          echo "✅ System image already installed: $SYSTEM_IMAGE"
+        else
+          echo "📥 Installing system image: $SYSTEM_IMAGE"
+          $SDKMANAGER "$SYSTEM_IMAGE"
+        fi
+        
+        # Check if emulator is already installed (it typically isn't on fresh runners)
+        if [ -f "$ANDROID_HOME/emulator/emulator" ]; then
+          echo "✅ Emulator already installed at: $ANDROID_HOME/emulator/emulator"
+          $ANDROID_HOME/emulator/emulator -version 2>/dev/null | head -1 || true
+        else
+          echo "📥 Installing Android Emulator..."
+          $SDKMANAGER "emulator"
+        fi
+        
+        # Verify platform is available (should be pre-installed on Ubuntu 24.04)
+        PLATFORM="platforms;android-${{ inputs.api_level }}"
+        if $SDKMANAGER --list_installed 2>/dev/null | grep -q "$PLATFORM"; then
+          echo "✅ Platform already installed: $PLATFORM"
+        else
+          echo "📥 Installing platform: $PLATFORM"
+          $SDKMANAGER "$PLATFORM"
+        fi
+        
+        echo "✅ SDK components ready"
 
     - name: Create Android Virtual Device
       id: create-avd
