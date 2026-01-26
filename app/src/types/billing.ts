@@ -1,3 +1,5 @@
+import type { DetailsListItemValue } from '@/types/lists';
+
 export interface CreditMemo {
   id: string;
   documentNo: string;
@@ -16,14 +18,16 @@ export interface CreditMemoDetails {
   documentNo: string;
   status: string;
 
-  postingDate: string;
-  documentDate: string;
-
-  buyerName: string;
-  sellerName: string;
-  sellerCountry?: string;
-
-  totalAmount?: number;
-  currency?: string;
-  audit: unknown;
+  client?: DetailsListItemValue;
+  buyer?: DetailsListItemValue;
+  licencee?: DetailsListItemValue;
+  vendor?: DetailsListItemValue;
+  product?: DetailsListItemValue;
+  agreement?: DetailsListItemValue;
+  seller?: DetailsListItemValue;
+  price: {
+    currency: string;
+    totalSP: number;
+    totalGT: number;
+  };
 }

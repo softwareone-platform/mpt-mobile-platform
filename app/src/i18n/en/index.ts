@@ -1,5 +1,6 @@
 import auth from './auth.json';
 import billing from './billing.json';
+import details from './details.json';
 import home from './home.json';
 import marketplace from './marketplace.json';
 import navigation from './navigation.json';
@@ -30,6 +31,7 @@ const en = {
 
   // Module: Settings (profile, users, account settings)
   ...settings,
+  ...details,
 };
 
 export default en;
