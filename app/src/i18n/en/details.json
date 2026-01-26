@@ -1,0 +1,16 @@
+{
+  "details": {
+    "title": "Details",
+    "client": "Client",
+    "buyer": "Buyer",
+    "licencee": "Licencee",
+    "vendor": "Vendor",
+    "product": "Product",
+    "agreement": "Agreement",
+    "seller": "Seller",
+    "currency": "Currency",
+    "documentId": "Document ID",
+    "sp": "∑ SP",
+    "gt": "∑ GT"
+  }
+}

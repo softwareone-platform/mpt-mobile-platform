@@ -1,12 +1,11 @@
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
-import DetailsHeader from '@/components/details/DetailsHeader';
 import DetailsView from '@/components/details/DetailsView';
 import { useAccount } from '@/context/AccountContext';
 import { useCreditMemoDetailsData } from '@/hooks/queries/useCreditMemoDetailsData';
+import CreditMemoDetailsContent from '@/screens/credit-memos/CreditMemoDetailsContent';
 import type { ListItemWithStatusProps } from '@/types/lists';
 import type { TabParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
@@ -29,11 +28,6 @@ const CreditMemoDetailsScreen = () => {
     isUnauthorised,
   } = useCreditMemoDetailsData(headerData.id, userId, currentAccountId);
 
-  console.info(
-    'CreditMemoDetailsScreen rendered with creditMemoDetails:',
-    JSON.stringify(creditMemoDetails, null, 2),
-  );
-
   return (
     <StatusMessage
       isLoading={isLoading}
@@ -46,16 +40,9 @@ const CreditMemoDetailsScreen = () => {
       emptyTitle={t('creditMemoDetailsScreen.emptyStateTitle')}
       emptyDescription={t('creditMemoDetailsScreen.emptyStateDescription')}
     >
-      <View>
-        <DetailsHeader
-          id={headerData.id}
-          title={headerData.title}
-          subtitle={headerData.subtitle}
-          imagePath={headerData.imagePath}
-          statusText={headerData.statusText}
-        />
-        {creditMemoDetails && <DetailsView data={creditMemoDetails} />}
-      </View>
+      <DetailsView header={headerData}>
+        {creditMemoDetails && <CreditMemoDetailsContent data={creditMemoDetails} />}
+      </DetailsView>
     </StatusMessage>
   );
 };
