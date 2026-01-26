@@ -540,6 +540,8 @@ class SpotlightsPage extends BasePage {
   async isOrdersSectionVisible() {
     try {
       const header = await this.longRunningOrdersHeader;
+      const isExisting = await header.isExisting();
+      if (!isExisting) return false;
       return await header.isDisplayed();
     } catch {
       return false;
@@ -552,6 +554,9 @@ class SpotlightsPage extends BasePage {
   async isSubscriptionsSectionVisible() {
     try {
       const card = await this.expiringSubscriptionsCard;
+      // Use shorter timeout for existence check
+      const isExisting = await card.isExisting();
+      if (!isExisting) return false;
       return await card.isDisplayed();
     } catch {
       return false;

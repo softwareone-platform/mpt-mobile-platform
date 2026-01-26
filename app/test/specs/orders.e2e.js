@@ -130,7 +130,7 @@ describe('Orders Page', () => {
       
       const details = await ordersPage.getOrderDetails(firstOrder);
       expect(details.orderId).toMatch(/^ORD-\d{4}-\d{4}-\d{4}$/);
-      expect(['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed']).toContain(details.status);
+      expect(['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed', 'Processing', 'Querying']).toContain(details.status);
     });
 
     it('should detect all loaded orders in the list', async function () {

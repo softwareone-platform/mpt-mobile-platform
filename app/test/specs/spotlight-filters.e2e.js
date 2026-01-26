@@ -222,7 +222,10 @@ describe('Spotlight Filter Chips', () => {
       }
       await spotlightsPage.scrollToFilter('invoices');
       await spotlightsPage.selectFilter('invoices');
-      await browser.pause(500);
+      await browser.pause(1000); // Longer pause for Android filter transition
+
+      // Scroll content to top to ensure we check from correct position
+      await spotlightsPage.scrollToTop().catch(() => {});
 
       // Verify filter works by checking other sections are hidden
       // (Invoices section visibility depends on user having past due invoices data)
