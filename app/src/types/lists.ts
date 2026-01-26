@@ -19,3 +19,17 @@ export type ListItemConfig = {
   imagePath?: string;
   status: string;
 };
+
+export type DetailsListItemValue = {
+  id?: string;
+  name?: string;
+  icon?: string;
+};
+
+export interface DetailsListItemProps {
+  label: string;
+  data?: DetailsListItemValue;
+  hideImage?: boolean;
+  isLast?: boolean;
+  onPress?: () => void;
+}
