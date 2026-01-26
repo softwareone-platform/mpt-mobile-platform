@@ -26,6 +26,7 @@ export type TabParamList = {
   };
   statements: undefined;
   users: undefined;
+  programs: undefined;
   more: undefined;
   moreMenu: undefined;
   ProfileRoot: undefined;
