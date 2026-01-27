@@ -1,5 +1,6 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useProgramApi } from '@/services/programService';
+import { useEnrollmentApi } from '@/services/enrollmentService';
 import type { Program, Enrollment } from '@/types/program';
 
 export const useProgramsData = (
@@ -19,7 +20,7 @@ export const useEnrollmentsData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
 ) => {
-  const { getEnrollments } = useProgramApi();
+  const { getEnrollments } = useEnrollmentApi();
 
   return usePaginatedQuery<Enrollment>({
     queryKey: ['enrollments', userId, currentAccountId],

@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
-import { useUserApi } from '@/services/userService';
+import { useLicenseeApi } from '@/services/licenseeService';
 import type { PaginatedResponse, Licensee } from '@/types/api';
 
 const mockGet = jest.fn();
@@ -12,9 +12,9 @@ jest.mock('@/hooks/useApi', () => ({
   }),
 }));
 
-const setup = () => renderHook(() => useUserApi()).result.current;
+const setup = () => renderHook(() => useLicenseeApi()).result.current;
 
-describe('useUserApi - getLicensees', () => {
+describe('useLicenseeApi - getLicensees', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

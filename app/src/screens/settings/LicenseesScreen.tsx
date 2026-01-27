@@ -9,9 +9,9 @@ import { TestIDs } from '@/utils/testID';
 const LicenseesScreenContent = () => {
   const {
     licensees,
-    licenseesLoading,
-    licenseesError,
-    licenseesFetchingNext,
+    isLicenseesLoading,
+    isLicenseesError,
+    isLicenseesFetchingNext,
     hasMoreLicensees,
     isUnauthorised,
     fetchLicensees,
@@ -21,8 +21,8 @@ const LicenseesScreenContent = () => {
 
   return (
     <StatusMessage
-      isLoading={licenseesLoading}
-      isError={!!licenseesError}
+      isLoading={isLicenseesLoading}
+      isError={!!isLicenseesError}
       isEmpty={licensees.length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.LICENSEES_LOADING_INDICATOR}
@@ -33,7 +33,7 @@ const LicenseesScreenContent = () => {
     >
       <ListView
         data={licensees}
-        isFetchingNext={licenseesFetchingNext}
+        isFetchingNext={isLicenseesFetchingNext}
         hasMore={hasMoreLicensees}
         fetchNext={fetchLicensees}
         config={listItemConfigFull}

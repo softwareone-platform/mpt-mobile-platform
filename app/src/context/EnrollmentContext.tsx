@@ -6,10 +6,10 @@ import type { Enrollment } from '@/types/program';
 
 interface EnrollmentContextValue {
   enrollments: Enrollment[];
-  enrollmentsLoading: boolean;
-  enrollmentsFetchingNext: boolean;
+  isEnrollmentsLoading: boolean;
+  isEnrollmentsFetchingNext: boolean;
   hasMoreEnrollments: boolean;
-  enrollmentsError: boolean;
+  isEnrollmentsError: boolean;
   isUnauthorised: boolean;
   fetchEnrollments: () => void;
 }
@@ -38,10 +38,10 @@ export const EnrollmentProvider = ({ children }: { children: ReactNode }) => {
     <EnrollmentContext.Provider
       value={{
         enrollments,
-        enrollmentsLoading: isLoading,
-        enrollmentsFetchingNext: isFetchingNextPage,
+        isEnrollmentsLoading: isLoading,
+        isEnrollmentsFetchingNext: isFetchingNextPage,
         hasMoreEnrollments: !!hasNextPage,
-        enrollmentsError: isError,
+        isEnrollmentsError: isError,
         isUnauthorised,
         fetchEnrollments: fetchNextPage,
       }}

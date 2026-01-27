@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
-import { useProgramApi } from '@/services/programService';
+import { useEnrollmentApi } from '@/services/enrollmentService';
 import type { PaginatedResponse } from '@/types/api';
 import type { Enrollment } from '@/types/program';
 
@@ -13,9 +13,9 @@ jest.mock('@/hooks/useApi', () => ({
   }),
 }));
 
-const setup = () => renderHook(() => useProgramApi()).result.current;
+const setup = () => renderHook(() => useEnrollmentApi()).result.current;
 
-describe('useProgramApi - getEnrollments', () => {
+describe('useEnrollmentApi - getEnrollments', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

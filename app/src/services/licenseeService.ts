@@ -2,33 +2,34 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse } from '@/types/api';
-import type { Program } from '@/types/program';
+import type { PaginatedResponse, Licensee } from '@/types/api';
 
-export function useProgramApi() {
+export function useLicenseeApi() {
   const api = useApi();
 
-  const getPrograms = useCallback(
+  const getLicensees = useCallback(
     async (
+      accountId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Program>> => {
+    ): Promise<PaginatedResponse<Licensee>> => {
       const endpoint =
-        `/v1/program/programs` +
-        `?select=audit&ne(status,%22Deleted%22)` +
+        `/v1/accounts/licensees` +
+        `?select=seller,buyer.status` +
+        `&eq(account.id,%22${accountId}%22)` +
         `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Program>>(endpoint);
+      return api.get<PaginatedResponse<Licensee>>(endpoint);
     },
     [api],
   );
 
   return useMemo(
     () => ({
-      getPrograms,
+      getLicensees,
     }),
-    [getPrograms],
+    [getLicensees],
   );
 }

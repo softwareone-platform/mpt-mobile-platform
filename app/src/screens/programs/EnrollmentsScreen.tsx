@@ -9,9 +9,9 @@ import { TestIDs } from '@/utils/testID';
 const EnrollmentsScreenContent = () => {
   const {
     enrollments,
-    enrollmentsLoading,
-    enrollmentsError,
-    enrollmentsFetchingNext,
+    isEnrollmentsLoading,
+    isEnrollmentsError,
+    isEnrollmentsFetchingNext,
     hasMoreEnrollments,
     isUnauthorised,
     fetchEnrollments,
@@ -21,8 +21,8 @@ const EnrollmentsScreenContent = () => {
 
   return (
     <StatusMessage
-      isLoading={enrollmentsLoading}
-      isError={!!enrollmentsError}
+      isLoading={isEnrollmentsLoading}
+      isError={!!isEnrollmentsError}
       isEmpty={enrollments.length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.ENROLLMENTS_LOADING_INDICATOR}
@@ -33,7 +33,7 @@ const EnrollmentsScreenContent = () => {
     >
       <ListView
         data={enrollments}
-        isFetchingNext={enrollmentsFetchingNext}
+        isFetchingNext={isEnrollmentsFetchingNext}
         hasMore={hasMoreEnrollments}
         fetchNext={fetchEnrollments}
         config={listItemConfigNoImageNoSubtitle}

@@ -6,10 +6,10 @@ import type { Licensee } from '@/types/api';
 
 interface LicenseeContextValue {
   licensees: Licensee[];
-  licenseesLoading: boolean;
-  licenseesFetchingNext: boolean;
+  isLicenseesLoading: boolean;
+  isLicenseesFetchingNext: boolean;
   hasMoreLicensees: boolean;
-  licenseesError: boolean;
+  isLicenseesError: boolean;
   isUnauthorised: boolean;
   fetchLicensees: () => void;
 }
@@ -38,10 +38,10 @@ export const LicenseeProvider = ({ children }: { children: ReactNode }) => {
     <LicenseeContext.Provider
       value={{
         licensees,
-        licenseesLoading: isLoading,
-        licenseesFetchingNext: isFetchingNextPage,
+        isLicenseesLoading: isLoading,
+        isLicenseesFetchingNext: isFetchingNextPage,
         hasMoreLicensees: !!hasNextPage,
-        licenseesError: isError,
+        isLicenseesError: isError,
         isUnauthorised,
         fetchLicensees: fetchNextPage,
       }}

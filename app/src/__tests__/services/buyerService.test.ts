@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
-import { useUserApi } from '@/services/userService';
+import { useBuyerApi } from '@/services/buyerService';
 import type { PaginatedResponse, Buyer } from '@/types/api';
 
 const mockGet = jest.fn();
@@ -12,9 +12,9 @@ jest.mock('@/hooks/useApi', () => ({
   }),
 }));
 
-const setup = () => renderHook(() => useUserApi()).result.current;
+const setup = () => renderHook(() => useBuyerApi()).result.current;
 
-describe('useUserApi - getBuyers', () => {
+describe('useBuyerApi - getBuyers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -41,8 +41,7 @@ describe('useUserApi - getBuyers', () => {
 
     const expectedUrl =
       `/v1/accounts/buyers` +
-      `?select=sellers,audit.created.at
-,audit.updated.at,sellers.erpLink.status` +
+      `?select=sellers,audit.created.at,audit.updated.at,sellers.erpLink.status` +
       `&ne(status,%22Deleted%22)` +
       `&order=name` +
       `&offset=${DEFAULT_OFFSET}` +
@@ -74,8 +73,7 @@ describe('useUserApi - getBuyers', () => {
 
     const expectedUrl =
       `/v1/accounts/buyers` +
-      `?select=sellers,audit.created.at
-,audit.updated.at,sellers.erpLink.status` +
+      `?select=sellers,audit.created.at,audit.updated.at,sellers.erpLink.status` +
       `&ne(status,%22Deleted%22)` +
       `&order=name` +
       `&offset=50` +
