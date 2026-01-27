@@ -1,9 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useOrders, OrdersProvider } from '@/context/OrdersContext';
+import type { TabParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const OrdersScreenContent = () => {
@@ -18,6 +21,8 @@ const OrdersScreenContent = () => {
   } = useOrders();
 
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<TabParamList>>();
 
   return (
     <StatusMessage

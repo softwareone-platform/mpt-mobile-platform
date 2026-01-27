@@ -8,7 +8,7 @@ type Props = {
   id: string;
   imagePath?: string;
   title: string;
-  subtitle?: string;
+  subtitle: string;
   subtitleLink?: boolean;
   hideImage?: boolean;
   isLast?: boolean;
@@ -42,11 +42,13 @@ const ListItemWithImage = ({
         <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
           {title}
         </Text>
-        {subtitleLink ? (
-          <Text style={styles.subtitleLink}>{subtitle}</Text>
-        ) : (
-          <Text style={styles.subtitle}>{subtitle}</Text>
-        )}
+        <Text
+          style={subtitleLink ? styles.subtitleLink : styles.subtitle}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {subtitle}
+        </Text>
       </View>
       {isUpdatingSelection ? (
         <ActivityIndicator size="small" color={Color.brand.primary} />
