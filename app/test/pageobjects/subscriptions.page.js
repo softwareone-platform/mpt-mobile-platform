@@ -1,52 +1,36 @@
-const { $, $$ } = require('@wdio/globals');
+const { selectors } = require('./utils/selectors');
+const { PAUSE, RETRY } = require('./utils/constants');
 
-const BasePage = require('./base/base.page');
-const footerPage = require('./base/footer.page');
-const headingPage = require('./base/heading.page');
-const { getSelector, selectors } = require('./utils/selectors');
+const ListPage = require('./base/list.page');
 
-class SubscriptionsPage extends BasePage {
-  constructor() {
-    super();
-    this.header = headingPage;
-    this.footer = footerPage;
+/**
+ * Subscriptions Page - extends ListPage for common list functionality
+ * Provides subscription-specific methods and backward-compatible aliases
+ */
+class SubscriptionsPage extends ListPage {
+  // ========== Abstract Property Implementations ==========
+
+  get itemPrefix() {
+    return 'SUB-';
   }
 
-  // ========== Loading States ==========
-
-  get loadingIndicator() {
-    return $(selectors.byAccessibilityId('subscriptions-loading-indicator'));
+  get pageName() {
+    return 'Subscriptions';
   }
 
-  get emptyState() {
-    return $(selectors.byAccessibilityId('subscriptions-empty-state'));
+  get loadingIndicatorId() {
+    return 'subscriptions-loading-indicator';
   }
 
-  get errorState() {
-    return $(selectors.byAccessibilityId('subscriptions-error-state'));
+  get emptyStateId() {
+    return 'subscriptions-empty-state';
   }
 
-  // ========== Header Elements ==========
-
-  get headerTitle() {
-    return $(
-      getSelector({
-        ios: '//XCUIElementTypeStaticText[@name="Subscriptions" and contains(@traits, "Header")]',
-        android: '//android.view.View[@text="Subscriptions" and @heading="true"]',
-      }),
-    );
+  get errorStateId() {
+    return 'subscriptions-error-state';
   }
 
-  get accountButton() {
-    return $(
-      getSelector({
-        ios: '~nav-account-button',
-        android: '//*[@resource-id="nav-account-button"]',
-      }),
-    );
-  }
-
-  // ========== Empty State Elements ==========
+  // ========== Empty State Elements (page-specific) ==========
 
   get noSubscriptionsTitle() {
     return $(selectors.byText('No subscriptions'));
@@ -56,98 +40,73 @@ class SubscriptionsPage extends BasePage {
     return $(selectors.byText('No subscriptions found.'));
   }
 
-  // ========== Subscriptions List Elements ==========
+  // ========== Backward-Compatible Aliases ==========
 
+  /** @alias for scrollView */
   get subscriptionsScrollView() {
-    return $(
-      getSelector({
-        ios: '//XCUIElementTypeScrollView',
-        android: '//android.widget.ScrollView',
-      }),
-    );
+    return this.scrollView;
   }
 
-  /**
-   * Get all visible subscription items
-   * @returns {Promise<ElementArray>} Array of subscription item elements
-   */
+  /** @alias for listItems */
   get subscriptionItems() {
-    return $$(
-      getSelector({
-        ios: '//XCUIElementTypeOther[contains(@name, "SUB-") and contains(@name, ",")]',
-        android: '//*[contains(@content-desc, "SUB-") and contains(@content-desc, ",")]',
-      }),
-    );
+    return this.listItems;
+  }
+
+  /** @alias for firstListItem */
+  get firstSubscriptionItem() {
+    return this.firstListItem;
   }
 
   /**
-   * Get subscription item by subscription ID
+   * @alias for getItemById
    * @param {string} subscriptionId - Subscription ID (e.g., 'SUB-2539-6731-4903')
-   * @returns {WebdriverIO.Element}
    */
   getSubscriptionById(subscriptionId) {
-    return $(
-      getSelector({
-        ios: `//XCUIElementTypeOther[contains(@name, "${subscriptionId}")]`,
-        android: `//*[contains(@content-desc, "${subscriptionId}")]`,
-      }),
-    );
+    return this.getItemById(subscriptionId);
   }
 
   /**
-   * Get subscription items by status
+   * @alias for getItemsByStatus
    * @param {string} status - Subscription status (Active, Terminated, Updating, Terminating)
-   * @returns {Promise<ElementArray>}
    */
   getSubscriptionsByStatus(status) {
-    return $$(
-      getSelector({
-        ios: `//XCUIElementTypeOther[contains(@name, "SUB-") and contains(@name, ", ${status}")]`,
-        android: `//*[contains(@content-desc, "SUB-") and contains(@content-desc, ", ${status}")]`,
-      }),
-    );
+    return this.getItemsByStatus(status);
   }
 
-  /**
-   * Get the first subscription item in the list
-   * @returns {WebdriverIO.Element}
-   */
-  get firstSubscriptionItem() {
-    return $(
-      getSelector({
-        ios: '(//XCUIElementTypeOther[contains(@name, "SUB-") and contains(@name, ",")])[1]',
-        android: '(//*[contains(@content-desc, "SUB-") and contains(@content-desc, ",")])[1]',
-      }),
-    );
-  }
-
-  // ========== Helper Methods ==========
-
-  /**
-   * Wait for the subscriptions screen to be ready (either shows data, empty state, or error)
-   * @param {number} timeout - Maximum wait time in milliseconds
-   */
-  async waitForScreenReady(timeout = 30000) {
-    // First wait for loading to potentially appear and disappear
-    const loadingVisible = await this.loadingIndicator.isDisplayed().catch(() => false);
-    if (loadingVisible) {
-      await this.loadingIndicator.waitForDisplayed({ timeout, reverse: true }).catch(() => {});
-    }
-    // Screen is ready when either empty state or content is shown
-    await browser.pause(500);
-  }
-
-  /**
-   * Check if currently on the Subscriptions page
-   * @returns {Promise<boolean>}
-   */
+  /** @alias for isOnPage */
   async isOnSubscriptionsPage() {
-    try {
-      return await this.headerTitle.isDisplayed();
-    } catch {
-      return false;
-    }
+    return this.isOnPage();
   }
+
+  /** @alias for hasItems */
+  async hasSubscriptions() {
+    return this.hasItems();
+  }
+
+  /** @alias for getVisibleItemsCount */
+  async getVisibleSubscriptionsCount() {
+    return this.getVisibleItemsCount();
+  }
+
+  /**
+   * @alias for tapItem
+   * @param {string} subscriptionId - Subscription ID to tap
+   */
+  async tapSubscription(subscriptionId) {
+    return this.tapItem(subscriptionId);
+  }
+
+  /** @alias for tapFirstItem */
+  async tapFirstSubscription() {
+    return this.tapFirstItem();
+  }
+
+  /** @alias for getVisibleItemIds */
+  async getVisibleSubscriptionIds() {
+    return this.getVisibleItemIds();
+  }
+
+  // ========== Subscriptions-Specific Methods ==========
 
   /**
    * Ensures the app is on the Subscriptions page, navigating there if needed
@@ -159,14 +118,13 @@ class SubscriptionsPage extends BasePage {
     }
 
     // Try to navigate back until footer is visible
-    const maxBackAttempts = 5;
-    for (let i = 0; i < maxBackAttempts; i++) {
+    for (let i = 0; i < RETRY.MAX_BACK_ATTEMPTS; i++) {
       const isFooterVisible = await this.footer.subscriptionsTab.isDisplayed().catch(() => false);
       if (isFooterVisible) {
         break;
       }
       await browser.back();
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
     }
 
     // Click Subscriptions tab from footer
@@ -175,34 +133,15 @@ class SubscriptionsPage extends BasePage {
   }
 
   /**
-   * Check if the subscriptions page has any subscriptions (not showing empty state)
-   * @returns {Promise<boolean>} True if subscriptions exist, false if empty state is shown
-   */
-  async hasSubscriptions() {
-    try {
-      const subscriptions = await this.subscriptionItems;
-      return subscriptions.length > 0;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Get count of visible subscriptions
-   * @returns {Promise<number>}
-   */
-  async getVisibleSubscriptionsCount() {
-    const subscriptions = await this.subscriptionItems;
-    return subscriptions.length;
-  }
-
-  /**
    * Get subscription details from a subscription item's accessibility label
+   * Overrides base class for subscription-specific parsing
    * @param {WebdriverIO.Element} subscriptionElement - Subscription item element
    * @returns {Promise<{name: string, subscriptionId: string, status: string}>}
    */
   async getSubscriptionDetails(subscriptionElement) {
-    const label = await subscriptionElement.getAttribute('name') || await subscriptionElement.getAttribute('content-desc');
+    const label =
+      (await subscriptionElement.getAttribute('name')) ||
+      (await subscriptionElement.getAttribute('content-desc'));
     // Format: "Name, SUB-XXXX-XXXX-XXXX, Status"
     const match = label.match(/^(.+),\s*(SUB-\d{4}-\d{4}-\d{4}),\s*(\w+)$/);
     if (match) {
@@ -213,38 +152,6 @@ class SubscriptionsPage extends BasePage {
       };
     }
     return { name: label, subscriptionId: '', status: '' };
-  }
-
-  /**
-   * Tap on a specific subscription by ID
-   * @param {string} subscriptionId - Subscription ID to tap
-   */
-  async tapSubscription(subscriptionId) {
-    const subscription = this.getSubscriptionById(subscriptionId);
-    await subscription.waitForDisplayed({ timeout: 10000 });
-    await subscription.click();
-  }
-
-  /**
-   * Tap on the first subscription in the list
-   */
-  async tapFirstSubscription() {
-    await this.firstSubscriptionItem.waitForDisplayed({ timeout: 10000 });
-    await this.firstSubscriptionItem.click();
-  }
-
-  /**
-   * Get all visible subscription IDs
-   * @returns {Promise<string[]>}
-   */
-  async getVisibleSubscriptionIds() {
-    const subscriptions = await this.subscriptionItems;
-    const subscriptionIds = [];
-    for (const subscription of subscriptions) {
-      const details = await this.getSubscriptionDetails(subscription);
-      subscriptionIds.push(details.subscriptionId);
-    }
-    return subscriptionIds;
   }
 
   /**
@@ -259,28 +166,6 @@ class SubscriptionsPage extends BasePage {
       subscriptionDetails.push(details);
     }
     return subscriptionDetails;
-  }
-
-  /**
-   * Scroll down in the subscriptions list
-   * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
-   */
-  async scrollDown(percent = 0.5) {
-    if (this.isAndroid()) {
-      await browser.execute('mobile: swipeGesture', {
-        left: 100,
-        top: 300,
-        width: 880,
-        height: 800,
-        direction: 'up',
-        percent: percent,
-      });
-    } else {
-      await browser.execute('mobile: swipe', {
-        direction: 'up',
-        velocity: 800,
-      });
-    }
   }
 }
 

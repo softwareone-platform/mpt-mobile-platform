@@ -512,8 +512,10 @@ app/
 │   │   ├── welcome.spec.js
 │   │   └── auth.spec.js
 │   └── pageobjects/     # Page object models
+│       ├── base/        # Base classes (base.page.js, list.page.js, footer.page.js)
+│       ├── utils/       # Utilities (selectors.js, constants.js)
 │       ├── welcome.page.js
-│       └── base.page.js
+│       └── ...
 ├── test-results/        # Test execution results
 └── wdio.conf.js        # WebDriverIO configuration
 

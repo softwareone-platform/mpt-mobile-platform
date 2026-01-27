@@ -4,6 +4,7 @@ const BasePage = require('./base/base.page');
 const footerPage = require('./base/footer.page');
 const headingPage = require('./base/heading.page');
 const { getSelector, selectors } = require('./utils/selectors');
+const { PAUSE } = require('./utils/constants');
 
 class MorePage extends BasePage {
   constructor() {
@@ -97,7 +98,8 @@ class MorePage extends BasePage {
   async isOnMorePage() {
     try {
       return await this.headerTitle.isDisplayed();
-    } catch {
+    } catch (error) {
+      console.debug(`More header title not found: ${error.message}`);
       return false;
     }
   }
@@ -113,7 +115,7 @@ class MorePage extends BasePage {
 
     // Click More tab from footer
     await this.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 
   /**
@@ -122,7 +124,7 @@ class MorePage extends BasePage {
   async navigateToAgreements() {
     await this.ensureMorePage();
     await this.agreementsMenuItem.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 
   /**
@@ -131,7 +133,7 @@ class MorePage extends BasePage {
   async navigateToCreditMemos() {
     await this.ensureMorePage();
     await this.creditMemosMenuItem.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 
   /**
@@ -140,7 +142,7 @@ class MorePage extends BasePage {
   async navigateToInvoices() {
     await this.ensureMorePage();
     await this.invoicesMenuItem.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 
   /**
@@ -149,7 +151,7 @@ class MorePage extends BasePage {
   async navigateToStatements() {
     await this.ensureMorePage();
     await this.statementsMenuItem.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 
   /**
@@ -158,7 +160,7 @@ class MorePage extends BasePage {
   async navigateToUsers() {
     await this.ensureMorePage();
     await this.usersMenuItem.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 
   /**
@@ -167,7 +169,7 @@ class MorePage extends BasePage {
   async navigateToPrograms() {
     await this.ensureMorePage();
     await this.programsMenuItem.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 }
 
