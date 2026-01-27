@@ -379,6 +379,7 @@ The following are enforced:
 - **No inline styles** (warning) - use `StyleSheet.create()`
 - **No color literals** (warning) - use design tokens in shared styles
 - **No unused styles** (warning) - remove unused style definitions
+  - *Exception:* Can be bypassed for dynamic styling (e.g., styles selected at runtime based on props/state)
 
 ---
 
