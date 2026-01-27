@@ -638,14 +638,14 @@ See `app/src/styles/README.md` for comprehensive design system documentation.
 
 ### Feature Flags
 
-Feature flags are type-safe and JSON-configured:
+Version-aware feature flags controlled by portal version (automatically fetched from backend):
 
 ```typescript
-import { isFeatureEnabled } from '@featureFlags';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
-// Usage in components
-if (isFeatureEnabled('FEATURE_TEST')) {
-  // Feature-gated code
+const { isEnabled } = useFeatureFlags();
+if (isEnabled('FEATURE_ACCOUNT_TABS')) {
+  // Enabled only for portal v5+
 }
 ```
 
