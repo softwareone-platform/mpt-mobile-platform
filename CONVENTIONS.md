@@ -211,17 +211,23 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   );
 };
 
-// 5. Styles (at bottom, using StyleSheet.create)
+// 5. Styles (at bottom, import from shared styles)
+import { buttonStyle } from '@/styles/components';
+
 const styles = StyleSheet.create({
-  button: {
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Color.brand.primary,
+  button: buttonStyle.authPrimary,
+  buttonText: buttonStyle.authPrimaryText,
+  secondaryButton: buttonStyle.authSecondary,
+});
+
+// Or compose from shared style tokens:
+const styles = StyleSheet.create({
+  buttonPrimary: {
+    ...buttonStyle.common,
+    ...buttonStyle.primaryLight,
+    ...buttonStyle.fullWidth,
   },
-  buttonText: {
-    color: Color.brand.white,
-    fontSize: 16,
-  },
+  buttonPrimaryText: buttonStyle.primaryLightText,
 });
 
 // 6. Default export
@@ -303,45 +309,61 @@ export function usePaginatedQuery<T>({
 
 ## Style Patterns
 
-### Design Tokens
+### Import Shared Styles
 
-Use design tokens from `@/styles/tokens` instead of hardcoded values:
+**Always import from shared style modules** - don't write styles directly in components:
 
 ```typescript
-// ✅ Correct - using design tokens
-import { Color, Spacing, BorderRadius, Typography } from '@/styles/tokens';
+// ✅ Correct - import from shared styles
+import { buttonStyle, screenStyle } from '@/styles/components';
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Color.background.primary,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-  },
-  title: {
-    ...Typography.heading1,
-    color: Color.text.primary,
-  },
+  button: buttonStyle.authPrimary,
+  buttonText: buttonStyle.authPrimaryText,
+  container: screenStyle.containerCenterContent,
 });
 
-// ❌ Incorrect - hardcoded values
+// ✅ Correct - compose from shared style tokens
+import { buttonStyle } from '@/styles/components';
+
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#ffffff',  // Don't do this
-    padding: 16,                  // Don't do this
+  buttonPrimary: {
+    ...buttonStyle.common,
+    ...buttonStyle.primaryLight,
+    ...buttonStyle.fullWidth,
+  },
+  buttonPrimaryText: buttonStyle.primaryLightText,
+});
+
+// ❌ Incorrect - writing styles directly in component
+const styles = StyleSheet.create({
+  button: {
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#472aff',  // Don't do this!
   },
 });
 ```
 
-### StyleSheet Usage
+### Design Tokens
 
-Always use `StyleSheet.create()` at the bottom of component files:
+When creating shared styles, use design tokens from `@/styles/tokens`:
 
 ```typescript
-const styles = StyleSheet.create({
-  container: screenStyle.containerCenterContent,
-  button: buttonStyle.authPrimary,
-  title: emptyStateStyle.title,
-});
+// In @/styles/components/button.ts
+import { Color, Spacing, BorderRadius, Typography } from '@/styles/tokens';
+
+export const buttonStyle = {
+  authPrimary: {
+    height: 48,
+    borderRadius: BorderRadius.xl,
+    backgroundColor: Color.brand.primary,
+  },
+  authPrimaryText: {
+    ...Typography.button,
+    color: Color.brand.white,
+  },
+} as const;
 ```
 
 ### ESLint Rules
