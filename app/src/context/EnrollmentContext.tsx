@@ -11,7 +11,7 @@ interface EnrollmentContextValue {
   hasMoreEnrollments: boolean;
   isEnrollmentsError: boolean;
   isUnauthorised: boolean;
-  fetchEnrollments: () => void;
+  fetchEnrollmentsNextPage: () => void;
 }
 
 const EnrollmentContext = createContext<EnrollmentContextValue | undefined>(undefined);
@@ -43,7 +43,7 @@ export const EnrollmentProvider = ({ children }: { children: ReactNode }) => {
         hasMoreEnrollments: !!hasNextPage,
         isEnrollmentsError: isError,
         isUnauthorised,
-        fetchEnrollments: fetchNextPage,
+        fetchEnrollmentsNextPage: fetchNextPage,
       }}
     >
       {children}

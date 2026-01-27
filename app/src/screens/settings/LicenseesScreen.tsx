@@ -14,7 +14,7 @@ const LicenseesScreenContent = () => {
     isLicenseesFetchingNext,
     hasMoreLicensees,
     isUnauthorised,
-    fetchLicensees,
+    fetchLicenseesNextPage,
   } = useLicensees();
 
   const { t } = useTranslation();
@@ -35,7 +35,7 @@ const LicenseesScreenContent = () => {
         data={licensees}
         isFetchingNext={isLicenseesFetchingNext}
         hasMore={hasMoreLicensees}
-        fetchNext={fetchLicensees}
+        fetchNext={fetchLicenseesNextPage}
         config={listItemConfigFull}
         onItemPress={(item) => console.info(item.id)}
       />

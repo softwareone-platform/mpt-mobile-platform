@@ -11,7 +11,7 @@ interface LicenseeContextValue {
   hasMoreLicensees: boolean;
   isLicenseesError: boolean;
   isUnauthorised: boolean;
-  fetchLicensees: () => void;
+  fetchLicenseesNextPage: () => void;
 }
 
 const LicenseeContext = createContext<LicenseeContextValue | undefined>(undefined);
@@ -43,7 +43,7 @@ export const LicenseeProvider = ({ children }: { children: ReactNode }) => {
         hasMoreLicensees: !!hasNextPage,
         isLicenseesError: isError,
         isUnauthorised,
-        fetchLicensees: fetchNextPage,
+        fetchLicenseesNextPage: fetchNextPage,
       }}
     >
       {children}

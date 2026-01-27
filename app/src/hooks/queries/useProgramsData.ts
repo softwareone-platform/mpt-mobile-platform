@@ -1,6 +1,6 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
-import { useProgramApi } from '@/services/programService';
 import { useEnrollmentApi } from '@/services/enrollmentService';
+import { useProgramApi } from '@/services/programService';
 import type { Program, Enrollment } from '@/types/program';
 
 export const useProgramsData = (

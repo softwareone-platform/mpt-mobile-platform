@@ -11,7 +11,7 @@ interface BuyersContextValue {
   hasMoreBuyers: boolean;
   isBuyersError: boolean;
   isUnauthorised: boolean;
-  fetchBuyers: () => void;
+  fetchBuyersNextPage: () => void;
 }
 
 const BuyersContext = createContext<BuyersContextValue | undefined>(undefined);
@@ -43,7 +43,7 @@ export const BuyersProvider = ({ children }: { children: ReactNode }) => {
         hasMoreBuyers: !!hasNextPage,
         isBuyersError: isError,
         isUnauthorised,
-        fetchBuyers: fetchNextPage,
+        fetchBuyersNextPage: fetchNextPage,
       }}
     >
       {children}

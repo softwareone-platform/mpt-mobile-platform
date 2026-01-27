@@ -14,7 +14,7 @@ const BuyersScreenContent = () => {
     isBuyersFetchingNext,
     hasMoreBuyers,
     isUnauthorised,
-    fetchBuyers,
+    fetchBuyersNextPage,
   } = useBuyers();
 
   const { t } = useTranslation();
@@ -35,7 +35,7 @@ const BuyersScreenContent = () => {
         data={buyers}
         isFetchingNext={isBuyersFetchingNext}
         hasMore={hasMoreBuyers}
-        fetchNext={fetchBuyers}
+        fetchNext={fetchBuyersNextPage}
         config={listItemConfigFull}
         onItemPress={(item) => console.info(item.id)}
       />

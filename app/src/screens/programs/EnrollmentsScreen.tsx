@@ -14,7 +14,7 @@ const EnrollmentsScreenContent = () => {
     isEnrollmentsFetchingNext,
     hasMoreEnrollments,
     isUnauthorised,
-    fetchEnrollments,
+    fetchEnrollmentsNextPage,
   } = useEnrollments();
 
   const { t } = useTranslation();
@@ -35,7 +35,7 @@ const EnrollmentsScreenContent = () => {
         data={enrollments}
         isFetchingNext={isEnrollmentsFetchingNext}
         hasMore={hasMoreEnrollments}
-        fetchNext={fetchEnrollments}
+        fetchNext={fetchEnrollmentsNextPage}
         config={listItemConfigNoImageNoSubtitle}
         onItemPress={(item) => console.info(item.id)}
       />
