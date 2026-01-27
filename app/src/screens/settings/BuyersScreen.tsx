@@ -9,9 +9,9 @@ import { TestIDs } from '@/utils/testID';
 const BuyersScreenContent = () => {
   const {
     buyers,
-    buyersLoading,
-    buyersError,
-    buyersFetchingNext,
+    isBuyersLoading,
+    isBuyersError,
+    isBuyersFetchingNext,
     hasMoreBuyers,
     isUnauthorised,
     fetchBuyers,
@@ -21,8 +21,8 @@ const BuyersScreenContent = () => {
 
   return (
     <StatusMessage
-      isLoading={buyersLoading}
-      isError={!!buyersError}
+      isLoading={isBuyersLoading}
+      isError={!!isBuyersError}
       isEmpty={buyers.length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.BUYERS_LOADING_INDICATOR}
@@ -33,7 +33,7 @@ const BuyersScreenContent = () => {
     >
       <ListView
         data={buyers}
-        isFetchingNext={buyersFetchingNext}
+        isFetchingNext={isBuyersFetchingNext}
         hasMore={hasMoreBuyers}
         fetchNext={fetchBuyers}
         config={listItemConfigFull}

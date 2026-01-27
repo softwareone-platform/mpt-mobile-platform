@@ -1,9 +1,9 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
-import { useUserApi } from '@/services/userService';
+import { useBuyerApi } from '@/services/buyerService';
 import type { Buyer } from '@/types/api';
 
 export const useBuyersData = (userId: string | undefined, currentAccountId: string | undefined) => {
-  const { getBuyers } = useUserApi();
+  const { getBuyers } = useBuyerApi();
 
   return usePaginatedQuery<Buyer>({
     queryKey: ['buyers', userId, currentAccountId],

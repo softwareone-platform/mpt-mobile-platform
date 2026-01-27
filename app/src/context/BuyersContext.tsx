@@ -6,10 +6,10 @@ import type { Buyer } from '@/types/api';
 
 interface BuyersContextValue {
   buyers: Buyer[];
-  buyersLoading: boolean;
-  buyersFetchingNext: boolean;
+  isBuyersLoading: boolean;
+  isBuyersFetchingNext: boolean;
   hasMoreBuyers: boolean;
-  buyersError: boolean;
+  isBuyersError: boolean;
   isUnauthorised: boolean;
   fetchBuyers: () => void;
 }
@@ -38,10 +38,10 @@ export const BuyersProvider = ({ children }: { children: ReactNode }) => {
     <BuyersContext.Provider
       value={{
         buyers,
-        buyersLoading: isLoading,
-        buyersFetchingNext: isFetchingNextPage,
+        isBuyersLoading: isLoading,
+        isBuyersFetchingNext: isFetchingNextPage,
         hasMoreBuyers: !!hasNextPage,
-        buyersError: isError,
+        isBuyersError: isError,
         isUnauthorised,
         fetchBuyers: fetchNextPage,
       }}
