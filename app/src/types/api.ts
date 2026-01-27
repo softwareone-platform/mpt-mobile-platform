@@ -169,16 +169,14 @@ export interface User {
   [key: string]: unknown;
 }
 
-export interface Licensee {
+export interface ListItemFull {
   id: string;
   name: string;
   status?: string;
   icon?: string;
 }
 
-export interface Buyer {
+export interface ListItemNoImageNoSubtitle {
   id: string;
-  name: string;
   status?: string;
-  icon?: string;
 }

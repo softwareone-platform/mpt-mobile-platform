@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse, Licensee } from '@/types/api';
+import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 export function useLicenseeApi() {
   const api = useApi();
@@ -12,7 +12,7 @@ export function useLicenseeApi() {
       accountId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Licensee>> => {
+    ): Promise<PaginatedResponse<ListItemFull>> => {
       const endpoint =
         `/v1/accounts/licensees` +
         `?select=seller,buyer.status` +
@@ -21,7 +21,7 @@ export function useLicenseeApi() {
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Licensee>>(endpoint);
+      return api.get<PaginatedResponse<ListItemFull>>(endpoint);
     },
     [api],
   );
