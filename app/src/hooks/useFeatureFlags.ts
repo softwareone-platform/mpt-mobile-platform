@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { FeatureFlagKey, featureFlagsService } from '@/services/featureFlagsService';
@@ -6,15 +6,12 @@ import { FeatureFlagKey, featureFlagsService } from '@/services/featureFlagsServ
 export const useFeatureFlags = () => {
   const { portalVersion } = useAuth();
 
-  useEffect(() => {
-    featureFlagsService.setPortalVersion(portalVersion);
-  }, [portalVersion]);
-
-  const isEnabled = useMemo(() => {
-    return (flag: FeatureFlagKey): boolean => {
-      return featureFlagsService.isFeatureEnabled(flag);
-    };
-  }, []);
+  const isEnabled = useCallback(
+    (flag: FeatureFlagKey): boolean => {
+      return featureFlagsService.isFeatureEnabled(flag, portalVersion);
+    },
+    [portalVersion],
+  );
 
   return {
     isEnabled,

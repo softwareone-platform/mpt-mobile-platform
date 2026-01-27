@@ -14,7 +14,6 @@ export type FeatureFlagConfig = {
 export class FeatureFlagsService {
   private static instance: FeatureFlagsService;
   private flags: Readonly<FeatureFlags>;
-  private portalVersion: PortalVersionInfo | null = null;
 
   private constructor() {
     this.flags = featureFlags;
@@ -27,11 +26,10 @@ export class FeatureFlagsService {
     return FeatureFlagsService.instance;
   }
 
-  public setPortalVersion(version: PortalVersionInfo | null): void {
-    this.portalVersion = version;
-  }
-
-  public isFeatureEnabled(flag: FeatureFlagKey): boolean {
+  public isFeatureEnabled(
+    flag: FeatureFlagKey,
+    portalVersion: PortalVersionInfo | null = null,
+  ): boolean {
     const config = this.flags[flag];
 
     if (typeof config === 'boolean') {
@@ -42,11 +40,11 @@ export class FeatureFlagsService {
       return false;
     }
 
-    if (!this.portalVersion) {
+    if (!portalVersion) {
       return config.enabled;
     }
 
-    const currentVersion = this.portalVersion.majorVersion;
+    const currentVersion = portalVersion.majorVersion;
 
     if (config.minVersion !== undefined && currentVersion < config.minVersion) {
       return false;

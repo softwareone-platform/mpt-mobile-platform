@@ -15,19 +15,16 @@ describe('FeatureFlagsService', () => {
 
   it('enables feature when version meets minVersion requirement', () => {
     const version: PortalVersionInfo = { fullVersion: '5.0.0', majorVersion: 5 };
-    service.setPortalVersion(version);
-    expect(service.isFeatureEnabled('FEATURE_ACCOUNT_TABS')).toBe(true);
+    expect(service.isFeatureEnabled('FEATURE_ACCOUNT_TABS', version)).toBe(true);
   });
 
   it('disables feature when version is below minVersion', () => {
     const version: PortalVersionInfo = { fullVersion: '4.0.0', majorVersion: 4 };
-    service.setPortalVersion(version);
-    expect(service.isFeatureEnabled('FEATURE_ACCOUNT_TABS')).toBe(false);
+    expect(service.isFeatureEnabled('FEATURE_ACCOUNT_TABS', version)).toBe(false);
   });
 
   it('handles null portal version gracefully', () => {
-    service.setPortalVersion(null);
-    const result = service.isFeatureEnabled('FEATURE_ACCOUNT_TABS');
+    const result = service.isFeatureEnabled('FEATURE_ACCOUNT_TABS', null);
     expect(result).toBe(true);
   });
 
