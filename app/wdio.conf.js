@@ -104,6 +104,8 @@ exports.config = {
         profile: ['./test/specs/profile.e2e.js'],
         personalInformation: ['./test/specs/personal-information.e2e.js'],
         orders: ['./test/specs/orders.e2e.js'],
+        subscriptions: ['./test/specs/subscriptions.e2e.js'],
+        agreements: ['./test/specs/agreements.e2e.js'],
         logout: ['./test/specs/logout.e2e.js'],
     },
     //

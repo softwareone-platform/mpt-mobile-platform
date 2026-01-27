@@ -2,6 +2,7 @@ const { $ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
 const { getSelector, selectors } = require('./utils/selectors');
+const { TIMEOUT } = require('./utils/constants');
 
 class PersonalInformationPage extends BasePage {
   constructor() {
@@ -150,18 +151,20 @@ class PersonalInformationPage extends BasePage {
   // ========== Validation Helpers ==========
   async isPageDisplayed() {
     try {
-      await this.headerTitle.waitForDisplayed({ timeout: 5000 });
+      await this.headerTitle.waitForDisplayed({ timeout: TIMEOUT.HEADER_WAIT });
       return true;
-    } catch {
+    } catch (error) {
+      console.debug(`Personal Information header not found: ${error.message}`);
       return false;
     }
   }
 
   async isUserDetailsVisible() {
     try {
-      await this.userDetailsLabel.waitForDisplayed({ timeout: 3000 });
+      await this.userDetailsLabel.waitForDisplayed({ timeout: TIMEOUT.SHORT_WAIT });
       return true;
-    } catch {
+    } catch (error) {
+      console.debug(`User details label not found: ${error.message}`);
       return false;
     }
   }

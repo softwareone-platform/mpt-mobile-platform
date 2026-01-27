@@ -1,24 +1,36 @@
-const { $ } = require('@wdio/globals');
-
-const BasePage = require('./base/base.page');
-const footerPage = require('./base/footer.page');
-const headingPage = require('./base/heading.page');
 const { selectors } = require('./utils/selectors');
+const { PAUSE, RETRY } = require('./utils/constants');
 
-class SubscriptionsPage extends BasePage {
-  constructor() {
-    super();
-    this.header = headingPage;
-    this.footer = footerPage;
+const ListPage = require('./base/list.page');
+
+/**
+ * Subscriptions Page - extends ListPage for common list functionality
+ * Provides subscription-specific methods and backward-compatible aliases
+ */
+class SubscriptionsPage extends ListPage {
+  // ========== Abstract Property Implementations ==========
+
+  get itemPrefix() {
+    return 'SUB-';
   }
 
-  get loadingIndicator() {
-    return $(selectors.byAccessibilityId('subscriptions-loading-indicator'));
+  get pageName() {
+    return 'Subscriptions';
   }
 
-  get emptyState() {
-    return $(selectors.byAccessibilityId('subscriptions-empty-state'));
+  get loadingIndicatorId() {
+    return 'subscriptions-loading-indicator';
   }
+
+  get emptyStateId() {
+    return 'subscriptions-empty-state';
+  }
+
+  get errorStateId() {
+    return 'subscriptions-error-state';
+  }
+
+  // ========== Empty State Elements (page-specific) ==========
 
   get noSubscriptionsTitle() {
     return $(selectors.byText('No subscriptions'));
@@ -28,35 +40,132 @@ class SubscriptionsPage extends BasePage {
     return $(selectors.byText('No subscriptions found.'));
   }
 
-  get errorState() {
-    return $(selectors.byAccessibilityId('subscriptions-error-state'));
+  // ========== Backward-Compatible Aliases ==========
+
+  /** @alias for scrollView */
+  get subscriptionsScrollView() {
+    return this.scrollView;
+  }
+
+  /** @alias for listItems */
+  get subscriptionItems() {
+    return this.listItems;
+  }
+
+  /** @alias for firstListItem */
+  get firstSubscriptionItem() {
+    return this.firstListItem;
   }
 
   /**
-   * Wait for the subscriptions screen to be ready (either shows data, empty state, or error)
+   * @alias for getItemById
+   * @param {string} subscriptionId - Subscription ID (e.g., 'SUB-2539-6731-4903')
    */
-  async waitForScreenReady(timeout = 30000) {
-    // First wait for loading to potentially appear and disappear
-    const loadingVisible = await this.loadingIndicator.isDisplayed().catch(() => false);
-    if (loadingVisible) {
-      await this.loadingIndicator.waitForDisplayed({ timeout, reverse: true }).catch(() => {});
-    }
-    // Screen is ready when either empty state or content is shown
-    await browser.pause(500);
+  getSubscriptionById(subscriptionId) {
+    return this.getItemById(subscriptionId);
   }
 
   /**
-   * Check if the subscriptions page has any subscriptions (not showing empty state)
-   * @returns {Promise<boolean>} True if subscriptions exist, false if empty state is shown
+   * @alias for getItemsByStatus
+   * @param {string} status - Subscription status (Active, Terminated, Updating, Terminating)
    */
+  getSubscriptionsByStatus(status) {
+    return this.getItemsByStatus(status);
+  }
+
+  /** @alias for isOnPage */
+  async isOnSubscriptionsPage() {
+    return this.isOnPage();
+  }
+
+  /** @alias for hasItems */
   async hasSubscriptions() {
-    try {
-      const emptyStateVisible = await this.emptyState.isDisplayed();
-      return !emptyStateVisible;
-    } catch {
-      // If emptyState selector throws, assume subscriptions exist
-      return true;
+    return this.hasItems();
+  }
+
+  /** @alias for getVisibleItemsCount */
+  async getVisibleSubscriptionsCount() {
+    return this.getVisibleItemsCount();
+  }
+
+  /**
+   * @alias for tapItem
+   * @param {string} subscriptionId - Subscription ID to tap
+   */
+  async tapSubscription(subscriptionId) {
+    return this.tapItem(subscriptionId);
+  }
+
+  /** @alias for tapFirstItem */
+  async tapFirstSubscription() {
+    return this.tapFirstItem();
+  }
+
+  /** @alias for getVisibleItemIds */
+  async getVisibleSubscriptionIds() {
+    return this.getVisibleItemIds();
+  }
+
+  // ========== Subscriptions-Specific Methods ==========
+
+  /**
+   * Ensures the app is on the Subscriptions page, navigating there if needed
+   */
+  async ensureSubscriptionsPage() {
+    const isOnSubscriptions = await this.isOnSubscriptionsPage();
+    if (isOnSubscriptions) {
+      return;
     }
+
+    // Try to navigate back until footer is visible
+    for (let i = 0; i < RETRY.MAX_BACK_ATTEMPTS; i++) {
+      const isFooterVisible = await this.footer.subscriptionsTab.isDisplayed().catch(() => false);
+      if (isFooterVisible) {
+        break;
+      }
+      await browser.back();
+      await browser.pause(PAUSE.NAVIGATION);
+    }
+
+    // Click Subscriptions tab from footer
+    await this.footer.subscriptionsTab.click();
+    await this.waitForScreenReady();
+  }
+
+  /**
+   * Get subscription details from a subscription item's accessibility label
+   * Overrides base class for subscription-specific parsing
+   * @param {WebdriverIO.Element} subscriptionElement - Subscription item element
+   * @returns {Promise<{name: string, subscriptionId: string, status: string}>}
+   */
+  async getSubscriptionDetails(subscriptionElement) {
+    const label =
+      (await subscriptionElement.getAttribute('name')) ||
+      (await subscriptionElement.getAttribute('content-desc'));
+    // Format: "Name, SUB-XXXX-XXXX-XXXX, Status"
+    const match = label.match(/^(.+),\s*(SUB-\d{4}-\d{4}-\d{4}),\s*(\w+)$/);
+    if (match) {
+      return {
+        name: match[1].trim(),
+        subscriptionId: match[2],
+        status: match[3],
+      };
+    }
+    return { name: label, subscriptionId: '', status: '' };
+  }
+
+  /**
+   * Get all visible subscriptions with their statuses
+   * @returns {Promise<Array<{name: string, subscriptionId: string, status: string}>>}
+   */
+  async getVisibleSubscriptionsWithStatus() {
+    const subscriptions = await this.subscriptionItems;
+    const subscriptionDetails = [];
+    for (const subscription of subscriptions) {
+      const details = await this.getSubscriptionDetails(subscription);
+      subscriptionDetails.push(details);
+    }
+    return subscriptionDetails;
   }
 }
 
