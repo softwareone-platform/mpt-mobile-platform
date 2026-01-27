@@ -8,8 +8,8 @@ import EmptyState from '@/components/common/EmptyState';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import Tabs, { TabData } from '@/components/tabs/Tabs';
-import { isFeatureEnabled } from '@/config/feature-flags/featureFlags';
 import { useAccount } from '@/context/AccountContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { cardStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
 import { FormattedUserAccounts } from '@/types/api';
 import type { ProfileStackParamList } from '@/types/navigation';
@@ -26,6 +26,7 @@ const ProfileScreen = () => {
     useState<keyof FormattedUserAccounts>(DEFAULT_ACCOUNT_FILTER);
 
   const { userData, userAccountsData, switchAccount } = useAccount();
+  const { isEnabled } = useFeatureFlags();
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { t } = useTranslation();
 
@@ -85,7 +86,7 @@ const ProfileScreen = () => {
         <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>
           {t('profileScreen.switchAccount')}
         </Text>
-        {isFeatureEnabled('FEATURE_ACCOUNT_TABS') && (
+        {isEnabled('FEATURE_ACCOUNT_TABS') && (
           <Tabs
             tabs={tabData}
             value={selectedTab}

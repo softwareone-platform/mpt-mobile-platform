@@ -1,4 +1,7 @@
 {
   "FEATURE_TEST": false,
-  "FEATURE_ACCOUNT_TABS": false
+  "FEATURE_ACCOUNT_TABS": {
+    "enabled": true,
+    "minVersion": 5
+  }
 }
