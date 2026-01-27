@@ -309,12 +309,20 @@ export function usePaginatedQuery<T>({
 
 ## Style Patterns
 
-### Import Shared Styles
+### Two-Layer Style Architecture
 
-**Always import from shared style modules** - don't write styles directly in components:
+```
+@/styles/tokens/     →  Design tokens (Color, Spacing, Typography)
+        ↓
+@/styles/components/ →  Shared component styles (buttonStyle, screenStyle)
+        ↓
+Components/Screens   →  Import shared styles, never use tokens directly
+```
+
+### In Components/Screens - Import Shared Styles
 
 ```typescript
-// ✅ Correct - import from shared styles
+// ✅ Correct - import from shared styles only
 import { buttonStyle, screenStyle } from '@/styles/components';
 
 const styles = StyleSheet.create({
@@ -323,9 +331,7 @@ const styles = StyleSheet.create({
   container: screenStyle.containerCenterContent,
 });
 
-// ✅ Correct - compose from shared style tokens
-import { buttonStyle } from '@/styles/components';
-
+// ✅ Correct - compose from multiple shared styles
 const styles = StyleSheet.create({
   buttonPrimary: {
     ...buttonStyle.common,
@@ -335,22 +341,23 @@ const styles = StyleSheet.create({
   buttonPrimaryText: buttonStyle.primaryLightText,
 });
 
-// ❌ Incorrect - writing styles directly in component
+// ❌ Incorrect - using design tokens directly in component
+import { Color, Spacing } from '@/styles/tokens';  // Don't do this in components!
+
 const styles = StyleSheet.create({
-  button: {
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#472aff',  // Don't do this!
+  container: {
+    backgroundColor: Color.background.primary,  // Don't do this!
+    padding: Spacing.md,                         // Don't do this!
   },
 });
 ```
 
-### Design Tokens
+### In @/styles/components/ - Use Design Tokens
 
-When creating shared styles, use design tokens from `@/styles/tokens`:
+Design tokens should **only** be used in shared style files:
 
 ```typescript
-// In @/styles/components/button.ts
+// @/styles/components/button.ts
 import { Color, Spacing, BorderRadius, Typography } from '@/styles/tokens';
 
 export const buttonStyle = {
@@ -370,7 +377,7 @@ export const buttonStyle = {
 
 The following are enforced:
 - **No inline styles** (warning) - use `StyleSheet.create()`
-- **No color literals** (warning) - use design tokens
+- **No color literals** (warning) - use design tokens in shared styles
 - **No unused styles** (warning) - remove unused style definitions
 
 ---
