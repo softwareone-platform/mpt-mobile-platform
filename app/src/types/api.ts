@@ -168,3 +168,15 @@ export interface User {
   };
   [key: string]: unknown;
 }
+
+export interface ListItemFull {
+  id: string;
+  name: string;
+  status?: string;
+  icon?: string;
+}
+
+export interface ListItemNoImageNoSubtitle {
+  id: string;
+  status?: string;
+}

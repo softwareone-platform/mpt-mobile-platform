@@ -3,6 +3,7 @@ const headingPage = require('../base/heading.page');
 const homePage = require('../spotlights.page');
 
 const { isLoggedIn } = require('./auth.helper');
+const { PAUSE, RETRY } = require('./constants');
 
 /**
  * Check if we're on the home/spotlight page (either with data or empty state)
@@ -39,14 +40,13 @@ async function ensureHomePage(options = {}) {
     // Only reset filters if requested and filters exist
     if (resetFilters) {
       await homePage.resetFilterScrollPosition().catch(() => {});
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     }
     return;
   }
 
   // Navigate back to a page with footer visible
-  const maxBackAttempts = 5;
-  for (let i = 0; i < maxBackAttempts; i++) {
+  for (let i = 0; i < RETRY.MAX_BACK_ATTEMPTS; i++) {
     const isFooterVisible = await footerPage.spotlightsTab
       .isDisplayed()
       .catch(() => false);
@@ -61,7 +61,7 @@ async function ensureHomePage(options = {}) {
 
     if (backButtonExists) {
       await headingPage.backButton.click();
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
     } else {
       break;
     }
@@ -74,11 +74,11 @@ async function ensureHomePage(options = {}) {
 
   if (isFooterVisible) {
     await footerPage.clickSpotlightsTab();
-    await browser.pause(1000);
+    await browser.pause(PAUSE.POLL_INTERVAL);
     // Reset filter scroll position so filterAll is visible (only if requested and filters exist)
     if (resetFilters) {
       await homePage.resetFilterScrollPosition().catch(() => {});
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     }
   }
 

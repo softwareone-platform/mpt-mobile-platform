@@ -40,5 +40,13 @@
   "usersScreen": {
     "emptyStateTitle": "No users",
     "emptyStateDescription": "No users found."
+  },
+  "licenseesScreen": {
+    "emptyStateTitle": "No licensees",
+    "emptyStateDescription": "No licensees found."
+  },
+  "buyersScreen": {
+    "emptyStateTitle": "No buyers",
+    "emptyStateDescription": "No buyers found."
   }
 }

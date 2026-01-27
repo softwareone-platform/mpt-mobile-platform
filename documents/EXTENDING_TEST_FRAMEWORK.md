@@ -227,6 +227,60 @@ class WelcomePage extends BasePage {
 module.exports = new WelcomePage();
 ```
 
+### Constants Utility
+
+The framework provides a `constants.js` utility (`app/test/pageobjects/utils/constants.js`) with centralized timing, pause, scroll, gesture, and retry values:
+
+```javascript
+const { TIMEOUT, PAUSE, SCROLL, GESTURE, RETRY } = require('./utils/constants');
+
+// Timeout constants (milliseconds)
+TIMEOUT.SCREEN_READY           // 30000 - Default screen load wait
+TIMEOUT.ELEMENT_VISIBLE        // 10000 - Element visibility wait
+TIMEOUT.ELEMENT_GONE           // 5000  - Element disappearance wait
+
+// Pause constants (milliseconds)
+PAUSE.NAVIGATION               // 500   - Between navigation actions
+PAUSE.SCROLL                   // 300   - After scroll operations
+PAUSE.ANIMATION                // 1000  - UI animation settle
+PAUSE.KEYBOARD                 // 200   - After keyboard input
+PAUSE.RETRY_DELAY              // 500   - Between retry attempts
+PAUSE.FILTER_CHANGE            // 500   - After filter changes
+PAUSE.TAP                      // 500   - After tap actions
+
+// Scroll constants
+SCROLL.DEFAULT_PERCENT         // 0.5   - Default scroll amount
+SCROLL.SMALL_PERCENT           // 0.3   - Small scroll
+SCROLL.LARGE_PERCENT           // 0.75  - Large scroll
+SCROLL.MAX_ATTEMPTS            // 10    - Max scroll attempts
+
+// Gesture constants (pixels)
+GESTURE.SWIPE_START_X          // 200   - Swipe horizontal start
+GESTURE.SWIPE_START_Y          // 500   - Swipe vertical start
+GESTURE.SWIPE_END_Y_UP         // 200   - Swipe up end position
+GESTURE.SWIPE_END_Y_DOWN       // 800   - Swipe down end position
+GESTURE.SWIPE_WIDTH            // 200   - Swipe gesture width
+GESTURE.SWIPE_HEIGHT           // 500   - Swipe gesture height
+
+// Retry constants
+RETRY.MAX_BACK_ATTEMPTS        // 5     - Max back button attempts
+RETRY.MAX_SCROLL_ATTEMPTS      // 10    - Max scroll attempts
+RETRY.MAX_TYPE_ATTEMPTS        // 3     - Max typing attempts
+```
+
+**Example Usage:**
+```javascript
+const { TIMEOUT, PAUSE } = require('./utils/constants');
+
+// Wait for screen to be ready
+await element.waitForDisplayed({ timeout: TIMEOUT.SCREEN_READY });
+
+// Pause after navigation
+await browser.pause(PAUSE.NAVIGATION);
+```
+
+> 💡 **Best Practice:** Always use constants instead of magic numbers for timeouts and pauses. This improves maintainability and makes it easy to tune performance across all tests.
+
 ### Selector Utility Functions
 
 The framework provides a `selectors.js` utility (`app/test/pageobjects/utils/selectors.js`) with cross-platform helpers:
@@ -248,8 +302,8 @@ selectors.scrollView()              // Find scroll container (no params)
 selectors.switchElement()           // Find toggle switch (no params)
 
 // ID-based selectors:
-selectors.byAccessibilityId(id)     // Find by accessibility ID (works with testID)
-selectors.byResourceId(id)          // Find by resource ID (accessibility ID on iOS, resource-id on Android)
+selectors.byResourceId(id)          // **RECOMMENDED for testID** - Find by resource ID (~id on iOS, @resource-id on Android)
+selectors.byAccessibilityId(id)     // Find by accessibility ID (~id) - works with accessibilityLabel, NOT testID on Android!
 selectors.byContentDesc(desc)       // Find by content-desc (Android) / accessibility ID (iOS)
 selectors.byStartsWithResourceId(prefix) // Find where resource-id/name starts with prefix
 selectors.accessibleByIndex(index)  // Find accessible/clickable element by 1-based index
@@ -257,6 +311,12 @@ selectors.accessibleByIndex(index)  // Find accessible/clickable element by 1-ba
 // Pattern-based selectors for spotlight items:
 selectors.staticTextByIdPrefixAndPattern(idPrefix, textPattern) // Find by ID prefix and text pattern
 selectors.spotlightItemsByPrefix(prefix) // Find spotlight items by entity prefix (ORD, SUB, etc.)
+
+```
+
+> ⚠️ **Critical Android Distinction**:
+> - **`byResourceId(id)`** → Use for React Native `testID` prop. On Android, `testID` maps to `resource-id` attribute.
+> - **`byAccessibilityId(id)`** → Uses `~id` selector which maps to `content-desc` on Android. Use for `accessibilityLabel`, NOT `testID`!
 
 // Low-level helper functions:
 isAndroid()                         // Returns true if running on Android
@@ -331,6 +391,67 @@ async scrollToElement(element) {
 }
 ```
 
+### ListPage Base Class for List Screens
+
+For screens that display lists of items (Orders, Subscriptions, Agreements), extend the `ListPage` base class (`app/test/pageobjects/base/list.page.js`) which provides common functionality:
+
+```javascript
+const ListPage = require('./base/list.page');
+
+class OrdersPage extends ListPage {
+    // Define required abstract properties
+    get itemPrefix () { return 'ORD-'; }
+    get pageName () { return 'Orders'; }
+    get loadingIndicatorId () { return 'orders-loading'; }
+    
+    // Override if different from default
+    get emptyStateMessage () { return 'No orders found'; }
+    
+    // Add page-specific methods
+    async getOrderDetails () {
+        // Order-specific logic
+    }
+}
+
+module.exports = new OrdersPage();
+```
+
+**ListPage provides these common features:**
+
+| Property/Method | Description |
+|-----------------|-------------|
+| `itemPrefix` | **Required abstract** - Item ID prefix (e.g., `'ORD-'`, `'SUB-'`, `'AGR-'`) |
+| `pageName` | **Required abstract** - Screen name for selectors (e.g., `'Orders'`) |
+| `loadingIndicatorId` | **Required abstract** - Loading indicator testID |
+| `emptyStateMessage` | Override for custom empty state text |
+| `waitForScreenReady()` | Waits for loading indicator to disappear |
+| `isOnPage()` | Returns true if page title is visible |
+| `hasItems()` | Returns true if list contains items |
+| `scrollDown()` | Scrolls the list down |
+| `tapItem(itemId)` | Taps on an item by its ID |
+| `getItemCount()` | Returns number of visible items |
+
+**Example - Creating a new list page:**
+```javascript
+const ListPage = require('./base/list.page');
+
+class InvoicesPage extends ListPage {
+    get itemPrefix () { return 'INV-'; }
+    get pageName () { return 'Invoices'; }
+    get loadingIndicatorId () { return 'invoices-loading'; }
+    
+    // Add invoice-specific functionality
+    async getInvoiceAmount (invoiceId) {
+        const item = await this.getItemById(invoiceId);
+        return item.$('[data-testid="amount"]').getText();
+    }
+}
+
+module.exports = new InvoicesPage();
+```
+
+> 💡 **When to use ListPage:** Use it when creating page objects for screens with scrollable lists of items (orders, subscriptions, agreements, invoices, etc.). It eliminates code duplication and ensures consistent behavior.
+
 ### Page Object Structure
 
 **File Location:** `app/test/pageobjects/[page-name].page.js`
@@ -386,9 +507,19 @@ get logoImage () {
 // App component:
 <Button testID="submit-button" />
 
-// Page object:
-get submitButton () { return $(selectors.byAccessibilityId('submit-button')); }
+// Page object - use byResourceId for testID (NOT byAccessibilityId!)
+get submitButton () { return $(selectors.byResourceId('submit-button')); }
+
+// Or with explicit platform handling:
+get submitButton () {
+    return $(getSelector({
+        ios: '~submit-button',
+        android: '//*[@resource-id="submit-button"]'
+    }));
+}
 ```
+
+> ⚠️ **Important**: On Android, `testID` maps to `resource-id`, NOT `content-desc`. The `byAccessibilityId()` helper uses `~id` which looks at `content-desc` on Android, so it won't find elements with `testID`. Always use `byResourceId()` for `testID`-based elements.
 
 > **See:** [TEST_ELEMENT_IDENTIFICATION_STRATEGY.md](./TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) for comprehensive testID implementation guidance.
 
@@ -646,12 +777,30 @@ For comprehensive Appium Inspector documentation:
 - **Descriptive Naming**: Use clear, descriptive names for locators and methods
 - **Reusable Actions**: Create common actions in base page or utility classes
 - **Wait Strategies**: Use WebDriverIO's built-in wait methods for reliability
+- **Use Constants**: Import timing values from `constants.js` instead of hardcoding magic numbers
+- **Use ListPage**: For list screens (orders, subscriptions, etc.), extend `ListPage` to avoid code duplication
 
 ### Test Design
 - **Isolated Tests**: Each test should be independent and not rely on previous tests
 - **Clear Assertions**: Use descriptive expect messages and specific assertions
 - **Error Handling**: Test both happy paths and error scenarios
 - **Test Data**: Use meaningful test data that reflects real user scenarios
+
+### Error Handling in Page Objects
+- **Never swallow errors silently**: Always log errors in catch blocks using `console.debug()`
+- **Return gracefully**: Return sensible defaults (false, null, etc.) after logging
+
+**Example pattern:**
+```javascript
+async isElementVisible () {
+    try {
+        return await this.element.isDisplayed();
+    } catch (error) {
+        console.debug(`isElementVisible check failed: ${error.message}`);
+        return false;
+    }
+}
+```
 
 ### Debugging Tips
 - **Verbose Mode**: Use `--verbose` flag for detailed logging

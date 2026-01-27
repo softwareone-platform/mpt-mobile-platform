@@ -2,5 +2,9 @@
   "programsScreen": {
     "emptyStateTitle": "No programs",
     "emptyStateDescription": "No programs found."
+  },
+  "enrollmentsScreen": {
+    "emptyStateTitle": "No enrollments",
+    "emptyStateDescription": "No enrollments found."
   }
 }

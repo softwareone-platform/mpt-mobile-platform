@@ -73,9 +73,14 @@ const selectors = {
 
   /**
    * Find element by accessibility ID (recommended for cross-platform)
-   * Works with testID on React Native
+   * Works with accessibilityLabel on React Native
+   * 
+   * ⚠️ WARNING: On Android, this uses `content-desc` attribute (NOT `resource-id`).
+   * For elements with React Native `testID` prop, use `byResourceId()` instead,
+   * as `testID` maps to `resource-id` on Android, not `content-desc`.
+   * 
    * @param {string} id - The accessibility identifier
-   * @returns {string} Accessibility ID selector
+   * @returns {string} Accessibility ID selector (~id)
    */
   byAccessibilityId: (id) => `~${id}`,
 
@@ -154,7 +159,18 @@ const selectors = {
 
   /**
    * Find element by resource/accessibility ID
-   * @param {string} id - The resource or accessibility ID
+   * 
+   * ✅ RECOMMENDED for React Native `testID` prop - this is the correct cross-platform selector.
+   * 
+   * Platform behavior:
+   * - iOS: Uses `~id` (accessibility ID selector, which finds accessibilityIdentifier)
+   * - Android: Uses `//*[@resource-id="id"]` (XPath for resource-id attribute)
+   * 
+   * React Native's `testID` maps to:
+   * - iOS: `accessibilityIdentifier` (found by `~id`)
+   * - Android: `resource-id` attribute (found by `@resource-id` XPath)
+   * 
+   * @param {string} id - The resource or accessibility ID (typically from testID prop)
    * @returns {string} Platform-specific selector
    */
   byResourceId: (id) =>

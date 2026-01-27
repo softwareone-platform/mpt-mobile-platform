@@ -107,6 +107,9 @@ class VerifyPage extends BasePage {
 
   // Method to enter OTP code
   async enterOTP(otpCode) {
+    const enterStart = new Date();
+    console.info(`   🔢 [${enterStart.toISOString()}] enterOTP() started with code: ${otpCode}`);
+    
     if (otpCode.length !== 6) {
       throw new Error(`OTP code must be 6 digits, received: ${otpCode}`);
     }
@@ -115,12 +118,14 @@ class VerifyPage extends BasePage {
     const inputs = this.otpInputs;
 
     for (let i = 0; i < digits.length; i++) {
+      const digitStart = new Date();
       const input = inputs[i];
       await input.waitForDisplayed({ timeout: 5000 });
 
       // Click to focus the field first (important for Android ViewGroups)
       if (i === 0) {
         await this.click(input);
+        console.info(`   🔢 [${new Date().toISOString()}] Clicked first input to focus`);
       }
 
       // Small delay to ensure field is focused
@@ -128,9 +133,22 @@ class VerifyPage extends BasePage {
 
       // Type the digit
       await browser.keys(digits[i]);
+      const digitEnd = new Date();
+      console.info(`   🔢 [${digitEnd.toISOString()}] Entered digit ${i + 1}/6: '${digits[i]}' (took ${digitEnd - digitStart}ms)`);
 
       // Small delay before moving to next field
       await browser.pause(350);
+    }
+    
+    const enterEnd = new Date();
+    console.info(`   🔢 [${enterEnd.toISOString()}] enterOTP() completed. Total time: ${(enterEnd - enterStart) / 1000}s`);
+    
+    // Check what was actually entered
+    try {
+      const enteredOTP = await this.getEnteredOTP();
+      console.info(`   🔢 Verification: entered OTP reads as '${enteredOTP}' (expected '${otpCode}')`);
+    } catch (e) {
+      console.info(`   ⚠️ Could not verify entered OTP: ${e.message}`);
     }
   }
 

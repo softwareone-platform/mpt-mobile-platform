@@ -1,4 +1,5 @@
 const { isAndroid, isIOS } = require('../utils/selectors');
+const { PAUSE, SCROLL, GESTURE, RETRY } = require('../utils/constants');
 
 class BasePage {
   constructor() {
@@ -10,7 +11,7 @@ class BasePage {
     await element.click();
   }
 
-  async typeText(element, text, maxRetries = 3) {
+  async typeText(element, text, maxRetries = RETRY.TEXT_ENTRY_MAX) {
     await element.waitForDisplayed();
     
     // Android uses 'text' attribute, iOS uses 'value'
@@ -19,11 +20,11 @@ class BasePage {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       // Clear any existing text first
       await element.clearValue().catch(() => {});
-      await browser.pause(100);
+      await browser.pause(PAUSE.RETRY_DELAY);
       
       // Type the text
       await element.setValue(text);
-      await browser.pause(200);
+      await browser.pause(PAUSE.TEXT_ENTRY);
       
       // Verify the text was entered correctly
       const enteredValue = await element.getAttribute(textAttribute);
@@ -36,7 +37,7 @@ class BasePage {
       if (attempt < maxRetries) {
         // Clear and retry
         await element.clearValue().catch(() => {});
-        await browser.pause(300);
+        await browser.pause(PAUSE.ANIMATION_SETTLE);
       }
     }
     
@@ -44,13 +45,13 @@ class BasePage {
     if (this.isIOS()) {
       console.info('🔄 Attempting character-by-character input...');
       await element.clearValue().catch(() => {});
-      await browser.pause(100);
+      await browser.pause(PAUSE.RETRY_DELAY);
       await element.click();
-      await browser.pause(100);
+      await browser.pause(PAUSE.RETRY_DELAY);
       
       for (const char of text) {
         await element.addValue(char);
-        await browser.pause(50);
+        await browser.pause(PAUSE.CHARACTER_INPUT);
       }
     }
   }
@@ -82,12 +83,12 @@ class BasePage {
   async scrollDown() {
     if (this.isAndroid()) {
       await browser.execute('mobile: scrollGesture', {
-        left: 100,
-        top: 500,
-        width: 200,
-        height: 500,
+        left: GESTURE.SWIPE_LEFT,
+        top: GESTURE.BASE_SCROLL_TOP,
+        width: GESTURE.BASE_SCROLL_WIDTH,
+        height: GESTURE.BASE_SCROLL_HEIGHT,
         direction: 'down',
-        percent: 0.75,
+        percent: SCROLL.PAGINATION_PERCENT,
       });
     } else {
       await browser.execute('mobile: scroll', { direction: 'down' });
@@ -100,12 +101,12 @@ class BasePage {
   async scrollUp() {
     if (this.isAndroid()) {
       await browser.execute('mobile: scrollGesture', {
-        left: 100,
-        top: 500,
-        width: 200,
-        height: 500,
+        left: GESTURE.SWIPE_LEFT,
+        top: GESTURE.BASE_SCROLL_TOP,
+        width: GESTURE.BASE_SCROLL_WIDTH,
+        height: GESTURE.BASE_SCROLL_HEIGHT,
         direction: 'up',
-        percent: 0.75,
+        percent: SCROLL.PAGINATION_PERCENT,
       });
     } else {
       await browser.execute('mobile: scroll', { direction: 'up' });
@@ -119,12 +120,12 @@ class BasePage {
   async swipe(direction) {
     if (this.isAndroid()) {
       await browser.execute('mobile: swipeGesture', {
-        left: 100,
-        top: 500,
-        width: 200,
-        height: 500,
+        left: GESTURE.SWIPE_LEFT,
+        top: GESTURE.BASE_SCROLL_TOP,
+        width: GESTURE.BASE_SCROLL_WIDTH,
+        height: GESTURE.BASE_SCROLL_HEIGHT,
         direction: direction,
-        percent: 0.75,
+        percent: SCROLL.PAGINATION_PERCENT,
       });
     } else {
       await browser.execute('mobile: swipe', { direction: direction });
