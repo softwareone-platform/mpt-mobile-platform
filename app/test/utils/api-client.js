@@ -122,6 +122,204 @@ class ApiClient {
     // Adjust based on actual API response structure
     return response.data || response.accounts || response;
   }
+
+  // ========== Orders Methods ==========
+
+  /**
+   * Get orders list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of orders to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by order status (Draft, Quoted, Completed, etc.)
+   * @returns {Promise<object>} - Orders list response
+   * 
+   * @example
+   * // Get all orders
+   * const orders = await apiClient.getOrders();
+   * 
+   * // Get orders with pagination
+   * const orders = await apiClient.getOrders({ limit: 10, offset: 0 });
+   * 
+   * // Get orders by status
+   * const draftOrders = await apiClient.getOrders({ status: 'Draft' });
+   */
+  async getOrders(options = {}) {
+    let endpoint = '/public/v1/commerce/orders';
+    
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+    
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+    
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific order by ID
+   * @param {string} orderId - Order ID in format ORD-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Order details
+   * 
+   * @example
+   * const order = await apiClient.getOrderById('ORD-3760-9768-9099');
+   */
+  async getOrderById(orderId) {
+    // Validate orderId format
+    if (!orderId || !/^ORD-\d{4}-\d{4}-\d{4}$/.test(orderId)) {
+      throw new Error(`Invalid orderId format: "${orderId}". Expected format: ORD-XXXX-XXXX-XXXX`);
+    }
+    
+    return this.get(`/public/v1/commerce/orders/${orderId}`);
+  }
+
+  /**
+   * Get orders count
+   * @returns {Promise<number>} - Total number of orders
+   */
+  async getOrdersCount() {
+    const response = await this.getOrders({ limit: 1 });
+    return response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any orders
+   * @returns {Promise<boolean>}
+   */
+  async hasOrders() {
+    const count = await this.getOrdersCount();
+    return count > 0;
+  }
+
+  /**
+   * Get orders by status
+   * @param {string} status - Order status (Draft, Quoted, Completed, Deleted, Failed)
+   * @returns {Promise<Array>} - Array of orders with the specified status
+   */
+  async getOrdersByStatus(status) {
+    const validStatuses = ['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    }
+    
+    const response = await this.getOrders({ status });
+    return response.data || response;
+  }
+
+  // ========== Spotlight Methods ==========
+
+  /**
+   * Get spotlight data for the authenticated user
+   * @param {number} [limit=100] - Maximum number of items per category to return
+   * @returns {Promise<object>} - Spotlight data with categories and counts
+   * 
+   * @example
+   * const spotlight = await apiClient.getSpotlightData();
+   * // Returns: { $meta: {...}, data: [{ id: 'orders-long-running', total: 5, top: [...] }, ...] }
+   */
+  async getSpotlightData(limit = 100) {
+    return this.get(`/public/v1/spotlight/objects?select=top&limit=${limit}`);
+  }
+
+  /**
+   * Get spotlight objects by template name
+   * @param {string} templateName - Template name (e.g., 'longRunningOrders', 'expiringSubscriptions')
+   * @returns {Promise<object>} - Spotlight data for that template
+   */
+  async getSpotlightByTemplate(templateName) {
+    return this.get(`/public/v1/spotlight/objects?eq(query.template,"${templateName}")&select=top`);
+  }
+
+  /**
+   * Get spotlight category counts - useful for checking data availability
+   * @returns {Promise<object>} - Object with category totals
+   * 
+   * @example
+   * const counts = await apiClient.getSpotlightCounts();
+   * // Returns: {
+   * //   'longRunningOrders': 5,
+   * //   'expiringSubscriptions': 3,
+   * //   'pendingInvites': 2,
+   * //   ...
+   * // }
+   */
+  async getSpotlightCounts() {
+    // Note: limit controls number of categories returned, not items per category
+    // Use 100 to ensure we get all spotlight categories
+    const response = await this.getSpotlightData(100);
+    const counts = {};
+    
+    if (response.data && Array.isArray(response.data)) {
+      for (const item of response.data) {
+        // Use query.template as the key (e.g., 'inProgressJournals', 'expiringSubscriptions')
+        const templateName = item.query?.template;
+        if (templateName) {
+          counts[templateName] = item.total || 0;
+        }
+      }
+    }
+    
+    return counts;
+  }
+
+  /**
+   * Check spotlight data availability by category type
+   * @returns {Promise<object>} - Object with boolean flags for each category
+   * 
+   * Template names from API (query.template field):
+   * - orders: 'longRunningOrders', 'processingOrders', 'queryingOrders', 'savedOrdersClient', 'savedOrdersOperations'
+   * - subscriptions: 'expiringSubscriptions', 'renewingSubscriptions', 'expiringSubscriptionsOfMyClients'
+   * - users: 'pendingInvites', 'expiredInvites', 'pendingInvitesOfMyClients', 'expiredInvitesOfMyClients'
+   * - invoices: 'invoicesPastDue', 'unpaidInvoices', 'invoicesPastDueOfMyClients', 'unpaidInvoicesOfMyClients'
+   * - journals: 'inProgressJournals'
+   * - enrollments: 'queryingEnrollments', 'processingEnrollments', 'longRunningEnrollmentsOfMyClients'
+   * - buyers: 'mismatchingBuyersClient', 'mismatchingBuyersOfMyClients', 'buyersWithBlockedSellerConnectionsOfMyClients'
+   */
+  async getSpotlightDataAvailability() {
+    const counts = await this.getSpotlightCounts();
+    
+    return {
+      hasOrders: (counts['longRunningOrders'] || 0) > 0 ||
+                 (counts['processingOrders'] || 0) > 0 ||
+                 (counts['queryingOrders'] || 0) > 0 ||
+                 (counts['savedOrdersClient'] || 0) > 0 ||
+                 (counts['savedOrdersOperations'] || 0) > 0,
+      hasSubscriptions: (counts['expiringSubscriptions'] || 0) > 0 ||
+                        (counts['renewingSubscriptions'] || 0) > 0 ||
+                        (counts['expiringSubscriptionsOfMyClients'] || 0) > 0,
+      hasUsers: (counts['pendingInvites'] || 0) > 0 || 
+                (counts['expiredInvites'] || 0) > 0 ||
+                (counts['pendingInvitesOfMyClients'] || 0) > 0 ||
+                (counts['expiredInvitesOfMyClients'] || 0) > 0,
+      hasInvoices: (counts['invoicesPastDue'] || 0) > 0 ||
+                   (counts['unpaidInvoices'] || 0) > 0 ||
+                   (counts['invoicesPastDueOfMyClients'] || 0) > 0 ||
+                   (counts['unpaidInvoicesOfMyClients'] || 0) > 0,
+      hasJournals: (counts['inProgressJournals'] || 0) > 0,
+      hasEnrollments: (counts['queryingEnrollments'] || 0) > 0 ||
+                      (counts['processingEnrollments'] || 0) > 0 ||
+                      (counts['longRunningEnrollmentsOfMyClients'] || 0) > 0,
+      hasBuyers: (counts['mismatchingBuyersClient'] || 0) > 0 || 
+                 (counts['mismatchingBuyersOfMyClients'] || 0) > 0 ||
+                 (counts['buyersWithBlockedSellerConnectionsOfMyClients'] || 0) > 0,
+      // Raw counts for detailed logging
+      _counts: counts,
+    };
+  }
+
+  /**
+   * Check if user has any spotlight data
+   * @returns {Promise<boolean>}
+   */
+  async hasSpotlightData() {
+    const availability = await this.getSpotlightDataAvailability();
+    return availability.hasOrders || availability.hasSubscriptions || 
+           availability.hasUsers || availability.hasInvoices || 
+           availability.hasJournals || availability.hasEnrollments || 
+           availability.hasBuyers;
+  }
 }
 
 // Export singleton instance

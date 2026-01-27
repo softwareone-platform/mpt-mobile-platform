@@ -18,7 +18,7 @@ describe('Navigation via footer', () => {
   });
 
   beforeEach(async () => {
-    await navigation.ensureHomePage();
+    await navigation.ensureHomePage({ resetFilters: false });
   });
 
   it('click on Orders button to load Orders page', async () => {
@@ -79,5 +79,19 @@ describe('Navigation via footer', () => {
     await userSettingsPage.openPersonalInformation();
     const personalInfoHeader = await $('//*[@name="Personal Information" or @text="Personal Information"]');
     await expect(personalInfoHeader).toBeDisplayed();
+  });
+
+  it('navigate from Orders page to Profile via account button', async () => {
+    // Navigate to Orders page first
+    await homePage.footer.clickOrdersTab();
+    await ordersPage.waitForScreenReady();
+
+    // Tap account button from Orders page
+    await expect(ordersPage.accountButton).toBeDisplayed();
+    await ordersPage.accountButton.click();
+
+    // Verify Profile page loaded
+    await expect(profilePage.profileHeaderTitle).toBeDisplayed();
+    await expect(profilePage.yourProfileLabel).toBeDisplayed();
   });
 });

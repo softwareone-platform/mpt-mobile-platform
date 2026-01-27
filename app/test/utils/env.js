@@ -33,7 +33,8 @@ module.exports = {
   getEnv,
   requireEnv,
   // Re-export common env vars for convenience
-  API_BASE_URL: getEnv('API_BASE_URL', 'https://api.s1.live'),
+  // Note: These are evaluated at require() time, so dotenv must be loaded first
+  API_BASE_URL: getEnv('API_BASE_URL'),
   API_OPS_TOKEN: getEnv('API_OPS_TOKEN'),
   AUTH0_CLIENT_ID: getEnv('AUTH0_CLIENT_ID'),
 };

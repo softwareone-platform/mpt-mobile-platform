@@ -25,6 +25,10 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
   const userId = user?.['https://claims.softwareone.com/userId'] as string | undefined;
 
+  if (user && (!userId || userId.trim() === '')) {
+    console.error('User authentication token is missing required userId claim.');
+  }
+
   const {
     data: userData = null,
     isLoading: userDataLoading,

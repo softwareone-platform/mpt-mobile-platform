@@ -379,6 +379,12 @@ source ./scripts/setup-test-env.sh --platform android
 source ./scripts/setup-test-env.sh --start-emulator "iPhone 16"
 source ./scripts/setup-test-env.sh --platform android --start-emulator "Pixel_8_API_34"
 
+# Start Appium server with inspector plugin
+source ./scripts/setup-test-env.sh --start-appium
+
+# Stop Appium server
+source ./scripts/setup-test-env.sh --stop-appium
+
 # List available simulators and emulators
 source ./scripts/setup-test-env.sh --list-emulators
 ```
@@ -386,6 +392,8 @@ source ./scripts/setup-test-env.sh --list-emulators
 **Available Options:**
 - `--platform <ios|android>`: Set the target platform (default: ios)
 - `--start-emulator <name>`: Start emulator/simulator by name
+- `--start-appium`: Start Appium server with inspector plugin
+- `--stop-appium`: Stop all running Appium processes
 - `--list-emulators`: List available emulators/simulators
 - `--help`: Show help message
 
