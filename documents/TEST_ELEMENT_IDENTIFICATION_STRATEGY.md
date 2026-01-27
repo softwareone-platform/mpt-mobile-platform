@@ -98,8 +98,10 @@ get longRunningOrdersHeader () {
 ### Overview
 
 React Native provides the `testID` prop which maps to:
-- **iOS**: `accessibilityIdentifier` (used by XCUITest)
-- **Android**: `resource-id` (used by UIAutomator2)
+- **iOS**: `accessibilityIdentifier` (used by XCUITest) - accessible via `~id` selector
+- **Android**: `resource-id` attribute (used by UIAutomator2) - accessible via `@resource-id` XPath
+
+> ⚠️ **Important**: On Android, `testID` does NOT map to `content-desc` (which is what `~id` Appium selector uses). You must use `@resource-id` XPath for Android when targeting elements with `testID`.
 
 This is the **only cross-platform approach** that provides stable, value-agnostic element identification.
 
@@ -112,15 +114,24 @@ This is the **only cross-platform approach** that provides stable, value-agnosti
 </TouchableOpacity>
 ```
 
-In Appium tests, this becomes:
+In Appium tests, use `selectors.byResourceId()` or `getSelector()` with platform-specific selectors:
+
 ```javascript
-// iOS: uses accessibilityIdentifier
+// RECOMMENDED: Use byResourceId helper (handles platform differences)
 get continueButton() {
-    return $('~continue-button');  // Appium accessibility id selector
+    return $(selectors.byResourceId('continue-button'));
 }
 
-// Works identically on Android!
+// Or use getSelector for explicit platform handling:
+get continueButton() {
+    return $(getSelector({
+        ios: '~continue-button',                          // Accessibility ID works on iOS
+        android: '//*[@resource-id="continue-button"]'    // resource-id required on Android
+    }));
+}
 ```
+
+> **Note**: Do NOT use `selectors.byAccessibilityId()` (which uses `~id`) for elements with `testID` on Android - it won't find them because `~id` looks at `content-desc`, not `resource-id`.
 
 ---
 
@@ -479,46 +490,55 @@ get emailInput () {
 
 **Recommended (using testID):**
 ```javascript
-const { selectors } = require('./utils/selectors');
+const { getSelector, selectors } = require('./utils/selectors');
 
+// RECOMMENDED: Use byResourceId for testID-based elements (cross-platform)
 get welcomeTitle () {
-    return $(selectors.byAccessibilityId('welcome-title-text'));
+    return $(selectors.byResourceId('welcome-title-text'));
 }
 
 get welcomeSubtitle () {
-    return $(selectors.byAccessibilityId('welcome-subtitle-text'));
+    return $(selectors.byResourceId('welcome-subtitle-text'));
 }
 
 get emailInput () {
-    return $('~welcome-email-input');
+    return $(selectors.byResourceId('welcome-email-input'));
 }
 
 get emailError () {
-    return $('~welcome-email-error');
+    return $(selectors.byResourceId('welcome-email-error'));
 }
 
 get continueButton () {
-    return $('~welcome-continue-button');
+    return $(selectors.byResourceId('welcome-continue-button'));
 }
 
 get troubleSigningInLink () {
-    return $('~welcome-trouble-link');
+    return $(selectors.byResourceId('welcome-trouble-link'));
 }
 
 get logo () {
-    return $(selectors.byAccessibilityId('welcome-logo-image'));
+    return $(selectors.byResourceId('welcome-logo-image'));
 }
+```
+
+> **Note**: `byResourceId()` handles the platform difference automatically:
+> - iOS: Uses `~id` (accessibility ID selector)
+> - Android: Uses `//*[@resource-id="id"]` (XPath for resource-id attribute)
 ```
 
 #### Appium Selector Syntax
 
-| Selector Type | Syntax | Usage |
-|--------------|--------|-------|
-| Accessibility ID (testID) | `~element-id` or `selectors.byAccessibilityId('id')` | Primary method - cross-platform |
-| Text-based (current) | `selectors.byText('text')` | Current fallback for elements without testID |
-| Platform-specific XPath | `getSelector({ ios: '...', android: '...' })` | Complex elements needing different selectors |
+| Selector Type | Syntax | Platform Behavior | Usage |
+|--------------|--------|-------------------|-------|
+| Accessibility ID | `~element-id` or `selectors.byAccessibilityId('id')` | iOS: `accessibilityIdentifier`, Android: `content-desc` | For elements with `accessibilityLabel` |
+| **Resource ID (testID)** | `selectors.byResourceId('id')` | iOS: `~id`, Android: `@resource-id` XPath | **Primary method for `testID` - cross-platform** |
+| Text-based | `selectors.byText('text')` | iOS: `@name`, Android: `@text` | Fallback for elements without testID |
+| Platform-specific XPath | `getSelector({ ios: '...', android: '...' })` | Custom per platform | Complex elements needing different selectors |
 
-**Recommendation**: Migrate from `selectors.byText()` to `selectors.byAccessibilityId()` (which uses `testID`) for stability.
+> ⚠️ **Critical**: On Android, `~id` (accessibility ID) looks for `content-desc` attribute, NOT `resource-id`. Since React Native's `testID` maps to `resource-id` on Android, you **must** use `selectors.byResourceId()` or explicit `@resource-id` XPath for `testID`-based elements.
+
+**Recommendation**: Use `selectors.byResourceId()` for all elements with `testID` - it handles the platform difference automatically.
 
 ---
 
@@ -587,12 +607,13 @@ get otpInput1 () {
 
 **Recommended Page Object:**
 ```javascript
+// Use byResourceId for testID-based elements (NOT byAccessibilityId on Android!)
 get otpInput1 () {
-    return $(selectors.byAccessibilityId('otp-digit-input-1'));
+    return $(selectors.byResourceId('otp-digit-input-1'));
 }
 
 getOtpInput(digit) {
-    return $(selectors.byAccessibilityId(`otp-digit-input-${digit}`));
+    return $(selectors.byResourceId(`otp-digit-input-${digit}`));
 }
 
 get allOtpInputs() {
@@ -697,8 +718,9 @@ const { selectors } = require('../pageobjects/utils/selectors')
 
 describe('TestID Verification', () => {
     it('should find welcome screen elements by testID', async () => {
-        const emailInput = await $(selectors.byAccessibilityId('welcome-email-input'));
-        const continueButton = await $(selectors.byAccessibilityId('welcome-continue-button'));
+        // Use byResourceId for testID-based elements (NOT byAccessibilityId!)
+        const emailInput = await $(selectors.byResourceId('welcome-email-input'));
+        const continueButton = await $(selectors.byResourceId('welcome-continue-button'));
         
         await expect(emailInput).toBeDisplayed();
         await expect(continueButton).toBeDisplayed();
@@ -744,20 +766,24 @@ describe('TestID Verification', () => {
 
 | Aspect | Current State | Recommended State |
 |--------|--------------|-------------------|
-| Locator Strategy | Text-based with `selectors.byText()` utility | Accessibility ID (`testID`) with `selectors.byAccessibilityId()` |
-| Platform Support | Cross-platform via `getSelector()` utility | Unified via `testID` prop |
+| Locator Strategy | Text-based with `selectors.byText()` utility | Resource ID (`testID`) with `selectors.byResourceId()` |
+| Platform Support | Cross-platform via `getSelector()` utility | Unified via `testID` prop + `byResourceId()` helper |
 | Maintainability | Breaks with text/copy changes | Stable identifiers |
 | Test Reliability | Fragile for OTP (positional indices) | Robust, semantic |
-| Selector Syntax | `selectors.byText('Continue')` | `selectors.byAccessibilityId('continue-button')` |
+| Selector Syntax | `selectors.byText('Continue')` | `selectors.byResourceId('continue-button')` |
 
 **Key Benefits:**
-- ✅ Platform-agnostic (iOS & Android)
+- ✅ Platform-agnostic (iOS & Android) when using `byResourceId()`
 - ✅ Value-agnostic (survives translation/copy changes)
 - ✅ Semantic and readable selectors
 - ✅ Follows React Native best practices
 - ✅ Improves test maintenance and reliability
 - ✅ Easy to implement incrementally
 - ✅ Works with existing selector utility infrastructure
+
+> ⚠️ **Important Distinction**:
+> - `byResourceId(id)` → Use for elements with `testID` prop (maps to `resource-id` on Android, `accessibilityIdentifier` on iOS)
+> - `byAccessibilityId(id)` → Use for elements with `accessibilityLabel` prop (maps to `content-desc` on Android, uses `~id` selector)
 
 ---
 

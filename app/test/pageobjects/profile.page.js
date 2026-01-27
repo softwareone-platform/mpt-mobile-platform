@@ -2,6 +2,7 @@ const { $, $$ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
 const { getSelector, selectors } = require('./utils/selectors');
+const { TIMEOUT } = require('./utils/constants');
 
 class ProfilePage extends BasePage {
   constructor() {
@@ -95,7 +96,8 @@ class ProfilePage extends BasePage {
     try {
       const accountItem = await this.firstAccountItem;
       return await accountItem.isDisplayed();
-    } catch {
+    } catch (error) {
+      console.debug(`Error checking for accounts: ${error.message}`);
       return false;
     }
   }
@@ -191,7 +193,7 @@ class ProfilePage extends BasePage {
 
   async getAccountNameAtIndex(index) {
     const accountItem = this.getAccountItemByIndex(index);
-    await accountItem.waitForDisplayed({ timeout: 10000 });
+    await accountItem.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
     
     // Get the label/name attribute which contains "AccountName, ACC-XXXX-XXXX"
     // iOS uses 'label' attribute, Android uses 'content-desc' or we need to get child TextView

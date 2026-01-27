@@ -208,6 +208,176 @@ class ApiClient {
     return response.data || response;
   }
 
+  // ========== Subscriptions Methods ==========
+
+  /**
+   * Get subscriptions list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of subscriptions to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by subscription status (Active, Terminated, etc.)
+   * @returns {Promise<object>} - Subscriptions list response
+   * 
+   * @example
+   * // Get all subscriptions
+   * const subscriptions = await apiClient.getSubscriptions();
+   * 
+   * // Get subscriptions with pagination
+   * const subscriptions = await apiClient.getSubscriptions({ limit: 10, offset: 0 });
+   * 
+   * // Get subscriptions by status
+   * const activeSubscriptions = await apiClient.getSubscriptions({ status: 'Active' });
+   */
+  async getSubscriptions(options = {}) {
+    let endpoint = '/public/v1/commerce/subscriptions';
+    
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+    
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+    
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific subscription by ID
+   * @param {string} subscriptionId - Subscription ID in format SUB-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Subscription details
+   * 
+   * @example
+   * const subscription = await apiClient.getSubscriptionById('SUB-2539-6731-4903');
+   */
+  async getSubscriptionById(subscriptionId) {
+    // Validate subscriptionId format
+    if (!subscriptionId || !/^SUB-\d{4}-\d{4}-\d{4}$/.test(subscriptionId)) {
+      throw new Error(`Invalid subscriptionId format: "${subscriptionId}". Expected format: SUB-XXXX-XXXX-XXXX`);
+    }
+    
+    return this.get(`/public/v1/commerce/subscriptions/${subscriptionId}`);
+  }
+
+  /**
+   * Get subscriptions count
+   * @returns {Promise<number>} - Total number of subscriptions
+   */
+  async getSubscriptionsCount() {
+    const response = await this.getSubscriptions({ limit: 1 });
+    return response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any subscriptions
+   * @returns {Promise<boolean>}
+   */
+  async hasSubscriptions() {
+    const count = await this.getSubscriptionsCount();
+    return count > 0;
+  }
+
+  /**
+   * Get subscriptions by status
+   * @param {string} status - Subscription status (Active, Terminated, Updating, Terminating)
+   * @returns {Promise<Array>} - Array of subscriptions with the specified status
+   */
+  async getSubscriptionsByStatus(status) {
+    const validStatuses = ['Active', 'Terminated', 'Updating', 'Terminating', 'Suspended'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    }
+    
+    const response = await this.getSubscriptions({ status });
+    return response.data || response;
+  }
+
+  // ========== Agreements Methods ==========
+
+  /**
+   * Get agreements list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of agreements to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by agreement status (Active, Terminated, etc.)
+   * @returns {Promise<object>} - Agreements list response
+   * 
+   * @example
+   * // Get all agreements
+   * const agreements = await apiClient.getAgreements();
+   * 
+   * // Get agreements with pagination
+   * const agreements = await apiClient.getAgreements({ limit: 10, offset: 0 });
+   * 
+   * // Get agreements by status
+   * const activeAgreements = await apiClient.getAgreements({ status: 'Active' });
+   */
+  async getAgreements(options = {}) {
+    let endpoint = '/public/v1/commerce/agreements';
+    
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+    
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+    
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific agreement by ID
+   * @param {string} agreementId - Agreement ID in format AGR-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Agreement details
+   * 
+   * @example
+   * const agreement = await apiClient.getAgreementById('AGR-0000-0039-2883');
+   */
+  async getAgreementById(agreementId) {
+    // Validate agreementId format
+    if (!agreementId || !/^AGR-\d{4}-\d{4}-\d{4}$/.test(agreementId)) {
+      throw new Error(`Invalid agreementId format: "${agreementId}". Expected format: AGR-XXXX-XXXX-XXXX`);
+    }
+    
+    return this.get(`/public/v1/commerce/agreements/${agreementId}`);
+  }
+
+  /**
+   * Get agreements count
+   * @returns {Promise<number>} - Total number of agreements
+   */
+  async getAgreementsCount() {
+    const response = await this.getAgreements({ limit: 1 });
+    return response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any agreements
+   * @returns {Promise<boolean>}
+   */
+  async hasAgreements() {
+    const count = await this.getAgreementsCount();
+    return count > 0;
+  }
+
+  /**
+   * Get agreements by status
+   * @param {string} status - Agreement status (Active, Terminated, Deleted, Provisioning)
+   * @returns {Promise<Array>} - Array of agreements with the specified status
+   */
+  async getAgreementsByStatus(status) {
+    const validStatuses = ['Active', 'Terminated', 'Deleted', 'Provisioning', 'Updating'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    }
+    
+    const response = await this.getAgreements({ status });
+    return response.data || response;
+  }
+
   // ========== Spotlight Methods ==========
 
   /**
