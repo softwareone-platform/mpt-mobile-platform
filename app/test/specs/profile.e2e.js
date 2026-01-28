@@ -5,6 +5,7 @@ const profilePage = require('../pageobjects/profile.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { TIMEOUT } = require('../pageobjects/utils/constants');
 
 describe('Profile Page', () => {
   let userId;
@@ -22,24 +23,24 @@ describe('Profile Page', () => {
     // Navigate to Profile page
     await navigation.ensureHomePage({ resetFilters: false });
     await headingPage.navAccountButton.click();
-    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: 10000 });
+    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
 
     // Check data state ONCE and cache the results
     hasAccountsData = await profilePage.hasAccounts();
     hasEmptyState = !hasAccountsData && await profilePage.noAccountsTitle.isDisplayed().catch(() => false);
 
-    console.log(`📊 Profile accounts data state: hasAccounts=${hasAccountsData}, emptyState=${hasEmptyState}`);
+    console.info(`📊 Profile accounts data state: hasAccounts=${hasAccountsData}, emptyState=${hasEmptyState}`);
 
     // Get user ID from Profile page as soon as it loads
     userId = await profilePage.getCurrentUserId();
-    console.log(`📋 Current user ID: ${userId}`);
+    console.info(`📋 Current user ID: ${userId}`);
 
     // Fetch user information from API
     try {
       userInfo = await apiClient.getUserInformation(userId);
       userAccounts = userInfo.data || userInfo.accounts || userInfo;
       if (Array.isArray(userAccounts)) {
-        console.log(`📊 Loaded ${userAccounts.length} accounts from API for user ${userId}`);
+        console.info(`📊 Loaded ${userAccounts.length} accounts from API for user ${userId}`);
       } else {
         userAccounts = [];
       }
@@ -140,7 +141,7 @@ describe('Profile Page', () => {
 
       // Get account count from UI
       const uiAccountCount = await profilePage.getAccountCount();
-      console.log(`📊 UI shows ${uiAccountCount} accounts, API returned ${userAccounts.length}`);
+      console.info(`📊 UI shows ${uiAccountCount} accounts, API returned ${userAccounts.length}`);
 
       // Validate account count matches
       expect(uiAccountCount).toBe(userAccounts.length);
@@ -160,7 +161,7 @@ describe('Profile Page', () => {
         if (accountId) {
           const accountElement = profilePage.getAccountItemById(accountId);
           const isDisplayed = await accountElement.isDisplayed().catch(() => false);
-          console.log(`📋 Account ${accountId}: ${isDisplayed ? '✓ displayed' : '✗ not found'}`);
+          console.info(`📋 Account ${accountId}: ${isDisplayed ? '✓ displayed' : '✗ not found'}`);
           expect(isDisplayed).toBe(true);
         }
       }
@@ -181,7 +182,7 @@ describe('Profile Page', () => {
         
         if (apiAccountName) {
           const uiAccountName = await profilePage.getAccountNameAtIndex(i + 1);
-          console.log(`📋 Account ${i + 1} name - UI: "${uiAccountName}" | API: "${apiAccountName}"`);
+          console.info(`📋 Account ${i + 1} name - UI: "${uiAccountName}" | API: "${apiAccountName}"`);
           expect(uiAccountName).toBe(apiAccountName);
         }
       }

@@ -2,15 +2,23 @@ const { expect } = require('@wdio/globals');
 
 const homePage = require('../pageobjects/spotlights.page');
 const { restartApp } = require('../pageobjects/utils/app.helper');
-const { AIRTABLE_EMAIL } = require('../pageobjects/utils/auth.helper');
+const { AIRTABLE_EMAIL, ensureLoggedOut } = require('../pageobjects/utils/auth.helper');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const verifyPage = require('../pageobjects/verify.page');
 const welcomePage = require('../pageobjects/welcome.page');
+const { TIMEOUT } = require('../pageobjects/utils/constants');
 
 const otpTimeoutMs = 260000;
 const pollIntervalMs = 13000;
 
 describe('Welcome page of application', () => {
+  before(async function () {
+    // Set timeout for potential logout flow
+    this.timeout(TIMEOUT.SCREEN_READY);
+    // Ensure user is logged out before running welcome tests
+    await ensureLoggedOut();
+  });
+
   it('to display welcome title', async () => {
     await expect(welcomePage.welcomeTitle).toBeDisplayed();
     await expect(welcomePage.welcomeTitle).toHaveText('Welcome');
@@ -182,6 +190,6 @@ describe('Welcome page of application', () => {
     const afterCheck = new Date();
     console.info(`✅ [${afterCheck.toISOString()}] Home page found after ${(afterCheck - beforeCheck) / 1000}s`);
     await expect(homePage.header.logoTitle).toBeDisplayed();
-    console.log('✅ User is still logged in after app restart');
+    console.info('✅ User is still logged in after app restart');
   });
 });

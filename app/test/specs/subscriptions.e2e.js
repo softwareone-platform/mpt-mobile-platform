@@ -25,7 +25,7 @@ describe('Subscriptions Page', () => {
     hasEmptyState = !hasSubscriptionsData && await subscriptionsPage.emptyState.isDisplayed().catch(() => false);
     apiSubscriptionsAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.log(`📊 Subscriptions data state: hasSubscriptions=${hasSubscriptionsData}, emptyState=${hasEmptyState}, apiAvailable=${apiSubscriptionsAvailable}`);
+    console.info(`📊 Subscriptions data state: hasSubscriptions=${hasSubscriptionsData}, emptyState=${hasEmptyState}, apiAvailable=${apiSubscriptionsAvailable}`);
   });
 
   beforeEach(async () => {
@@ -135,9 +135,9 @@ describe('Subscriptions Page', () => {
       const subscriptionsCount = await subscriptionsPage.getVisibleSubscriptionsCount();
       const subscriptionIds = await subscriptionsPage.getVisibleSubscriptionIds();
       
-      console.log(`Total subscriptions detected: ${subscriptionsCount}`);
-      console.log(`First 5 subscription IDs: ${subscriptionIds.slice(0, 5).join(', ')}`);
-      console.log(`Last 5 subscription IDs: ${subscriptionIds.slice(-5).join(', ')}`);
+      console.info(`Total subscriptions detected: ${subscriptionsCount}`);
+      console.info(`First 5 subscription IDs: ${subscriptionIds.slice(0, 5).join(', ')}`);
+      console.info(`Last 5 subscription IDs: ${subscriptionIds.slice(-5).join(', ')}`);
       
       expect(subscriptionsCount).toBeGreaterThan(0);
       
@@ -175,7 +175,7 @@ describe('Subscriptions Page', () => {
                                        updatingSubscriptions.length + terminatingSubscriptions.length;
       expect(totalStatusSubscriptions).toBeGreaterThanOrEqual(0);
       
-      console.log(`Subscriptions by status - Active: ${activeSubscriptions.length}, Terminated: ${terminatedSubscriptions.length}, Updating: ${updatingSubscriptions.length}, Terminating: ${terminatingSubscriptions.length}`);
+      console.info(`Subscriptions by status - Active: ${activeSubscriptions.length}, Terminated: ${terminatedSubscriptions.length}, Updating: ${updatingSubscriptions.length}, Terminating: ${terminatingSubscriptions.length}`);
     });
   });
 
@@ -194,7 +194,7 @@ describe('Subscriptions Page', () => {
         
         const uiCount = await subscriptionsPage.getVisibleSubscriptionsCount();
         
-        console.log(`[Count Compare] API subscriptions: ${apiCount}, UI visible subscriptions: ${uiCount}`);
+        console.info(`[Count Compare] API subscriptions: ${apiCount}, UI visible subscriptions: ${uiCount}`);
         
         // UI should show at least some subscriptions if API has subscriptions
         if (apiCount > 0) {
@@ -231,13 +231,13 @@ describe('Subscriptions Page', () => {
           const idMatches = apiSubscriptionId === uiSubscriptionId;
           const statusMatches = apiStatus === uiStatus;
           
-          console.log(`[${i + 1}] ID: ${apiSubscriptionId} vs ${uiSubscriptionId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          console.info(`[${i + 1}] ID: ${apiSubscriptionId} vs ${uiSubscriptionId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
           comparisons.push({ apiSubscriptionId, uiSubscriptionId, idMatches, apiStatus, uiStatus, statusMatches });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.log(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
+        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
         // Verify all visible UI subscriptions have valid format
         for (const uiSubscriptionId of uiSubscriptionIds.slice(0, 10)) {

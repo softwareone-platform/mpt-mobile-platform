@@ -2,6 +2,7 @@ const { $ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
 const { selectors, getSelector, isAndroid } = require('./utils/selectors');
+const { PAUSE, TIMEOUT } = require('./utils/constants');
 
 class VerifyPage extends BasePage {
   constructor() {
@@ -120,7 +121,7 @@ class VerifyPage extends BasePage {
     for (let i = 0; i < digits.length; i++) {
       const digitStart = new Date();
       const input = inputs[i];
-      await input.waitForDisplayed({ timeout: 5000 });
+      await input.waitForDisplayed({ timeout: TIMEOUT.HEADER_WAIT });
 
       // Click to focus the field first (important for Android ViewGroups)
       if (i === 0) {
@@ -129,7 +130,7 @@ class VerifyPage extends BasePage {
       }
 
       // Small delay to ensure field is focused
-      await browser.pause(350);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
 
       // Type the digit
       await browser.keys(digits[i]);
@@ -137,7 +138,7 @@ class VerifyPage extends BasePage {
       console.info(`   🔢 [${digitEnd.toISOString()}] Entered digit ${i + 1}/6: '${digits[i]}' (took ${digitEnd - digitStart}ms)`);
 
       // Small delay before moving to next field
-      await browser.pause(350);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     }
     
     const enterEnd = new Date();

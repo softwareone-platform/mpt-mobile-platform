@@ -25,7 +25,7 @@ describe('Orders Page', () => {
     hasEmptyState = !hasOrdersData && await ordersPage.emptyState.isDisplayed().catch(() => false);
     apiOrdersAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.log(`📊 Orders data state: hasOrders=${hasOrdersData}, emptyState=${hasEmptyState}, apiAvailable=${apiOrdersAvailable}`);
+    console.info(`📊 Orders data state: hasOrders=${hasOrdersData}, emptyState=${hasEmptyState}, apiAvailable=${apiOrdersAvailable}`);
   });
 
   beforeEach(async () => {
@@ -144,9 +144,9 @@ describe('Orders Page', () => {
       const ordersCount = await ordersPage.getVisibleOrdersCount();
       const orderIds = await ordersPage.getVisibleOrderIds();
       
-      console.log(`Total orders detected: ${ordersCount}`);
-      console.log(`First 5 order IDs: ${orderIds.slice(0, 5).join(', ')}`);
-      console.log(`Last 5 order IDs: ${orderIds.slice(-5).join(', ')}`);
+      console.info(`Total orders detected: ${ordersCount}`);
+      console.info(`First 5 order IDs: ${orderIds.slice(0, 5).join(', ')}`);
+      console.info(`Last 5 order IDs: ${orderIds.slice(-5).join(', ')}`);
       
       // Verify we have a reasonable number of orders
       expect(ordersCount).toBeGreaterThan(0);
@@ -206,7 +206,7 @@ describe('Orders Page', () => {
         
         const uiCount = await ordersPage.getVisibleOrdersCount();
         
-        console.log(`[Count Compare] API orders: ${apiCount}, UI visible orders: ${uiCount}`);
+        console.info(`[Count Compare] API orders: ${apiCount}, UI visible orders: ${uiCount}`);
         
         // UI should show at least some orders if API has orders
         if (apiCount > 0) {
@@ -214,7 +214,7 @@ describe('Orders Page', () => {
         }
         
         // Log comparison for debugging
-        console.log(`Orders count - API: ${apiCount}, UI: ${uiCount}`);
+        console.info(`Orders count - API: ${apiCount}, UI: ${uiCount}`);
       } catch (error) {
         console.warn('API check skipped:', error.message);
         this.skip();
@@ -247,13 +247,13 @@ describe('Orders Page', () => {
           const statusMatches = apiStatus === uiStatus;
           const allMatch = idMatches && statusMatches;
           
-          console.log(`[${i + 1}] ID: ${apiOrderId} vs ${uiOrderId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          console.info(`[${i + 1}] ID: ${apiOrderId} vs ${uiOrderId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
           comparisons.push({ apiOrderId, uiOrderId, idMatches, apiStatus, uiStatus, statusMatches, allMatch });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.log(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
+        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
         // Verify all visible UI orders have valid format
         for (const uiOrderId of uiOrderIds.slice(0, 10)) {
