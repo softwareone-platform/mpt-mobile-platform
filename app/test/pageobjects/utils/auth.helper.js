@@ -5,6 +5,7 @@ const headingPage = require('../base/heading.page');
 const profilePage = require('../profile.page');
 const userSettingsPage = require('../user-settings.page');
 const { isAndroid } = require('./selectors');
+const { TIMEOUT } = require('./constants');
 
 const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'not-set';
 const OTP_TIMEOUT_MS = 120000;
@@ -76,7 +77,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
   console.info(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`);
 
   // Wait for navigation to verify screen
-  await verifyPage.verifyTitle.waitForDisplayed({ timeout: 10000 });
+  await verifyPage.verifyTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
   console.info('✓ Navigated to verification screen');
 
   // Wait for OTP to arrive via Airtable
@@ -116,7 +117,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
 
   // Wait for auto-submission and navigation to home page
   console.info(`⏳ Waiting for auto-submission to complete...`);
-  await homePage.filterAll.waitForDisplayed({ timeout: 30000 });
+  await homePage.filterAll.waitForDisplayed({ timeout: TIMEOUT.SCREEN_READY });
 
   console.info('✅ Login completed successfully');
 }
@@ -151,12 +152,12 @@ async function ensureLoggedOut() {
   try {
     // Navigate to Profile page via account button
     await headingPage.navAccountButton.click();
-    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: 10000 });
+    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
     console.info('✓ Navigated to Profile page');
 
     // Navigate to User Settings by clicking current user card
     await profilePage.currentUserCard.click();
-    await userSettingsPage.headerTitle.waitForDisplayed({ timeout: 10000 });
+    await userSettingsPage.headerTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
     console.info('✓ Navigated to User Settings');
 
     // Click sign out button

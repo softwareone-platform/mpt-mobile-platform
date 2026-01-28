@@ -115,7 +115,7 @@ class ApiClient {
    * // In test file:
    * const userId = await profilePage.getCurrentUserId();
    * const accounts = await apiClient.getAccountsList(userId);
-   * console.log(`User has ${accounts.length} accounts`);
+   * console.info(`User has ${accounts.length} accounts`);
    */
   async getAccountsList(userId) {
     const response = await this.getUserInformation(userId);
@@ -977,7 +977,7 @@ class ApiClient {
    * @returns {Promise<object>} - Object with boolean flags for each category
    */
   async getSpotlightDataAvailabilityByTemplate() {
-    console.log('📊 Checking spotlight data availability using individual template queries...');
+    console.info('📊 Checking spotlight data availability using individual template queries...');
     
     // Define templates per category
     const templatesByCategory = {
@@ -1031,7 +1031,7 @@ class ApiClient {
       }
     }
 
-    console.log('📊 Spotlight data availability results:', {
+    console.info('📊 Spotlight data availability results:', {
       hasOrders: results.hasOrders,
       hasSubscriptions: results.hasSubscriptions,
       hasUsers: results.hasUsers,
@@ -1040,7 +1040,7 @@ class ApiClient {
       hasEnrollments: results.hasEnrollments,
       hasBuyers: results.hasBuyers,
     });
-    console.log('📊 Individual template counts:', counts);
+    console.info('📊 Individual template counts:', counts);
 
     return results;
   }

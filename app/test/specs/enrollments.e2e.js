@@ -6,6 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { PAUSE } = require('../pageobjects/utils/constants');
 
 describe('Enrollments Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -20,7 +21,7 @@ describe('Enrollments Page', () => {
   async function navigateToEnrollments() {
     // First ensure we're on a page with footer visible
     await enrollmentsPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     // Click Enrollments menu item
     await morePage.enrollmentsMenuItem.click();
     await enrollmentsPage.waitForScreenReady();
@@ -34,11 +35,11 @@ describe('Enrollments Page', () => {
     
     // Check if Enrollments menu item is available for this user
     await enrollmentsPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     enrollmentsMenuAvailable = await morePage.enrollmentsMenuItem.isDisplayed().catch(() => false);
     
     if (!enrollmentsMenuAvailable) {
-      console.log('⚠️ Enrollments menu item not available for this user - skipping Enrollments tests');
+      console.info('⚠️ Enrollments menu item not available for this user - skipping Enrollments tests');
       return;
     }
     
@@ -51,7 +52,7 @@ describe('Enrollments Page', () => {
     hasEmptyState = !hasEnrollmentsData && await enrollmentsPage.emptyState.isDisplayed().catch(() => false);
     apiEnrollmentsAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.log(`📊 Enrollments data state: hasEnrollments=${hasEnrollmentsData}, emptyState=${hasEmptyState}, apiAvailable=${apiEnrollmentsAvailable}`);
+    console.info(`📊 Enrollments data state: hasEnrollments=${hasEnrollmentsData}, emptyState=${hasEmptyState}, apiAvailable=${apiEnrollmentsAvailable}`);
   });
 
   beforeEach(async function () {
@@ -71,7 +72,7 @@ describe('Enrollments Page', () => {
     it('should be accessible from More menu', async () => {
       // Navigate away first
       await enrollmentsPage.goBack();
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
       
       // Navigate back to Enrollments
       await morePage.enrollmentsMenuItem.click();
@@ -204,9 +205,9 @@ describe('Enrollments Page', () => {
       const enrollmentsCount = await enrollmentsPage.getVisibleEnrollmentsCount();
       const enrollmentIds = await enrollmentsPage.getVisibleEnrollmentIds();
       
-      console.log(`Total enrollments detected: ${enrollmentsCount}`);
-      console.log(`First 5 enrollment IDs: ${enrollmentIds.slice(0, 5).join(', ')}`);
-      console.log(`Last 5 enrollment IDs: ${enrollmentIds.slice(-5).join(', ')}`);
+      console.info(`Total enrollments detected: ${enrollmentsCount}`);
+      console.info(`First 5 enrollment IDs: ${enrollmentIds.slice(0, 5).join(', ')}`);
+      console.info(`Last 5 enrollment IDs: ${enrollmentIds.slice(-5).join(', ')}`);
       
       expect(enrollmentsCount).toBeGreaterThan(0);
       
@@ -242,7 +243,7 @@ describe('Enrollments Page', () => {
       const totalStatusEnrollments = draftEnrollments.length + completedEnrollments.length + processingEnrollments.length;
       expect(totalStatusEnrollments).toBeGreaterThanOrEqual(0);
       
-      console.log(`Enrollments by status - Draft: ${draftEnrollments.length}, Completed: ${completedEnrollments.length}, Processing: ${processingEnrollments.length}`);
+      console.info(`Enrollments by status - Draft: ${draftEnrollments.length}, Completed: ${completedEnrollments.length}, Processing: ${processingEnrollments.length}`);
     });
   });
 
@@ -261,7 +262,7 @@ describe('Enrollments Page', () => {
         
         const uiCount = await enrollmentsPage.getVisibleEnrollmentsCount();
         
-        console.log(`[Count Compare] API enrollments: ${apiCount}, UI visible enrollments: ${uiCount}`);
+        console.info(`[Count Compare] API enrollments: ${apiCount}, UI visible enrollments: ${uiCount}`);
         
         // UI should show at least some enrollments if API has enrollments
         if (apiCount > 0) {
@@ -298,13 +299,13 @@ describe('Enrollments Page', () => {
           const idMatches = apiEnrollmentId === uiEnrollmentId;
           const statusMatches = apiStatus === uiStatus;
           
-          console.log(`[${i + 1}] ID: ${apiEnrollmentId} vs ${uiEnrollmentId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          console.info(`[${i + 1}] ID: ${apiEnrollmentId} vs ${uiEnrollmentId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
           comparisons.push({ apiEnrollmentId, uiEnrollmentId, idMatches, apiStatus, uiStatus, statusMatches });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.log(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
+        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
         // Verify all visible UI enrollments have valid format (4-group)
         for (const uiEnrollmentId of uiEnrollmentIds.slice(0, 10)) {

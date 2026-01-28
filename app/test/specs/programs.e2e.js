@@ -6,6 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { PAUSE } = require('../pageobjects/utils/constants');
 
 describe('Programs Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -19,7 +20,7 @@ describe('Programs Page', () => {
   async function navigateToPrograms() {
     // First ensure we're on a page with footer visible
     await programsPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     // Click Programs menu item
     await morePage.programsMenuItem.click();
     await programsPage.waitForScreenReady();
@@ -38,7 +39,7 @@ describe('Programs Page', () => {
     hasEmptyState = !hasProgramsData && await programsPage.emptyState.isDisplayed().catch(() => false);
     apiProgramsAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.log(`📊 Programs data state: hasPrograms=${hasProgramsData}, emptyState=${hasEmptyState}, apiAvailable=${apiProgramsAvailable}`);
+    console.info(`📊 Programs data state: hasPrograms=${hasProgramsData}, emptyState=${hasEmptyState}, apiAvailable=${apiProgramsAvailable}`);
   });
 
   beforeEach(async function () {
@@ -186,9 +187,9 @@ describe('Programs Page', () => {
       const programsCount = await programsPage.getVisibleProgramsCount();
       const programIds = await programsPage.getVisibleProgramIds();
       
-      console.log(`Total programs detected: ${programsCount}`);
-      console.log(`First 5 program IDs: ${programIds.slice(0, 5).join(', ')}`);
-      console.log(`Last 5 program IDs: ${programIds.slice(-5).join(', ')}`);
+      console.info(`Total programs detected: ${programsCount}`);
+      console.info(`First 5 program IDs: ${programIds.slice(0, 5).join(', ')}`);
+      console.info(`Last 5 program IDs: ${programIds.slice(-5).join(', ')}`);
       
       expect(programsCount).toBeGreaterThan(0);
       
@@ -224,7 +225,7 @@ describe('Programs Page', () => {
       const totalStatusPrograms = unpublishedPrograms.length + draftPrograms.length + publishedPrograms.length;
       expect(totalStatusPrograms).toBeGreaterThanOrEqual(0);
       
-      console.log(`Programs by status - Unpublished: ${unpublishedPrograms.length}, Draft: ${draftPrograms.length}, Published: ${publishedPrograms.length}`);
+      console.info(`Programs by status - Unpublished: ${unpublishedPrograms.length}, Draft: ${draftPrograms.length}, Published: ${publishedPrograms.length}`);
     });
   });
 
@@ -243,7 +244,7 @@ describe('Programs Page', () => {
         
         const uiCount = await programsPage.getVisibleProgramsCount();
         
-        console.log(`[Count Compare] API programs: ${apiCount}, UI visible programs: ${uiCount}`);
+        console.info(`[Count Compare] API programs: ${apiCount}, UI visible programs: ${uiCount}`);
         
         // UI should show at least some programs if API has programs
         if (apiCount > 0) {
@@ -280,13 +281,13 @@ describe('Programs Page', () => {
           const idMatches = apiProgramId === uiProgramId;
           const statusMatches = apiStatus === uiStatus;
           
-          console.log(`[${i + 1}] ID: ${apiProgramId} vs ${uiProgramId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          console.info(`[${i + 1}] ID: ${apiProgramId} vs ${uiProgramId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
           comparisons.push({ apiProgramId, uiProgramId, idMatches, apiStatus, uiStatus, statusMatches });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.log(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
+        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
         // Verify all visible UI programs have valid format (3-group)
         for (const uiProgramId of uiProgramIds.slice(0, 10)) {

@@ -6,6 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { PAUSE } = require('../pageobjects/utils/constants');
 
 describe('Buyers Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -20,7 +21,7 @@ describe('Buyers Page', () => {
   async function navigateToBuyers() {
     // First ensure we're on a page with footer visible
     await buyersPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     // Click Buyers menu item
     await morePage.buyersMenuItem.click();
     await buyersPage.waitForScreenReady();
@@ -34,11 +35,11 @@ describe('Buyers Page', () => {
     
     // Check if Buyers menu item is available for this user
     await buyersPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     buyersMenuAvailable = await morePage.buyersMenuItem.isDisplayed().catch(() => false);
     
     if (!buyersMenuAvailable) {
-      console.log('⚠️ Buyers menu item not available for this user - skipping Buyers tests');
+      console.info('⚠️ Buyers menu item not available for this user - skipping Buyers tests');
       return;
     }
     
@@ -51,7 +52,7 @@ describe('Buyers Page', () => {
     hasEmptyState = !hasBuyersData && await buyersPage.emptyState.isDisplayed().catch(() => false);
     apiBuyersAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.log(`📊 Buyers data state: hasBuyers=${hasBuyersData}, emptyState=${hasEmptyState}, apiAvailable=${apiBuyersAvailable}`);
+    console.info(`📊 Buyers data state: hasBuyers=${hasBuyersData}, emptyState=${hasEmptyState}, apiAvailable=${apiBuyersAvailable}`);
   });
 
   beforeEach(async function () {
@@ -71,7 +72,7 @@ describe('Buyers Page', () => {
     it('should be accessible from More menu', async () => {
       // Navigate away first
       await buyersPage.goBack();
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
       
       // Navigate back to Buyers
       await morePage.buyersMenuItem.click();
@@ -204,9 +205,9 @@ describe('Buyers Page', () => {
       const buyersCount = await buyersPage.getVisibleBuyersCount();
       const buyerIds = await buyersPage.getVisibleBuyerIds();
       
-      console.log(`Total buyers detected: ${buyersCount}`);
-      console.log(`First 5 buyer IDs: ${buyerIds.slice(0, 5).join(', ')}`);
-      console.log(`Last 5 buyer IDs: ${buyerIds.slice(-5).join(', ')}`);
+      console.info(`Total buyers detected: ${buyersCount}`);
+      console.info(`First 5 buyer IDs: ${buyerIds.slice(0, 5).join(', ')}`);
+      console.info(`Last 5 buyer IDs: ${buyerIds.slice(-5).join(', ')}`);
       
       expect(buyersCount).toBeGreaterThan(0);
       
@@ -241,7 +242,7 @@ describe('Buyers Page', () => {
       const totalStatusBuyers = activeBuyers.length + unassignedBuyers.length;
       expect(totalStatusBuyers).toBeGreaterThanOrEqual(0);
       
-      console.log(`Buyers by status - Active: ${activeBuyers.length}, Unassigned: ${unassignedBuyers.length}`);
+      console.info(`Buyers by status - Active: ${activeBuyers.length}, Unassigned: ${unassignedBuyers.length}`);
     });
   });
 
@@ -260,7 +261,7 @@ describe('Buyers Page', () => {
         
         const uiCount = await buyersPage.getVisibleBuyersCount();
         
-        console.log(`[Count Compare] API buyers: ${apiCount}, UI visible buyers: ${uiCount}`);
+        console.info(`[Count Compare] API buyers: ${apiCount}, UI visible buyers: ${uiCount}`);
         
         // UI should show at least some buyers if API has buyers
         if (apiCount > 0) {
@@ -297,13 +298,13 @@ describe('Buyers Page', () => {
           const idMatches = apiBuyerId === uiBuyerId;
           const statusMatches = apiStatus === uiStatus;
           
-          console.log(`[${i + 1}] ID: ${apiBuyerId} vs ${uiBuyerId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          console.info(`[${i + 1}] ID: ${apiBuyerId} vs ${uiBuyerId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
           comparisons.push({ apiBuyerId, uiBuyerId, idMatches, apiStatus, uiStatus, statusMatches });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.log(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
+        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
         // Verify all visible UI buyers have valid format (3-group)
         for (const uiBuyerId of uiBuyerIds.slice(0, 10)) {

@@ -6,6 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { PAUSE } = require('../pageobjects/utils/constants');
 
 describe('Licensees Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -20,7 +21,7 @@ describe('Licensees Page', () => {
   async function navigateToLicensees() {
     // First ensure we're on a page with footer visible
     await licenseesPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     // Click Licensees menu item
     await morePage.licenseesMenuItem.click();
     await licenseesPage.waitForScreenReady();
@@ -34,11 +35,11 @@ describe('Licensees Page', () => {
     
     // Check if Licensees menu item is available for this user
     await licenseesPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     licenseesMenuAvailable = await morePage.licenseesMenuItem.isDisplayed().catch(() => false);
     
     if (!licenseesMenuAvailable) {
-      console.log('⚠️ Licensees menu item not available for this user - skipping Licensees tests');
+      console.info('⚠️ Licensees menu item not available for this user - skipping Licensees tests');
       return;
     }
     
@@ -51,7 +52,7 @@ describe('Licensees Page', () => {
     hasEmptyState = !hasLicenseesData && await licenseesPage.emptyState.isDisplayed().catch(() => false);
     apiLicenseesAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.log(`📊 Licensees data state: hasLicensees=${hasLicenseesData}, emptyState=${hasEmptyState}, apiAvailable=${apiLicenseesAvailable}`);
+    console.info(`📊 Licensees data state: hasLicensees=${hasLicenseesData}, emptyState=${hasEmptyState}, apiAvailable=${apiLicenseesAvailable}`);
   });
 
   beforeEach(async function () {
@@ -71,7 +72,7 @@ describe('Licensees Page', () => {
     it('should be accessible from More menu', async () => {
       // Navigate away first
       await licenseesPage.goBack();
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
       
       // Navigate back to Licensees
       await morePage.licenseesMenuItem.click();
@@ -204,9 +205,9 @@ describe('Licensees Page', () => {
       const licenseesCount = await licenseesPage.getVisibleLicenseesCount();
       const licenseeIds = await licenseesPage.getVisibleLicenseeIds();
       
-      console.log(`Total licensees detected: ${licenseesCount}`);
-      console.log(`First 5 licensee IDs: ${licenseeIds.slice(0, 5).join(', ')}`);
-      console.log(`Last 5 licensee IDs: ${licenseeIds.slice(-5).join(', ')}`);
+      console.info(`Total licensees detected: ${licenseesCount}`);
+      console.info(`First 5 licensee IDs: ${licenseeIds.slice(0, 5).join(', ')}`);
+      console.info(`Last 5 licensee IDs: ${licenseeIds.slice(-5).join(', ')}`);
       
       expect(licenseesCount).toBeGreaterThan(0);
       
@@ -241,7 +242,7 @@ describe('Licensees Page', () => {
       const totalStatusLicensees = enabledLicensees.length + disabledLicensees.length;
       expect(totalStatusLicensees).toBeGreaterThanOrEqual(0);
       
-      console.log(`Licensees by status - Enabled: ${enabledLicensees.length}, Disabled: ${disabledLicensees.length}`);
+      console.info(`Licensees by status - Enabled: ${enabledLicensees.length}, Disabled: ${disabledLicensees.length}`);
     });
   });
 
@@ -261,7 +262,7 @@ describe('Licensees Page', () => {
         
         const uiCount = await licenseesPage.getVisibleLicenseesCount();
         
-        console.log(`[Count Compare] API licensees: ${apiCount}, UI visible licensees: ${uiCount}`);
+        console.info(`[Count Compare] API licensees: ${apiCount}, UI visible licensees: ${uiCount}`);
         
         // UI should show at least some licensees if API has licensees
         if (apiCount > 0) {
@@ -299,13 +300,13 @@ describe('Licensees Page', () => {
           const idMatches = apiLicenseeId === uiLicenseeId;
           const statusMatches = apiStatus === uiStatus;
           
-          console.log(`[${i + 1}] ID: ${apiLicenseeId} vs ${uiLicenseeId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          console.info(`[${i + 1}] ID: ${apiLicenseeId} vs ${uiLicenseeId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
           comparisons.push({ apiLicenseeId, uiLicenseeId, idMatches, apiStatus, uiStatus, statusMatches });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.log(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
+        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
         // Verify all visible UI licensees have valid format (4-group)
         for (const uiLicenseeId of uiLicenseeIds.slice(0, 10)) {
