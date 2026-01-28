@@ -3,6 +3,11 @@
     "emptyStateTitle": "No orders",
     "emptyStateDescription": "No orders found."
   },
+  "orderDetailsScreen": {
+    "title": "Order",
+    "emptyStateTitle": "No order details",
+    "emptyStateDescription": "No order details found."
+  },
   "subscriptionsScreen": {
     "emptyStateTitle": "No subscriptions",
     "emptyStateDescription": "No subscriptions found."

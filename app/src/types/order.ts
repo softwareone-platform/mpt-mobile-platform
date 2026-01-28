@@ -1,3 +1,6 @@
+import { BaseObjectDetails } from '@/types/common';
+import type { DetailsListItemValue } from '@/types/lists';
+
 export interface Order {
   id: string;
   status: string;
@@ -10,4 +13,9 @@ export interface Order {
       at?: string;
     };
   };
+}
+
+export interface OrderDetails extends BaseObjectDetails {
+  type: string;
+  assignee: DetailsListItemValue;
 }

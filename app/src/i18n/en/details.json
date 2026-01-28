@@ -11,6 +11,15 @@
     "currency": "Currency",
     "documentId": "Document ID",
     "sp": "∑ SP",
-    "gt": "∑ GT"
+    "gt": "∑ GT",
+    "type": "Type",
+    "assignee": "Assignee",
+    "resaleLicencee": "Resale licencee",
+    "yes": "Yes",
+    "no": "No",
+    "up": "M↑",
+    "down": "M↓",
+    "averageYield": "Average yield",
+    "defaultYield": "Default yield"
   }
 }
