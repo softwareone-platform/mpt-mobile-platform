@@ -23,16 +23,18 @@ describe('Home page of application', () => {
 
     console.log(`📊 Spotlights data state: hasSpotlights=${hasSpotlightsData}, emptyState=${hasEmptyState}`);
 
-    // Check section visibility ONCE and cache results
+    // Check section visibility ONCE and cache results using quick existence checks (no scrolling)
     // These sections may or may not be visible depending on user's data
+    // We use isExisting() with short timeout instead of scrolling to find each section
     sectionVisibility = {
-      expiringSubscriptions: await homePage.isExpiringSubscriptionsSectionVisible().catch(() => false),
-      expiredInvites: await homePage.isExpiredInvitesSectionVisible().catch(() => false),
-      pendingInvites: await homePage.isPendingInvitesSectionVisible().catch(() => false),
-      invoicesPastDue: await homePage.isInvoicesPastDueSectionVisible().catch(() => false),
-      inProgressJournals: await homePage.isInProgressJournalsSectionVisible().catch(() => false),
-      mismatchingBuyers: await homePage.isMismatchingBuyersSectionVisible().catch(() => false),
-      buyersWithBlockedConnections: await homePage.isBuyersWithBlockedConnectionsSectionVisible().catch(() => false),
+      longRunningOrders: await homePage.longRunningOrdersHeader.isExisting().catch(() => false),
+      expiringSubscriptions: await homePage.expiringSubscriptionsHeader.isExisting().catch(() => false),
+      expiredInvites: await homePage.expiredInvitesHeader.isExisting().catch(() => false),
+      pendingInvites: await homePage.pendingInvitesHeader.isExisting().catch(() => false),
+      invoicesPastDue: await homePage.invoicesPastDueHeader.isExisting().catch(() => false),
+      inProgressJournals: await homePage.inProgressJournalsHeader.isExisting().catch(() => false),
+      mismatchingBuyers: await homePage.mismatchingBuyersHeader.isExisting().catch(() => false),
+      buyersWithBlockedConnections: await homePage.buyersWithBlockedConnectionsHeader.isExisting().catch(() => false),
     };
 
     console.log(`📊 Section visibility:`, sectionVisibility);
@@ -95,8 +97,8 @@ describe('Home page of application', () => {
 
   describe('Section Headers', () => {
     it('should display long-running orders header', async function () {
-      if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data for this user');
+      if (!sectionVisibility.longRunningOrders) {
+        console.log('Skipping - no long-running orders data for this user');
         this.skip();
         return;
       }

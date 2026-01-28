@@ -263,7 +263,8 @@ class SpotlightsPage extends BasePage {
     if (isAndroid()) {
       const isVisible = await section.isDisplayed().catch(() => false);
       if (!isVisible) {
-        await section.scrollIntoView();
+        // Scroll down to find the section (sections are typically below current viewport)
+        await section.scrollIntoView({ direction: 'down' });
       }
     } else {
       // iOS: scroll in small increments until element is found

@@ -1,6 +1,9 @@
 const homePage = require('../spotlights.page');
 const verifyPage = require('../verify.page');
 const welcomePage = require('../welcome.page');
+const headingPage = require('../base/heading.page');
+const profilePage = require('../profile.page');
+const userSettingsPage = require('../user-settings.page');
 const { isAndroid } = require('./selectors');
 
 const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'not-set';
@@ -131,9 +134,47 @@ async function ensureLoggedIn(email = AIRTABLE_EMAIL) {
   }
 }
 
+/**
+ * Logs out the user if they are currently logged in
+ * Navigates through Profile -> User Settings -> Sign Out
+ * @returns {Promise<void>}
+ */
+async function ensureLoggedOut() {
+  const loggedIn = await isLoggedIn();
+  if (!loggedIn) {
+    console.info('✓ User is already logged out');
+    return;
+  }
+
+  console.info('🔓 User is logged in, performing logout...');
+
+  try {
+    // Navigate to Profile page via account button
+    await headingPage.navAccountButton.click();
+    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: 10000 });
+    console.info('✓ Navigated to Profile page');
+
+    // Navigate to User Settings by clicking current user card
+    await profilePage.currentUserCard.click();
+    await userSettingsPage.headerTitle.waitForDisplayed({ timeout: 10000 });
+    console.info('✓ Navigated to User Settings');
+
+    // Click sign out button
+    await userSettingsPage.signOut();
+
+    // Wait for welcome page to confirm logout
+    await welcomePage.welcomeTitle.waitForDisplayed({ timeout: 15000 });
+    console.info('✅ User successfully logged out');
+  } catch (error) {
+    console.error('❌ Logout failed:', error.message);
+    throw error;
+  }
+}
+
 module.exports = {
   isLoggedIn,
   loginWithOTP,
   ensureLoggedIn,
+  ensureLoggedOut,
   AIRTABLE_EMAIL,
 };

@@ -220,6 +220,11 @@ describe('Spotlight Filter Chips', () => {
         this.skip();
         return;
       }
+      if (!sectionData.hasInvoices) {
+        console.log('Skipping - no invoices data for this user');
+        this.skip();
+        return;
+      }
       await spotlightsPage.scrollToFilter('invoices');
       await spotlightsPage.selectFilter('invoices');
       await browser.pause(1000); // Longer pause for Android filter transition
