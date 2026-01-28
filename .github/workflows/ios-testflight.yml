@@ -26,7 +26,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  XCODE_VERSION: '16.0'
+  XCODE_VERSION: '26.0'
   DEVELOPMENT_TEAM: '47PY6J2KQC'
 
 jobs:
@@ -60,7 +60,7 @@ jobs:
       - name: Select Xcode version
         run: |
           echo "Selecting Xcode ${{ env.XCODE_VERSION }}"
-          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+          sudo xcode-select -switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           xcodebuild -version
 
       - name: Setup Node.js
