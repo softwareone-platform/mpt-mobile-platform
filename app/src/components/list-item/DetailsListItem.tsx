@@ -4,7 +4,7 @@ import type { DetailsListItemProps } from '@/types/lists';
 
 const DetailsListItem = ({ label, data, hideImage, isLast, onPress }: DetailsListItemProps) => {
   if (!data) {
-    return <ListItemWithLabelAndText title={label} subtitle="-" />;
+    return <ListItemWithLabelAndText title={label} subtitle="-" isLast={isLast} />;
   }
 
   return (

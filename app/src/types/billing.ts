@@ -1,10 +1,9 @@
-import type { DetailsListItemValue } from '@/types/lists';
+import { BaseObjectDetails } from '@/types/common';
 
 export interface CreditMemo {
   id: string;
   documentNo: string;
   status: string;
-
   attributes?: Record<string, unknown>;
   erpData?: Record<string, unknown>;
   buyer?: Record<string, unknown>;
@@ -13,23 +12,8 @@ export interface CreditMemo {
   audit?: Record<string, unknown>;
 }
 
-export interface CreditMemoDetails {
-  id: string;
+export interface CreditMemoDetails extends BaseObjectDetails {
   documentNo: string;
-  status: string;
-
-  client?: DetailsListItemValue;
-  buyer?: DetailsListItemValue;
-  licencee?: DetailsListItemValue;
-  vendor?: DetailsListItemValue;
-  product?: DetailsListItemValue;
-  agreement?: DetailsListItemValue;
-  seller?: DetailsListItemValue;
-  price: {
-    currency: string;
-    totalSP: number;
-    totalGT: number;
-  };
 }
 
 export interface Invoice {
