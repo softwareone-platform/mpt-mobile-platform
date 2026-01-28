@@ -5,7 +5,7 @@ describe('calculateMarginWithMarkup', () => {
     expect(calculateMarginWithMarkup(0)).toBe(0);
   });
 
-  it('should return 0 if markup is negative', () => {
+  it('should return number less than 0 if markup is negative', () => {
     expect(calculateMarginWithMarkup(-10)).toBeLessThan(0);
   });
 
