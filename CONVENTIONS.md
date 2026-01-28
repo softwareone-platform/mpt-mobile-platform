@@ -22,6 +22,7 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - [Text and Copy Conventions](#text-and-copy-conventions)
 - [Architecture Principles](#architecture-principles)
 - [E2E Testing Conventions](#e2e-testing-conventions)
+- [SonarCloud Quality Gate](#sonarcloud-quality-gate)
 
 ---
 
@@ -973,3 +974,51 @@ The project enforces these rules (from `app/eslint.config.js`):
 | `react/react-in-jsx-scope` | Not needed with new JSX transform |
 | `react/prop-types` | Using TypeScript instead |
 | `react-native/no-raw-text` | Disabled for flexibility |
+
+---
+
+## SonarCloud Quality Gate
+
+SonarCloud runs on every PR and main branch push. PRs must pass the quality gate to merge.
+
+### Conditions on New Code (PRs & All Branches)
+
+| Metric | Requirement |
+|--------|-------------|
+| **Coverage** | ≥ 80% |
+| **Duplicated Lines** | ≤ 3% |
+| **Maintainability Rating** | A |
+| **Reliability Rating** | A (no new bugs) |
+| **Security Rating** | A (no new vulnerabilities) |
+| **Security Hotspots Reviewed** | ≥ 50% |
+| **Blocker Issues** | 0 |
+| **Critical Issues** | ≤ 1 |
+| **Major Issues** | ≤ 3 |
+| **Code Smells** | ≤ 30 |
+
+### Conditions on Overall Code (Long-lived Branches)
+
+| Metric | Requirement |
+|--------|-------------|
+| **Coverage** | ≥ 70% |
+| **Duplicated Lines** | ≤ 1% |
+
+### Coverage Exclusions
+
+The following are excluded from coverage requirements (see `sonar-project.properties`):
+
+```
+- **/__tests__/**        # Test files
+- **/types/**            # Type definitions
+- **/constants/**        # Constants
+- **/styles/**/*.ts      # Style files
+- **/hooks/queries/**    # Query hooks (mostly TanStack wrappers)
+- **/i18n/**             # Translation files
+- *.d.ts                 # Declaration files
+- *.tsx                  # React components (UI-focused)
+```
+
+### Dashboard
+
+- **View results:** https://sonarcloud.io/project/overview?id=softwareone-pc_mpt-mobile-platform
+- **PR analysis:** Linked in PR comments automatically
