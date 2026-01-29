@@ -33,7 +33,7 @@ on:
         default: false
 
 env:
-  XCODE_VERSION: '26.0'
+  XCODE_VERSION: '26.0.1'
 
 jobs:
   build-ios:
