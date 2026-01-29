@@ -32,6 +32,9 @@ on:
         type: boolean
         default: false
 
+env:
+  XCODE_VERSION: '26.0'
+
 jobs:
   build-ios:
     name: Build iOS App
@@ -48,8 +51,8 @@ jobs:
 
       - name: Select Xcode version
         run: |
-          echo "📋 Selecting Xcode 16.0"
-          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+          echo "📋 Selecting Xcode ${{ env.XCODE_VERSION }}"
+          sudo xcode-select -switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           xcodebuild -version
 
       - name: Setup Node.js
