@@ -21,21 +21,23 @@ describe('Home page of application', () => {
     hasSpotlightsData = await homePage.hasSpotlights();
     hasEmptyState = !hasSpotlightsData && await homePage.emptyState.isDisplayed().catch(() => false);
 
-    console.log(`📊 Spotlights data state: hasSpotlights=${hasSpotlightsData}, emptyState=${hasEmptyState}`);
+    console.info(`📊 Spotlights data state: hasSpotlights=${hasSpotlightsData}, emptyState=${hasEmptyState}`);
 
-    // Check section visibility ONCE and cache results
+    // Check section visibility ONCE and cache results using quick existence checks (no scrolling)
     // These sections may or may not be visible depending on user's data
+    // We use isExisting() with short timeout instead of scrolling to find each section
     sectionVisibility = {
-      expiringSubscriptions: await homePage.isExpiringSubscriptionsSectionVisible().catch(() => false),
-      expiredInvites: await homePage.isExpiredInvitesSectionVisible().catch(() => false),
-      pendingInvites: await homePage.isPendingInvitesSectionVisible().catch(() => false),
-      invoicesPastDue: await homePage.isInvoicesPastDueSectionVisible().catch(() => false),
-      inProgressJournals: await homePage.isInProgressJournalsSectionVisible().catch(() => false),
-      mismatchingBuyers: await homePage.isMismatchingBuyersSectionVisible().catch(() => false),
-      buyersWithBlockedConnections: await homePage.isBuyersWithBlockedConnectionsSectionVisible().catch(() => false),
+      longRunningOrders: await homePage.longRunningOrdersHeader.isExisting().catch(() => false),
+      expiringSubscriptions: await homePage.expiringSubscriptionsHeader.isExisting().catch(() => false),
+      expiredInvites: await homePage.expiredInvitesHeader.isExisting().catch(() => false),
+      pendingInvites: await homePage.pendingInvitesHeader.isExisting().catch(() => false),
+      invoicesPastDue: await homePage.invoicesPastDueHeader.isExisting().catch(() => false),
+      inProgressJournals: await homePage.inProgressJournalsHeader.isExisting().catch(() => false),
+      mismatchingBuyers: await homePage.mismatchingBuyersHeader.isExisting().catch(() => false),
+      buyersWithBlockedConnections: await homePage.buyersWithBlockedConnectionsHeader.isExisting().catch(() => false),
     };
 
-    console.log(`📊 Section visibility:`, sectionVisibility);
+    console.info(`📊 Section visibility:`, sectionVisibility);
   });
 
   beforeEach(async () => {
@@ -95,8 +97,8 @@ describe('Home page of application', () => {
 
   describe('Section Headers', () => {
     it('should display long-running orders header', async function () {
-      if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data for this user');
+      if (!sectionVisibility.longRunningOrders) {
+        console.info('Skipping - no long-running orders data for this user');
         this.skip();
         return;
       }
@@ -108,7 +110,7 @@ describe('Home page of application', () => {
 
     it('should display expiring subscriptions header', async function () {
       if (!sectionVisibility.expiringSubscriptions) {
-        console.log('Skipping - no expiring subscriptions data for this user');
+        console.info('Skipping - no expiring subscriptions data for this user');
         this.skip();
         return;
       }
@@ -119,7 +121,7 @@ describe('Home page of application', () => {
 
     it('should display expired invites header', async function () {
       if (!sectionVisibility.expiredInvites) {
-        console.log('Skipping - no expired invites data for this user');
+        console.info('Skipping - no expired invites data for this user');
         this.skip();
         return;
       }
@@ -130,7 +132,7 @@ describe('Home page of application', () => {
 
     it('should display pending invites header', async function () {
       if (!sectionVisibility.pendingInvites) {
-        console.log('Skipping - no pending invites data for this user');
+        console.info('Skipping - no pending invites data for this user');
         this.skip();
         return;
       }
@@ -141,7 +143,7 @@ describe('Home page of application', () => {
 
     it('should display past due invoices header', async function () {
       if (!sectionVisibility.invoicesPastDue) {
-        console.log('Skipping - no past due invoices data for this user');
+        console.info('Skipping - no past due invoices data for this user');
         this.skip();
         return;
       }
@@ -152,7 +154,7 @@ describe('Home page of application', () => {
 
     it('should display in progress journals header', async function () {
       if (!sectionVisibility.inProgressJournals) {
-        console.log('Skipping - no in progress journals data for this user');
+        console.info('Skipping - no in progress journals data for this user');
         this.skip();
         return;
       }
@@ -164,7 +166,7 @@ describe('Home page of application', () => {
 
     it('should display mismatching buyers header', async function () {
       if (!sectionVisibility.mismatchingBuyers) {
-        console.log('Skipping - no mismatching buyers data for this user');
+        console.info('Skipping - no mismatching buyers data for this user');
         this.skip();
         return;
       }
@@ -175,7 +177,7 @@ describe('Home page of application', () => {
 
     it('should display buyers with blocked connections header', async function () {
       if (!sectionVisibility.buyersWithBlockedConnections) {
-        console.log('Skipping - no buyers with blocked connections data for this user');
+        console.info('Skipping - no buyers with blocked connections data for this user');
         this.skip();
         return;
       }
