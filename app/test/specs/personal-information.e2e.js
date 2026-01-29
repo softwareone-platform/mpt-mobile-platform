@@ -7,6 +7,7 @@ const userSettingsPage = require('../pageobjects/user-settings.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { TIMEOUT } = require('../pageobjects/utils/constants');
 
 describe('Personal Information Page', () => {
   let userId;
@@ -20,16 +21,16 @@ describe('Personal Information Page', () => {
     // Navigate to Profile page and get user ID
     await navigation.ensureHomePage({ resetFilters: false });
     await headingPage.navAccountButton.click();
-    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: 10000 });
+    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
 
     // Get user ID from Profile page as soon as it loads
     userId = await profilePage.getCurrentUserId();
-    console.log(`📋 Current user ID: ${userId}`);
+    console.info(`📋 Current user ID: ${userId}`);
 
     // Fetch user information from API
     try {
       userInfo = await apiClient.getUserInformation(userId);
-      console.log(`📊 Loaded user information from API for user ${userId}`);
+      console.info(`📊 Loaded user information from API for user ${userId}`);
     } catch (error) {
       console.warn(`⚠️ Could not fetch user information from API: ${error.message}`);
       userInfo = null;
@@ -38,9 +39,9 @@ describe('Personal Information Page', () => {
     // Continue navigation to Personal Information page
     // Profile → Current User Card → User Settings → Personal Information
     await profilePage.currentUserCard.click();
-    await userSettingsPage.headerTitle.waitForDisplayed({ timeout: 10000 });
+    await userSettingsPage.headerTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
     await userSettingsPage.openPersonalInformation();
-    await personalInformationPage.headerTitle.waitForDisplayed({ timeout: 10000 });
+    await personalInformationPage.headerTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
   });
 
   describe('Header Section', () => {
@@ -125,10 +126,10 @@ describe('Personal Information Page', () => {
       const uiLastName = await personalInformationPage.getLastName();
       const uiEmail = await personalInformationPage.getEmail();
 
-      console.log(`📊 Comparing user information:`);
-      console.log(`   First Name - UI: "${uiFirstName}" | API: "${apiFirstName}"`);
-      console.log(`   Last Name  - UI: "${uiLastName}" | API: "${apiLastName}"`);
-      console.log(`   Email      - UI: "${uiEmail}" | API: "${apiEmail}"`);
+      console.info(`📊 Comparing user information:`);
+      console.info(`   First Name - UI: "${uiFirstName}" | API: "${apiFirstName}"`);
+      console.info(`   Last Name  - UI: "${uiLastName}" | API: "${apiLastName}"`);
+      console.info(`   Email      - UI: "${uiEmail}" | API: "${apiEmail}"`);
 
       // Validate fields match (only if API returned the field)
       if (apiFirstName) {

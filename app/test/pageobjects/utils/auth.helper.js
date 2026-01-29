@@ -1,7 +1,11 @@
 const homePage = require('../spotlights.page');
 const verifyPage = require('../verify.page');
 const welcomePage = require('../welcome.page');
+const headingPage = require('../base/heading.page');
+const profilePage = require('../profile.page');
+const userSettingsPage = require('../user-settings.page');
 const { isAndroid } = require('./selectors');
+const { TIMEOUT } = require('./constants');
 
 const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'not-set';
 const OTP_TIMEOUT_MS = 120000;
@@ -73,7 +77,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
   console.info(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`);
 
   // Wait for navigation to verify screen
-  await verifyPage.verifyTitle.waitForDisplayed({ timeout: 10000 });
+  await verifyPage.verifyTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
   console.info('✓ Navigated to verification screen');
 
   // Wait for OTP to arrive via Airtable
@@ -113,7 +117,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
 
   // Wait for auto-submission and navigation to home page
   console.info(`⏳ Waiting for auto-submission to complete...`);
-  await homePage.filterAll.waitForDisplayed({ timeout: 30000 });
+  await homePage.filterAll.waitForDisplayed({ timeout: TIMEOUT.SCREEN_READY });
 
   console.info('✅ Login completed successfully');
 }
@@ -131,9 +135,47 @@ async function ensureLoggedIn(email = AIRTABLE_EMAIL) {
   }
 }
 
+/**
+ * Logs out the user if they are currently logged in
+ * Navigates through Profile -> User Settings -> Sign Out
+ * @returns {Promise<void>}
+ */
+async function ensureLoggedOut() {
+  const loggedIn = await isLoggedIn();
+  if (!loggedIn) {
+    console.info('✓ User is already logged out');
+    return;
+  }
+
+  console.info('🔓 User is logged in, performing logout...');
+
+  try {
+    // Navigate to Profile page via account button
+    await headingPage.navAccountButton.click();
+    await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
+    console.info('✓ Navigated to Profile page');
+
+    // Navigate to User Settings by clicking current user card
+    await profilePage.currentUserCard.click();
+    await userSettingsPage.headerTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
+    console.info('✓ Navigated to User Settings');
+
+    // Click sign out button
+    await userSettingsPage.signOut();
+
+    // Wait for welcome page to confirm logout
+    await welcomePage.welcomeTitle.waitForDisplayed({ timeout: 15000 });
+    console.info('✅ User successfully logged out');
+  } catch (error) {
+    console.error('❌ Logout failed:', error.message);
+    throw error;
+  }
+}
+
 module.exports = {
   isLoggedIn,
   loginWithOTP,
   ensureLoggedIn,
+  ensureLoggedOut,
   AIRTABLE_EMAIL,
 };

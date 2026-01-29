@@ -38,7 +38,7 @@ describe('Agreements Page', () => {
     hasEmptyState = !hasAgreementsData && await agreementsPage.emptyState.isDisplayed().catch(() => false);
     apiAgreementsAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.log(`📊 Agreements data state: hasAgreements=${hasAgreementsData}, emptyState=${hasEmptyState}, apiAvailable=${apiAgreementsAvailable}`);
+    console.info(`📊 Agreements data state: hasAgreements=${hasAgreementsData}, emptyState=${hasEmptyState}, apiAvailable=${apiAgreementsAvailable}`);
   });
 
   beforeEach(async function () {
@@ -185,9 +185,9 @@ describe('Agreements Page', () => {
       const agreementsCount = await agreementsPage.getVisibleAgreementsCount();
       const agreementIds = await agreementsPage.getVisibleAgreementIds();
       
-      console.log(`Total agreements detected: ${agreementsCount}`);
-      console.log(`First 5 agreement IDs: ${agreementIds.slice(0, 5).join(', ')}`);
-      console.log(`Last 5 agreement IDs: ${agreementIds.slice(-5).join(', ')}`);
+      console.info(`Total agreements detected: ${agreementsCount}`);
+      console.info(`First 5 agreement IDs: ${agreementIds.slice(0, 5).join(', ')}`);
+      console.info(`Last 5 agreement IDs: ${agreementIds.slice(-5).join(', ')}`);
       
       expect(agreementsCount).toBeGreaterThan(0);
       
@@ -225,7 +225,7 @@ describe('Agreements Page', () => {
                                     deletedAgreements.length + provisioningAgreements.length;
       expect(totalStatusAgreements).toBeGreaterThanOrEqual(0);
       
-      console.log(`Agreements by status - Active: ${activeAgreements.length}, Terminated: ${terminatedAgreements.length}, Deleted: ${deletedAgreements.length}, Provisioning: ${provisioningAgreements.length}`);
+      console.info(`Agreements by status - Active: ${activeAgreements.length}, Terminated: ${terminatedAgreements.length}, Deleted: ${deletedAgreements.length}, Provisioning: ${provisioningAgreements.length}`);
     });
   });
 
@@ -244,7 +244,7 @@ describe('Agreements Page', () => {
         
         const uiCount = await agreementsPage.getVisibleAgreementsCount();
         
-        console.log(`[Count Compare] API agreements: ${apiCount}, UI visible agreements: ${uiCount}`);
+        console.info(`[Count Compare] API agreements: ${apiCount}, UI visible agreements: ${uiCount}`);
         
         // UI should show at least some agreements if API has agreements
         if (apiCount > 0) {
@@ -281,13 +281,13 @@ describe('Agreements Page', () => {
           const idMatches = apiAgreementId === uiAgreementId;
           const statusMatches = apiStatus === uiStatus;
           
-          console.log(`[${i + 1}] ID: ${apiAgreementId} vs ${uiAgreementId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          console.info(`[${i + 1}] ID: ${apiAgreementId} vs ${uiAgreementId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
           comparisons.push({ apiAgreementId, uiAgreementId, idMatches, apiStatus, uiStatus, statusMatches });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.log(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
+        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
         // Verify all visible UI agreements have valid format
         for (const uiAgreementId of uiAgreementIds.slice(0, 10)) {

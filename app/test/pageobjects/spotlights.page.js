@@ -4,6 +4,7 @@ const BasePage = require('./base/base.page');
 const footerPage = require('./base/footer.page');
 const headingPage = require('./base/heading.page');
 const { selectors, isAndroid, getSelector } = require('./utils/selectors');
+const { PAUSE } = require('./utils/constants');
 
 class SpotlightsPage extends BasePage {
   constructor() {
@@ -263,7 +264,8 @@ class SpotlightsPage extends BasePage {
     if (isAndroid()) {
       const isVisible = await section.isDisplayed().catch(() => false);
       if (!isVisible) {
-        await section.scrollIntoView();
+        // Scroll down to find the section (sections are typically below current viewport)
+        await section.scrollIntoView({ direction: 'down' });
       }
     } else {
       // iOS: scroll in small increments until element is found
@@ -276,7 +278,7 @@ class SpotlightsPage extends BasePage {
           direction: 'up',
           velocity: 500,
         });
-        await browser.pause(200);
+        await browser.pause(PAUSE.TEXT_ENTRY);
       }
     }
     return section;
@@ -348,7 +350,7 @@ class SpotlightsPage extends BasePage {
             direction: 'down',
             percent: 0.75,
           });
-          await browser.pause(200);
+          await browser.pause(PAUSE.TEXT_ENTRY);
         }
       }
     } else {
@@ -362,7 +364,7 @@ class SpotlightsPage extends BasePage {
           direction: 'down',
           velocity: 500,
         });
-        await browser.pause(200);
+        await browser.pause(PAUSE.TEXT_ENTRY);
       }
     }
   }
@@ -441,7 +443,7 @@ class SpotlightsPage extends BasePage {
     for (let i = 0; i < maxScrolls; i++) {
       // Horizontal swipe left to reveal more filters (later filters like enrollments, journals, buyers)
       await this.horizontalSwipeOnFilters('left');
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
 
       const isVisible = await filter.isDisplayed().catch(() => false);
       if (isVisible) return filter;
@@ -502,7 +504,7 @@ class SpotlightsPage extends BasePage {
     if (alreadyVisible) {
       // One scroll right to ensure we're fully at start, not partially scrolled
       await this.horizontalSwipeOnFilters('right');
-      await browser.pause(150);
+      await browser.pause(PAUSE.SWIPE_ANIMATION);
       return;
     }
 
@@ -510,7 +512,7 @@ class SpotlightsPage extends BasePage {
     const maxScrolls = 5;
     for (let i = 0; i < maxScrolls; i++) {
       await this.horizontalSwipeOnFilters('right');
-      await browser.pause(150);
+      await browser.pause(PAUSE.SWIPE_ANIMATION);
       const nowVisible = await this.filterAll.isDisplayed().catch(() => false);
       if (nowVisible) return;
     }
@@ -656,7 +658,7 @@ class SpotlightsPage extends BasePage {
     // Wait for filter state to update after click
     // Note: On Android, the accessibilityState.selected update timing is unreliable,
     // so we use a fixed pause. The section visibility tests validate actual filter behavior.
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
   }
 
   /**

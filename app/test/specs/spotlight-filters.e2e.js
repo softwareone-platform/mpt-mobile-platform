@@ -4,6 +4,7 @@ const spotlightsPage = require('../pageobjects/spotlights.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureHomePage } = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { PAUSE } = require('../pageobjects/utils/constants');
 
 /**
  * Spotlight Filter Tests - Optimized Structure
@@ -31,7 +32,7 @@ describe('Spotlight Filter Chips', () => {
     hasSpotlightsData = await spotlightsPage.hasSpotlights();
 
     if (!hasSpotlightsData) {
-      console.log('📊 No spotlight data - filter tests will be skipped');
+      console.info('📊 No spotlight data - filter tests will be skipped');
       return;
     }
 
@@ -40,7 +41,7 @@ describe('Spotlight Filter Chips', () => {
     try {
       sectionData = await apiClient.getSpotlightDataAvailability();
       apiDataAvailable = true;
-      console.log(`📊 Spotlight section data (from API):`, {
+      console.info(`📊 Spotlight section data (from API):`, {
         hasSubscriptions: sectionData.hasSubscriptions,
         hasJournals: sectionData.hasJournals,
         hasBuyers: sectionData.hasBuyers,
@@ -49,9 +50,9 @@ describe('Spotlight Filter Chips', () => {
         hasUsers: sectionData.hasUsers,
         hasInvoices: sectionData.hasInvoices,
       });
-      console.log(`📊 Raw spotlight counts:`, sectionData._counts);
+      console.info(`📊 Raw spotlight counts:`, sectionData._counts);
     } catch (apiError) {
-      console.log(`⚠️ API check failed, falling back to UI checks: ${apiError.message}`);
+      console.info(`⚠️ API check failed, falling back to UI checks: ${apiError.message}`);
       // Fallback to UI-based checks if API fails
       sectionData = {
         hasSubscriptions: await spotlightsPage.isSubscriptionsSectionVisible().catch(() => false),
@@ -59,7 +60,7 @@ describe('Spotlight Filter Chips', () => {
         hasBuyers: await spotlightsPage.isBuyersSectionVisible().catch(() => false),
         hasEnrollments: await spotlightsPage.isEnrollmentsSectionVisible().catch(() => false),
       };
-      console.log(`📊 Spotlight section data (from UI fallback):`, sectionData);
+      console.info(`📊 Spotlight section data (from UI fallback):`, sectionData);
     }
   });
 
@@ -71,12 +72,12 @@ describe('Spotlight Filter Chips', () => {
       }
       await spotlightsPage.resetFilterScrollPosition().catch(() => {});
       await spotlightsPage.selectFilter('all').catch(() => {});
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
     it('should display "All" filter chip by default', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -85,7 +86,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should display visible filter chips without scrolling', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -112,7 +113,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should select Orders filter and show order sections', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -130,7 +131,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should switch from Orders to Subscriptions filter', async function () {
       if (!hasSpotlightsData || !sectionData.hasSubscriptions) {
-        console.log('Skipping - no subscriptions data for this user');
+        console.info('Skipping - no subscriptions data for this user');
         this.skip();
         return;
       }
@@ -146,7 +147,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should show only subscription sections when Subscriptions filter is selected', async function () {
       if (!hasSpotlightsData || !sectionData.hasSubscriptions) {
-        console.log('Skipping - no subscriptions data for this user');
+        console.info('Skipping - no subscriptions data for this user');
         this.skip();
         return;
       }
@@ -177,7 +178,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should display Users filter after scrolling', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -186,7 +187,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should select Users filter and show user sections', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -207,7 +208,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should display Invoices filter', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -216,7 +217,12 @@ describe('Spotlight Filter Chips', () => {
 
     it('should select Invoices filter and show invoice sections', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
+        this.skip();
+        return;
+      }
+      if (!sectionData.hasInvoices) {
+        console.info('Skipping - no invoices data for this user');
         this.skip();
         return;
       }
@@ -252,7 +258,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should display Journals filter after scrolling', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -261,7 +267,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should select Journals filter and show journal sections', async function () {
       if (!hasSpotlightsData || !sectionData.hasJournals) {
-        console.log('Skipping - no journals data for this user');
+        console.info('Skipping - no journals data for this user');
         this.skip();
         return;
       }
@@ -277,7 +283,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should display Buyers filter after scrolling', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -287,7 +293,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should select Buyers filter and show buyer sections', async function () {
       if (!hasSpotlightsData || !sectionData.hasBuyers) {
-        console.log('Skipping - no buyers data for this user');
+        console.info('Skipping - no buyers data for this user');
         this.skip();
         return;
       }
@@ -303,7 +309,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should select Enrollments filter and show enrollment sections', async function () {
       if (!hasSpotlightsData || !sectionData.hasEnrollments) {
-        console.log('Skipping - no enrollments data for this user');
+        console.info('Skipping - no enrollments data for this user');
         this.skip();
         return;
       }
@@ -331,7 +337,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should show all sections when All filter is reselected after filtering', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }
@@ -355,7 +361,7 @@ describe('Spotlight Filter Chips', () => {
 
     it('should maintain All filter selection after scrolling content', async function () {
       if (!hasSpotlightsData) {
-        console.log('Skipping - no spotlight data, filters not available');
+        console.info('Skipping - no spotlight data, filters not available');
         this.skip();
         return;
       }

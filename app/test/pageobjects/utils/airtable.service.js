@@ -133,8 +133,8 @@ function extractOTPFromBody(bodyText) {
  */
 async function fetchOTPByEmail(email) {
     const config = getAirtableConfig();
-    console.log(`\n=== Fetching OTP for: ${email} ===`);
-    console.log(`  From Email filter: ${config.fromEmail}\n`);
+    console.info(`\n=== Fetching OTP for: ${email} ===`);
+    console.info(`  From Email filter: ${config.fromEmail}\n`);
     
     try {
         const encodedTableName = encodeURIComponent(config.tableName);
@@ -153,20 +153,20 @@ async function fetchOTPByEmail(email) {
             const otp = extractOTPFromBody(bodyPlain);
             
             if (otp) {
-                console.log(`✓ Found OTP: ${otp}`);
-                console.log(`  Created At: ${record.fields['Created At']}`);
-                console.log(`  Subject: ${record.fields['Subject']}`);
+                console.info(`✓ Found OTP: ${otp}`);
+                console.info(`  Created At: ${record.fields['Created At']}`);
+                console.info(`  Subject: ${record.fields['Subject']}`);
                 
                 // Mark record as Processed
                 await markAsProcessed(record.id);
                 
                 return { otp, record };
             } else {
-                console.log('⚠ Record found but no OTP code in body');
+                console.info('⚠ Record found but no OTP code in body');
                 return null;
             }
         } else {
-            console.log(`⚠ No email records found for: ${email}`);
+            console.info(`⚠ No email records found for: ${email}`);
             return null;
         }
     } catch (error) {
@@ -187,17 +187,17 @@ async function fetchOTPByEmail(email) {
  */
 async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, afterTime = new Date()) {
     const config = getAirtableConfig();
-    console.log(`\n=== Waiting for OTP for: ${email} ===`);
-    console.log(`  From Email filter: ${config.fromEmail}`);
-    console.log(`  Timeout: ${timeoutMs / 1000}s, Poll interval: ${pollIntervalMs / 1000}s`);
-    console.log(`  Looking for records after: ${afterTime.toISOString()}\n`);
+    console.info(`\n=== Waiting for OTP for: ${email} ===`);
+    console.info(`  From Email filter: ${config.fromEmail}`);
+    console.info(`  Timeout: ${timeoutMs / 1000}s, Poll interval: ${pollIntervalMs / 1000}s`);
+    console.info(`  Looking for records after: ${afterTime.toISOString()}\n`);
     
     const startTime = Date.now();
     let attempts = 0;
     
     while (Date.now() - startTime < timeoutMs) {
         attempts++;
-        console.log(`  Attempt ${attempts}...`);
+        console.info(`  Attempt ${attempts}...`);
         
         try {
             const encodedTableName = encodeURIComponent(config.tableName);
@@ -216,7 +216,7 @@ async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, after
                 const otp = extractOTPFromBody(bodyPlain);
                 
                 if (otp) {
-                    console.log(`\n✓ OTP found after ${attempts} attempt(s): ${otp}`);
+                    console.info(`\n✓ OTP found after ${attempts} attempt(s): ${otp}`);
                     
                     // Mark record as Processed
                     await markAsProcessed(record.id);
@@ -225,7 +225,7 @@ async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, after
                 }
             }
         } catch (error) {
-            console.log(`  Error on attempt ${attempts}: ${error.message}`);
+            console.info(`  Error on attempt ${attempts}: ${error.message}`);
         }
         
         // Wait before next poll
