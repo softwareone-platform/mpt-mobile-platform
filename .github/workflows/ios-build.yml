@@ -48,7 +48,7 @@ jobs:
 
       - name: Select Xcode version
         run: |
-          echo "📋 Selecting Xcode 16.0"
+          echo "📋 Selecting default Xcode"
           sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
 
