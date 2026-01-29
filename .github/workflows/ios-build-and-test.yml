@@ -98,7 +98,6 @@ env:
   BUILD_MODE: ${{ inputs.build-mode || github.event.inputs.build-mode || 'Release' }}
   PLATFORM_VERSION: ${{ inputs.platform-version || github.event.inputs.platform-version || '26.0' }}
   DEVICE_NAME: ${{ inputs.device-name || github.event.inputs.device-name || 'iPhone 16' }}
-  XCODE_VERSION: '26.0.1'
 
 jobs:
   build-ios:
@@ -126,8 +125,8 @@ jobs:
 
       - name: Select Xcode version
         run: |
-          echo "📋 Selecting Xcode ${{ env.XCODE_VERSION }}"
-          sudo xcode-select -switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+          echo "📋 Selecting default Xcode"
+          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
 
       - name: Setup Node.js
