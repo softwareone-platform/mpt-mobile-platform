@@ -7,10 +7,10 @@ import { useAccount } from '@/context/AccountContext';
 import { useCreditMemoDetailsData } from '@/hooks/queries/useCreditMemoDetailsData';
 import CreditMemoDetailsContent from '@/screens/credit-memos/CreditMemoDetailsContent';
 import type { ListItemWithStatusProps } from '@/types/lists';
-import type { TabParamList } from '@/types/navigation';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type CreditMemoDetailsRouteProp = RouteProp<TabParamList, 'creditMemoDetails'>;
+type CreditMemoDetailsRouteProp = RouteProp<RootStackParamList, 'creditMemoDetails'>;
 
 const CreditMemoDetailsScreen = () => {
   const { t } = useTranslation();

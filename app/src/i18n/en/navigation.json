@@ -17,6 +17,8 @@
     "programs": "Programs",
     "enrollments": "Enrollments",
     "licensees": "Licensees",
-    "buyers": "Buyers"
+    "buyers": "Buyers",
+    "orderDetails": "Order",
+    "creditMemoDetails": "Credit Memo"
   }
 }

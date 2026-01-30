@@ -1,4 +1,4 @@
-import { RootStackParamList, TabParamList, TabItem, ScreenComponent } from '@/types/navigation';
+import { RootStackParamList } from '@/types/navigation';
 
 declare global {
   namespace ReactNavigation {
@@ -6,4 +6,4 @@ declare global {
   }
 }
 
-export type { RootStackParamList, TabParamList, TabItem, ScreenComponent };
+export type { RootStackParamList };
