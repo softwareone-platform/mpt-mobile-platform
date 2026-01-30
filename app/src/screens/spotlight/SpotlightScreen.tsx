@@ -139,10 +139,7 @@ const SpotlightScreen = () => {
                       subtitle={itemId}
                       isLast={itemIndex === section.top.length - 1}
                       // TODO: Implement navigation on press of each spotlight item
-                      onPress={() => {
-                        navigation.navigate('creditMemos');
-                      }}
-                      // onPress={() => {}}
+                      onPress={() => {}}
                     />
                   );
                 })}
