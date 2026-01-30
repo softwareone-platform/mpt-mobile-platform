@@ -1,5 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
@@ -11,7 +9,6 @@ import { useAccount } from '@/context/AccountContext';
 import { screenStyle, cardStyle, Spacing } from '@/styles';
 import { Color } from '@/styles/tokens';
 import type { SpotlightItem } from '@/types/api';
-import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const DEFAULT_FILTER = 'all';
@@ -23,8 +20,6 @@ const SpotlightScreen = () => {
 
   const { spotlightData, spotlightError, spotlightDataLoading } = useAccount();
   const { t } = useTranslation();
-
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     if (!spotlightData || Object.keys(spotlightData).length === 0) {
