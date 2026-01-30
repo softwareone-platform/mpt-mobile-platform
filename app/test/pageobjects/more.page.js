@@ -89,6 +89,33 @@ class MorePage extends BasePage {
     );
   }
 
+  get enrollmentsMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-enrollments',
+        android: '//*[@resource-id="nav-menu-enrollments"]',
+      }),
+    );
+  }
+
+  get licenseesMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-licensees',
+        android: '//*[@resource-id="nav-menu-licensees"]',
+      }),
+    );
+  }
+
+  get buyersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-buyers',
+        android: '//*[@resource-id="nav-menu-buyers"]',
+      }),
+    );
+  }
+
   // ========== Helper Methods ==========
 
   /**
@@ -169,6 +196,33 @@ class MorePage extends BasePage {
   async navigateToPrograms() {
     await this.ensureMorePage();
     await this.programsMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Enrollments page
+   */
+  async navigateToEnrollments() {
+    await this.ensureMorePage();
+    await this.enrollmentsMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Licensees page
+   */
+  async navigateToLicensees() {
+    await this.ensureMorePage();
+    await this.licenseesMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Buyers page
+   */
+  async navigateToBuyers() {
+    await this.ensureMorePage();
+    await this.buyersMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 }

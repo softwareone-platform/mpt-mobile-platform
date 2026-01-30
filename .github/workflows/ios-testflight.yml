@@ -26,7 +26,6 @@ on:
 
 env:
   NODE_VERSION: '20'
-  XCODE_VERSION: '16.0'
   DEVELOPMENT_TEAM: '47PY6J2KQC'
 
 jobs:
@@ -59,7 +58,7 @@ jobs:
 
       - name: Select Xcode version
         run: |
-          echo "Selecting Xcode ${{ env.XCODE_VERSION }}"
+          echo "Selecting default Xcode"
           sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
 

@@ -14,7 +14,7 @@ export default {
   expo: {
     name: 'SoftwareOne',
     slug: 'softwareone-marketplace-mobile',
-    version: '1.3.3',
+    version: '1.3.4',
     orientation: 'portrait',
     icon: iconPath,
     scheme: AUTH0_SCHEME,
@@ -39,7 +39,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: bundleId,
-      buildNumber: '1',
+      buildNumber: '2',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },

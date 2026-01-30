@@ -37,23 +37,31 @@ app/
 │   ├── components/              # Reusable UI components
 │   │   ├── auth/               # Authentication components (AuthButton, OTPInput, etc.)
 │   │   ├── navigation/         # Navigation components (stacks, tabs)
-│   │   ├── common/             # Common components (DynamicIcon, Avatar, etc.)
+│   │   ├── common/             # Common components (DynamicIcon, Avatar, EmptyState, etc.)
 │   │   ├── filters/            # Filter components for Spotlight
 │   │   ├── tabs/               # Tab components
 │   │   ├── tab-item/           # Tab item components
 │   │   ├── navigation-item/    # Navigation item components
 │   │   ├── list-item/          # List item components
+│   │   ├── list/               # List components (ListView)
 │   │   ├── avatar/             # Avatar components
-│   │   └── account-summary/    # Account summary components
+│   │   ├── account-summary/    # Account summary components
+│   │   ├── card/               # Card components
+│   │   ├── chip/               # Chip components
+│   │   └── details/            # Details components
 │   ├── config/                 # Configuration files
 │   │   ├── feature-flags/      # Feature flag system (JSON-based, type-safe)
-│   │   └── env.config.ts       # Environment configuration service
-│   ├── context/                # React Context providers
-│   │   ├── AuthContext.tsx     # Authentication state management
-│   │   └── NavigationContext.tsx # Navigation state management
+│   │   ├── env.config.ts       # Environment configuration service
+│   │   ├── list.ts             # List configuration
+│   │   └── queryClient.ts      # TanStack Query client configuration
+│   ├── context/                # React Context providers (AuthContext, NavigationContext,
+│   │   │                        # AccountContext, InvoicesContext, OrdersContext,
+│   │   │                        # SubscriptionsContext, AgreementsContext, StatementsContext,
+│   │   │                        # BillingContext, UsersContext, ProgramContext, etc.)
 │   ├── screens/                # Screen components
 │   │   ├── auth/               # Auth screens (Welcome, OTP verification)
-│   │   ├── account/            # Account screens (Profile, Settings, Personal Information)
+│   │   ├── account/            # Account screens (Profile, Personal Information)
+│   │   ├── settings/           # Settings screens
 │   │   ├── spotlight/          # Spotlight screen
 │   │   ├── loading/            # Loading screen
 │   │   ├── agreements/         # Agreements screen
@@ -61,38 +69,38 @@ app/
 │   │   ├── orders/             # Orders screen
 │   │   ├── credit-memos/       # Credit memos screen
 │   │   ├── statements/         # Statements screen
-│   │   └── subscriptions/      # Subscriptions screen
+│   │   ├── subscriptions/      # Subscriptions screen
+│   │   ├── programs/           # Programs screen
+│   │   └── users/              # Users screen
 │   ├── services/               # API and business logic services
-│   │   ├── authService.ts      # Auth0 authentication service
-│   │   └── accountService.ts   # Account management service
+│   │   │                        # authService, accountService, billingService,
+│   │   │                        # agreementService, orderService, subscriptionService,
+│   │   │                        # userService, programService, featureFlagsService, etc.
 │   ├── lib/                    # Core libraries
 │   │   ├── apiClient.ts        # Axios API client
 │   │   └── tokenProvider.ts    # Token management
 │   ├── hooks/                  # Custom React hooks
 │   │   ├── useApi.ts           # API hook for data fetching
+│   │   ├── useFeatureFlags.ts  # Feature flags hook
 │   │   └── queries/            # TanStack React Query hooks
-│   │       ├── usePortalVersion.ts
-│   │       ├── useSpotlightData.ts
-│   │       ├── useSwitchAccount.ts
-│   │       ├── useUserAccountsData.ts
-│   │       └── useUserData.ts
+│   │       │                    # usePortalVersion, useSpotlightData, useUserData,
+│   │       │                    # useInvoicesData, useOrdersData, useAgreementsData,
+│   │       │                    # useSubscriptionsData, useStatementsData, usePaginatedQuery, etc.
 │   ├── styles/                 # Design system and styles
 │   │   ├── tokens/             # Design tokens (colors, typography, spacing, shadows)
 │   │   ├── components/         # Component styles
 │   │   └── theme/              # Theme configuration
 │   ├── i18n/                   # Internationalization
-│   │   ├── en.json             # English translations
+│   │   ├── en/                 # English translations (split by feature)
 │   │   └── index.js            # i18next configuration
 │   ├── types/                  # TypeScript type definitions
-│   │   ├── navigation.ts       # Navigation types
-│   │   └── api.ts              # API types
+│   │   │                        # navigation, api, billing, agreement, order,
+│   │   │                        # subscription, program, spotlight, lists, icons
 │   ├── constants/              # App constants
-│   │   ├── auth.ts             # Auth constants
-│   │   └── api.ts              # API constants
+│   │   │                        # auth, api, icons, links, spotlight, status
 │   ├── utils/                  # Utility functions
-│   │   ├── validation.ts       # Input validation
-│   │   ├── apiError.ts         # API error handling
-│   │   └── image.ts            # Image utilities
+│   │   │                        # validation, apiError, image, formatting,
+│   │   │                        # testID, platformUtils, timer, list, account, etc.
 │   └── __tests__/              # Test files (colocated with source)
 ├── assets/                     # Static assets (icons, splash screens)
 ├── App.tsx                     # Root component
@@ -269,7 +277,7 @@ npm run test:e2e:android
 PLATFORM_NAME=Android npx wdio run wdio.conf.js --suite welcome
 ```
 
-**Available test suites:** `welcome`, `home`, `navigation`, `failing`
+**Available test suites:** `welcome`, `home`, `navigation`, `spotlight`, `profile`, `personalInformation`, `orders`, `subscriptions`, `agreements`, `logout`
 
 **Documentation:**
 - iOS setup: `documents/APPIUM_IOS_TESTING.md`
@@ -387,6 +395,12 @@ The project uses GitHub Actions for continuous integration and deployment.
 - ESLint validation
 - Jest tests with coverage
 - Coverage artifact upload
+
+**E2E Testing Workflows:**
+- `android-build-and-test.yml` - Build Android + run Appium E2E tests on emulator
+- `ios-build-and-test.yml` - Build iOS + run Appium E2E tests on simulator
+- `ios-expo-and-test.yml` - Expo-based iOS build + E2E tests
+- `*-external-test-example.yml` - Example templates for external test runs
 
 ### Running Builds
 
@@ -600,7 +614,15 @@ import '@env';                                  // .env file access
 
 ### Design System
 
-The project uses a comprehensive design system with design tokens and component styles:
+The project uses a two-layer style architecture (see [CONVENTIONS.md](CONVENTIONS.md#style-patterns) for full details):
+
+```
+@/styles/tokens/     →  Design tokens (Color, Spacing, Typography)
+        ↓
+@/styles/components/ →  Shared component styles (buttonStyle, screenStyle)
+        ↓
+Components/Screens   →  Import shared styles, never use tokens directly
+```
 
 **Design Tokens** (`app/src/styles/tokens/`):
 - **Colors**: Brand colors, text colors, background colors, status colors
@@ -610,28 +632,22 @@ The project uses a comprehensive design system with design tokens and component 
 - **Border Radius**: Consistent corner rounding
 
 **Component Styles** (`app/src/styles/components/`):
-- Button styles (primary, secondary, disabled states)
-- Input styles (text inputs, OTP input)
-- Card styles
-- Common layout styles
-- OTP verification screen styles
+- Button styles, Input styles, Card styles
+- Screen and layout styles
+- List and navigation styles
 
-**Usage:**
+**Usage in components:**
 ```typescript
-import { colors, typography, spacing } from '@/styles';
-import { buttonStyles } from '@/styles/components';
+// ✅ Correct - import from shared styles only
+import { buttonStyle, screenStyle } from '@/styles/components';
 
-// Use design tokens in StyleSheet
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.background.primary,
-    padding: spacing.md,
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.text.primary,
-  },
+  button: buttonStyle.authPrimary,
+  container: screenStyle.containerCenterContent,
 });
+
+// ❌ Incorrect - don't use design tokens directly in components
+import { Color, Spacing } from '@/styles/tokens';  // Don't do this!
 ```
 
 See `app/src/styles/README.md` for comprehensive design system documentation.
@@ -655,22 +671,23 @@ Add new flags in `app/src/config/feature-flags/featureFlags.json`.
 
 React Context API for global state + TanStack React Query for server state:
 
-**AuthContext** (`app/src/context/AuthContext.tsx`):
-- Authentication state (logged in/out)
-- User credentials and tokens
-- Login/logout methods
-- Token refresh handling
-- Auth0 integration
-
-**NavigationContext** (`app/src/context/NavigationContext.tsx`):
-- Current tab state
-- Navigation helpers
-- Tab switching logic
+**Contexts** (`app/src/context/`):
+- `AuthContext.tsx` - Authentication state, tokens, login/logout, Auth0 integration
+- `NavigationContext.tsx` - Tab state, navigation helpers
+- `AccountContext.tsx` - Account selection and management
+- `AgreementsContext.tsx`, `InvoicesContext.tsx`, `OrdersContext.tsx` - Billing data
+- `SubscriptionsContext.tsx`, `StatementsContext.tsx` - Subscription and statement data
+- `BuyersContext.tsx`, `LicenseeContext.tsx`, `UsersContext.tsx` - User-related data
+- `ProgramContext.tsx`, `EnrollmentContext.tsx`, `BillingContext.tsx` - Program and enrollment data
 
 **TanStack React Query** (`app/src/hooks/queries/`):
-- Server state management with caching
-- Automatic background refetching
-- Query hooks: `usePortalVersion`, `useSpotlightData`, `useUserData`, `useUserAccountsData`, `useSwitchAccount`
+- `usePaginatedQuery.ts` - Reusable paginated query hook
+- `useUserData.ts`, `useUserAccountsData.ts`, `useUsersData.ts` - User queries
+- `useAgreementsData.ts`, `useInvoicesData.ts`, `useOrdersData.ts` - Billing queries
+- `useCreditMemosData.ts`, `useCreditMemoDetailsData.ts`, `useStatementsData.ts` - Credit/statement queries
+- `useSubscriptionsData.ts`, `useLicenseesData.ts`, `userBuyersData.ts` - Subscription/buyer queries
+- `useProgramsData.ts`, `useSpotlightData.ts`, `usePortalVersion.ts` - Program/spotlight queries
+- `useSwitchAccount.ts` - Account switching mutation
 
 **Usage:**
 ```typescript
@@ -697,11 +714,11 @@ React Navigation v7 with stack and tab-based navigation structure:
 
 **MainTabs** (`app/src/components/navigation/MainTabs.tsx`):
 - Bottom tab navigation for authenticated users
-- Currently: Spotlight tab (more tabs planned)
+- Tabs: Spotlight, Orders, Subscriptions, More (→ secondary tabs)
 
 **SecondaryTabs** (`app/src/components/navigation/SecondaryTabs.tsx`):
-- Nested tabs within Spotlight screen
-- Tabs: Agreements, Invoices, Orders, Credit Memos, Statements, Subscriptions
+- Nested tabs accessed via "More" tab
+- Tabs: Agreements, Credit Memos, Invoices, Statements, Users, Programs, Enrollments, Licensees, Buyers
 - Top tab bar with Material-style design
 
 **ProfileStack** (`app/src/components/navigation/ProfileStack.tsx`):
@@ -711,8 +728,9 @@ React Navigation v7 with stack and tab-based navigation structure:
 
 **Navigation Flow:**
 1. Unauthenticated users → AuthStack (Welcome → OTP)
-2. Authenticated users → MainTabs → Spotlight → SecondaryTabs
-3. Profile access via AccountToolbarButton → ProfileStack
+2. Authenticated users → MainTabs (Spotlight/Orders/Subscriptions/More)
+3. More tab → SecondaryTabs (Agreements, Credit Memos, etc.)
+4. Profile access via AccountToolbarButton → ProfileStack
 
 **Type-Safe Navigation:**
 ```typescript
@@ -749,8 +767,14 @@ Axios-based API client with authentication and error handling:
 - Type-safe responses
 
 **API Services** (`app/src/services/`):
-- `authService.ts`: Auth0 authentication methods
-- `accountService.ts`: Account management API calls
+- `authService.ts`, `auth0ErrorParsingService.ts` - Auth0 authentication
+- `accountService.ts`, `userService.ts` - Account and user management
+- `agreementService.ts`, `billingService.ts`, `orderService.ts` - Billing/orders
+- `subscriptionService.ts`, `licenseeService.ts`, `buyerService.ts` - Subscriptions/licenses
+- `programService.ts`, `enrollmentService.ts` - Programs and enrollment
+- `portalVersionService.ts`, `featureFlagsService.ts` - Config services
+- `credentialStorageService.ts` - Secure credential storage
+- `api/` - Low-level API utilities
 
 **Usage:**
 ```typescript
@@ -781,9 +805,9 @@ i18next integration for multi-language support:
 - Language detection
 - Resource loading
 
-**Translations** (`app/src/i18n/`):
-- `en.json`: English translations (default)
-- Organized by feature/screen
+**Translations** (`app/src/i18n/en/`):
+- Split by feature: `auth.json`, `billing.json`, `home.json`, `marketplace.json`, `navigation.json`, `program.json`, `settings.json`, `shared.json`, `status.json`, `details.json`
+- `index.ts` - Aggregates all translation files
 
 **Usage:**
 ```typescript
@@ -799,7 +823,7 @@ function MyComponent() {
 ```
 
 **Adding Translations:**
-1. Add key-value pairs to `app/src/i18n/en.json`
+1. Add key-value pairs to appropriate file in `app/src/i18n/en/` (e.g., `billing.json`, `settings.json`)
 2. Use the `t()` function to access translations
 3. Support for interpolation, pluralization, and formatting
 
@@ -848,97 +872,17 @@ import { isLiquidGlassSupported } from '@/utils/platformUtils';
 
 ## Key Conventions
 
-### File Naming
-- React components: PascalCase (`UserProfile.tsx`)
-- Utilities/helpers: camelCase (`platformUtils.ts`)
-- Test files: `*.test.ts` or `*.test.tsx`
-- Config files: kebab-case (`feature-flags.json`)
-- Context files: PascalCase with `Context` suffix (`AuthContext.tsx`)
-- Service files: camelCase with `Service` suffix (`authService.ts`)
-- Hook files: camelCase with `use` prefix (`useApi.ts`)
+> **📖 Full documentation:** See [CONVENTIONS.md](CONVENTIONS.md) for complete coding standards.
 
-### Import Order
-1. React/React Native imports
-2. Third-party libraries (navigation, i18n, etc.)
-3. Local imports using aliases (@config, @components, etc.)
-4. Types/interfaces
-5. Styles (design tokens and component styles)
-
-Example:
-```typescript
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
-
-import { useAuth } from '@/context/AuthContext';
-import { AuthButton } from '@/components/auth';
-import { colors, spacing, typography } from '@/styles';
-
-import type { NavigationProp } from '@/types/navigation';
-```
-
-### Component Structure
-
-Follow this structure for React components:
-
-```typescript
-// 1. Imports
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-
-// 2. Types/Interfaces
-interface Props {
-  title: string;
-  onPress: () => void;
-}
-
-// 3. Component
-export function MyComponent({ title, onPress }: Props) {
-  // Hooks
-  const { t } = useTranslation();
-
-  // State
-  const [loading, setLoading] = React.useState(false);
-
-  // Effects
-  React.useEffect(() => {
-    // Effect logic
-  }, []);
-
-  // Handlers
-  const handlePress = () => {
-    onPress();
-  };
-
-  // Render
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-    </View>
-  );
-}
-
-// 4. Styles
-const styles = StyleSheet.create({
-  container: {
-    padding: spacing.md,
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.text.primary,
-  },
-});
-```
-
-### ESLint Rules
-- No unused variables (warning)
-- React hooks rules enforced
-- No inline styles (warning) - prefer StyleSheet with design tokens
-- No color literals (warning) - use design tokens from `@/styles`
-- No hardcoded strings (warning) - use i18n translations
-- TypeScript over PropTypes
-- Prefer named exports over default exports
+**Quick summary:**
+- **File naming:** PascalCase components, camelCase utils/hooks, kebab-case configs
+- **Imports:** React → Third-party → Internal (with `@/` aliases)
+- **Styles:** Import from `@/styles/components`, never use design tokens directly in components
+- **Exports:** Default for components, named for hooks/utils
+- **TypeScript:** Interface for props (`ComponentNameProps`), type for unions
+- **Console:** Only `console.error()`, `console.warn()`, `console.info()` — `console.log()` is banned
+- **Promises:** Must handle all promises (await, .then(), or void)
+- **Equality:** Use `===` and `!==`, never `==` or `!=`
 
 ## Bundle Identifiers
 
@@ -950,7 +894,7 @@ These must match Auth0 dashboard configuration.
 ## Important Notes
 
 1. **New Architecture Enabled**: React 19 with New Architecture (`newArchEnabled: true` in `app.json`)
-2. **Design System**: Always use design tokens from `@/styles` instead of hardcoded values
+2. **Design System**: Import styles from `@/styles/components`, never use design tokens directly in components (see [CONVENTIONS.md](CONVENTIONS.md#style-patterns))
 3. **Internationalization**: Use i18n translations (`t()` function) instead of hardcoded strings
 4. **Environment Variables**: Use the config service (`@/config/env.config`) for type-safe environment access
 5. **API Calls**: Use the `useApi` hook or API client from `@/lib/apiClient` for all HTTP requests
@@ -961,7 +905,7 @@ These must match Auth0 dashboard configuration.
 10. **Node Version**: Use Node.js LTS (20.19.4+)
 11. **Android Emulator**: Must be running before `npm run android`
 12. **iOS Builds**: Require Xcode and iOS Simulator
-13. **Version**: Current app version is 1.3.0 (see `app/app.config.js`)
+13. **Version**: Current app version is 1.3.2 (see `app/app.config.js`)
 
 ## Git Workflow
 
@@ -1013,15 +957,17 @@ See `.github/CODEOWNERS` for code review assignments.
 *Navigation:*
 - React Navigation v7 setup
 - AuthStack (Welcome → OTP verification)
-- MainTabs (bottom tab navigation)
-- SecondaryTabs (nested tabs in Spotlight)
+- MainTabs (Spotlight, Orders, Subscriptions, More)
+- SecondaryTabs (Agreements, Credit Memos, Invoices, Statements, Users, Programs, Enrollments, Licensees, Buyers)
 - ProfileStack (Profile and User Settings)
 - NavigationContext for state management
 - Type-safe navigation with TypeScript
 
 *State Management:*
 - AuthContext (authentication state, tokens, user profile)
+- AccountContext (current account, user data, account switching)
 - NavigationContext (tab state and helpers)
+- Feature contexts: InvoicesContext, OrdersContext, SubscriptionsContext, AgreementsContext, StatementsContext, ProgramContext, UsersContext, BillingContext
 - Context-based architecture (no Redux/MobX)
 
 *API Integration:*
@@ -1034,34 +980,39 @@ See `.github/CODEOWNERS` for code review assignments.
 
 *Screens:*
 - Authentication: Welcome, OTP Verification, Loading
-- Account: Profile, User Settings, Personal Information
-- Spotlight: Main screen with nested tabs and filters
-- Spotlight Tabs: Agreements, Invoices, Orders, Credit Memos, Statements, Subscriptions
+- Account: Profile, Personal Information
+- Settings: Licensees, Buyers
+- Programs: Programs, Enrollments
+- Spotlight: Main screen with filters
+- Secondary Tabs: Agreements, Invoices, Credit Memos, Statements, Users
+- Main Tabs: Orders, Subscriptions
 
 *Components:*
-- Auth components: AuthButton, AuthInput, AuthLayout, OTPInput
+- Auth components: AuthButton, AuthInput, AuthLayout, OTPInput, LegalFooter
 - Navigation components: MainTabs, SecondaryTabs, stacks, AccountToolbarButton
-- Common components: DynamicIcon, JdenticonIcon, LinearGradient, OutlinedIcon, Avatar
+- Common components: DynamicIcon, JdenticonIcon, LinearGradientHorizontal, OutlinedIcon, AnimatedIcon, EmptyState, EmptyStateHelper
 - Filter components: Spotlight filters for data filtering
 - Tab components: Tabs, TabItem
-- List components: ListItemWithImage
+- List components: ListView, ListItemWithImage
+- Card and Chip components
+- Details components for detail screens
 - Account components: AccountSummary
 
 *Data Fetching:*
-- TanStack React Query integration
-- Query hooks for portal version, spotlight data, user data, accounts
+- TanStack React Query integration with usePaginatedQuery
+- Query hooks: usePortalVersion, useSpotlightData, useUserData, useUserAccountsData, useSwitchAccount
+- Data hooks: useInvoicesData, useOrdersData, useAgreementsData, useSubscriptionsData, useStatementsData, useProgramsData, useUsersData, useCreditMemosData
 - Account switching functionality
 
 *Utilities & Services:*
-- Input validation utilities
+- Input validation, formatting, platformUtils, testID utilities
 - API error handling utilities
 - Image utilities
-- Auth service (Auth0 integration)
-- Account service (API integration)
+- Services: authService, accountService, billingService, agreementService, orderService, subscriptionService, userService, programService, featureFlagsService, portalVersionService
 
 *Internationalization:*
 - i18next integration
-- English translations (en.json)
+- English translations (split by feature in en/ folder)
 - Translation utilities and hooks
 
 *Testing:*
@@ -1078,13 +1029,11 @@ See `.github/CODEOWNERS` for code review assignments.
 - Export compliance (ITSAppUsesNonExemptEncryption)
 
 **In Progress:**
-- Additional main tabs (Search, Chat, Service Desk, Analytics)
 - Enhanced error handling and retry logic
 - Deep linking support
 
 **Planned:**
 - Real-time data sync
-- SonarCloud quality gates enforcement
 - Additional language translations
 - Offline mode support
 - Push notifications

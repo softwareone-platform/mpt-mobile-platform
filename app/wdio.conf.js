@@ -87,11 +87,14 @@ exports.config = {
     // The path of the spec files will be resolved relative from the directory of
     // of the config file unless it's absolute.
     //
-    specs: [
+    // Wrapping specs in a nested array runs them sequentially in a single worker process.
+    // This is important because welcome.e2e.js establishes authentication state needed by other tests.
+    // Also, usually only one Appium session can be active at a time on a device, so running in parallel would fail.
+    specs: [[
         // Welcome tests must run first to establish authentication
         './test/specs/welcome.e2e.js',
         './test/specs/**/*.js'
-    ],
+    ]],
     // Patterns to exclude.
     exclude: [
         // 'path/to/excluded/files'
@@ -106,6 +109,10 @@ exports.config = {
         orders: ['./test/specs/orders.e2e.js'],
         subscriptions: ['./test/specs/subscriptions.e2e.js'],
         agreements: ['./test/specs/agreements.e2e.js'],
+        programs: ['./test/specs/programs.e2e.js'],
+        enrollments: ['./test/specs/enrollments.e2e.js'],
+        licensees: ['./test/specs/licensees.e2e.js'],
+        buyers: ['./test/specs/buyers.e2e.js'],
         logout: ['./test/specs/logout.e2e.js'],
     },
     //
