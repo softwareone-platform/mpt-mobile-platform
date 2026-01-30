@@ -6,7 +6,7 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useBilling, BillingProvider } from '@/context/BillingContext';
-import type { TabParamList } from '@/types/navigation';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const CreditMemosScreenContent = () => {
@@ -22,7 +22,7 @@ const CreditMemosScreenContent = () => {
 
   const { t } = useTranslation();
 
-  const navigation = useNavigation<StackNavigationProp<TabParamList>>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
     <StatusMessage

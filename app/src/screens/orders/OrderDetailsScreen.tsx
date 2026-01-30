@@ -7,10 +7,10 @@ import { useAccount } from '@/context/AccountContext';
 import { useOrderDetailsData } from '@/hooks/queries/useOrderDetailsData';
 import OrderDetailsContent from '@/screens/orders/OrderDetailsContent';
 import type { ListItemWithStatusProps } from '@/types/lists';
-import type { TabParamList } from '@/types/navigation';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type OrderDetailsRouteProp = RouteProp<TabParamList, 'orderDetails'>;
+type OrderDetailsRouteProp = RouteProp<RootStackParamList, 'orderDetails'>;
 
 const OrderDetailsScreen = () => {
   const { t } = useTranslation();

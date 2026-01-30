@@ -17,7 +17,6 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const defaultMargin = calculateMarginWithMarkup(data.price.defaultMarkup || 0);
   const formattedDefaultMargin = formatPercentage(defaultMargin, 2) + ` ${t(`details.down`)}`;
 
-  console.info('OrderDetailsContent data:', JSON.stringify(data, null, 2));
   return (
     <CardWithHeader title={t(`details.title`)}>
       <ListItemWithLabelAndText title={t(`details.type`)} subtitle={data.type} />
