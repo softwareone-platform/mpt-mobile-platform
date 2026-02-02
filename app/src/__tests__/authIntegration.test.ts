@@ -1,5 +1,11 @@
 import { jwtDecode } from 'jwt-decode';
 
+jest.mock('../services/appInsightsService', () => ({
+  appInsightsService: {
+    trackException: jest.fn(),
+  },
+}));
+
 import authService, { AuthTokens } from '../services/authService';
 import credentialStorageService from '../services/credentialStorageService';
 

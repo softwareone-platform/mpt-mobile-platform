@@ -1,5 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 
+jest.mock('@/services/appInsightsService', () => ({
+  appInsightsService: {
+    trackException: jest.fn(),
+  },
+}));
+
 import { apiGet, apiPost, apiPut, apiPatch, apiDelete, useApi } from '@/hooks/useApi';
 import apiClient from '@/lib/apiClient';
 
