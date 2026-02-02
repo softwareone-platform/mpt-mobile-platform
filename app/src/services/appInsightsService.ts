@@ -23,6 +23,8 @@ export interface AppInsightsMetric {
   properties?: CustomProperties;
 }
 
+const APPLICATION_NAME = 'MarketplaceMobile';
+
 /**
  * Application Insights service for React Native
  * Uses official Microsoft Application Insights React Native plugin
@@ -55,6 +57,15 @@ class AppInsightsService {
       });
 
       this.appInsights.loadAppInsights();
+
+      this.appInsights.addTelemetryInitializer((item) => {
+        if (item.baseData) {
+          item.baseData.properties = item.baseData.properties || {};
+          item.baseData.properties.Application = APPLICATION_NAME;
+        }
+        return true;
+      });
+
       this.isInitialized = true;
 
       console.info('[AppInsights] Initialized successfully');
