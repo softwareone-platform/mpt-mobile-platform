@@ -2,6 +2,7 @@ import { jwtDecode } from 'jwt-decode';
 import Auth0 from 'react-native-auth0';
 
 import { configService } from '@/config/env.config';
+import { appInsightsService } from '@/services/appInsightsService';
 
 const AUTH0_DOMAIN = configService.get('AUTH0_DOMAIN');
 const AUTH0_CLIENT_ID = configService.get('AUTH0_CLIENT_ID');
@@ -67,6 +68,11 @@ class AuthenticationService {
       return decoded.exp;
     } catch (error) {
       console.error('Failed to decode JWT:', error instanceof Error ? error.message : error);
+      appInsightsService.trackException(
+        error instanceof Error ? error : new Error('Failed to decode JWT'),
+        { operation: 'getExpiryFromJWT' },
+        'Warning',
+      );
       return undefined;
     }
   }
@@ -84,10 +90,13 @@ class AuthenticationService {
 
       return { success: true };
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Failed to send authentication email');
+      const err = error instanceof Error ? error : new Error('Failed to send authentication email');
+      appInsightsService.trackException(
+        err,
+        { operation: 'sendPasswordlessEmail', email },
+        'Critical',
+      );
+      throw err;
     }
   }
 
@@ -109,10 +118,14 @@ class AuthenticationService {
         expiresAt,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Failed to verify authentication code');
+      const err =
+        error instanceof Error ? error : new Error('Failed to verify authentication code');
+      appInsightsService.trackException(
+        err,
+        { operation: 'verifyPasswordlessOtp', email },
+        'Critical',
+      );
+      throw err;
     }
   }
 
@@ -128,10 +141,9 @@ class AuthenticationService {
         expiresAt,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Failed to refresh authentication');
+      const err = error instanceof Error ? error : new Error('Failed to refresh authentication');
+      appInsightsService.trackException(err, { operation: 'refreshAccessToken' }, 'Critical');
+      throw err;
     }
   }
 
@@ -144,7 +156,9 @@ class AuthenticationService {
         'Failed to decode user from token:',
         error instanceof Error ? error.message : error,
       );
-      throw new Error('Failed to decode user from token');
+      const err = new Error('Failed to decode user from token');
+      appInsightsService.trackException(err, { operation: 'getUserFromToken' }, 'Error');
+      throw err;
     }
   }
 

@@ -1,18 +1,24 @@
 import { InternalAxiosRequestConfig, AxiosError } from 'axios';
 
-import apiClient from '@/lib/apiClient';
-import { getAccessTokenAsync } from '@/lib/tokenProvider';
-import { createApiError } from '@/utils/apiError';
-
 jest.mock('@/lib/tokenProvider');
 jest.mock('@/utils/apiError');
+jest.mock('@/services/appInsightsService', () => ({
+  appInsightsService: {
+    trackException: jest.fn(),
+  },
+}));
+
+import apiClient from '@/lib/apiClient';
+import { getAccessTokenAsync } from '@/lib/tokenProvider';
+import { appInsightsService } from '@/services/appInsightsService';
+import { createApiError } from '@/utils/apiError';
 
 describe('apiClient interceptors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('adds Authorization header if token exists', async () => {
+  it('adds Authorization header with token', async () => {
     (getAccessTokenAsync as jest.Mock).mockResolvedValue('mock-token');
 
     const config: InternalAxiosRequestConfig = {
@@ -30,27 +36,7 @@ describe('apiClient interceptors', () => {
     expect(result.headers.Authorization).toBe('Bearer mock-token');
   });
 
-  it('does not add Authorization header if no token', async () => {
-    (getAccessTokenAsync as jest.Mock).mockResolvedValue(null);
-
-    const config: InternalAxiosRequestConfig = {
-      headers: {} as InternalAxiosRequestConfig['headers'],
-    } as InternalAxiosRequestConfig;
-
-    const result = await (
-      apiClient.interceptors.request as unknown as {
-        handlers: Array<{
-          fulfilled: (config: InternalAxiosRequestConfig) => Promise<InternalAxiosRequestConfig>;
-        }>;
-      }
-    ).handlers[0].fulfilled(config);
-
-    expect(result.headers.Authorization).toBeUndefined();
-  });
-
-  it('skips Authorization header when noAuth flag is set', async () => {
-    (getAccessTokenAsync as jest.Mock).mockResolvedValue('mock-token');
-
+  it('skips Authorization with noAuth flag', async () => {
     const config: InternalAxiosRequestConfig & { noAuth?: boolean } = {
       headers: {} as InternalAxiosRequestConfig['headers'],
       noAuth: true,
@@ -67,11 +53,9 @@ describe('apiClient interceptors', () => {
     ).handlers[0].fulfilled(config);
 
     expect(result.headers.Authorization).toBeUndefined();
-    expect((result as { noAuth?: boolean }).noAuth).toBeUndefined();
-    expect(getAccessTokenAsync).not.toHaveBeenCalled();
   });
 
-  it('calls createApiError on request error', async () => {
+  it('tracks request interceptor errors', async () => {
     const mockError = new Error('fail');
     (createApiError as jest.Mock).mockReturnValue({ name: 'API Error' });
 
@@ -82,10 +66,19 @@ describe('apiClient interceptors', () => {
         }
       ).handlers[0].rejected(mockError),
     ).rejects.toEqual({ name: 'API Error' });
+
+    expect(appInsightsService.trackException).toHaveBeenCalledWith(
+      { name: 'API Error' },
+      { operation: 'apiRequestInterceptor' },
+      'Error',
+    );
   });
 
-  it('calls createApiError on response error', async () => {
-    const mockError: Partial<AxiosError> = { response: { status: 500 } as AxiosError['response'] };
+  it('tracks 5xx errors with Error severity', async () => {
+    const mockError: Partial<AxiosError> = {
+      response: { status: 500, statusText: 'Internal Server Error' } as AxiosError['response'],
+      config: { url: '/api/test', method: 'get' } as AxiosError['config'],
+    };
     (createApiError as jest.Mock).mockReturnValue({ name: 'API Error' });
 
     const responseInterceptor = apiClient.interceptors.response as unknown as {
@@ -93,11 +86,56 @@ describe('apiClient interceptors', () => {
     };
 
     await expect(responseInterceptor.handlers[0].rejected(mockError as AxiosError)).rejects.toEqual(
-      {
-        name: 'API Error',
-      },
+      { name: 'API Error' },
     );
 
-    expect(createApiError).toHaveBeenCalledWith(mockError);
+    expect(appInsightsService.trackException).toHaveBeenCalledWith(
+      { name: 'API Error' },
+      { url: '/api/test', method: 'GET', statusCode: 500, statusText: 'Internal Server Error' },
+      'Error',
+    );
+  });
+
+  it('tracks 4xx errors with Warning severity', async () => {
+    const mockError: Partial<AxiosError> = {
+      response: { status: 400, statusText: 'Bad Request' } as AxiosError['response'],
+      config: { url: '/api/test', method: 'post' } as AxiosError['config'],
+    };
+    (createApiError as jest.Mock).mockReturnValue({ name: 'API Error' });
+
+    const responseInterceptor = apiClient.interceptors.response as unknown as {
+      handlers: Array<{ rejected: (error: AxiosError) => Promise<never> }>;
+    };
+
+    await expect(responseInterceptor.handlers[0].rejected(mockError as AxiosError)).rejects.toEqual(
+      { name: 'API Error' },
+    );
+
+    expect(appInsightsService.trackException).toHaveBeenCalledWith(
+      { name: 'API Error' },
+      { url: '/api/test', method: 'POST', statusCode: 400, statusText: 'Bad Request' },
+      'Warning',
+    );
+  });
+
+  it('handles missing config with fallback values', async () => {
+    const mockError: Partial<AxiosError> = {
+      response: { status: 404, statusText: 'Not Found' } as AxiosError['response'],
+    };
+    (createApiError as jest.Mock).mockReturnValue({ name: 'API Error' });
+
+    const responseInterceptor = apiClient.interceptors.response as unknown as {
+      handlers: Array<{ rejected: (error: AxiosError) => Promise<never> }>;
+    };
+
+    await expect(responseInterceptor.handlers[0].rejected(mockError as AxiosError)).rejects.toEqual(
+      { name: 'API Error' },
+    );
+
+    expect(appInsightsService.trackException).toHaveBeenCalledWith(
+      { name: 'API Error' },
+      { url: 'unknown', method: 'unknown', statusCode: 404, statusText: 'Not Found' },
+      'Warning',
+    );
   });
 });

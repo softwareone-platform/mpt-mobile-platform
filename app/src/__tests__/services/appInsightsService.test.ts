@@ -62,6 +62,23 @@ describe('AppInsightsService', () => {
       service.initialize();
       expect(mockLoadAppInsights).toHaveBeenCalledTimes(1);
     });
+
+    it('should handle missing connection string gracefully', () => {
+      const { configService } = require('@/config/env.config');
+      configService.get.mockReturnValueOnce('');
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      service.initialize();
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        '[AppInsights] Connection string not found. Telemetry will be disabled.',
+      );
+      expect(mockLoadAppInsights).not.toHaveBeenCalled();
+      expect(service.isReady()).toBe(false);
+
+      consoleWarnSpy.mockRestore();
+    });
   });
 
   describe('setUserProvider', () => {
@@ -173,7 +190,7 @@ describe('AppInsightsService', () => {
     it('should set user context when userId is provided', () => {
       service.initialize();
       service.updateAuthenticatedUserContext('user123');
-      expect(mockSetAuthenticatedUserContext).toHaveBeenCalledWith('user123');
+      expect(mockSetAuthenticatedUserContext).toHaveBeenCalledWith('user123', undefined);
     });
 
     it('should clear user context when userId is null', () => {

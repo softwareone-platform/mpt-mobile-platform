@@ -1,19 +1,9 @@
-import { renderHook } from '@testing-library/react-native';
-
-import { useAppInsights } from '@/hooks/useAppInsights';
-import { appInsightsService } from '@/services/appInsightsService';
-
-const mockInitialize = jest.fn();
-const mockSetUserProvider = jest.fn();
-const mockTrackEvent = jest.fn();
-const mockTrackTrace = jest.fn();
-
 jest.mock('@/services/appInsightsService', () => ({
   appInsightsService: {
-    initialize: mockInitialize,
-    setUserProvider: mockSetUserProvider,
-    trackEvent: mockTrackEvent,
-    trackTrace: mockTrackTrace,
+    initialize: jest.fn(),
+    setUserProvider: jest.fn(),
+    trackEvent: jest.fn(),
+    trackTrace: jest.fn(),
   },
 }));
 
@@ -29,6 +19,11 @@ jest.mock('@/context/AuthContext', () => ({
   }),
 }));
 
+import { renderHook } from '@testing-library/react-native';
+
+import { useAppInsights } from '@/hooks/useAppInsights';
+import { appInsightsService } from '@/services/appInsightsService';
+
 describe('useAppInsights', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -36,17 +31,17 @@ describe('useAppInsights', () => {
 
   it('should initialize Application Insights on mount', () => {
     renderHook(() => useAppInsights());
-    expect(mockInitialize).toHaveBeenCalled();
+    expect(appInsightsService.initialize).toHaveBeenCalled();
   });
 
   it('should set user provider', () => {
     renderHook(() => useAppInsights());
-    expect(mockSetUserProvider).toHaveBeenCalled();
+    expect(appInsightsService.setUserProvider).toHaveBeenCalled();
   });
 
   it('should track app mounted event', () => {
     renderHook(() => useAppInsights());
-    expect(mockTrackEvent).toHaveBeenCalledWith({
+    expect(appInsightsService.trackEvent).toHaveBeenCalledWith({
       name: 'MPT_Mobile_App_Mounted',
       properties: expect.objectContaining({
         source: 'useAppInsights',
@@ -54,9 +49,9 @@ describe('useAppInsights', () => {
     });
   });
 
-  it('should track user context update', () => {
+  it('should track user context update when user exists', () => {
     renderHook(() => useAppInsights());
-    expect(mockTrackTrace).toHaveBeenCalledWith(
+    expect(appInsightsService.trackTrace).toHaveBeenCalledWith(
       'User context updated',
       'Information',
       expect.objectContaining({
