@@ -6,6 +6,7 @@ import {
   AUTH0_API_URL,
   AUTH0_OTP_DIGITS,
   AUTH0_SCHEME,
+  APPLICATION_INSIGHTS_CONNECTION_STRING,
 } from '@env';
 
 import {
@@ -21,7 +22,8 @@ type EnvironmentVariable =
   | 'AUTH0_SCOPE'
   | 'AUTH0_API_URL'
   | 'AUTH0_OTP_DIGITS'
-  | 'AUTH0_SCHEME';
+  | 'AUTH0_SCHEME'
+  | 'APPLICATION_INSIGHTS_CONNECTION_STRING';
 
 const REQUIRED_VARS: EnvironmentVariable[] = [
   'AUTH0_DOMAIN',
@@ -38,6 +40,7 @@ interface EnvironmentConfig {
   AUTH0_API_URL?: string;
   AUTH0_OTP_DIGITS?: string;
   AUTH0_SCHEME?: string;
+  APPLICATION_INSIGHTS_CONNECTION_STRING?: string;
   [key: string]: string | undefined;
 }
 
@@ -57,6 +60,7 @@ class ConfigService {
       AUTH0_API_URL,
       AUTH0_OTP_DIGITS,
       AUTH0_SCHEME,
+      APPLICATION_INSIGHTS_CONNECTION_STRING,
     };
 
     if (!isTestEnvironment()) {

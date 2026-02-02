@@ -6,4 +6,5 @@ declare module '@env' {
   export const AUTH0_API_URL: string;
   export const AUTH0_OTP_DIGITS: string;
   export const AUTH0_SCHEME: string;
+  export const APPLICATION_INSIGHTS_CONNECTION_STRING: string;
 }
