@@ -66,11 +66,14 @@ const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerSt
         user: null,
         tokens: null,
       };
-    case AUTH_ACTIONS.UPDATE_TOKENS:
+    case AUTH_ACTIONS.UPDATE_TOKENS: {
+      const updatedUser = authService.getUserFromToken(action.payload.accessToken);
       return {
         ...state,
+        user: updatedUser,
         tokens: action.payload,
       };
+    }
     default:
       return state;
   }

@@ -2,6 +2,7 @@ import { ReactNativePlugin } from '@microsoft/applicationinsights-react-native';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
 import { configService } from '@/config/env.config';
+import { User } from '@/services/authService';
 
 export type SeverityLevel = 'Verbose' | 'Information' | 'Warning' | 'Error' | 'Critical';
 
@@ -25,12 +26,9 @@ export interface AppInsightsMetric {
 
 const APPLICATION_NAME = 'MarketplaceMobile';
 
-/**
- * Application Insights service for React Native
- * Uses official Microsoft Application Insights React Native plugin
- */
 class AppInsightsService {
   private appInsights: ApplicationInsights | null = null;
+  private getUserFn: (() => User | null) | null = null;
   private isInitialized = false;
 
   public initialize(): void {
@@ -62,6 +60,14 @@ class AppInsightsService {
         if (item.baseData) {
           item.baseData.properties = item.baseData.properties || {};
           item.baseData.properties.Application = APPLICATION_NAME;
+
+          const currentUser = this.getUserFn?.();
+          if (currentUser) {
+            const accountId = currentUser['https://claims.softwareone.com/accountId'];
+            if (accountId) {
+              item.baseData.properties.AccountId = accountId as string;
+            }
+          }
         }
         return true;
       });
@@ -70,7 +76,6 @@ class AppInsightsService {
 
       console.info('[AppInsights] Initialized successfully');
 
-      // Send initial test event
       this.trackEvent({
         name: 'MPT_Mobile_App_Started',
         properties: {
@@ -82,10 +87,18 @@ class AppInsightsService {
     }
   }
 
-  /**
-   * Track a custom event
-   * @param event - Event name and optional properties
-   */
+  public setUserProvider(getUserFn: () => User | null): void {
+    this.getUserFn = getUserFn;
+  }
+
+  public updateAuthenticatedUserContext(userId: string | null): void {
+    if (userId) {
+      this.setAuthenticatedUserContext(userId);
+    } else {
+      this.clearAuthenticatedUserContext();
+    }
+  }
+
   public trackEvent(event: AppInsightsEvent): void {
     if (!this.isInitialized || !this.appInsights) {
       console.warn('[AppInsights] Not initialized. Event not tracked:', event.name);
@@ -96,12 +109,6 @@ class AppInsightsService {
     console.info('[AppInsights] Event tracked:', event.name);
   }
 
-  /**
-   * Track an exception/error
-   * @param error - The error object
-   * @param properties - Additional custom properties
-   * @param severityLevel - Severity level of the error
-   */
   public trackException(
     error: Error,
     properties?: CustomProperties,
@@ -127,12 +134,6 @@ class AppInsightsService {
     });
   }
 
-  /**
-   * Track a trace/log message
-   * @param message - The log message
-   * @param severityLevel - Severity level
-   * @param properties - Additional custom properties
-   */
   public trackTrace(
     message: string,
     severityLevel: SeverityLevel = 'Information',
@@ -159,10 +160,6 @@ class AppInsightsService {
     console.info('[AppInsights] Trace tracked:', message.substring(0, 50) + '...');
   }
 
-  /**
-   * Track a custom metric
-   * @param metric - Metric data
-   */
   public trackMetric(metric: AppInsightsMetric): void {
     if (!this.isInitialized || !this.appInsights) {
       console.warn('[AppInsights] Not initialized. Metric not tracked:', metric.name);
@@ -181,11 +178,6 @@ class AppInsightsService {
     );
   }
 
-  /**
-   * Track a page view (screen view in mobile context)
-   * @param name - Screen/page name
-   * @param properties - Additional custom properties
-   */
   public trackPageView(name: string, properties?: CustomProperties): void {
     if (!this.isInitialized || !this.appInsights) {
       console.warn('[AppInsights] Not initialized. Page view not tracked:', name);
@@ -195,11 +187,6 @@ class AppInsightsService {
     this.appInsights.trackPageView({ name, properties });
   }
 
-  /**
-   * Set the authenticated user ID for correlation
-   * @param userId - The user identifier
-   * @param accountId - Optional account identifier
-   */
   public setAuthenticatedUserContext(userId: string, accountId?: string): void {
     if (!this.isInitialized || !this.appInsights) {
       console.warn('[AppInsights] Not initialized. User context not set.');
@@ -209,9 +196,6 @@ class AppInsightsService {
     this.appInsights.setAuthenticatedUserContext(userId, accountId);
   }
 
-  /**
-   * Clear the authenticated user context (e.g., on logout)
-   */
   public clearAuthenticatedUserContext(): void {
     if (!this.isInitialized || !this.appInsights) {
       return;
@@ -220,9 +204,6 @@ class AppInsightsService {
     this.appInsights.clearAuthenticatedUserContext();
   }
 
-  /**
-   * Flush pending telemetry
-   */
   public async shutdown(): Promise<void> {
     if (this.appInsights) {
       await this.appInsights.flush();
@@ -230,16 +211,10 @@ class AppInsightsService {
     }
   }
 
-  /**
-   * Check if Application Insights is initialized
-   */
   public isReady(): boolean {
     return this.isInitialized;
   }
 }
 
-// Export singleton instance
 export const appInsightsService = new AppInsightsService();
-
-// Export class for testing purposes
 export { AppInsightsService };

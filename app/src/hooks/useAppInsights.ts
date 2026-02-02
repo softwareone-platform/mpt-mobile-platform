@@ -1,16 +1,18 @@
 import { useEffect } from 'react';
 
+import { useAuth } from '@/context/AuthContext';
 import { appInsightsService } from '@/services/appInsightsService';
 
-/**
- * Hook to initialize Application Insights and track app lifecycle events
- */
 export const useAppInsights = () => {
+  const { user } = useAuth();
+
   useEffect(() => {
-    // Initialize Application Insights on app start
+    appInsightsService.setUserProvider(() => user);
+  }, [user]);
+
+  useEffect(() => {
     appInsightsService.initialize();
 
-    // Track that the app has been fully mounted
     appInsightsService.trackEvent({
       name: 'MPT_Mobile_App_Mounted',
       properties: {
@@ -19,13 +21,21 @@ export const useAppInsights = () => {
       },
     });
 
-    // Track a trace message (easy to find in App Insights logs)
-    appInsightsService.trackTrace(
-      'MPT Mobile Platform elo2 - App component mounted successfully',
-      'Information',
-      { component: 'App', action: 'mount' },
-    );
+    console.info('[AppInsights] App mounted, telemetry event sent.');
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      const accountId = user['https://claims.softwareone.com/accountId'] as string | undefined;
+      console.info('[AppInsights] User context updated:', { accountId });
+      appInsightsService.trackTrace('User context updated', 'Information', {
+        component: 'App',
+        action: 'UserUpdated',
+      });
+    } else {
+      console.info('[AppInsights] User logged out');
+    }
+  }, [user]);
 
   return appInsightsService;
 };
