@@ -11,6 +11,18 @@ const mockSetAuthenticatedUserContext = jest.fn();
 const mockClearAuthenticatedUserContext = jest.fn();
 const mockFlush = jest.fn();
 
+jest.mock('react-native-device-info', () => ({
+  default: {
+    getVersion: jest.fn(() => '1.3.4'),
+  },
+}));
+
+jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+  OS: 'ios',
+  Version: 17,
+  select: jest.fn((obj) => obj.ios),
+}));
+
 jest.mock('@microsoft/applicationinsights-web', () => ({
   ApplicationInsights: jest.fn().mockImplementation(() => ({
     loadAppInsights: mockLoadAppInsights,

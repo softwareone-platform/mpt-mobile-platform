@@ -1,5 +1,7 @@
 import { ReactNativePlugin } from '@microsoft/applicationinsights-react-native';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 
 import { configService } from '@/config/env.config';
 import { User } from '@/services/authService';
@@ -60,6 +62,9 @@ class AppInsightsService {
         if (item.baseData) {
           item.baseData.properties = item.baseData.properties || {};
           item.baseData.properties.Application = APPLICATION_NAME;
+          item.baseData.properties.AppVersion = DeviceInfo.getVersion();
+          item.baseData.properties.PlatformOS = Platform.OS;
+          item.baseData.properties.PlatformVersion = Platform.Version.toString();
 
           const currentUser = this.getUserFn?.();
           if (currentUser) {
