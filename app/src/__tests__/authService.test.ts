@@ -7,6 +7,12 @@ let mockRefreshToken: jest.Mock;
 let mockRevoke: jest.Mock;
 let mockClearCredentials: jest.Mock;
 
+jest.mock('../services/appInsightsService', () => ({
+  appInsightsService: {
+    trackException: jest.fn(),
+  },
+}));
+
 jest.mock('react-native-auth0', () => {
   const passwordlessWithEmail = jest.fn();
   const loginWithEmail = jest.fn();

@@ -1,5 +1,11 @@
 import { AxiosResponse } from 'axios';
 
+jest.mock('../services/appInsightsService', () => ({
+  appInsightsService: {
+    trackException: jest.fn(),
+  },
+}));
+
 import { configService } from '../config/env.config';
 import apiClient from '../lib/apiClient';
 import { parseMajorVersion, fetchPortalVersion } from '../services/portalVersionService';

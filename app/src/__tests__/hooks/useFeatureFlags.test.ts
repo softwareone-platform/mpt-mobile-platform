@@ -1,5 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 
+jest.mock('@/services/appInsightsService', () => ({
+  appInsightsService: {
+    trackException: jest.fn(),
+  },
+}));
+
 import * as AuthContext from '@/context/AuthContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { PortalVersionInfo } from '@/services/portalVersionService';
