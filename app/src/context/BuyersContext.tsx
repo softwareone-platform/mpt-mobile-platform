@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useBuyersData } from '@/hooks/queries/userBuyersData';
-import type { Buyer } from '@/types/api';
+import type { ListItemFull } from '@/types/api';
 
 interface BuyersContextValue {
-  buyers: Buyer[];
+  buyers: ListItemFull[];
   isBuyersLoading: boolean;
   isBuyersFetchingNext: boolean;
   hasMoreBuyers: boolean;

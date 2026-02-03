@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useProgramsData } from '@/hooks/queries/useProgramsData';
-import type { Program } from '@/types/program';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 interface ProgramContextValue {
-  programs: Program[];
+  programs: ListItemNoImageNoSubtitle[];
   programsLoading: boolean;
   programsFetchingNext: boolean;
   hasMorePrograms: boolean;
