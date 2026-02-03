@@ -69,6 +69,7 @@ class AppInsightsService {
           item.baseData.properties = item.baseData.properties || {};
           item.baseData.properties.Application = APPLICATION_NAME;
           item.baseData.properties.AppVersion = DeviceInfo.getVersion();
+          item.baseData.properties.DeviceId = DeviceInfo.getUniqueIdSync();
           item.baseData.properties.PlatformOS = Platform.OS;
           item.baseData.properties.PlatformVersion = Platform.Version.toString();
           item.baseData.properties.CorrelationId = this.correlationId;

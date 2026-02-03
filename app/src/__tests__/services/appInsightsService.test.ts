@@ -18,6 +18,7 @@ jest.mock('expo-crypto', () => ({
 jest.mock('react-native-device-info', () => ({
   default: {
     getVersion: jest.fn(() => '1.3.4'),
+    getUniqueIdSync: jest.fn(() => 'test-device-id-abc123'),
   },
 }));
 
