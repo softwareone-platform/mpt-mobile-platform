@@ -1,57 +1,70 @@
-import type { NavigationProp, RouteProp } from '@react-navigation/native';
-import { ComponentType } from 'react';
-
 import { ListItemWithStatusProps } from './lists';
 
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   ProfileRoot: undefined;
-};
+} & MainTabsParamList &
+  SecondaryTabsParamList &
+  AppScreensParamList;
 
-export type AuthStackParamList = {
-  Welcome: undefined;
-  OTPVerification: { email: string };
-};
-
-export type TabParamList = {
+export type MainTabsParamList = {
   spotlight: undefined;
   orders: undefined;
   subscriptions: undefined;
+  more: undefined;
+};
+
+export type SecondaryTabsParamList = {
   agreements: undefined;
   invoices: undefined;
   creditMemos: undefined;
-  creditMemoDetails: {
-    headerProps: ListItemWithStatusProps;
-  };
   statements: undefined;
   users: undefined;
   programs: undefined;
   enrollments: undefined;
   licensees: undefined;
   buyers: undefined;
-  more: undefined;
-  moreMenu: undefined;
-  ProfileRoot: undefined;
 };
 
-export type MenuRouteName = {
-  [K in keyof TabParamList]: TabParamList[K] extends undefined ? K : never;
-}[keyof TabParamList];
+export type AppScreensParamList = {
+  creditMemoDetails: { headerProps: ListItemWithStatusProps };
+  orderDetails: { headerProps: ListItemWithStatusProps };
+};
 
-export type ScreenComponent<
-  ParamList extends Record<string, object | undefined>,
-  RouteName extends keyof ParamList,
-> = React.ComponentType<{
-  navigation: NavigationProp<ParamList, RouteName>;
-  route: RouteProp<ParamList, RouteName>;
-}>;
+export type MainTabRouteName = keyof MainTabsParamList;
 
-export type TabItem<RouteName extends keyof TabParamList = keyof TabParamList> = {
-  name: RouteName;
+export type SecondaryTabRouteName = keyof SecondaryTabsParamList;
+
+export type AuthStackParamList = {
+  Welcome: undefined;
+  OTPVerification: { email: string };
+};
+
+export type AppScreenRouteName = keyof RootStackParamList;
+
+export type StackRootName = 'spotlightRoot' | 'ordersRoot' | 'subscriptionsRoot' | 'moreRoot';
+
+export type MainTabItem = {
+  name: MainTabRouteName;
   icon: string;
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  component?: ComponentType<any>;
+  component?: React.ComponentType<any>;
+  stackRootName: StackRootName;
+};
+
+export type SecondaryTabItem = {
+  name: keyof SecondaryTabsParamList;
+  icon: string;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  component?: React.ComponentType<any>;
+};
+
+export type AppScreenItem = {
+  name: keyof AppScreensParamList | keyof SecondaryTabsParamList;
+  icon: string;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  component?: React.ComponentType<any>;
 };
 
 export type ProfileStackParamList = {
