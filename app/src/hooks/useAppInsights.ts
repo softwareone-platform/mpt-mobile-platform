@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
-import { appInsightsService } from '@/services/appInsightsService';
+import { appInsightsService, AppInsightsService } from '@/services/appInsightsService';
 
-export const useAppInsights = () => {
+export const useAppInsights = (): AppInsightsService => {
   const { user } = useAuth();
 
   useEffect(() => {

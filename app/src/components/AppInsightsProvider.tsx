@@ -1,8 +1,12 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
 import { useAppInsights } from '@/hooks/useAppInsights';
 
-export const AppInsightsProvider = ({ children }: { children: ReactNode }) => {
+interface AppInsightsProviderProps {
+  children: ReactNode;
+}
+
+export const AppInsightsProvider: React.FC<AppInsightsProviderProps> = ({ children }) => {
   useAppInsights();
   return <>{children}</>;
 };
