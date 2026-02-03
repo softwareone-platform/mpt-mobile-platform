@@ -1,3 +1,5 @@
+import semver from 'semver';
+
 import { PortalVersionInfo } from './portalVersionService';
 
 import featureFlags from '@/config/feature-flags/featureFlags.json';
@@ -7,8 +9,19 @@ export type FeatureFlagKey = keyof FeatureFlags;
 
 export type FeatureFlagConfig = {
   enabled: boolean;
-  minVersion?: number;
-  maxVersion?: number;
+  minVersion?: string;
+  maxVersion?: string;
+};
+
+const compareVersions = (version1: string, version2: string): number => {
+  const v1 = semver.coerce(version1);
+  const v2 = semver.coerce(version2);
+
+  if (!v1 || !v2) {
+    throw new Error(`Invalid version format: ${!v1 ? version1 : version2}`);
+  }
+
+  return semver.compare(v1, v2);
 };
 
 export class FeatureFlagsService {
@@ -44,17 +57,15 @@ export class FeatureFlagsService {
       return config.enabled;
     }
 
-    const currentVersion = portalVersion.majorVersion;
+    const currentVersion = `${portalVersion.major}.${portalVersion.minor}.${portalVersion.patch}`;
 
-    if (config.minVersion !== undefined && currentVersion < config.minVersion) {
+    const featureConfig = config as FeatureFlagConfig;
+
+    if (featureConfig.minVersion && compareVersions(currentVersion, featureConfig.minVersion) < 0) {
       return false;
     }
 
-    if (
-      'maxVersion' in config &&
-      typeof config.maxVersion === 'number' &&
-      currentVersion > config.maxVersion
-    ) {
+    if (featureConfig.maxVersion && compareVersions(currentVersion, featureConfig.maxVersion) > 0) {
       return false;
     }
 
@@ -63,3 +74,5 @@ export class FeatureFlagsService {
 }
 
 export const featureFlagsService = FeatureFlagsService.getInstance();
+
+export { compareVersions };

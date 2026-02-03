@@ -20,7 +20,12 @@ describe('useFeatureFlags', () => {
   });
 
   it('returns isEnabled function that checks version requirements', () => {
-    const portalVersion: PortalVersionInfo = { fullVersion: '5.0.0', majorVersion: 5 };
+    const portalVersion: PortalVersionInfo = {
+      fullVersion: '5.0.0',
+      major: 5,
+      minor: 0,
+      patch: 0,
+    };
     mockUseAuth.mockReturnValue({ portalVersion } as ReturnType<typeof AuthContext.useAuth>);
 
     const { result } = renderHook(() => useFeatureFlags());
