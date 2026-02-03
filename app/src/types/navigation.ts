@@ -43,12 +43,14 @@ export type AuthStackParamList = {
 
 export type AppScreenRouteName = keyof RootStackParamList;
 
+export type StackRootName = 'spotlightRoot' | 'ordersRoot' | 'subscriptionsRoot' | 'moreRoot';
+
 export type MainTabItem = {
   name: MainTabRouteName;
   icon: string;
   /* eslint-disable @typescript-eslint/no-explicit-any */
   component?: React.ComponentType<any>;
-  stackRootName: string;
+  stackRootName: StackRootName;
 };
 
 export type SecondaryTabItem = {
