@@ -8,7 +8,7 @@ jest.mock('../services/appInsightsService', () => ({
 
 import { configService } from '../config/env.config';
 import apiClient from '../lib/apiClient';
-import { parseMajorVersion, fetchPortalVersion } from '../services/portalVersionService';
+import { parseSemanticVersion, fetchPortalVersion } from '../services/portalVersionService';
 
 jest.mock('../config/env.config');
 jest.mock('../lib/apiClient');
@@ -34,23 +34,35 @@ describe('portalVersionService', () => {
     jest.restoreAllMocks();
   });
 
-  describe('parseMajorVersion', () => {
-    it('should parse major version from full version string', () => {
-      expect(parseMajorVersion('5.0.2494-g4c551809')).toBe(5);
+  describe('parseSemanticVersion', () => {
+    it('parses full semantic version from version with commit', () => {
+      const result = parseSemanticVersion('4.0.1661-gab73f827');
+      expect(result).toEqual({ major: 4, minor: 0, patch: 1661 });
     });
 
-    it('should parse single digit major version', () => {
-      expect(parseMajorVersion('4.1.0')).toBe(4);
+    it('parses semantic version from simple version string', () => {
+      const result = parseSemanticVersion('5.2.3');
+      expect(result).toEqual({ major: 5, minor: 2, patch: 3 });
     });
 
-    it('should parse double digit major version', () => {
-      expect(parseMajorVersion('12.3.456')).toBe(12);
+    it('parses semantic version with large patch number', () => {
+      const result = parseSemanticVersion('4.0.1661');
+      expect(result).toEqual({ major: 4, minor: 0, patch: 1661 });
     });
 
-    it('should return fallback version 4 for invalid version strings', () => {
-      expect(parseMajorVersion('invalid')).toBe(4);
-      expect(parseMajorVersion('abc.1.2')).toBe(4);
-      expect(parseMajorVersion('')).toBe(4);
+    it('returns fallback version for empty string', () => {
+      const result = parseSemanticVersion('');
+      expect(result).toEqual({ major: 4, minor: 0, patch: 0 });
+    });
+
+    it('returns fallback version for invalid string', () => {
+      const result = parseSemanticVersion('invalid');
+      expect(result).toEqual({ major: 4, minor: 0, patch: 0 });
+    });
+
+    it('returns fallback version for partial version string', () => {
+      const result = parseSemanticVersion('5.2');
+      expect(result).toEqual({ major: 4, minor: 0, patch: 0 });
     });
   });
 
@@ -79,10 +91,12 @@ describe('portalVersionService', () => {
       );
       expect(result).toEqual({
         fullVersion: '5.0.2494-g4c551809',
-        majorVersion: 5,
+        major: 5,
+        minor: 0,
+        patch: 2494,
       });
     });
-    it('should return fallback majorVersion 4 when version is empty', async () => {
+    it('should return fallback version 4 when version is empty', async () => {
       mockConfigService.get.mockReturnValue(mockBaseUrl);
       mockApiClient.get.mockResolvedValue({
         data: {
@@ -96,11 +110,13 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 4,
+        major: 4,
+        minor: 0,
+        patch: 0,
       });
     });
 
-    it('should return fallback majorVersion 4 when version cannot be parsed', async () => {
+    it('should return fallback version 4 when version cannot be parsed', async () => {
       mockConfigService.get.mockReturnValue(mockBaseUrl);
       mockApiClient.get.mockResolvedValue({
         data: {
@@ -114,7 +130,9 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: 'invalid-version',
-        majorVersion: 4,
+        major: 4,
+        minor: 0,
+        patch: 0,
       });
     });
 
@@ -125,7 +143,9 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 4,
+        major: 4,
+        minor: 0,
+        patch: 0,
       });
       expect(console.warn).toHaveBeenCalledWith(
         'Portal version fetch skipped: Api url not configured, using fallback',
@@ -141,7 +161,9 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 4,
+        major: 4,
+        minor: 0,
+        patch: 0,
       });
     });
 
@@ -158,7 +180,9 @@ describe('portalVersionService', () => {
 
       expect(result).toEqual({
         fullVersion: '',
-        majorVersion: 4,
+        major: 4,
+        minor: 0,
+        patch: 0,
       });
     });
   });
