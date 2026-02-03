@@ -26,6 +26,7 @@
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "expo": "~54.0.13",
+    "expo-crypto": "~15.0.8",
     "expo-dev-client": "~6.0.15",
     "expo-image": "~3.0.10",
     "expo-linear-gradient": "~15.0.7",

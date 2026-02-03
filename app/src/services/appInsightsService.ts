@@ -1,5 +1,6 @@
 import { ReactNativePlugin } from '@microsoft/applicationinsights-react-native';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+import * as Crypto from 'expo-crypto';
 import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 
@@ -28,10 +29,15 @@ export interface AppInsightsMetric {
 
 const APPLICATION_NAME = 'MarketplaceMobile';
 
+function generateCorrelationId(): string {
+  return Crypto.randomUUID();
+}
+
 class AppInsightsService {
   private appInsights: ApplicationInsights | null = null;
   private getUserFn: (() => User | null) | null = null;
   private isInitialized = false;
+  private correlationId: string = generateCorrelationId();
 
   public initialize(): void {
     if (this.isInitialized) {
@@ -65,6 +71,7 @@ class AppInsightsService {
           item.baseData.properties.AppVersion = DeviceInfo.getVersion();
           item.baseData.properties.PlatformOS = Platform.OS;
           item.baseData.properties.PlatformVersion = Platform.Version.toString();
+          item.baseData.properties.CorrelationId = this.correlationId;
 
           const currentUser = this.getUserFn?.();
           if (currentUser) {
@@ -94,6 +101,15 @@ class AppInsightsService {
 
   public setUserProvider(getUserFn: () => User | null): void {
     this.getUserFn = getUserFn;
+  }
+
+  public refreshCorrelationId(): string {
+    this.correlationId = generateCorrelationId();
+    return this.correlationId;
+  }
+
+  public getCorrelationId(): string {
+    return this.correlationId;
   }
 
   public updateAuthenticatedUserContext(userId: string | null): void {

@@ -11,6 +11,10 @@ const mockSetAuthenticatedUserContext = jest.fn();
 const mockClearAuthenticatedUserContext = jest.fn();
 const mockFlush = jest.fn();
 
+jest.mock('expo-crypto', () => ({
+  randomUUID: jest.fn(() => 'test-correlation-id-12345'),
+}));
+
 jest.mock('react-native-device-info', () => ({
   default: {
     getVersion: jest.fn(() => '1.3.4'),

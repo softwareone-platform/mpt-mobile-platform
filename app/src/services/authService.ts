@@ -91,11 +91,7 @@ class AuthenticationService {
       return { success: true };
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to send authentication email');
-      appInsightsService.trackException(
-        err,
-        { operation: 'sendPasswordlessEmail', email },
-        'Critical',
-      );
+      appInsightsService.trackException(err, { operation: 'sendPasswordlessEmail' }, 'Critical');
       throw err;
     }
   }
@@ -120,11 +116,7 @@ class AuthenticationService {
     } catch (error) {
       const err =
         error instanceof Error ? error : new Error('Failed to verify authentication code');
-      appInsightsService.trackException(
-        err,
-        { operation: 'verifyPasswordlessOtp', email },
-        'Critical',
-      );
+      appInsightsService.trackException(err, { operation: 'verifyPasswordlessOtp' }, 'Critical');
       throw err;
     }
   }
