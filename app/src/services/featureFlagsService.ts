@@ -1,5 +1,6 @@
 import semver from 'semver';
 
+import { appInsightsService } from './appInsightsService';
 import { PortalVersionInfo } from './portalVersionService';
 
 import featureFlags from '@/config/feature-flags/featureFlags.json';
@@ -13,12 +14,21 @@ export type FeatureFlagConfig = {
   maxVersion?: string;
 };
 
-const compareVersions = (version1: string, version2: string): number => {
+const compareVersions = (version1: string, version2: string): number | null => {
   const v1 = semver.coerce(version1);
   const v2 = semver.coerce(version2);
 
   if (!v1 || !v2) {
-    throw new Error(`Invalid version format: ${!v1 ? version1 : version2}`);
+    appInsightsService.trackException(
+      new Error('Invalid version format in feature flag comparison'),
+      {
+        version1,
+        version2,
+        operation: 'compareVersions',
+      },
+      'Warning',
+    );
+    return null;
   }
 
   return semver.compare(v1, v2);
@@ -61,12 +71,18 @@ export class FeatureFlagsService {
 
     const featureConfig = config as FeatureFlagConfig;
 
-    if (featureConfig.minVersion && compareVersions(currentVersion, featureConfig.minVersion) < 0) {
-      return false;
+    if (featureConfig.minVersion) {
+      const comparison = compareVersions(currentVersion, featureConfig.minVersion);
+      if (comparison === null || comparison < 0) {
+        return false;
+      }
     }
 
-    if (featureConfig.maxVersion && compareVersions(currentVersion, featureConfig.maxVersion) > 0) {
-      return false;
+    if (featureConfig.maxVersion) {
+      const comparison = compareVersions(currentVersion, featureConfig.maxVersion);
+      if (comparison === null || comparison > 0) {
+        return false;
+      }
     }
 
     return true;
