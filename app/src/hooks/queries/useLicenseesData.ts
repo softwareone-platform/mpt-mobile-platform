@@ -1,6 +1,6 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useLicenseeApi } from '@/services/licenseeService';
-import type { Licensee } from '@/types/api';
+import type { ListItemFull } from '@/types/api';
 
 export const useLicenseesData = (
   userId: string | undefined,
@@ -8,7 +8,7 @@ export const useLicenseesData = (
 ) => {
   const { getLicensees } = useLicenseeApi();
 
-  return usePaginatedQuery<Licensee>({
+  return usePaginatedQuery<ListItemFull>({
     queryKey: ['licensees', userId, currentAccountId],
     queryFn: (offset, limit) => getLicensees(currentAccountId!, offset, limit),
     enabled: !!userId && !!currentAccountId,
