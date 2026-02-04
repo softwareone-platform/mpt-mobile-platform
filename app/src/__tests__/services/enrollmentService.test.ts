@@ -41,8 +41,7 @@ describe('useEnrollmentApi - getEnrollments', () => {
 
     const expectedUrl =
       `/v1/program/enrollments` +
-      `?select=audit,certificate.client,program.vendor,licensee.account.id,assignee.currentAccount.id` +
-      `&ne(status,%22Deleted%22)` +
+      `?select=-*,id,status` +
       `&order=-id` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -73,8 +72,7 @@ describe('useEnrollmentApi - getEnrollments', () => {
 
     const expectedUrl =
       `/v1/program/enrollments` +
-      `?select=audit,certificate.client,program.vendor,licensee.account.id,assignee.currentAccount.id` +
-      `&ne(status,%22Deleted%22)` +
+      `?select=-*,id,status` +
       `&order=-id` +
       `&offset=50` +
       `&limit=25`;
@@ -92,11 +90,11 @@ describe('useEnrollmentApi - getEnrollments', () => {
         {
           id: 'ENR-1234-7564-2273',
           status: 'Completed',
-        } as ListItemNoImageNoSubtitle,
+        },
         {
           id: 'ENR-1234-7564-3476',
           status: 'Completed',
-        } as ListItemNoImageNoSubtitle,
+        },
       ],
     };
 
@@ -106,11 +104,11 @@ describe('useEnrollmentApi - getEnrollments', () => {
         {
           id: 'ENR-1234-7564-3475',
           status: 'Failed',
-        } as ListItemNoImageNoSubtitle,
+        },
         {
           id: 'ENR-1234-7564-3474',
           status: 'Failed',
-        } as ListItemNoImageNoSubtitle,
+        },
       ],
     };
 

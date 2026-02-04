@@ -14,8 +14,7 @@ export function useEnrollmentApi() {
     ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
       const endpoint =
         `/v1/program/enrollments` +
-        `?select=audit,certificate.client,program.vendor,licensee.account.id,assignee.currentAccount.id` +
-        `&ne(status,%22Deleted%22)` +
+        `?select=-*,id,status` +
         `&order=-id` +
         `&offset=${offset}` +
         `&limit=${limit}`;
