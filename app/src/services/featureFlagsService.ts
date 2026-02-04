@@ -1,3 +1,6 @@
+import semver from 'semver';
+
+import { appInsightsService } from './appInsightsService';
 import { PortalVersionInfo } from './portalVersionService';
 
 import featureFlags from '@/config/feature-flags/featureFlags.json';
@@ -7,8 +10,28 @@ export type FeatureFlagKey = keyof FeatureFlags;
 
 export type FeatureFlagConfig = {
   enabled: boolean;
-  minVersion?: number;
-  maxVersion?: number;
+  minVersion?: string;
+  maxVersion?: string;
+};
+
+const compareVersions = (version1: string, version2: string): number | null => {
+  const v1 = semver.coerce(version1);
+  const v2 = semver.coerce(version2);
+
+  if (!v1 || !v2) {
+    appInsightsService.trackException(
+      new Error('Invalid version format in feature flag comparison'),
+      {
+        version1,
+        version2,
+        operation: 'compareVersions',
+      },
+      'Warning',
+    );
+    return null;
+  }
+
+  return semver.compare(v1, v2);
 };
 
 export class FeatureFlagsService {
@@ -44,18 +67,22 @@ export class FeatureFlagsService {
       return config.enabled;
     }
 
-    const currentVersion = portalVersion.majorVersion;
+    const currentVersion = `${portalVersion.major}.${portalVersion.minor}.${portalVersion.patch}`;
 
-    if (config.minVersion !== undefined && currentVersion < config.minVersion) {
-      return false;
+    const featureConfig = config as FeatureFlagConfig;
+
+    if (featureConfig.minVersion) {
+      const comparison = compareVersions(currentVersion, featureConfig.minVersion);
+      if (comparison === null || comparison < 0) {
+        return false;
+      }
     }
 
-    if (
-      'maxVersion' in config &&
-      typeof config.maxVersion === 'number' &&
-      currentVersion > config.maxVersion
-    ) {
-      return false;
+    if (featureConfig.maxVersion) {
+      const comparison = compareVersions(currentVersion, featureConfig.maxVersion);
+      if (comparison === null || comparison > 0) {
+        return false;
+      }
     }
 
     return true;
@@ -63,3 +90,5 @@ export class FeatureFlagsService {
 }
 
 export const featureFlagsService = FeatureFlagsService.getInstance();
+
+export { compareVersions };
