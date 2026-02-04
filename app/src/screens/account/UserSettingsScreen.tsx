@@ -29,7 +29,7 @@ const userDetailsData: Array<UserSettingsItem> = [
 
 const communicationData: Array<UserSettingsItem> = [
   { name: 'notificationSettings', icon: 'notifications', isDisabled: true },
-  { name: 'emailSettings', icon: 'email', isDisabled: true },
+  { name: 'emailSettings', icon: 'mail', isDisabled: true },
 ];
 
 const UserSettingsScreen = () => {

@@ -7,14 +7,13 @@ import TabStack from './TabStack';
 
 import DynamicIcon from '@/components/common/DynamicIcon';
 import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
-import { useNavigationData } from '@/context/NavigationContext';
+import { mainTabsData } from '@/constants/navigation';
 import { Color, navigationStyle } from '@/styles';
 import { TestIDs } from '@/utils/testID';
 
 const Tab = createBottomTabNavigator();
 
 const MainTabs = () => {
-  const { mainTabsData } = useNavigationData();
   const { t } = useTranslation();
 
   return (

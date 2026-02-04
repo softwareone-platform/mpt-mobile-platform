@@ -19,6 +19,10 @@ export const cardStyle = {
     backgroundColor: Color.brand.white,
     borderRadius: BorderRadius.xl,
   },
+  containerSpacingOnly: {
+    padding: Spacing.spacing2,
+    marginBottom: Spacing.spacing2,
+  },
   header: {
     borderBottomWidth: 1,
     borderBottomColor: separatorStyle.nonOpaque.borderColor,
