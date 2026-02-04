@@ -1,4 +1,5 @@
 name: iOS TestFlight Deployment
+run-name: "iOS TestFlight Deployment → ${{ inputs.environment }}"
 
 on:
   workflow_dispatch:
