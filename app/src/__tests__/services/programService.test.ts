@@ -2,8 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useProgramApi } from '@/services/programService';
-import type { PaginatedResponse } from '@/types/api';
-import type { Program } from '@/types/program';
+import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -22,7 +21,7 @@ describe('useProgramApi', () => {
 
   it('calls getPrograms with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Program> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -53,7 +52,7 @@ describe('useProgramApi', () => {
 
   it('calls getPrograms with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Program> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -85,43 +84,43 @@ describe('useProgramApi', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Program> = {
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
           id: 'PRG-0001-0001',
           name: 'Partner Program',
           status: 'Published',
-        } as Program,
+        } as ListItemFull,
         {
           id: 'PRG-0002-0002',
           name: 'Reseller Program',
           status: 'Published',
-        } as Program,
+        } as ListItemFull,
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Program> = {
+    const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
           id: 'PRG-0003-0003',
           name: 'Enterprise Program',
           status: 'Unpublished',
-        } as Program,
+        } as ListItemFull,
         {
           id: 'PRG-0004-0004',
           name: 'Starter Program',
           status: 'Published',
-        } as Program,
+        } as ListItemFull,
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Program> | undefined;
-    let res2: PaginatedResponse<Program> | undefined;
+    let res1: PaginatedResponse<ListItemFull> | undefined;
+    let res2: PaginatedResponse<ListItemFull> | undefined;
 
     await act(async () => {
       res1 = await api.getPrograms(0, 2);
@@ -144,14 +143,14 @@ describe('useProgramApi', () => {
 
   it('returns correct program data structure', async () => {
     const api = setup();
-    const mockProgram: Program = {
+    const mockProgram: ListItemFull = {
       id: 'PRG-1234-1234',
       name: 'Premium Program',
       status: 'Published',
       icon: 'program-icon.png',
     };
 
-    const mockResponse: PaginatedResponse<Program> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 0,

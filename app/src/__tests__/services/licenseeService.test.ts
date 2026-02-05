@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useLicenseeApi } from '@/services/licenseeService';
-import type { PaginatedResponse, Licensee } from '@/types/api';
+import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -21,7 +21,7 @@ describe('useLicenseeApi - getLicensees', () => {
 
   it('calls getLicensees with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Licensee> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -53,7 +53,7 @@ describe('useLicenseeApi - getLicensees', () => {
 
   it('calls getLicensees with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Licensee> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -86,7 +86,7 @@ describe('useLicenseeApi - getLicensees', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Licensee> = {
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
@@ -94,17 +94,17 @@ describe('useLicenseeApi - getLicensees', () => {
           name: 'Premium Licensee Corp',
           status: 'Active',
           icon: '/path/to/premium-icon.png',
-        } as Licensee,
+        } as ListItemFull,
         {
           id: 'LCE-2002-8002-0002',
           name: 'Standard Licensee Ltd',
           status: 'Active',
           icon: '/path/to/standard-icon.png',
-        } as Licensee,
+        } as ListItemFull,
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Licensee> = {
+    const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
@@ -112,21 +112,21 @@ describe('useLicenseeApi - getLicensees', () => {
           name: 'Enterprise Licensee Inc',
           status: 'Enabled',
           icon: '/path/to/enterprise-icon.png',
-        } as Licensee,
+        } as ListItemFull,
         {
           id: 'LCE-2004-8004-0004',
           name: 'Starter Licensee Co',
           status: 'Active',
           icon: '/path/to/starter-icon.png',
-        } as Licensee,
+        } as ListItemFull,
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Licensee> | undefined;
-    let res2: PaginatedResponse<Licensee> | undefined;
+    let res1: PaginatedResponse<ListItemFull> | undefined;
+    let res2: PaginatedResponse<ListItemFull> | undefined;
 
     await act(async () => {
       res1 = await api.getLicensees('ACC-0000-0001', 0, 2);
@@ -156,14 +156,14 @@ describe('useLicenseeApi - getLicensees', () => {
 
   it('returns correct licensee data structure', async () => {
     const api = setup();
-    const mockLicensee: Licensee = {
+    const mockLicensee: ListItemFull = {
       id: 'LCE-7890-1234-0001',
       name: 'Global Licensee Solutions',
       status: 'Active',
       icon: '/path/to/global-licensee-icon.png',
     };
 
-    const mockResponse: PaginatedResponse<Licensee> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 0,

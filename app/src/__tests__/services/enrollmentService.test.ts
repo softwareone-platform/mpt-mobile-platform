@@ -2,8 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useEnrollmentApi } from '@/services/enrollmentService';
-import type { PaginatedResponse } from '@/types/api';
-import type { Enrollment } from '@/types/program';
+import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -22,7 +21,7 @@ describe('useEnrollmentApi - getEnrollments', () => {
 
   it('calls getEnrollments with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Enrollment> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -42,8 +41,7 @@ describe('useEnrollmentApi - getEnrollments', () => {
 
     const expectedUrl =
       `/v1/program/enrollments` +
-      `?select=audit,certificate.client,program.vendor,licensee.account.id,assignee.currentAccount.id` +
-      `&ne(status,%22Deleted%22)` +
+      `?select=-*,id,status` +
       `&order=-id` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -54,7 +52,7 @@ describe('useEnrollmentApi - getEnrollments', () => {
 
   it('calls getEnrollments with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Enrollment> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -74,8 +72,7 @@ describe('useEnrollmentApi - getEnrollments', () => {
 
     const expectedUrl =
       `/v1/program/enrollments` +
-      `?select=audit,certificate.client,program.vendor,licensee.account.id,assignee.currentAccount.id` +
-      `&ne(status,%22Deleted%22)` +
+      `?select=-*,id,status` +
       `&order=-id` +
       `&offset=50` +
       `&limit=25`;
@@ -87,43 +84,39 @@ describe('useEnrollmentApi - getEnrollments', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Enrollment> = {
+    const mockResponse1: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
           id: 'ENR-1234-7564-2273',
-          name: 'ENR-1234-7564-2273',
           status: 'Completed',
-        } as Enrollment,
+        },
         {
           id: 'ENR-1234-7564-3476',
-          name: 'ENR-1234-7564-3476',
           status: 'Completed',
-        } as Enrollment,
+        },
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Enrollment> = {
+    const mockResponse2: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
           id: 'ENR-1234-7564-3475',
-          name: 'ENR-1234-7564-3475',
           status: 'Failed',
-        } as Enrollment,
+        },
         {
           id: 'ENR-1234-7564-3474',
-          name: 'ENR-1234-7564-3474',
           status: 'Failed',
-        } as Enrollment,
+        },
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Enrollment> | undefined;
-    let res2: PaginatedResponse<Enrollment> | undefined;
+    let res1: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
+    let res2: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
 
     await act(async () => {
       res1 = await api.getEnrollments(0, 2);
@@ -136,10 +129,7 @@ describe('useEnrollmentApi - getEnrollments', () => {
     expect(res1).toBeDefined();
     expect(res1!.data.length).toBe(2);
     expect(res1!.data.map((item) => item.id)).toEqual(['ENR-1234-7564-2273', 'ENR-1234-7564-3476']);
-    expect(res1!.data.map((item) => item.name)).toEqual([
-      'ENR-1234-7564-2273',
-      'ENR-1234-7564-3476',
-    ]);
+    expect(res1!.data.map((item) => item.status)).toEqual(['Completed', 'Completed']);
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
@@ -149,14 +139,12 @@ describe('useEnrollmentApi - getEnrollments', () => {
 
   it('returns correct enrollment data structure', async () => {
     const api = setup();
-    const mockEnrollment: Enrollment = {
+    const mockEnrollment: ListItemNoImageNoSubtitle = {
       id: 'ENR-1234-7564-3481',
-      name: 'ENR-1234-7564-3481',
       status: 'Completed',
-      icon: 'enrollment-icon.png',
     };
 
-    const mockResponse: PaginatedResponse<Enrollment> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: 0,
@@ -177,7 +165,6 @@ describe('useEnrollmentApi - getEnrollments', () => {
     expect(res).toEqual(mockResponse);
     expect(res!.data[0]).toMatchObject({
       id: 'ENR-1234-7564-3481',
-      name: 'ENR-1234-7564-3481',
       status: 'Completed',
     });
   });
