@@ -22,7 +22,15 @@ const ProfileStack = () => {
   };
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerShadowVisible: false,
+        headerStyle: {
+          elevation: 0,
+          shadowColor: 'transparent',
+        },
+      }}
+    >
       <Stack.Screen
         name="profile"
         component={ProfileScreen}

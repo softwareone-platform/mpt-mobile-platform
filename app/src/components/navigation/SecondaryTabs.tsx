@@ -3,52 +3,61 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { useNavigationData } from '@/context/NavigationContext';
-import { Color, navigationStyle } from '@/styles';
+import { secondaryTabsData } from '@/constants/navigation';
+import { Color, navigationStyle, screenStyle } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const SecondaryTabs = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { secondaryTabsData } = useNavigationData();
   const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={secondaryTabsData}
-        keyExtractor={(item) => item.name}
-        renderItem={({ item, index }) => {
-          const isLast = index === secondaryTabsData.length - 1;
-          return (
-            <TouchableOpacity
-              testID={`${TestIDs.NAV_MENU_ITEM_PREFIX}-${item.name}`}
-              style={styles.navigationItem}
-              activeOpacity={0.7}
-              onPress={() => item.component && navigation.navigate(item.name)}
-            >
-              <OutlinedIcon
-                name={item.icon as keyof typeof OutlinedIcons}
-                color={Color.brand.type}
-                size={24}
-              />
-              <View style={[styles.labelContainer, isLast && styles.lastItem]}>
-                <Text style={styles.label}>{t(`navigation.tabs.${item.name}`)}</Text>
-                <MaterialIcons name="chevron-right" size={22} color={Color.gray.gray3} />
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
-    </View>
+    <ScrollView contentContainerStyle={styles.mainContainer}>
+      {secondaryTabsData.map((section) => (
+        <View key={section.title} style={styles.container}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardHeaderText}>{t(`navigation.tabGroups.${section.title}`)}</Text>
+          </View>
+
+          {section.items.map((item, index) => {
+            const isLast = index === section.items.length - 1;
+
+            return (
+              <TouchableOpacity
+                key={item.name}
+                testID={`${TestIDs.NAV_MENU_ITEM_PREFIX}-${item.name}`}
+                style={[styles.navigationItem, isLast && styles.lastItem]}
+                activeOpacity={0.7}
+                onPress={() => item.component && navigation.navigate(item.name)}
+              >
+                <OutlinedIcon
+                  name={item.icon as keyof typeof OutlinedIcons}
+                  color={Color.brand.primary}
+                  size={24}
+                />
+
+                <View style={styles.labelContainer}>
+                  <Text style={styles.label}>{t(`navigation.tabs.${item.name}`)}</Text>
+                  <MaterialIcons name="chevron-right" size={22} color={Color.gray.gray4} />
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ))}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: screenStyle.containerMain,
   container: navigationStyle.secondary.container,
+  cardHeader: navigationStyle.secondary.header,
+  cardHeaderText: navigationStyle.secondary.headerText,
   navigationItem: navigationStyle.secondary.navigationItem,
   label: navigationStyle.secondary.label,
   labelContainer: navigationStyle.secondary.labelContainer,
