@@ -20,5 +20,14 @@
     "buyers": "Buyers",
     "orderDetails": "Order",
     "creditMemoDetails": "Credit Memo"
+  },
+  "tabGroups": {
+    "administration": "Administration",
+    "billing": "Billing",
+    "catalog": "Catalog",
+    "helpdesk": "Helpdesk",
+    "marketplace": "Marketplace",
+    "program": "Program",
+    "settings": "Settings"
   }
 }

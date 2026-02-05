@@ -9,21 +9,41 @@ type PortalManifest = {
 
 export type PortalVersionInfo = {
   fullVersion: string;
-  majorVersion: number;
+  major: number;
+  minor: number;
+  patch: number;
 };
 
 const FALLBACK_MAJOR_VERSION = 4;
+const FALLBACK_MINOR_VERSION = 0;
+const FALLBACK_PATCH_VERSION = 0;
 
-const parseMajorVersion = (version: string): number => {
-  const match = version.match(/^(\d+)/);
-  return match ? Number(match[1]) : FALLBACK_MAJOR_VERSION;
+const parseSemanticVersion = (version: string): { major: number; minor: number; patch: number } => {
+  const match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (match) {
+    return {
+      major: Number(match[1]),
+      minor: Number(match[2]),
+      patch: Number(match[3]),
+    };
+  }
+  return {
+    major: FALLBACK_MAJOR_VERSION,
+    minor: FALLBACK_MINOR_VERSION,
+    patch: FALLBACK_PATCH_VERSION,
+  };
 };
 
 export async function fetchPortalVersion(): Promise<PortalVersionInfo> {
   const baseUrl = configService.get('AUTH0_API_URL');
   if (!baseUrl) {
     console.warn('Portal version fetch skipped: Api url not configured, using fallback');
-    return { fullVersion: '', majorVersion: FALLBACK_MAJOR_VERSION };
+    return {
+      fullVersion: '',
+      major: FALLBACK_MAJOR_VERSION,
+      minor: FALLBACK_MINOR_VERSION,
+      patch: FALLBACK_PATCH_VERSION,
+    };
   }
 
   try {
@@ -35,13 +55,18 @@ export async function fetchPortalVersion(): Promise<PortalVersionInfo> {
     } as { noAuth: boolean; headers: Record<string, string> });
 
     const fullVersion = data.version || '';
-    const majorVersion = parseMajorVersion(fullVersion);
+    const { major, minor, patch } = parseSemanticVersion(fullVersion);
 
-    return { fullVersion, majorVersion };
+    return { fullVersion, major, minor, patch };
   } catch (error) {
     console.error('Failed to fetch portal manifest, using fallback version:', error);
-    return { fullVersion: '', majorVersion: FALLBACK_MAJOR_VERSION };
+    return {
+      fullVersion: '',
+      major: FALLBACK_MAJOR_VERSION,
+      minor: FALLBACK_MINOR_VERSION,
+      patch: FALLBACK_PATCH_VERSION,
+    };
   }
 }
 
-export { parseMajorVersion };
+export { parseSemanticVersion };

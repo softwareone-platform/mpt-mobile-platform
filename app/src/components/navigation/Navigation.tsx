@@ -7,7 +7,6 @@ import ProfileStack from './ProfileStack';
 import { RootStackParamList } from './types';
 
 import { useAuth } from '@/context/AuthContext';
-import { NavigationDataProvider } from '@/context/NavigationContext';
 import { LoadingScreen } from '@/screens';
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -20,20 +19,18 @@ const Navigation = () => {
   }
 
   return (
-    <NavigationDataProvider>
-      <NavigationContainer>
-        <RootStack.Navigator screenOptions={{ headerShown: false }}>
-          {status === 'authenticated' ? (
-            <>
-              <RootStack.Screen name="Main" component={MainTabs} />
-              <RootStack.Screen name="ProfileRoot" component={ProfileStack} />
-            </>
-          ) : (
-            <RootStack.Screen name="Auth" component={AuthStack} />
-          )}
-        </RootStack.Navigator>
-      </NavigationContainer>
-    </NavigationDataProvider>
+    <NavigationContainer>
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {status === 'authenticated' ? (
+          <>
+            <RootStack.Screen name="Main" component={MainTabs} />
+            <RootStack.Screen name="ProfileRoot" component={ProfileStack} />
+          </>
+        ) : (
+          <RootStack.Screen name="Auth" component={AuthStack} />
+        )}
+      </RootStack.Navigator>
+    </NavigationContainer>
   );
 };
 

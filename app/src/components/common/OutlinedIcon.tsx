@@ -17,7 +17,7 @@ const OutlinedIcon = ({
   }
 
   return (
-    <Svg width={size} height={size} viewBox={`0 0 24 24`} fill={color}>
+    <Svg width={size} height={size} viewBox="0 -960 960 960" fill={color}>
       <IconShape color={color} />
     </Svg>
   );

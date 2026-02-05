@@ -44,7 +44,8 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
-    "react-test-renderer": "19.1.0"
+    "react-test-renderer": "19.1.0",
+    "semver": "^7.7.3"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
@@ -52,6 +53,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^20.17.10",
     "@types/react": "~19.1.0",
+    "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
     "@wdio/appium-service": "^9.20.0",

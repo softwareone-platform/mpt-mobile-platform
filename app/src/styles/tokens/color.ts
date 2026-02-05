@@ -5,7 +5,7 @@
 
 export const Color = {
   brand: {
-    primary: '#472aff',
+    primary: '#3366FF',
     danger: '#dc182c',
     success: '#008556',
     type: '#000000',
@@ -18,7 +18,7 @@ export const Color = {
   },
   gray: {
     gray1: '#f4f6f8',
-    gray2: '#e0e5e8',
+    gray2: '#F0EEED',
     gray3: '#aeb1b9',
     gray4: '#6b7180',
     gray5: '#434952',
@@ -28,7 +28,7 @@ export const Color = {
     info1: '#eaecff',
     info2: '#959bff',
     info3: '#3520bf',
-    info4: '#2b1999',
+    info4: '#1A3380',
     warning1: '#fdf2e9',
     warning2: '#f1b178',
     warning3: '#e87d1e',

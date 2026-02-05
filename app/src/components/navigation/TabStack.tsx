@@ -5,14 +5,13 @@ import { StyleSheet } from 'react-native';
 import AccountToolbarButton from './AccountToolbarButton';
 import SecondaryTabs from './SecondaryTabs';
 
-import { useNavigationData } from '@/context/NavigationContext';
+import { appScreensData } from '@/constants/navigation';
 import { Color, navigationStyle } from '@/styles';
 import type { RootStackParamList, MainTabItem, MainTabsParamList } from '@/types/navigation';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 const TabStack = ({ tab }: { tab: MainTabItem }) => {
-  const { appScreensData } = useNavigationData();
   const { t } = useTranslation();
 
   const tabComponent = tab.name === 'more' ? SecondaryTabs : tab.component!;
@@ -25,6 +24,11 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
         headerBackTitleStyle: styles.headerBackTitle,
         headerTitleStyle: styles.headerTitle,
         headerRight: () => <AccountToolbarButton />,
+        headerShadowVisible: false,
+        headerStyle: {
+          elevation: 0,
+          shadowColor: 'transparent',
+        },
       }}
     >
       {/* Root screen of this tab */}

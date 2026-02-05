@@ -17,28 +17,36 @@ export const navigationStyle = {
   },
   secondary: {
     container: {
-      ...cardStyle.container,
+      ...cardStyle.containerRounded,
+      ...cardStyle.containerSpacingOnly,
       paddingTop: 0,
       paddingBottom: 0,
-      paddingRight: -16,
+    },
+    header: {
+      ...separatorStyle.bottomBorder1,
+      paddingVertical: Spacing.spacingSmall12,
+    },
+    headerText: {
+      fontSize: Typography.fontSize.font3,
+      fontWeight: Typography.fontWeight.semibold,
+      color: Color.gray.gray4,
     },
     navigationItem: {
       flexDirection: 'row',
       alignItems: 'center',
+      ...separatorStyle.bottomBorder1,
     },
     label: {
       fontSize: Typography.fontSize.font3,
-      color: Color.labels.primary,
+      color: Color.alerts.info4,
     },
     labelContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderBottomWidth: 1,
-      borderBottomColor: separatorStyle.nonOpaque.borderColor,
+
       flex: 1,
-      marginLeft: 12,
-      paddingRight: 15,
+      marginLeft: Spacing.spacing2,
       paddingVertical: Spacing.spacing2,
     },
     lastItem: {

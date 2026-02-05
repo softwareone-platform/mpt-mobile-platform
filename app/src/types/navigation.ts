@@ -60,6 +60,20 @@ export type SecondaryTabItem = {
   component?: React.ComponentType<any>;
 };
 
+export type SecondaryTabGroupTitle =
+  | 'administration'
+  | 'billing'
+  | 'catalog'
+  | 'helpdesk'
+  | 'marketplace'
+  | 'program'
+  | 'settings';
+
+export type SecondaryTabGroup = {
+  title: SecondaryTabGroupTitle;
+  items: SecondaryTabItem[];
+};
+
 export type AppScreenItem = {
   name: keyof AppScreensParamList | keyof SecondaryTabsParamList;
   icon: string;
