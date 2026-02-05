@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useLicenseesData } from '@/hooks/queries/useLicenseesData';
-import type { Licensee } from '@/types/api';
+import type { ListItemFull } from '@/types/api';
 
 interface LicenseeContextValue {
-  licensees: Licensee[];
+  licensees: ListItemFull[];
   isLicenseesLoading: boolean;
   isLicenseesFetchingNext: boolean;
   hasMoreLicensees: boolean;

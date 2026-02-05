@@ -2,8 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse } from '@/types/api';
-import type { Program } from '@/types/program';
+import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 export function useProgramApi() {
   const api = useApi();
@@ -12,7 +11,7 @@ export function useProgramApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Program>> => {
+    ): Promise<PaginatedResponse<ListItemFull>> => {
       const endpoint =
         `/v1/program/programs` +
         `?select=audit&ne(status,%22Deleted%22)` +
@@ -20,7 +19,7 @@ export function useProgramApi() {
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Program>>(endpoint);
+      return api.get<PaginatedResponse<ListItemFull>>(endpoint);
     },
     [api],
   );

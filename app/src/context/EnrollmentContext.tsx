@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useEnrollmentsData } from '@/hooks/queries/useProgramsData';
-import type { Enrollment } from '@/types/program';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 interface EnrollmentContextValue {
-  enrollments: Enrollment[];
+  enrollments: ListItemNoImageNoSubtitle[];
   isEnrollmentsLoading: boolean;
   isEnrollmentsFetchingNext: boolean;
   hasMoreEnrollments: boolean;

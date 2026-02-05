@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useBuyerApi } from '@/services/buyerService';
-import type { PaginatedResponse, Buyer } from '@/types/api';
+import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -21,7 +21,7 @@ describe('useBuyerApi - getBuyers', () => {
 
   it('calls getBuyers with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Buyer> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -53,7 +53,7 @@ describe('useBuyerApi - getBuyers', () => {
 
   it('calls getBuyers with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Buyer> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -86,7 +86,7 @@ describe('useBuyerApi - getBuyers', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Buyer> = {
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
@@ -94,17 +94,17 @@ describe('useBuyerApi - getBuyers', () => {
           name: 'Acme Corporation',
           status: 'Active',
           icon: '/path/to/acme-icon.png',
-        } as Buyer,
+        } as ListItemFull,
         {
           id: 'BUY-1002-5002',
           name: 'TechStart Inc',
           status: 'Active',
           icon: '/path/to/techstart-icon.png',
-        } as Buyer,
+        } as ListItemFull,
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Buyer> = {
+    const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
@@ -112,21 +112,21 @@ describe('useBuyerApi - getBuyers', () => {
           name: 'Global Solutions Ltd',
           status: 'Pending',
           icon: '/path/to/global-icon.png',
-        } as Buyer,
+        } as ListItemFull,
         {
           id: 'BUY-1004-5004',
           name: 'Digital Ventures',
           status: 'Active',
           icon: '/path/to/digital-icon.png',
-        } as Buyer,
+        } as ListItemFull,
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Buyer> | undefined;
-    let res2: PaginatedResponse<Buyer> | undefined;
+    let res1: PaginatedResponse<ListItemFull> | undefined;
+    let res2: PaginatedResponse<ListItemFull> | undefined;
 
     await act(async () => {
       res1 = await api.getBuyers('ACC-0000-0001', 0, 2);
@@ -152,14 +152,14 @@ describe('useBuyerApi - getBuyers', () => {
 
   it('returns correct buyer data structure', async () => {
     const api = setup();
-    const mockBuyer: Buyer = {
+    const mockBuyer: ListItemFull = {
       id: 'BUY-1234-5678',
       name: 'Enterprise Buyer Corp',
       status: 'Active',
       icon: '/path/to/enterprise-icon.png',
     };
 
-    const mockResponse: PaginatedResponse<Buyer> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 0,
