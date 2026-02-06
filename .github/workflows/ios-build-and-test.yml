@@ -104,7 +104,7 @@ jobs:
     name: Build iOS App
     # Skip build if artifact-url is provided
     if: ${{ inputs.artifact-url == '' && github.event.inputs.artifact-url == '' }}
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
 
     defaults:
@@ -471,7 +471,7 @@ jobs:
     needs: build-ios
     # Always run, but handle skipped build job
     if: ${{ always() && (needs.build-ios.result == 'success' || needs.build-ios.result == 'skipped') }}
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 60
     environment: ${{ inputs.environment || 'test' }}
     

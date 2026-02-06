@@ -54,7 +54,7 @@ on:
 jobs:
   expo-build-and-test-ios:
     name: Expo Build and Test iOS App
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 90
     environment: ${{ inputs.environment || 'test' }}
     
