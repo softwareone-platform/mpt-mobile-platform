@@ -73,15 +73,16 @@ class AppInsightsService {
           item.baseData.properties.PlatformOS = Platform.OS;
           item.baseData.properties.PlatformVersion = Platform.Version.toString();
           item.baseData.properties.CorrelationId = this.correlationId;
-
-          const currentUser = this.getUserFn?.();
-          if (currentUser) {
-            const accountId = currentUser['https://claims.softwareone.com/accountId'];
-            if (accountId) {
-              item.baseData.properties.AccountId = accountId as string;
-            }
+        }
+        const currentUser = this.getUserFn?.();
+        if (currentUser) {
+          const accountId = currentUser['https://claims.softwareone.com/accountId'];
+          if (accountId) {
+            item.tags = item.tags || [];
+            item.tags['ai.user.accountId'] = accountId as string;
           }
         }
+
         return true;
       });
 
