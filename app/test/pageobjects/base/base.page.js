@@ -78,58 +78,58 @@ class BasePage {
   }
 
   /**
-   * Cross-platform scroll helper - scroll down
+   * Perform a swipe gesture with dynamic coordinates
+   * @param {string} direction - Swipe direction: 'up', 'down', 'left', 'right'
+   * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
+   * @private
    */
-  async scrollDown() {
+  async _performSwipe(direction, percent = SCROLL.DEFAULT_PERCENT) {
     if (this.isAndroid()) {
-      await browser.execute('mobile: scrollGesture', {
-        left: GESTURE.SWIPE_LEFT,
-        top: GESTURE.BASE_SCROLL_TOP,
-        width: GESTURE.BASE_SCROLL_WIDTH,
-        height: GESTURE.BASE_SCROLL_HEIGHT,
-        direction: 'down',
-        percent: SCROLL.PAGINATION_PERCENT,
+      const { height, width } = await browser.getWindowRect();
+      const scrollTop = Math.floor(height * 0.35); // Start from ~35% down (below header)
+      const scrollHeight = Math.floor(height * 0.5); // Scroll area is ~50% of screen
+
+      await browser.execute('mobile: swipeGesture', {
+        left: 100,
+        top: scrollTop,
+        width: width - 200,
+        height: scrollHeight,
+        direction,
+        percent,
       });
     } else {
-      await browser.execute('mobile: scroll', { direction: 'down' });
+      // iOS: direction indicates where finger moves, content moves opposite
+      const iosDirection = direction === 'up' ? 'down' : direction === 'down' ? 'up' : direction;
+      await browser.execute('mobile: swipe', {
+        direction: iosDirection,
+        velocity: GESTURE.IOS_VELOCITY,
+      });
     }
   }
 
   /**
-   * Cross-platform scroll helper - scroll up
+   * Cross-platform scroll helper - scroll down (reveal content below)
+   * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
    */
-  async scrollUp() {
-    if (this.isAndroid()) {
-      await browser.execute('mobile: scrollGesture', {
-        left: GESTURE.SWIPE_LEFT,
-        top: GESTURE.BASE_SCROLL_TOP,
-        width: GESTURE.BASE_SCROLL_WIDTH,
-        height: GESTURE.BASE_SCROLL_HEIGHT,
-        direction: 'up',
-        percent: SCROLL.PAGINATION_PERCENT,
-      });
-    } else {
-      await browser.execute('mobile: scroll', { direction: 'up' });
-    }
+  async scrollDown(percent = SCROLL.DEFAULT_PERCENT) {
+    await this._performSwipe('up', percent);
+  }
+
+  /**
+   * Cross-platform scroll helper - scroll up (reveal content above)
+   * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
+   */
+  async scrollUp(percent = SCROLL.DEFAULT_PERCENT) {
+    await this._performSwipe('down', percent);
   }
 
   /**
    * Cross-platform swipe helper
    * @param {string} direction - 'left', 'right', 'up', or 'down'
+   * @param {number} percent - Swipe percentage (0.0 to 1.0, default 0.5)
    */
-  async swipe(direction) {
-    if (this.isAndroid()) {
-      await browser.execute('mobile: swipeGesture', {
-        left: GESTURE.SWIPE_LEFT,
-        top: GESTURE.BASE_SCROLL_TOP,
-        width: GESTURE.BASE_SCROLL_WIDTH,
-        height: GESTURE.BASE_SCROLL_HEIGHT,
-        direction: direction,
-        percent: SCROLL.PAGINATION_PERCENT,
-      });
-    } else {
-      await browser.execute('mobile: swipe', { direction: direction });
-    }
+  async swipe(direction, percent = SCROLL.DEFAULT_PERCENT) {
+    await this._performSwipe(direction, percent);
   }
 }
 

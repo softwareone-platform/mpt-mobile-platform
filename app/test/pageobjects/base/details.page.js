@@ -3,7 +3,7 @@ const { $ } = require('@wdio/globals');
 const BasePage = require('./base.page');
 const footerPage = require('./footer.page');
 const { getSelector, selectors } = require('../utils/selectors');
-const { TIMEOUT, PAUSE, SCROLL, GESTURE } = require('../utils/constants');
+const { TIMEOUT, PAUSE } = require('../utils/constants');
 
 /**
  * Base class for detail-type pages (Order Details, Subscription Details, Agreement Details, etc.)
@@ -109,66 +109,7 @@ class DetailsPage extends BasePage {
   }
 
   // ========== Scroll Methods ==========
-
-  /**
-   * Scroll down in the details view
-   * Overrides base class to use swipe gesture which works better for ScrollView
-   * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
-   */
-  async scrollDown(percent = SCROLL.DEFAULT_PERCENT) {
-    if (this.isAndroid()) {
-      // Use coordinates within the ScrollView area (starts around y=548 on most devices)
-      // We use relative safe coordinates that should work on various screen sizes
-      const { height, width } = await browser.getWindowRect();
-      const scrollTop = Math.floor(height * 0.35); // Start from ~35% down (below header)
-      const scrollHeight = Math.floor(height * 0.5); // Scroll area is ~50% of screen
-
-      await browser.execute('mobile: swipeGesture', {
-        left: 100,
-        top: scrollTop,
-        width: width - 200,
-        height: scrollHeight,
-        direction: 'up',
-        percent: percent,
-      });
-    } else {
-      // iOS: direction is where finger moves, content moves opposite
-      // To scroll down (see content below), swipe finger down
-      await browser.execute('mobile: swipe', {
-        direction: 'down',
-        velocity: GESTURE.IOS_VELOCITY,
-      });
-    }
-  }
-
-  /**
-   * Scroll up in the details view
-   * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
-   */
-  async scrollUp(percent = SCROLL.DEFAULT_PERCENT) {
-    if (this.isAndroid()) {
-      // Use coordinates within the ScrollView area
-      const { height, width } = await browser.getWindowRect();
-      const scrollTop = Math.floor(height * 0.35);
-      const scrollHeight = Math.floor(height * 0.5);
-
-      await browser.execute('mobile: swipeGesture', {
-        left: 100,
-        top: scrollTop,
-        width: width - 200,
-        height: scrollHeight,
-        direction: 'down',
-        percent: percent,
-      });
-    } else {
-      // iOS: direction is where finger moves, content moves opposite
-      // To scroll up (see content above), swipe finger up
-      await browser.execute('mobile: swipe', {
-        direction: 'up',
-        velocity: GESTURE.IOS_VELOCITY,
-      });
-    }
-  }
+  // scrollDown(), scrollUp(), and _performSwipe() are inherited from BasePage
 
   /**
    * Scroll to the top of the details view
