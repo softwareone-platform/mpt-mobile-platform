@@ -3,7 +3,7 @@ const { $ } = require('@wdio/globals');
 const BasePage = require('./base.page');
 const footerPage = require('./footer.page');
 const { getSelector, selectors } = require('../utils/selectors');
-const { TIMEOUT, PAUSE } = require('../utils/constants');
+const { TIMEOUT, PAUSE, SCROLL } = require('../utils/constants');
 
 /**
  * Base class for detail-type pages (Order Details, Subscription Details, Agreement Details, etc.)
@@ -207,9 +207,17 @@ class DetailsPage extends BasePage {
    * Extract value from composite accessible element
    * These elements have accessibility labels in format: "Label, Value"
    * @param {WebdriverIO.Element} element - Element with "Label, Value" format
+   * @param {boolean} scrollIfNeeded - Whether to scroll if element not visible
    * @returns {Promise<string>} Extracted value
    */
-  async getCompositeFieldValue(element) {
+  async getCompositeFieldValue(element, scrollIfNeeded = false) {
+    if (scrollIfNeeded) {
+      const isDisplayed = await element.isDisplayed().catch(() => false);
+      if (!isDisplayed) {
+        await this.scrollDown();
+        await browser.pause(PAUSE.NAVIGATION);
+      }
+    }
     const label = (await element.getAttribute('name')) || (await element.getAttribute('content-desc'));
     if (!label || !label.includes(', ')) {
       return '';
@@ -242,10 +250,17 @@ class DetailsPage extends BasePage {
   async getCompositeFieldValueByLabel(labelPrefix, scrollIfNeeded = false) {
     const field = this.getCompositeField(labelPrefix);
     if (scrollIfNeeded) {
-      const isDisplayed = await field.isDisplayed().catch(() => false);
-      if (!isDisplayed) {
+      let isDisplayed = await field.isDisplayed().catch(() => false);
+      let attempts = 0;
+      while (!isDisplayed && attempts < SCROLL.MAX_SCROLL_ATTEMPTS) {
         await this.scrollDown();
         await browser.pause(PAUSE.NAVIGATION);
+        isDisplayed = await field.isDisplayed().catch(() => false);
+        attempts++;
+      }
+      if (!isDisplayed) {
+        console.warn(`[getCompositeFieldValueByLabel] Field "${labelPrefix}" not visible after ${attempts} scroll attempts`);
+        return '';
       }
     }
     return this.getCompositeFieldValue(field);
@@ -277,10 +292,17 @@ class DetailsPage extends BasePage {
   async getSimpleFieldValue(labelText, scrollIfNeeded = false) {
     const field = this.getSimpleField(labelText);
     if (scrollIfNeeded) {
-      const isDisplayed = await field.value.isDisplayed().catch(() => false);
-      if (!isDisplayed) {
+      let isDisplayed = await field.value.isDisplayed().catch(() => false);
+      let attempts = 0;
+      while (!isDisplayed && attempts < SCROLL.MAX_SCROLL_ATTEMPTS) {
         await this.scrollDown();
         await browser.pause(PAUSE.NAVIGATION);
+        isDisplayed = await field.value.isDisplayed().catch(() => false);
+        attempts++;
+      }
+      if (!isDisplayed) {
+        console.warn(`[getSimpleFieldValue] Field "${labelText}" not visible after ${attempts} scroll attempts`);
+        return '';
       }
     }
     const text = await field.value.getText();

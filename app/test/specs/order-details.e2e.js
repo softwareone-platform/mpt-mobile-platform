@@ -220,10 +220,10 @@ describe('Order Details Page', () => {
       const apiAgreement = apiOrderData.agreement?.name || apiOrderData.agreementName || '';
 
       console.info(`[Agreement] UI: ${uiAgreement} | API: ${apiAgreement}`);
+      // Assert API value is present before comparison
+      expect(apiAgreement).toBeTruthy();
       // Use toContain for flexibility with truncation
-      if (apiAgreement) {
-        expect(uiAgreement).toContain(apiAgreement.substring(0, 20));
-      }
+      expect(uiAgreement).toContain(apiAgreement.substring(0, 20));
     });
 
     it('should match product name with API response', async function () {
@@ -236,9 +236,9 @@ describe('Order Details Page', () => {
       const apiProduct = apiOrderData.product?.name || apiOrderData.productName || '';
 
       console.info(`[Product] UI: ${uiProduct} | API: ${apiProduct}`);
-      if (apiProduct) {
-        expect(uiProduct).toContain(apiProduct.substring(0, 20));
-      }
+      // Assert API value is present before comparison
+      expect(apiProduct).toBeTruthy();
+      expect(uiProduct).toContain(apiProduct.substring(0, 20));
     });
 
     it('should match vendor name with API response', async function () {
@@ -264,9 +264,9 @@ describe('Order Details Page', () => {
       const apiClientName = apiOrderData.client?.name || apiOrderData.buyer?.name || apiOrderData.clientName || '';
 
       console.info(`[Client] UI: ${uiClient} | API: ${apiClientName}`);
-      if (apiClientName) {
-        expect(uiClient).toContain(apiClientName.substring(0, 20));
-      }
+      // Assert API value is present before comparison
+      expect(apiClientName).toBeTruthy();
+      expect(uiClient).toContain(apiClientName.substring(0, 20));
     });
 
     it('should log all order details for comparison', async function () {

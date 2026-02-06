@@ -2,6 +2,7 @@ const { $ } = require('@wdio/globals');
 
 const DetailsPage = require('./base/details.page');
 const { getSelector, selectors } = require('./utils/selectors');
+const { TIMEOUT } = require('./utils/constants');
 
 /**
  * Order Details Page - displays detailed information for a single order
@@ -159,6 +160,7 @@ class OrderDetailsPage extends DetailsPage {
    * @returns {Promise<string>} Resale licensee or '-'
    */
   async getResaleLicensee() {
+    await this.resaleLicenseeValue.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
     const text = await this.resaleLicenseeValue.getText();
     return text.trim();
   }
@@ -168,6 +170,7 @@ class OrderDetailsPage extends DetailsPage {
    * @returns {Promise<string>} Average yield (e.g., '11.11% M↑    10.00% M↓')
    */
   async getAverageYield() {
+    await this.averageYieldValue.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
     const text = await this.averageYieldValue.getText();
     return text.trim();
   }
@@ -177,6 +180,7 @@ class OrderDetailsPage extends DetailsPage {
    * @returns {Promise<string>} Default yield (e.g., '12.00% M↑    10.71% M↓')
    */
   async getDefaultYield() {
+    await this.defaultYieldValue.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
     const text = await this.defaultYieldValue.getText();
     return text.trim();
   }
@@ -186,7 +190,7 @@ class OrderDetailsPage extends DetailsPage {
    * @returns {Promise<string>}
    */
   async getAgreementName() {
-    return this.getCompositeFieldValue(this.agreementField);
+    return this.getCompositeFieldValue(this.agreementField, true);
   }
 
   /**
@@ -194,7 +198,7 @@ class OrderDetailsPage extends DetailsPage {
    * @returns {Promise<string>}
    */
   async getProductName() {
-    return this.getCompositeFieldValue(this.productField);
+    return this.getCompositeFieldValue(this.productField, true);
   }
 
   /**
@@ -202,7 +206,7 @@ class OrderDetailsPage extends DetailsPage {
    * @returns {Promise<string>}
    */
   async getVendorName() {
-    return this.getCompositeFieldValue(this.vendorField);
+    return this.getCompositeFieldValue(this.vendorField, true);
   }
 
   /**
@@ -210,7 +214,7 @@ class OrderDetailsPage extends DetailsPage {
    * @returns {Promise<string>}
    */
   async getClientName() {
-    return this.getCompositeFieldValue(this.clientField);
+    return this.getCompositeFieldValue(this.clientField, true);
   }
 
   /**
