@@ -42,7 +42,7 @@ on:
 jobs:
   install-and-test-external-ios:
     name: Install and Test External iOS Build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 60
     environment: ${{ inputs.environment || 'test' }}
     

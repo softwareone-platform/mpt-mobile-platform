@@ -14,7 +14,7 @@ export default {
   expo: {
     name: 'SoftwareOne',
     slug: 'softwareone-marketplace-mobile',
-    version: '1.3.4',
+    version: '1.3.5',
     orientation: 'portrait',
     icon: iconPath,
     scheme: AUTH0_SCHEME,
