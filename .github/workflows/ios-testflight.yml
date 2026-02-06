@@ -111,6 +111,7 @@ jobs:
           AUTH0_SCHEME=${{ vars.AUTH0_SCHEME }}
           APP_BUNDLE_ID=${{ vars.APP_BUNDLE_ID }}
           APP_ENVIRONMENT=${{ inputs.environment }}
+          APPLICATION_INSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATION_INSIGHTS_CONNECTION_STRING }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"
