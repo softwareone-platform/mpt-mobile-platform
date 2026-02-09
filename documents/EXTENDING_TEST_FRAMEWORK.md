@@ -452,6 +452,78 @@ module.exports = new InvoicesPage();
 
 > 💡 **When to use ListPage:** Use it when creating page objects for screens with scrollable lists of items (orders, subscriptions, agreements, invoices, etc.). It eliminates code duplication and ensures consistent behavior.
 
+### DetailsPage Base Class for Detail Screens
+
+For screens that display item details (Order Details, Subscription Details, Agreement Details), extend the `DetailsPage` base class (`app/test/pageobjects/base/details.page.js`) which provides common patterns:
+
+```javascript
+const DetailsPage = require('./base/details.page');
+
+class OrderDetailsPage extends DetailsPage {
+    // Define required abstract properties
+    get itemPrefix () { return 'ORD-'; }
+    get pageName () { return 'Order'; }
+    
+    // Add page-specific selectors and methods
+    get typeField () { return this.getSimpleField('Type'); }
+    
+    async getType () {
+        return this.getSimpleFieldValue('Type');
+    }
+}
+
+module.exports = new OrderDetailsPage();
+```
+
+**DetailsPage provides these common features:**
+
+| Property/Method | Description |
+|-----------------|-------------|
+| `itemPrefix` | **Required abstract** - Item ID prefix (e.g., `'ORD-'`, `'SUB-'`, `'AGR-'`) |
+| `pageName` | **Required abstract** - Header title (e.g., `'Order'`, `'Subscription'`) |
+| `goBackButton` | Go back button element |
+| `headerTitle` | Header title element |
+| `itemIdText` | Element displaying the item ID (e.g., `ORD-XXXX-XXXX`) |
+| `statusText` | Element displaying the status |
+| `scrollView` | The main scroll view element |
+| `isOnDetailsPage()` | Returns true if header and item ID are visible |
+| `waitForPageReady()` | Waits for page elements to load |
+| `goBack()` | Clicks the go back button |
+| `systemBack()` | Performs native back gesture (iOS edge swipe / Android hardware back) |
+| `scrollToTop()` | Scrolls content to top (3 scroll up gestures) |
+| `getItemId()` | Returns the displayed item ID |
+| `getStatus()` | Returns the displayed status |
+| `getSimpleField(label)` | Returns `{label, value}` elements for label-value fields |
+| `getSimpleFieldValue(label, scroll?)` | Extracts value from a simple field, with optional scroll |
+| `getCompositeField(prefix)` | Gets element with "Label, Value" accessibility format |
+| `getCompositeFieldValue(element)` | Extracts value from composite accessible element |
+
+**Example - Creating a new detail page:**
+```javascript
+const DetailsPage = require('./base/details.page');
+const { $ } = require('@wdio/globals');
+const { getSelector, selectors } = require('./utils/selectors');
+
+class SubscriptionDetailsPage extends DetailsPage {
+    get itemPrefix () { return 'SUB-'; }
+    get pageName () { return 'Subscription'; }
+    
+    // Composite field: "Product, Microsoft 365"
+    async getProduct () {
+        return this.getCompositeFieldValueByLabel('Product');
+    }
+    
+    // Simple field with label followed by value
+    async getQuantity () {
+        return this.getSimpleFieldValue('Quantity', true); // scrolls if needed
+    }
+}
+
+module.exports = new SubscriptionDetailsPage();
+```
+
+> 💡 **When to use DetailsPage:** Use it when creating page objects for detail screens accessed from list pages. It provides consistent patterns for header navigation, field extraction, and cross-platform back gestures.
+
 ### Page Object Structure
 
 **File Location:** `app/test/pageobjects/[page-name].page.js`
@@ -779,6 +851,7 @@ For comprehensive Appium Inspector documentation:
 - **Wait Strategies**: Use WebDriverIO's built-in wait methods for reliability
 - **Use Constants**: Import timing values from `constants.js` instead of hardcoding magic numbers
 - **Use ListPage**: For list screens (orders, subscriptions, etc.), extend `ListPage` to avoid code duplication
+- **Use DetailsPage**: For detail screens (order details, subscription details, etc.), extend `DetailsPage` for consistent navigation and field extraction
 
 ### Test Design
 - **Isolated Tests**: Each test should be independent and not rely on previous tests

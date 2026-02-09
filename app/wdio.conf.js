@@ -101,12 +101,17 @@ exports.config = {
     ],
     suites: {
         welcome: ['./test/specs/welcome.e2e.js'],
-        home: ['./test/specs/home.e2e.js'],
-        navigation: ['./test/specs/navigation.e2e.js'],
+        navigation: [
+            './test/specs/navigation.e2e.js',
+            './test/specs/order-details-navigation.e2e.js',
+        ],
         spotlight: ['./test/specs/spotlight-filters.e2e.js'],
         profile: ['./test/specs/profile.e2e.js'],
         personalInformation: ['./test/specs/personal-information.e2e.js'],
-        orders: ['./test/specs/orders.e2e.js'],
+        orders: [
+            './test/specs/orders.e2e.js',
+            './test/specs/order-details.e2e.js',
+        ],
         subscriptions: ['./test/specs/subscriptions.e2e.js'],
         agreements: ['./test/specs/agreements.e2e.js'],
         programs: ['./test/specs/programs.e2e.js'],
