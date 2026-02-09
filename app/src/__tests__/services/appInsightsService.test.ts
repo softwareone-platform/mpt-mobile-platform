@@ -89,10 +89,10 @@ describe('AppInsightsService', () => {
         sub: 'test-user',
         'https://claims.softwareone.com/accountId': 'ACC-TEST-123',
       };
-      
+
       service.setUserProvider(() => mockUser);
       service.initialize();
-      
+
       // Verify telemetry initializer was registered
       expect(mockAddTelemetryInitializer).toHaveBeenCalled();
       expect(mockAddTelemetryInitializer.mock.calls[0][0]).toBeInstanceOf(Function);
