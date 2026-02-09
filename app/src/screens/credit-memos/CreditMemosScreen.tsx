@@ -42,9 +42,9 @@ const CreditMemosScreenContent = () => {
         hasMore={hasMoreCreditMemos}
         fetchNext={fetchCreditMemos}
         config={listItemConfigNoImageNoSubtitle}
-        onItemPress={(mapped) => {
+        onItemPress={(id) => {
           navigation.navigate('creditMemoDetails', {
-            headerProps: mapped,
+            id,
           });
         }}
       />

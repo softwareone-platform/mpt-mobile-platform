@@ -1,3 +1,4 @@
+import account from './account.json';
 import auth from './auth.json';
 import billing from './billing.json';
 import details from './details.json';
@@ -36,6 +37,9 @@ const en = {
   // Module: Settings (profile, users, account settings, buyers, licensees)
   ...settings,
   ...details,
+
+  // Module: Account (account details - vendor, client, operations)
+  ...account,
 };
 
 export default en;

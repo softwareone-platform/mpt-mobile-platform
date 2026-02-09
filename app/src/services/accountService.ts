@@ -11,6 +11,7 @@ import type {
   FullUserData,
   SubscriptionItem,
   SpotlightData,
+  AccountDetails,
 } from '@/types/api';
 
 export function useAccountApi() {
@@ -103,6 +104,14 @@ export function useAccountApi() {
     [api, refreshAuth],
   );
 
+  const getAccountData = useCallback(
+    async (accountId: string): Promise<AccountDetails> => {
+      const endpoint = `v1/accounts/accounts/${accountId}?select=audit,groups`;
+      return api.get<AccountDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getUserData,
@@ -112,6 +121,7 @@ export function useAccountApi() {
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,
+      getAccountData,
     }),
     [
       getUserData,
@@ -121,6 +131,7 @@ export function useAccountApi() {
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,
+      getAccountData,
     ],
   );
 }

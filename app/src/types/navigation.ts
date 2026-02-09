@@ -1,5 +1,3 @@
-import { ListItemWithStatusProps } from './lists';
-
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
@@ -28,8 +26,9 @@ export type SecondaryTabsParamList = {
 };
 
 export type AppScreensParamList = {
-  creditMemoDetails: { headerProps: ListItemWithStatusProps };
-  orderDetails: { headerProps: ListItemWithStatusProps };
+  creditMemoDetails: { id: string };
+  orderDetails: { id: string };
+  accountDetails: { id: string | undefined; type: 'client' | 'vendor' | 'operations' };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;
@@ -76,7 +75,7 @@ export type SecondaryTabGroup = {
 
 export type AppScreenItem = {
   name: keyof AppScreensParamList | keyof SecondaryTabsParamList;
-  icon: string;
+  icon?: string;
   /* eslint-disable @typescript-eslint/no-explicit-any */
   component?: React.ComponentType<any>;
 };

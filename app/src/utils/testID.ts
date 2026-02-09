@@ -142,6 +142,11 @@ export const TestIDs = {
   BUYERS_LOADING_INDICATOR: 'buyers-loading-indicator',
   BUYERS_ERROR_STATE: 'buyers-error-state',
   BUYERS_EMPTY_STATE: 'buyers-empty-state',
+
+  // Account Details Screen
+  ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
+  ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',
+  ACCOUNT_DETAILS_EMPTY_STATE: 'account-details-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;
