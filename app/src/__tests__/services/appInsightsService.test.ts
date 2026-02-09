@@ -11,14 +11,17 @@ const mockSetAuthenticatedUserContext = jest.fn();
 const mockClearAuthenticatedUserContext = jest.fn();
 const mockFlush = jest.fn();
 
+const mockGetVersion = jest.fn(() => '1.3.4');
+const mockGetUniqueIdSync = jest.fn(() => 'test-device-id-abc123');
+
 jest.mock('expo-crypto', () => ({
-  randomUUID: jest.fn(() => 'test-correlation-id-12345'),
+  randomUUID: jest.fn(() => 'test-uuid-123'),
 }));
 
 jest.mock('react-native-device-info', () => ({
   default: {
-    getVersion: jest.fn(() => '1.3.4'),
-    getUniqueIdSync: jest.fn(() => 'test-device-id-abc123'),
+    getVersion: mockGetVersion,
+    getUniqueIdSync: mockGetUniqueIdSync,
   },
 }));
 
@@ -40,6 +43,16 @@ jest.mock('@microsoft/applicationinsights-web', () => ({
     setAuthenticatedUserContext: mockSetAuthenticatedUserContext,
     clearAuthenticatedUserContext: mockClearAuthenticatedUserContext,
     flush: mockFlush,
+    context: {
+      telemetryTrace: {
+        traceID: 'test-trace-id-abc123',
+      },
+      sessionManager: {
+        automaticSession: {
+          id: 'test-session-id-xyz789',
+        },
+      },
+    },
   })),
 }));
 
@@ -72,6 +85,20 @@ describe('AppInsightsService', () => {
       expect(mockLoadAppInsights).toHaveBeenCalled();
       expect(mockAddTelemetryInitializer).toHaveBeenCalled();
       expect(service.isReady()).toBe(true);
+    });
+
+    it('should register telemetry initializer with user context', () => {
+      const mockUser = {
+        sub: 'test-user',
+        'https://claims.softwareone.com/accountId': 'ACC-TEST-123',
+      };
+
+      service.setUserProvider(() => mockUser);
+      service.initialize();
+
+      // Verify telemetry initializer was registered
+      expect(mockAddTelemetryInitializer).toHaveBeenCalled();
+      expect(mockAddTelemetryInitializer.mock.calls[0][0]).toBeInstanceOf(Function);
     });
 
     it('should not initialize twice', () => {
@@ -233,6 +260,34 @@ describe('AppInsightsService', () => {
     it('should return true when initialized', () => {
       service.initialize();
       expect(service.isReady()).toBe(true);
+    });
+  });
+
+  describe('getTraceparent', () => {
+    it('should return null when not initialized', () => {
+      expect(service.getTraceparent()).toBeNull();
+    });
+
+    it('should return traceparent header when initialized', () => {
+      service.initialize();
+      const traceparent = service.getTraceparent();
+      expect(traceparent).not.toBeNull();
+      expect(traceparent).toContain('00-');
+      expect(traceparent).toContain('-01');
+    });
+  });
+
+  describe('getRequestId', () => {
+    it('should return null when not initialized', () => {
+      expect(service.getRequestId()).toBeNull();
+    });
+
+    it('should return Request-Id header when initialized', () => {
+      service.initialize();
+      const requestId = service.getRequestId();
+      expect(requestId).not.toBeNull();
+      expect(requestId).toContain('|');
+      expect(requestId).toContain('.');
     });
   });
 });
