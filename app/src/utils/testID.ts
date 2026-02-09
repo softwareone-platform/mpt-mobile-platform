@@ -143,7 +143,7 @@ export const TestIDs = {
   LICENSEES_ERROR_STATE: 'licensees-error-state',
   LICENSEES_EMPTY_STATE: 'licensees-empty-state',
 
-  // Licensees Screen
+  // Buyers Screen
   BUYERS_LOADING_INDICATOR: 'buyers-loading-indicator',
   BUYERS_ERROR_STATE: 'buyers-error-state',
   BUYERS_EMPTY_STATE: 'buyers-empty-state',
