@@ -99,6 +99,12 @@ class AppInsightsService {
     this.getUserFn = getUserFn;
   }
 
+  private getTraceId(): string {
+    const context = this.appInsights?.context;
+    const traceId = context?.telemetryTrace?.traceID || Crypto.randomUUID();
+    return traceId.replace(/-/g, '');
+  }
+
   /**
    * Get traceparent header for W3C distributed tracing
    * Format: 00-<trace-id>-<span-id>-<trace-flags>
@@ -114,16 +120,14 @@ class AppInsightsService {
       return null;
     }
 
-    // Get operation ID (trace ID) and session ID (can be used as span ID)
-    const traceId = context.telemetryTrace?.traceID || Crypto.randomUUID().replace(/-/g, '');
-    const spanId =
-      context.sessionManager?.automaticSession?.id?.replace(/-/g, '').substring(0, 16) ||
-      '0000000000000000';
+    // Get normalized trace ID and generate unique span ID per request
+    const normalizedTraceId = this.getTraceId();
+    const spanId = Crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 
     // Format: version-traceId-spanId-flags
     // version: 00 (current W3C spec)
     // flags: 01 (sampled)
-    return `00-${traceId}-${spanId}-01`;
+    return `00-${normalizedTraceId}-${spanId}-01`;
   }
 
   /**
@@ -135,9 +139,8 @@ class AppInsightsService {
       return null;
     }
 
-    const context = this.appInsights.context;
-    const operationId = context?.telemetryTrace?.traceID || Crypto.randomUUID();
-    const requestId = Crypto.randomUUID().substring(0, 8);
+    const operationId = this.getTraceId();
+    const requestId = Crypto.randomUUID().replace(/-/g, '').substring(0, 8);
 
     return `|${operationId}.${requestId}`;
   }
