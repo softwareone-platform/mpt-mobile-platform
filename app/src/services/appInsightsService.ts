@@ -114,6 +114,49 @@ class AppInsightsService {
     return this.correlationId;
   }
 
+  /**
+   * Get traceparent header for W3C distributed tracing
+   * Format: 00-<trace-id>-<span-id>-<trace-flags>
+   * This is compatible with .NET Application Insights SDK
+   */
+  public getTraceparent(): string | null {
+    if (!this.isInitialized || !this.appInsights) {
+      return null;
+    }
+
+    const context = this.appInsights.context;
+    if (!context) {
+      return null;
+    }
+
+    // Get operation ID (trace ID) and session ID (can be used as span ID)
+    const traceId = context.telemetryTrace?.traceID || this.correlationId.replace(/-/g, '');
+    const spanId =
+      context.sessionManager?.automaticSession?.id?.replace(/-/g, '').substring(0, 16) ||
+      '0000000000000000';
+
+    // Format: version-traceId-spanId-flags
+    // version: 00 (current W3C spec)
+    // flags: 01 (sampled)
+    return `00-${traceId}-${spanId}-01`;
+  }
+
+  /**
+   * Get Request-Id header for Application Insights correlation
+   * Format: |<operation-id>.<request-id>
+   */
+  public getRequestId(): string | null {
+    if (!this.isInitialized || !this.appInsights) {
+      return null;
+    }
+
+    const context = this.appInsights.context;
+    const operationId = context?.telemetryTrace?.traceID || this.correlationId;
+    const requestId = Crypto.randomUUID().substring(0, 8);
+
+    return `|${operationId}.${requestId}`;
+  }
+
   public updateAuthenticatedUserContext(userId: string | null): void {
     if (userId) {
       this.setAuthenticatedUserContext(userId);

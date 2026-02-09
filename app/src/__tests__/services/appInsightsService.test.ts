@@ -40,6 +40,16 @@ jest.mock('@microsoft/applicationinsights-web', () => ({
     setAuthenticatedUserContext: mockSetAuthenticatedUserContext,
     clearAuthenticatedUserContext: mockClearAuthenticatedUserContext,
     flush: mockFlush,
+    context: {
+      telemetryTrace: {
+        traceID: 'test-trace-id-abc123',
+      },
+      sessionManager: {
+        automaticSession: {
+          id: 'test-session-id-xyz789',
+        },
+      },
+    },
   })),
 }));
 
@@ -233,6 +243,34 @@ describe('AppInsightsService', () => {
     it('should return true when initialized', () => {
       service.initialize();
       expect(service.isReady()).toBe(true);
+    });
+  });
+
+  describe('getTraceparent', () => {
+    it('should return null when not initialized', () => {
+      expect(service.getTraceparent()).toBeNull();
+    });
+
+    it('should return traceparent header when initialized', () => {
+      service.initialize();
+      const traceparent = service.getTraceparent();
+      expect(traceparent).not.toBeNull();
+      expect(traceparent).toContain('00-');
+      expect(traceparent).toContain('-01');
+    });
+  });
+
+  describe('getRequestId', () => {
+    it('should return null when not initialized', () => {
+      expect(service.getRequestId()).toBeNull();
+    });
+
+    it('should return Request-Id header when initialized', () => {
+      service.initialize();
+      const requestId = service.getRequestId();
+      expect(requestId).not.toBeNull();
+      expect(requestId).toContain('|');
+      expect(requestId).toContain('.');
     });
   });
 });

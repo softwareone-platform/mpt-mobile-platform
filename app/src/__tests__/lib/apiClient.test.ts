@@ -5,6 +5,8 @@ jest.mock('@/utils/apiError');
 jest.mock('@/services/appInsightsService', () => ({
   appInsightsService: {
     trackException: jest.fn(),
+    getTraceparent: jest.fn(() => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01'),
+    getRequestId: jest.fn(() => '|0af7651916cd43dd8448eb211c80319c.b9c7c989_'),
   },
 }));
 
@@ -34,6 +36,10 @@ describe('apiClient interceptors', () => {
     ).handlers[0].fulfilled(config);
 
     expect(result.headers.Authorization).toBe('Bearer mock-token');
+    expect(result.headers['traceparent']).toBe(
+      '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01',
+    );
+    expect(result.headers['Request-Id']).toBe('|0af7651916cd43dd8448eb211c80319c.b9c7c989_');
   });
 
   it('skips Authorization with noAuth flag', async () => {
