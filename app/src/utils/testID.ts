@@ -108,6 +108,11 @@ export const TestIDs = {
   ORDERS_ERROR_STATE: 'orders-error-state',
   ORDERS_EMPTY_STATE: 'orders-empty-state',
 
+  // Orders Details Screen
+  ORDER_DETAILS_LOADING_INDICATOR: 'order-details-loading-indicator',
+  ORDER_DETAILS_ERROR_STATE: 'order-details-error-state',
+  ORDER_DETAILS_EMPTY_STATE: 'order-details-empty-state',
+
   // Subscriptions Screen
   SUBSCRIPTIONS_LOADING_INDICATOR: 'subscriptions-loading-indicator',
   SUBSCRIPTIONS_ERROR_STATE: 'subscriptions-error-state',
