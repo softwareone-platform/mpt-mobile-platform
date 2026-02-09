@@ -41,7 +41,7 @@ const OrderDetailsScreen = () => {
     >
       {orderDetails && (
         <DetailsView data={orderDetails} config={listItemConfigNoImageNoSubtitle}>
-          {orderDetails && <OrderDetailsContent data={orderDetails} />}
+          <OrderDetailsContent data={orderDetails} />
         </DetailsView>
       )}
     </StatusMessage>
