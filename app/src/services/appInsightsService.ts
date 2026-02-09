@@ -29,15 +29,10 @@ export interface AppInsightsMetric {
 
 const APPLICATION_NAME = 'MarketplaceMobile';
 
-function generateCorrelationId(): string {
-  return Crypto.randomUUID();
-}
-
 class AppInsightsService {
   private appInsights: ApplicationInsights | null = null;
   private getUserFn: (() => User | null) | null = null;
   private isInitialized = false;
-  private correlationId: string = generateCorrelationId();
 
   public initialize(): void {
     if (this.isInitialized) {
@@ -64,6 +59,7 @@ class AppInsightsService {
 
       this.appInsights.loadAppInsights();
 
+      /* istanbul ignore next - telemetry initializer executes at SDK runtime and cannot be tested with Jest mocks */
       this.appInsights.addTelemetryInitializer((item) => {
         if (item.baseData) {
           item.baseData.properties = item.baseData.properties || {};
@@ -72,16 +68,16 @@ class AppInsightsService {
           item.baseData.properties.DeviceId = DeviceInfo.getUniqueIdSync();
           item.baseData.properties.PlatformOS = Platform.OS;
           item.baseData.properties.PlatformVersion = Platform.Version.toString();
-          item.baseData.properties.CorrelationId = this.correlationId;
-
-          const currentUser = this.getUserFn?.();
-          if (currentUser) {
-            const accountId = currentUser['https://claims.softwareone.com/accountId'];
-            if (accountId) {
-              item.baseData.properties.AccountId = accountId as string;
-            }
+        }
+        const currentUser = this.getUserFn?.();
+        if (currentUser) {
+          const accountId = currentUser['https://claims.softwareone.com/accountId'];
+          if (accountId) {
+            item.tags = item.tags || [];
+            item.tags['ai.user.accountId'] = accountId as string;
           }
         }
+
         return true;
       });
 
@@ -104,13 +100,50 @@ class AppInsightsService {
     this.getUserFn = getUserFn;
   }
 
-  public refreshCorrelationId(): string {
-    this.correlationId = generateCorrelationId();
-    return this.correlationId;
+  private getTraceId(): string {
+    const context = this.appInsights?.context;
+    const traceId = context?.telemetryTrace?.traceID || Crypto.randomUUID();
+    return traceId.replace(/-/g, '');
   }
 
-  public getCorrelationId(): string {
-    return this.correlationId;
+  /**
+   * Get traceparent header for W3C distributed tracing
+   * Format: 00-<trace-id>-<span-id>-<trace-flags>
+   * This is compatible with .NET Application Insights SDK
+   */
+  public getTraceparent(): string | null {
+    if (!this.isInitialized || !this.appInsights) {
+      return null;
+    }
+
+    const context = this.appInsights.context;
+    if (!context) {
+      return null;
+    }
+
+    // Get normalized trace ID and generate unique span ID per request
+    const normalizedTraceId = this.getTraceId();
+    const spanId = Crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+
+    // Format: version-traceId-spanId-flags
+    // version: 00 (current W3C spec)
+    // flags: 01 (sampled)
+    return `00-${normalizedTraceId}-${spanId}-01`;
+  }
+
+  /**
+   * Get Request-Id header for Application Insights correlation
+   * Format: |<operation-id>.<request-id>
+   */
+  public getRequestId(): string | null {
+    if (!this.isInitialized || !this.appInsights) {
+      return null;
+    }
+
+    const operationId = this.getTraceId();
+    const requestId = Crypto.randomUUID().replace(/-/g, '').substring(0, 8);
+
+    return `|${operationId}.${requestId}`;
   }
 
   public updateAuthenticatedUserContext(userId: string | null): void {

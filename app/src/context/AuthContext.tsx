@@ -92,9 +92,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const REFRESH_BUFFER_MINUTES = 5;
   const REFRESH_BUFFER_MS = REFRESH_BUFFER_MINUTES * 60 * 1000;
 
-  const { data: portalVersion = { fullVersion: '', majorVersion: 0 } } = usePortalVersion(
-    authState.status === 'authenticated',
-  );
+  const { data: portalVersion = { fullVersion: '', major: 0, minor: 0, patch: 0 } } =
+    usePortalVersion(authState.status === 'authenticated');
 
   const setUnauthenticated = useCallback(async () => {
     await credentialStorageService.clearAllCredentials();

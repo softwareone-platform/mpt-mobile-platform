@@ -28,6 +28,17 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    const traceparent = appInsightsService.getTraceparent();
+    const requestId = appInsightsService.getRequestId();
+
+    if (traceparent) {
+      config.headers['traceparent'] = traceparent;
+    }
+
+    if (requestId) {
+      config.headers['Request-Id'] = requestId;
+    }
+
     return config;
   },
   (error: AxiosError) => {
