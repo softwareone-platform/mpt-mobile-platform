@@ -59,6 +59,7 @@ class AppInsightsService {
 
       this.appInsights.loadAppInsights();
 
+      /* istanbul ignore next - telemetry initializer executes at SDK runtime and cannot be tested with Jest mocks */
       this.appInsights.addTelemetryInitializer((item) => {
         if (item.baseData) {
           item.baseData.properties = item.baseData.properties || {};
