@@ -1,0 +1,6 @@
+{
+  "accountDetailsScreen": {
+    "emptyStateTitle": "No account details",
+    "emptyStateDescription": "No account details found."
+  }
+}

@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import DetailsView from '@/components/details/DetailsView';
+import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useAccount } from '@/context/AccountContext';
 import { useCreditMemoDetailsData } from '@/hooks/queries/useCreditMemoDetailsData';
 import CreditMemoDetailsContent from '@/screens/credit-memos/CreditMemoDetailsContent';
-import type { ListItemWithStatusProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
@@ -14,8 +14,7 @@ type CreditMemoDetailsRouteProp = RouteProp<RootStackParamList, 'creditMemoDetai
 
 const CreditMemoDetailsScreen = () => {
   const { t } = useTranslation();
-  const { params } = useRoute<CreditMemoDetailsRouteProp>();
-  const headerData: ListItemWithStatusProps = params.headerProps;
+  const { id } = useRoute<CreditMemoDetailsRouteProp>().params;
 
   const { userData } = useAccount();
   const userId = userData?.id;
@@ -26,7 +25,7 @@ const CreditMemoDetailsScreen = () => {
     isLoading,
     isError,
     isUnauthorised,
-  } = useCreditMemoDetailsData(headerData.id, userId, currentAccountId);
+  } = useCreditMemoDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -40,9 +39,11 @@ const CreditMemoDetailsScreen = () => {
       emptyTitle={t('creditMemoDetailsScreen.emptyStateTitle')}
       emptyDescription={t('creditMemoDetailsScreen.emptyStateDescription')}
     >
-      <DetailsView header={headerData}>
-        {creditMemoDetails && <CreditMemoDetailsContent data={creditMemoDetails} />}
-      </DetailsView>
+      {creditMemoDetails && (
+        <DetailsView data={creditMemoDetails} config={listItemConfigNoImageNoSubtitle}>
+          <CreditMemoDetailsContent data={creditMemoDetails} />
+        </DetailsView>
+      )}
     </StatusMessage>
   );
 };

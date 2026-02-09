@@ -35,7 +35,7 @@ on:
 jobs:
   build-ios:
     name: Build iOS App
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
 
     defaults:

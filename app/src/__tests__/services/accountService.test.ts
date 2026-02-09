@@ -220,4 +220,31 @@ describe('useAccountApi', () => {
 
     consoleWarnSpy.mockRestore();
   });
+
+  it('calls getAccountData correctly', async () => {
+    const api = setup();
+    mockGet.mockResolvedValueOnce({ id: 'acc-123' });
+
+    let res;
+    await act(async () => {
+      res = await api.getAccountData('acc-123');
+    });
+
+    expect(mockGet).toHaveBeenCalledWith('v1/accounts/accounts/acc-123?select=audit,groups');
+    expect(res).toEqual({ id: 'acc-123' });
+  });
+
+  it('throws when getAccountData fails', async () => {
+    const api = setup();
+    const error = new Error('API failure');
+    mockGet.mockRejectedValueOnce(error);
+
+    await expect(
+      act(async () => {
+        await api.getAccountData('acc-999');
+      }),
+    ).rejects.toThrow('API failure');
+
+    expect(mockGet).toHaveBeenCalledWith('v1/accounts/accounts/acc-999?select=audit,groups');
+  });
 });

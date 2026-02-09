@@ -149,11 +149,32 @@ if [ "$DEEP_CLEAN" = true ]; then
     fi
 
     # Reinstall dependencies
-    echo -e "\n${YELLOW}📦 Reinstalling dependencies...${NC}"
-    npm install
-    echo -e "${GREEN}✅ Dependencies reinstalled${NC}"
+    # Use --ignore-scripts to avoid edgedriver SIGKILL issue during postinstall
+    # (edgedriver downloads large binaries that can timeout/get killed)
+    echo -e "\n${YELLOW}📦 Reinstalling dependencies (skipping postinstall scripts)...${NC}"
+    npm install --ignore-scripts
+    echo -e "${GREEN}✅ Dependencies installed${NC}"
 
-    # Clear npm cache
+    # Rebuild native packages that need postinstall scripts (excluding edgedriver)
+    # Run each rebuild separately to isolate failures
+    echo -e "\n${YELLOW}🔧 Rebuilding required native packages...${NC}"
+    
+    # fsevents (macOS file watcher - needed for Metro bundler)
+    if [ -d "node_modules/fsevents" ]; then
+        echo -e "${BLUE}  → Rebuilding fsevents...${NC}"
+        npm rebuild fsevents 2>/dev/null && echo -e "${GREEN}    ✅ fsevents rebuilt${NC}" || echo -e "${YELLOW}    ⚠️ fsevents rebuild skipped${NC}"
+    fi
+    
+    # sharp (image processing - needed for Expo)
+    if [ -d "node_modules/sharp" ]; then
+        echo -e "${BLUE}  → Rebuilding sharp...${NC}"
+        npm rebuild sharp 2>/dev/null && echo -e "${GREEN}    ✅ sharp rebuilt${NC}" || echo -e "${YELLOW}    ⚠️ sharp rebuild skipped${NC}"
+    fi
+
+    # Note: edgedriver is skipped - not needed for mobile testing (iOS/Android)
+    echo -e "${BLUE}ℹ️  Skipped edgedriver postinstall (not needed for mobile testing)${NC}"
+
+    # Clear npm cache (optional, don't fail if it doesn't work)
     echo -e "\n${YELLOW}🗑️  Clearing npm cache...${NC}"
     npm cache clean --force > /dev/null 2>&1
     echo -e "${GREEN}✅ npm cache cleared${NC}"

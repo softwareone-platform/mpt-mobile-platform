@@ -13,6 +13,7 @@ import {
   BuyersScreen,
   CreditMemoDetailsScreen,
   OrderDetailsScreen,
+  AccountDetailsScreen,
 } from '@/screens';
 import type { MainTabItem, SecondaryTabGroup, AppScreenItem } from '@/types/navigation';
 
@@ -58,15 +59,16 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
 ];
 
 export const appScreensData: AppScreenItem[] = [
-  { name: 'agreements', icon: 'assignment', component: AgreementsScreen },
-  { name: 'creditMemos', icon: 'description', component: CreditMemosScreen },
-  { name: 'invoices', icon: 'receipt-long', component: InvoicesScreen },
-  { name: 'statements', icon: 'receipt', component: StatementsScreen },
-  { name: 'users', icon: 'how-to-reg', component: UsersScreen },
-  { name: 'programs', icon: 'assignment', component: ProgramsScreen },
-  { name: 'enrollments', icon: 'receipt-long', component: EnrollmentsScreen },
-  { name: 'licensees', icon: 'how-to-reg', component: LicenseesScreen },
-  { name: 'buyers', icon: 'assignment', component: BuyersScreen },
-  { name: 'creditMemoDetails', icon: 'assignment', component: CreditMemoDetailsScreen },
-  { name: 'orderDetails', icon: 'assignment', component: OrderDetailsScreen },
+  { name: 'agreements', component: AgreementsScreen },
+  { name: 'creditMemos', component: CreditMemosScreen },
+  { name: 'invoices', component: InvoicesScreen },
+  { name: 'statements', component: StatementsScreen },
+  { name: 'users', component: UsersScreen },
+  { name: 'programs', component: ProgramsScreen },
+  { name: 'enrollments', component: EnrollmentsScreen },
+  { name: 'licensees', component: LicenseesScreen },
+  { name: 'buyers', component: BuyersScreen },
+  { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
+  { name: 'orderDetails', component: OrderDetailsScreen },
+  { name: 'accountDetails', component: AccountDetailsScreen },
 ];

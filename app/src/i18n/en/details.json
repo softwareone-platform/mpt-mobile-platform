@@ -5,6 +5,7 @@
     "buyer": "Buyer",
     "licencee": "Licencee",
     "vendor": "Vendor",
+    "operations": "Operations",
     "product": "Product",
     "agreement": "Agreement",
     "seller": "Seller",
@@ -20,6 +21,18 @@
     "up": "M↑",
     "down": "M↓",
     "averageYield": "Average yield",
-    "defaultYield": "Default yield"
+    "defaultYield": "Default yield",
+    "serviceLevel": "Service level",
+    "companyWebsite": "Company website",
+    "companyDescription": "Company description",
+    "technicalSupportEmail": "Technical support email",
+    "pycId": "PYC ID",
+    "headquartersAddress": "Headquarters address",
+    "addressLine1": "Address line 1",
+    "addressLine2": "Address line 2",
+    "city": "City",
+    "state": "State",
+    "postCode": "ZIP/Postal code",
+    "country": "Country"
   }
 }

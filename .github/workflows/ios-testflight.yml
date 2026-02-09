@@ -32,7 +32,7 @@ env:
 jobs:
   deploy-testflight:
     name: Build and Deploy to TestFlight
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 60
     # Environment provides: Auth0 config, iOS provisioning profile, app bundle ID, app store ID
     # Repository-level secrets: distribution certificate, App Store Connect API keys
@@ -111,6 +111,7 @@ jobs:
           AUTH0_SCHEME=${{ vars.AUTH0_SCHEME }}
           APP_BUNDLE_ID=${{ vars.APP_BUNDLE_ID }}
           APP_ENVIRONMENT=${{ inputs.environment }}
+          APPLICATION_INSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATION_INSIGHTS_CONNECTION_STRING }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"
