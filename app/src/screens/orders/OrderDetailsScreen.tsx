@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import DetailsView from '@/components/details/DetailsView';
+import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useAccount } from '@/context/AccountContext';
 import { useOrderDetailsData } from '@/hooks/queries/useOrderDetailsData';
 import OrderDetailsContent from '@/screens/orders/OrderDetailsContent';
-import type { ListItemWithStatusProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
@@ -14,8 +14,7 @@ type OrderDetailsRouteProp = RouteProp<RootStackParamList, 'orderDetails'>;
 
 const OrderDetailsScreen = () => {
   const { t } = useTranslation();
-  const { params } = useRoute<OrderDetailsRouteProp>();
-  const headerData: ListItemWithStatusProps = params.headerProps;
+  const { id } = useRoute<OrderDetailsRouteProp>().params;
 
   const { userData } = useAccount();
   const userId = userData?.id;
@@ -26,7 +25,7 @@ const OrderDetailsScreen = () => {
     isLoading,
     isError,
     isUnauthorised,
-  } = useOrderDetailsData(headerData.id, userId, currentAccountId);
+  } = useOrderDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -40,9 +39,11 @@ const OrderDetailsScreen = () => {
       emptyTitle={t('orderDetailsScreen.emptyStateTitle')}
       emptyDescription={t('orderDetailsScreen.emptyStateDescription')}
     >
-      <DetailsView header={headerData}>
-        {orderDetails && <OrderDetailsContent data={orderDetails} />}
-      </DetailsView>
+      {orderDetails && (
+        <DetailsView data={orderDetails} config={listItemConfigNoImageNoSubtitle}>
+          {orderDetails && <OrderDetailsContent data={orderDetails} />}
+        </DetailsView>
+      )}
     </StatusMessage>
   );
 };

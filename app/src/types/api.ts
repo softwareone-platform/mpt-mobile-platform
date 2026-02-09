@@ -180,3 +180,26 @@ export interface ListItemNoImageNoSubtitle {
   id: string;
   status?: string;
 }
+
+export interface AccountDetails {
+  id: string;
+  name: string;
+  icon?: string;
+  externalIds?: { pyraTenantId: string };
+  serviceLevel?: string;
+  address?: Address;
+  technicalSupportEmail?: string;
+  website?: string;
+  description?: string;
+  type: string;
+  status: string;
+}
+
+export interface Address {
+  addressLine1: string;
+  addressLine2?: string;
+  postCode: string;
+  city: string;
+  state: string;
+  country: string;
+}

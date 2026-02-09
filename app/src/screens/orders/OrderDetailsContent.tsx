@@ -1,14 +1,19 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import type { RootStackParamList } from '@/types/navigation';
 import type { OrderDetails } from '@/types/order';
 import { formatPercentage } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
 
 const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const formattedAverageMarkup = formatPercentage(data.price.markup, 2) + ` ${t(`details.up`)}`;
   const formattedAverageMargin = formatPercentage(data.price.margin, 2) + ` ${t(`details.down`)}`;
@@ -22,8 +27,26 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
       <ListItemWithLabelAndText title={t(`details.type`)} subtitle={data.type} />
       <DetailsListItem label={t(`details.agreement`)} data={data.agreement} hideImage={true} />
       <DetailsListItem label={t(`details.product`)} data={data.product} />
-      <DetailsListItem label={t(`details.vendor`)} data={data.vendor} />
-      <DetailsListItem label={t(`details.client`)} data={data.client} />
+      <DetailsListItem
+        label={t(`details.vendor`)}
+        data={data.vendor}
+        onPress={() => {
+          navigation.navigate('accountDetails', {
+            id: data.vendor?.id,
+            type: 'vendor',
+          });
+        }}
+      />
+      <DetailsListItem
+        label={t(`details.client`)}
+        data={data.client}
+        onPress={() => {
+          navigation.navigate('accountDetails', {
+            id: data.client?.id,
+            type: 'client',
+          });
+        }}
+      />
       <ListItemWithLabelAndText
         title={t(`details.resaleLicencee`)}
         subtitle={

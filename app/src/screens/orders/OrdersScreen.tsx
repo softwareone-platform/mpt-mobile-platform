@@ -42,10 +42,8 @@ const OrdersScreenContent = () => {
         hasMore={hasMoreOrders}
         fetchNext={fetchOrders}
         config={listItemConfigNoImageNoSubtitle}
-        onItemPress={(mapped) => {
-          navigation.navigate('orderDetails', {
-            headerProps: mapped,
-          });
+        onItemPress={(id) => {
+          navigation.navigate('orderDetails', { id });
         }}
       />
     </StatusMessage>
