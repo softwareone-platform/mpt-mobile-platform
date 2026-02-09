@@ -12,7 +12,7 @@ const mockClearAuthenticatedUserContext = jest.fn();
 const mockFlush = jest.fn();
 
 jest.mock('expo-crypto', () => ({
-  randomUUID: jest.fn(() => 'test-correlation-id-12345'),
+  randomUUID: jest.fn(() => 'test-uuid-123'),
 }));
 
 jest.mock('react-native-device-info', () => ({

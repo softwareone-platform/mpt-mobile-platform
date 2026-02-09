@@ -29,15 +29,10 @@ export interface AppInsightsMetric {
 
 const APPLICATION_NAME = 'MarketplaceMobile';
 
-function generateCorrelationId(): string {
-  return Crypto.randomUUID();
-}
-
 class AppInsightsService {
   private appInsights: ApplicationInsights | null = null;
   private getUserFn: (() => User | null) | null = null;
   private isInitialized = false;
-  private correlationId: string = generateCorrelationId();
 
   public initialize(): void {
     if (this.isInitialized) {
@@ -72,7 +67,6 @@ class AppInsightsService {
           item.baseData.properties.DeviceId = DeviceInfo.getUniqueIdSync();
           item.baseData.properties.PlatformOS = Platform.OS;
           item.baseData.properties.PlatformVersion = Platform.Version.toString();
-          item.baseData.properties.CorrelationId = this.correlationId;
         }
         const currentUser = this.getUserFn?.();
         if (currentUser) {
@@ -105,15 +99,6 @@ class AppInsightsService {
     this.getUserFn = getUserFn;
   }
 
-  public refreshCorrelationId(): string {
-    this.correlationId = generateCorrelationId();
-    return this.correlationId;
-  }
-
-  public getCorrelationId(): string {
-    return this.correlationId;
-  }
-
   /**
    * Get traceparent header for W3C distributed tracing
    * Format: 00-<trace-id>-<span-id>-<trace-flags>
@@ -130,7 +115,7 @@ class AppInsightsService {
     }
 
     // Get operation ID (trace ID) and session ID (can be used as span ID)
-    const traceId = context.telemetryTrace?.traceID || this.correlationId.replace(/-/g, '');
+    const traceId = context.telemetryTrace?.traceID || Crypto.randomUUID().replace(/-/g, '');
     const spanId =
       context.sessionManager?.automaticSession?.id?.replace(/-/g, '').substring(0, 16) ||
       '0000000000000000';
@@ -151,7 +136,7 @@ class AppInsightsService {
     }
 
     const context = this.appInsights.context;
-    const operationId = context?.telemetryTrace?.traceID || this.correlationId;
+    const operationId = context?.telemetryTrace?.traceID || Crypto.randomUUID();
     const requestId = Crypto.randomUUID().substring(0, 8);
 
     return `|${operationId}.${requestId}`;
