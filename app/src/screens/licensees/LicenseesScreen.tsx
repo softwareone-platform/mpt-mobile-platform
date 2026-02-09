@@ -37,7 +37,7 @@ const LicenseesScreenContent = () => {
         hasMore={hasMoreLicensees}
         fetchNext={fetchLicenseesNextPage}
         config={listItemConfigFull}
-        onItemPress={(item) => console.info(item.id)}
+        onItemPress={(item) => console.info(item)}
       />
     </StatusMessage>
   );

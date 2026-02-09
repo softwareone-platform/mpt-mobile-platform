@@ -52,12 +52,12 @@ const ListItemWithStatus = ({
         <View style={styles.textContainer}>
           {hasSubtitle && (
             <Text style={[styles.title, styles.titleMain]} numberOfLines={1} ellipsizeMode="tail">
-              {title}
+              {title.trim()}
             </Text>
           )}
           <View style={styles.statusRowContainer}>
             <Text style={[styles.subtitle, !hasSubtitle && styles.title]} numberOfLines={1}>
-              {hasSubtitle ? subtitle : title}
+              {hasSubtitle ? subtitle?.trim() : title.trim()}
             </Text>
 
             {status && <Chip status={status} text={t(`status.${statusText}`)} />}
