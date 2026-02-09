@@ -108,6 +108,11 @@ export const TestIDs = {
   ORDERS_ERROR_STATE: 'orders-error-state',
   ORDERS_EMPTY_STATE: 'orders-empty-state',
 
+  // Orders Details Screen
+  ORDER_DETAILS_LOADING_INDICATOR: 'order-details-loading-indicator',
+  ORDER_DETAILS_ERROR_STATE: 'order-details-error-state',
+  ORDER_DETAILS_EMPTY_STATE: 'order-details-empty-state',
+
   // Subscriptions Screen
   SUBSCRIPTIONS_LOADING_INDICATOR: 'subscriptions-loading-indicator',
   SUBSCRIPTIONS_ERROR_STATE: 'subscriptions-error-state',
@@ -138,7 +143,7 @@ export const TestIDs = {
   LICENSEES_ERROR_STATE: 'licensees-error-state',
   LICENSEES_EMPTY_STATE: 'licensees-empty-state',
 
-  // Licensees Screen
+  // Buyers Screen
   BUYERS_LOADING_INDICATOR: 'buyers-loading-indicator',
   BUYERS_ERROR_STATE: 'buyers-error-state',
   BUYERS_EMPTY_STATE: 'buyers-empty-state',

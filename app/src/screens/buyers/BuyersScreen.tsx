@@ -37,7 +37,7 @@ const BuyersScreenContent = () => {
         hasMore={hasMoreBuyers}
         fetchNext={fetchBuyersNextPage}
         config={listItemConfigFull}
-        onItemPress={(item) => console.info(item.id)}
+        onItemPress={(item) => console.info(item)}
       />
     </StatusMessage>
   );

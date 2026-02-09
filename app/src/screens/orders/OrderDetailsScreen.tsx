@@ -33,9 +33,9 @@ const OrderDetailsScreen = () => {
       isError={!!isError}
       isEmpty={!orderDetails || Object.keys(orderDetails).length === 0}
       isUnauthorised={isUnauthorised}
-      loadingTestId={TestIDs.CREDIT_MEMO_DETAILS_LOADING_INDICATOR}
-      errorTestId={TestIDs.CREDIT_MEMO_DETAILS_ERROR_STATE}
-      emptyTestId={TestIDs.CREDIT_MEMO_DETAILS_EMPTY_STATE}
+      loadingTestId={TestIDs.ORDER_DETAILS_LOADING_INDICATOR}
+      errorTestId={TestIDs.ORDER_DETAILS_ERROR_STATE}
+      emptyTestId={TestIDs.ORDER_DETAILS_EMPTY_STATE}
       emptyTitle={t('orderDetailsScreen.emptyStateTitle')}
       emptyDescription={t('orderDetailsScreen.emptyStateDescription')}
     >
