@@ -19,7 +19,8 @@
     "licensees": "Licensees",
     "buyers": "Buyers",
     "orderDetails": "Order",
-    "creditMemoDetails": "Credit Memo"
+    "creditMemoDetails": "Credit Memo",
+    "userDetails": "User"
   },
   "tabGroups": {
     "administration": "Administration",
