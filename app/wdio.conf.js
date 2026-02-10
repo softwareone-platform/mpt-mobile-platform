@@ -1,12 +1,323 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 const dotenv = require('dotenv');
+const semver = require('semver');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
 
 // Load .env file if it exists (for local development and Windows batch execution)
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const SCREENSHOT_FOLDER = '../screenshots';
+
+// ============================================================================
+// Feature Flag Discovery
+// ============================================================================
+// Reads feature flags from the app's configuration and makes them available
+// to tests. This enables tests to conditionally assert based on flag state.
+// 
+// TWO MODES OF OPERATION:
+// 
+// 1. DEFAULT (Pipeline/Normal Run):
+//    - Fetches portal version from the backend API
+//    - Applies version-based gating (minVersion/maxVersion)
+//    - Tests adapt to the environment's actual feature availability
+// 
+// 2. LOCAL OVERRIDE (--build --feature-flag):
+//    - When flags are explicitly overridden via the test script
+//    - Overridden flags use the explicit value (ignoring portal version)
+//    - Non-overridden flags still use portal version gating
+// 
+// This ensures:
+// - Pipeline tests automatically adapt to environment capabilities
+// - Local testing can force specific flag states for development/debugging
+// 
+// Note: minVersion/maxVersion refer to the PORTAL version (backend API),
+// not the mobile app version. The portal is currently on v4.x (QA) or v5.x (TEST).
+// ============================================================================
+
+// Fallback portal version (matches portalVersionService.ts)
+const FALLBACK_PORTAL_VERSION = '4.0.0';
+
+/**
+ * Parse explicit feature flag overrides from environment variable
+ * Set by run-local-test.sh when using --feature-flag option
+ * @returns {object} Map of flagKey -> boolean value for overridden flags
+ */
+const parseExplicitOverrides = () => {
+    const overridesEnv = process.env.FEATURE_FLAG_OVERRIDES;
+    const overrides = {};
+    
+    if (!overridesEnv) {
+        return overrides;
+    }
+    
+    // Format: FLAG1=true,FLAG2=false
+    overridesEnv.split(',').forEach(pair => {
+        const [key, value] = pair.trim().split('=');
+        if (key && value !== undefined) {
+            overrides[key] = value === 'true';
+        }
+    });
+    
+    return overrides;
+};
+
+/**
+ * Fetch portal version from the backend API
+ * This is the same endpoint the app uses to determine feature availability
+ * @returns {string} Portal version string (e.g., "4.2.1") or fallback
+ */
+const fetchPortalVersion = () => {
+    const apiUrl = process.env.AUTH0_API_URL;
+    
+    if (!apiUrl) {
+        console.warn('⚠️ AUTH0_API_URL not set, using fallback portal version:', FALLBACK_PORTAL_VERSION);
+        return FALLBACK_PORTAL_VERSION;
+    }
+    
+    try {
+        // Fetch the portal manifest (same endpoint as portalVersionService.ts)
+        // Using curl since we're in a synchronous context
+        const cmd = `curl -s -f --max-time 10 "${apiUrl}" -H "Accept: application/json" 2>/dev/null`;
+        const output = execSync(cmd, { encoding: 'utf8', timeout: 15000 }).trim();
+        
+        if (output) {
+            const manifest = JSON.parse(output);
+            if (manifest.version) {
+                return manifest.version;
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Could not fetch portal version from API:', error.message);
+    }
+    
+    return FALLBACK_PORTAL_VERSION;
+};
+
+/**
+ * Compare two version strings using semver
+ * @param {string} version1 - First version
+ * @param {string} version2 - Second version
+ * @returns {number|null} -1, 0, or 1 for comparison, null if invalid
+ */
+const compareVersions = (version1, version2) => {
+    const v1 = semver.coerce(version1);
+    const v2 = semver.coerce(version2);
+    
+    if (!v1 || !v2) {
+        return null;
+    }
+    
+    return semver.compare(v1, v2);
+};
+
+/**
+ * Check if a feature flag is enabled for a given portal version
+ * Applies the same logic as the app's featureFlagsService
+ * @param {object} flagConfig - Flag configuration object
+ * @param {string|null} portalVersion - Portal version string
+ * @returns {boolean} Whether the flag is effectively enabled
+ */
+const isFlagEnabledForVersion = (flagConfig, portalVersion) => {
+    // Simple boolean flag
+    if (typeof flagConfig === 'boolean') {
+        return flagConfig;
+    }
+    
+    // Flag is explicitly disabled
+    if (!flagConfig.enabled) {
+        return false;
+    }
+    
+    // No version constraints - use static enabled value
+    if (!flagConfig.minVersion && !flagConfig.maxVersion) {
+        return flagConfig.enabled;
+    }
+    
+    // No portal version available - use static enabled value
+    if (!portalVersion) {
+        return flagConfig.enabled;
+    }
+    
+    // Check minVersion constraint
+    if (flagConfig.minVersion) {
+        const comparison = compareVersions(portalVersion, flagConfig.minVersion);
+        if (comparison === null || comparison < 0) {
+            return false;
+        }
+    }
+    
+    // Check maxVersion constraint
+    if (flagConfig.maxVersion) {
+        const comparison = compareVersions(portalVersion, flagConfig.maxVersion);
+        if (comparison === null || comparison > 0) {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
+/**
+ * Discover feature flags from the app's configuration file
+ * @returns {object} Feature flags configuration with helper methods
+ */
+const discoverFeatureFlags = () => {
+    const flagsPath = path.join(__dirname, 'src/config/feature-flags/featureFlags.json');
+    
+    // Parse any explicit overrides from command line (via run-local-test.sh)
+    const explicitOverrides = parseExplicitOverrides();
+    const hasOverrides = Object.keys(explicitOverrides).length > 0;
+    
+    // Fetch portal version from the backend API
+    const portalVersion = fetchPortalVersion();
+    
+    /**
+     * Determine effective flag state with override priority:
+     * 1. Explicit override (from --feature-flag) takes precedence
+     * 2. Otherwise, use portal version-based gating
+     */
+    const getEffectiveState = (flagKey, flagConfig) => {
+        // Check for explicit override first
+        if (flagKey in explicitOverrides) {
+            return explicitOverrides[flagKey];
+        }
+        // Fall back to portal version-based evaluation
+        return isFlagEnabledForVersion(flagConfig, portalVersion);
+    };
+    
+    try {
+        const flags = JSON.parse(fs.readFileSync(flagsPath, 'utf8'));
+        
+        const featureFlags = {
+            raw: flags,
+            portalVersion: portalVersion,
+            explicitOverrides: explicitOverrides,
+            hasOverrides: hasOverrides,
+            flags: Object.entries(flags).map(([key, config]) => ({
+                key,
+                enabled: typeof config === 'boolean' ? config : config.enabled,
+                minVersion: config.minVersion || null,
+                maxVersion: config.maxVersion || null,
+                // Calculate effective state (override > portal version)
+                effectivelyEnabled: getEffectiveState(key, config),
+                isOverridden: key in explicitOverrides,
+            })),
+            /**
+             * Check if a flag is statically enabled (ignoring version constraints)
+             * Use isEnabled() instead for version-aware checks
+             * @param {string} flagKey - The feature flag key
+             * @returns {boolean}
+             */
+            isStaticallyEnabled: (flagKey) => {
+                const flag = flags[flagKey];
+                if (!flag) return false;
+                return typeof flag === 'boolean' ? flag : flag.enabled;
+            },
+            /**
+             * Check if a flag is effectively enabled
+             * Priority: explicit override > portal version gating
+             * This is the recommended method to use in tests
+             * @param {string} flagKey - The feature flag key
+             * @returns {boolean}
+             */
+            isEnabled: (flagKey) => {
+                const flag = flags[flagKey];
+                if (!flag) return false;
+                return getEffectiveState(flagKey, flag);
+            },
+            /**
+             * Check if a flag was explicitly overridden via command line
+             * @param {string} flagKey - The feature flag key
+             * @returns {boolean}
+             */
+            isOverridden: (flagKey) => {
+                return flagKey in explicitOverrides;
+            },
+            /**
+             * Get configuration for a specific flag
+             * @param {string} flagKey - The feature flag key
+             * @returns {object|null}
+             */
+            getFlag: (flagKey) => {
+                const flag = flags[flagKey];
+                if (!flag) return null;
+                return {
+                    key: flagKey,
+                    enabled: typeof flag === 'boolean' ? flag : flag.enabled,
+                    minVersion: flag.minVersion || null,
+                    maxVersion: flag.maxVersion || null,
+                    effectivelyEnabled: getEffectiveState(flagKey, flag),
+                    isOverridden: flagKey in explicitOverrides,
+                };
+            }
+        };
+        
+        // Log discovered flags with version context
+        console.log('');
+        console.log('╔══════════════════════════════════════════════════════════════════╗');
+        console.log('║                    🚩 FEATURE FLAGS DISCOVERED                   ║');
+        console.log('╠══════════════════════════════════════════════════════════════════╣');
+        
+        if (portalVersion) {
+            console.log(`║  🌐 Portal Version: ${portalVersion.padEnd(45)}║`);
+        }
+        
+        if (hasOverrides) {
+            console.log(`║  ⚡ Local Overrides: ${Object.keys(explicitOverrides).length} flag(s) explicitly set              ║`);
+        }
+        
+        console.log('╠══════════════════════════════════════════════════════════════════╣');
+        
+        if (Object.keys(flags).length === 0) {
+            console.log('║  No feature flags configured                                     ║');
+        } else {
+            Object.entries(flags).forEach(([key, config]) => {
+                const effectiveEnabled = getEffectiveState(key, config);
+                const isOverridden = key in explicitOverrides;
+                const minV = config.minVersion || 'none';
+                
+                // Show effective state
+                const status = effectiveEnabled ? '✅' : '❌';
+                const keyPadded = key.substring(0, 30).padEnd(30);
+                const minVPadded = minV.substring(0, 10).padEnd(10);
+                
+                // Add indicator for override or version gating
+                let note = '';
+                if (isOverridden) {
+                    note = ' ⚡'; // Override indicator
+                } else {
+                    const staticEnabled = typeof config === 'boolean' ? config : config.enabled;
+                    if (staticEnabled && !effectiveEnabled) {
+                        note = ' (ver)'; // Version gating indicator
+                    }
+                }
+                console.log(`║  ${status} ${keyPadded} minVersion: ${minVPadded}${note}║`);
+            });
+        }
+        console.log('╚══════════════════════════════════════════════════════════════════╝');
+        console.log('');
+        
+        return featureFlags;
+    } catch (error) {
+        console.warn('⚠️ Could not read feature flags:', error.message);
+        return {
+            raw: {},
+            portalVersion: portalVersion,
+            explicitOverrides: explicitOverrides,
+            hasOverrides: hasOverrides,
+            flags: [],
+            isStaticallyEnabled: () => false,
+            isEnabled: () => false,
+            isOverridden: () => false,
+            getFlag: () => null,
+        };
+    }
+};
+
+// Discover feature flags at module load time and store globally
+global.featureFlags = discoverFeatureFlags();
 
 // Generate timestamped log directory for this test run
 const getLogDir = () => {
@@ -119,6 +430,8 @@ exports.config = {
         licensees: ['./test/specs/licensees.e2e.js'],
         buyers: ['./test/specs/buyers.e2e.js'],
         logout: ['./test/specs/logout.e2e.js'],
+        // Feature flag validation tests
+        featureFlags: ['./test/specs/feature-flags.e2e.js'],
     },
     //
     // ============

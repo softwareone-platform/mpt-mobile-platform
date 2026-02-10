@@ -504,6 +504,9 @@ jobs:
           airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
           airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
           airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
+          # API configuration (optional - for API validation tests)
+          api_base_url: ${{ vars.API_BASE_URL || '' }}
+          api_ops_token: ${{ secrets.API_OPS_TOKEN || '' }}
           # Test selection
           test_suite: ${{ inputs.test-suite || github.event.inputs.test-suite || 'welcome' }}
           test_spec: ${{ inputs.test-spec || github.event.inputs.test-spec || '' }}

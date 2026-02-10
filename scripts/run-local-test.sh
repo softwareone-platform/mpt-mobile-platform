@@ -18,6 +18,7 @@ VERBOSE=false
 PLATFORM="ios"  # Default platform
 ARTIFACT_URL=""  # URL to download pre-built artifact
 DRY_RUN=false  # List tests without running
+FEATURE_FLAGS=""  # Feature flag overrides (space-separated FLAG_NAME=value pairs)
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -36,6 +37,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         --build-from-artifact)
             ARTIFACT_URL="$2"
+            shift 2
+            ;;
+        --feature-flag|-f)
+            # Add feature flag override (format: FLAG_NAME=true/false)
+            FEATURE_FLAGS="$FEATURE_FLAGS $2"
             shift 2
             ;;
         --verbose|-v)
@@ -58,6 +64,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --build, -b                      Build release version of the app before testing"
             echo "  --skip-build, -s                 Skip build and install existing app from last build"
             echo "  --build-from-artifact URL        Download and install app from artifact URL (zip or apk)"
+            echo "  --feature-flag, -f FLAG=VALUE    Override feature flag value (requires --build)"
+            echo "                                   Can be specified multiple times"
             echo "  --list, --dry-run                List all test cases without running them"
             echo "  --verbose, -v                    Enable verbose output"
             echo "  --help, -h                       Show this help message"
@@ -74,6 +82,12 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 --platform android --build-from-artifact URL.apk welcome  # Download APK directly"
             echo "  $0 --list all                             # List all tests without running"
             echo "  $0 --dry-run spotlight                    # List tests in spotlight suite"
+            echo ""
+            echo "Feature Flag Testing:"
+            echo "  $0 --build -f FEATURE_ACCOUNT_TABS=false welcome"
+            echo "                                   Build with FEATURE_ACCOUNT_TABS disabled"
+            echo "  $0 --build -f FLAG1=true -f FLAG2=false featureFlags"
+            echo "                                   Build with multiple flag overrides"
             exit 0
             ;;
         -*)
@@ -121,6 +135,13 @@ fi
 if [ -n "$ARTIFACT_URL" ] && [ "$SKIP_BUILD" = true ]; then
     echo "Error: --build-from-artifact and --skip-build cannot be used together"
     echo "Use --build-from-artifact to download artifact, or --skip-build to reuse last build"
+    exit 1
+fi
+
+# Feature flags require building
+if [ -n "$FEATURE_FLAGS" ] && [ "$BUILD_APP" != true ]; then
+    echo "Error: --feature-flag requires --build option"
+    echo "Feature flags are embedded at build time, so a build is required to apply them"
     exit 1
 fi
 
@@ -175,6 +196,87 @@ log() {
             echo "$message"
             ;;
     esac
+}
+
+# Function to apply feature flag overrides to featureFlags.json
+apply_feature_flag_overrides() {
+    local project_root="$1"
+    local flags_path="$project_root/app/src/config/feature-flags/featureFlags.json"
+    
+    if [ -z "$FEATURE_FLAGS" ]; then
+        log "No feature flag overrides specified" "verbose"
+        return 0
+    fi
+    
+    if [ ! -f "$flags_path" ]; then
+        log "❌ Feature flags file not found at $flags_path" "info"
+        return 1
+    fi
+    
+    log "" "info"
+    log "╔══════════════════════════════════════════════════════════════════╗" "info"
+    log "║                 🚩 APPLYING FEATURE FLAG OVERRIDES               ║" "info"
+    log "╠══════════════════════════════════════════════════════════════════╣" "info"
+    
+    # Backup original feature flags
+    cp "$flags_path" "${flags_path}.backup"
+    log "║  📋 Original flags backed up to featureFlags.json.backup         ║" "info"
+    
+    # Export overrides for test framework (so tests know which flags were explicitly set)
+    # Format: FLAG1=value1,FLAG2=value2
+    export FEATURE_FLAG_OVERRIDES=$(echo "$FEATURE_FLAGS" | tr ' ' ',')
+    log "║  📤 Exporting overrides to test framework                        ║" "info"
+    
+    # Process each flag override
+    for FLAG in $FEATURE_FLAGS; do
+        FLAG_NAME="${FLAG%%=*}"
+        FLAG_VALUE="${FLAG#*=}"
+        
+        # Validate flag value
+        if [ "$FLAG_VALUE" != "true" ] && [ "$FLAG_VALUE" != "false" ]; then
+            log "║  ⚠️  Invalid value for $FLAG_NAME: $FLAG_VALUE (use true/false) ║" "info"
+            continue
+        fi
+        
+        # Use node to modify the JSON
+        node -e "
+            const fs = require('fs');
+            const path = '$flags_path';
+            const flags = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const flagName = '$FLAG_NAME';
+            const flagValue = $FLAG_VALUE;
+            
+            if (flags[flagName] !== undefined) {
+                if (typeof flags[flagName] === 'boolean') {
+                    flags[flagName] = flagValue;
+                } else {
+                    flags[flagName].enabled = flagValue;
+                }
+                console.log('  ✅ ' + flagName + ' = ' + flagValue);
+                fs.writeFileSync(path, JSON.stringify(flags, null, 2));
+            } else {
+                console.log('  ⚠️  Flag not found: ' + flagName);
+            }
+        "
+    done
+    
+    log "╚══════════════════════════════════════════════════════════════════╝" "info"
+    log "" "info"
+    
+    return 0
+}
+
+# Function to restore original feature flags after build
+restore_feature_flags() {
+    local project_root="$1"
+    local flags_path="$project_root/app/src/config/feature-flags/featureFlags.json"
+    local backup_path="${flags_path}.backup"
+    
+    if [ -f "$backup_path" ]; then
+        log "🔄 Restoring original feature flags..." "info"
+        mv "$backup_path" "$flags_path"
+        log "✅ Feature flags restored" "info"
+    fi
 }
 
 # Function to list tests without running them (dry run)
@@ -450,6 +552,9 @@ build_release_app() {
         exit 1
     fi
     
+    # Apply feature flag overrides before build
+    apply_feature_flag_overrides "$PROJECT_ROOT"
+    
     # Store original working directory to return to it later
     ORIGINAL_DIR="$(pwd)"
     
@@ -573,6 +678,9 @@ build_release_app() {
     xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
     log "✅ App installed on simulator" "info"
     
+    # Note: Feature flags are restored AFTER tests complete to allow tests
+    # to read the same flag values that were baked into the build
+    
     # Return to original directory to avoid path resolution issues
     cd "$ORIGINAL_DIR"
 }
@@ -643,6 +751,9 @@ elif [ "$BUILD_APP" = true ]; then
         SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
         APP_DIR="$PROJECT_ROOT/app"
+        
+        # Apply feature flag overrides before build
+        apply_feature_flag_overrides "$PROJECT_ROOT"
         
         cd "$APP_DIR"
         
@@ -727,6 +838,9 @@ elif [ "$BUILD_APP" = true ]; then
         sleep 2
         
         log "✅ Android app built and deployed" "info"
+        
+        # Note: Feature flags are restored AFTER tests complete to allow tests
+        # to read the same flag values that were baked into the build
         
         # Return to project root
         cd "$PROJECT_ROOT"
@@ -828,6 +942,10 @@ fi
 cd "$APP_DIR"
 npx wdio run wdio.conf.js $TEST_ARGS
 TEST_EXIT_CODE=$?
+
+# Restore feature flags after tests complete (if they were overridden during build)
+# Use the already-known PROJECT_ROOT instead of trying to re-derive it
+restore_feature_flags "$PROJECT_ROOT"
 
 # Restore original .env file if we backed it up
 if [ -f .env.backup ]; then

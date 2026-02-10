@@ -46,6 +46,15 @@ inputs:
   airtable_from_email:
     description: 'Airtable from email filter'
     required: true
+  # API Configuration (Optional - for API validation tests)
+  api_base_url:
+    description: 'API base URL for validation tests'
+    required: false
+    default: ''
+  api_ops_token:
+    description: 'API OPS token for validation tests'
+    required: false
+    default: ''
   # ReportPortal Configuration (Optional)
   report_portal_api_key:
     description: 'ReportPortal API key (leave empty to disable reporting)'
@@ -353,6 +362,9 @@ runs:
         AIRTABLE_BASE_ID: ${{ inputs.airtable_base_id }}
         AIRTABLE_TABLE_NAME: ${{ inputs.airtable_table_name }}
         AIRTABLE_FROM_EMAIL: ${{ inputs.airtable_from_email }}
+        # API configuration (optional - for API validation tests)
+        API_BASE_URL: ${{ inputs.api_base_url }}
+        API_OPS_TOKEN: ${{ inputs.api_ops_token }}
         # ReportPortal configuration (optional)
         REPORT_PORTAL_API_KEY: ${{ inputs.report_portal_api_key }}
         REPORT_PORTAL_ENDPOINT: ${{ inputs.report_portal_endpoint }}
@@ -389,8 +401,15 @@ runs:
         echo ""
         echo "🚀 Starting WDIO tests..."
         if [ -n "$TEST_SPEC" ]; then
-          echo "📋 Running specific test file: $TEST_SPEC"
-          npx wdio run wdio.conf.js --spec "$TEST_SPEC"
+          # Check if TEST_SPEC looks like a suite name (no path separators or .js extension)
+          # Suite names are simple identifiers like: welcome, featureFlags, navigation
+          if [[ ! "$TEST_SPEC" =~ [/\.] ]]; then
+            echo "📋 Running test suite (detected from spec): $TEST_SPEC"
+            npx wdio run wdio.conf.js --suite "$TEST_SPEC"
+          else
+            echo "📋 Running specific test file: $TEST_SPEC"
+            npx wdio run wdio.conf.js --spec "$TEST_SPEC"
+          fi
         elif [ "$TEST_SUITE" = "all" ]; then
           echo "📋 Running all test suites"
           npx wdio run wdio.conf.js
