@@ -463,6 +463,8 @@ runs:
         if [ -n "$TEST_SPEC" ]; then
           # Check if TEST_SPEC looks like a suite name (no path separators or .js extension)
           # Suite names are simple identifiers like: welcome, featureFlags, navigation
+          # NOTE: This heuristic assumes suite names don't contain dots. If suite naming
+          # conventions change (e.g., my.suite), update this logic AND the Android action.
           if [[ ! "$TEST_SPEC" =~ [/\.] ]]; then
             echo "📋 Running test suite (detected from spec): $TEST_SPEC"
             npx wdio run wdio.conf.js --suite "$TEST_SPEC"

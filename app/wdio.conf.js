@@ -81,7 +81,7 @@ const fetchPortalVersion = () => {
             // Replace 'portal' subdomain with 'api' and add /public/ path
             const apiHost = portalUrl.hostname.replace(/^portal\./, 'api.');
             apiUrl = `${portalUrl.protocol}//${apiHost}/public/`;
-            console.log('ℹ️ Derived API URL from API_BASE_URL:', apiUrl);
+            console.info('ℹ️ Derived API URL from API_BASE_URL:', apiUrl);
         } catch {
             console.warn('⚠️ Could not parse API_BASE_URL:', process.env.API_BASE_URL);
         }
@@ -94,9 +94,9 @@ const fetchPortalVersion = () => {
     
     try {
         // Fetch the portal manifest (same endpoint as portalVersionService.ts)
-        // Using execFileSync with curl args array to avoid shell injection (S4721)
-        const curlArgs = ['-s', '-f', '--max-time', '10', apiUrl, '-H', 'Accept: application/json'];
-        const output = execFileSync('curl', curlArgs, { 
+        // Using execFileSync with absolute path and curl args array to avoid shell injection (S4721, S4036)
+        const curlArgs = ['-s', '-f', '--connect-timeout', '5', '--max-time', '10', apiUrl, '-H', 'Accept: application/json'];
+        const output = execFileSync('/usr/bin/curl', curlArgs, { 
             encoding: 'utf8', 
             timeout: 15000,
             stdio: ['pipe', 'pipe', 'pipe'],
@@ -105,7 +105,7 @@ const fetchPortalVersion = () => {
         if (output) {
             const manifest = JSON.parse(output);
             if (manifest.version) {
-                console.log('✅ Portal version fetched:', manifest.version);
+                console.info('✅ Portal version fetched:', manifest.version);
                 return manifest.version;
             }
         }
@@ -276,23 +276,23 @@ const discoverFeatureFlags = () => {
         };
         
         // Log discovered flags with version context
-        console.log('');
-        console.log('╔══════════════════════════════════════════════════════════════════╗');
-        console.log('║                    🚩 FEATURE FLAGS DISCOVERED                   ║');
-        console.log('╠══════════════════════════════════════════════════════════════════╣');
+        console.info('');
+        console.info('╔══════════════════════════════════════════════════════════════════╗');
+        console.info('║                    🚩 FEATURE FLAGS DISCOVERED                   ║');
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
         
         if (portalVersion) {
-            console.log(`║  🌐 Portal Version: ${portalVersion.padEnd(45)}║`);
+            console.info(`║  🌐 Portal Version: ${portalVersion.padEnd(45)}║`);
         }
         
         if (hasOverrides) {
-            console.log(`║  ⚡ Local Overrides: ${Object.keys(explicitOverrides).length} flag(s) explicitly set              ║`);
+            console.info(`║  ⚡ Local Overrides: ${Object.keys(explicitOverrides).length} flag(s) explicitly set              ║`);
         }
         
-        console.log('╠══════════════════════════════════════════════════════════════════╣');
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
         
         if (Object.keys(flags).length === 0) {
-            console.log('║  No feature flags configured                                     ║');
+            console.info('║  No feature flags configured                                     ║');
         } else {
             Object.entries(flags).forEach(([key, config]) => {
                 const effectiveEnabled = getEffectiveState(key, config);
@@ -314,11 +314,11 @@ const discoverFeatureFlags = () => {
                         note = ' (ver)'; // Version gating indicator
                     }
                 }
-                console.log(`║  ${status} ${keyPadded} minVersion: ${minVPadded}${note}║`);
+                console.info(`║  ${status} ${keyPadded} minVersion: ${minVPadded}${note}║`);
             });
         }
-        console.log('╚══════════════════════════════════════════════════════════════════╝');
-        console.log('');
+        console.info('╚══════════════════════════════════════════════════════════════════╝');
+        console.info('');
         
         return featureFlags;
     } catch (error) {
@@ -623,9 +623,9 @@ exports.config = {
             const fileName = `${timestamp}_${sanitizedPrefix}${sanitizedParent ? sanitizedParent + '_' : ''}${sanitizedTitle}.png`
             const filePath = path.resolve(__dirname, SCREENSHOT_FOLDER, fileName)
             
-            console.log(`📸 Capturing screenshot: ${filePath}`)
+            console.info(`📸 Capturing screenshot: ${filePath}`)
             await browser.saveScreenshot(filePath)
-            console.log(`✅ Screenshot saved: ${fileName}`)
+            console.info(`✅ Screenshot saved: ${fileName}`)
             
             // Send screenshot to ReportPortal if configured
             if (process.env.REPORT_PORTAL_API_KEY && process.env.REPORT_PORTAL_API_KEY !== 'value not set') {
@@ -637,7 +637,7 @@ exports.config = {
                         type: 'image/png',
                         content: screenshotData.toString('base64')
                     });
-                    console.log(`📤 Screenshot sent to ReportPortal`);
+                    console.info(`📤 Screenshot sent to ReportPortal`);
                 } catch (rpError) {
                     console.warn('⚠️ Failed to send screenshot to ReportPortal:', rpError.message);
                 }
@@ -661,9 +661,9 @@ exports.config = {
         
         if (!fs.existsSync(screenshotDir)) {
             fs.mkdirSync(screenshotDir, { recursive: true });
-            console.log(`Created screenshot directory: ${screenshotDir}`);
+            console.info(`Created screenshot directory: ${screenshotDir}`);
         } else {
-            console.log(`Screenshot directory ready: ${screenshotDir}`);
+            console.info(`Screenshot directory ready: ${screenshotDir}`);
         }
 
         // Log test execution configuration
@@ -676,40 +676,40 @@ exports.config = {
         const suiteMatch = cliArgs.match(/--suite\s+(\S+)/);
         const specMatch = cliArgs.match(/--spec\s+(\S+)/);
         
-        console.log('');
-        console.log('╔══════════════════════════════════════════════════════════════════╗');
-        console.log('║                    🧪 TEST EXECUTION CONFIGURATION               ║');
-        console.log('╠══════════════════════════════════════════════════════════════════╣');
-        console.log(`║  Platform:   ${platform.padEnd(52)}║`);
+        console.info('');
+        console.info('╔══════════════════════════════════════════════════════════════════╗');
+        console.info('║                    🧪 TEST EXECUTION CONFIGURATION               ║');
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
+        console.info(`║  Platform:   ${platform.padEnd(52)}║`);
         
         if (specMatch) {
             // Running specific spec file
             const specFile = specMatch[1];
-            console.log(`║  Mode:       Specific Test File                                  ║`);
-            console.log(`║  Test File:  ${specFile.padEnd(52)}║`);
+            console.info(`║  Mode:       Specific Test File                                  ║`);
+            console.info(`║  Test File:  ${specFile.padEnd(52)}║`);
         } else if (suiteMatch) {
             // Running specific suite
             const suiteName = suiteMatch[1];
             const suiteSpecs = suites[suiteName] || [];
-            console.log(`║  Mode:       Test Suite                                          ║`);
-            console.log(`║  Suite:      ${suiteName.padEnd(52)}║`);
+            console.info(`║  Mode:       Test Suite                                          ║`);
+            console.info(`║  Suite:      ${suiteName.padEnd(52)}║`);
             if (suiteSpecs.length > 0) {
-                console.log(`║  Files:      ${suiteSpecs.length} spec file(s)                                      ║`);
+                console.info(`║  Files:      ${suiteSpecs.length} spec file(s)                                      ║`);
                 suiteSpecs.forEach((spec, i) => {
                     const shortSpec = spec.replace('./test/specs/', '');
-                    console.log(`║              ${(i + 1) + '. ' + shortSpec.padEnd(50)}║`);
+                    console.info(`║              ${(i + 1) + '. ' + shortSpec.padEnd(50)}║`);
                 });
             }
         } else {
             // Running all specs
-            console.log(`║  Mode:       All Test Specs                                      ║`);
-            console.log(`║  Specs:      ${specs.length} spec pattern(s) configured                       ║`);
+            console.info(`║  Mode:       All Test Specs                                      ║`);
+            console.info(`║  Specs:      ${specs.length} spec pattern(s) configured                       ║`);
         }
         
-        console.log('╠══════════════════════════════════════════════════════════════════╣');
-        console.log(`║  Log Dir:    ${LOG_OUTPUT_DIR.padEnd(52)}║`);
-        console.log('╚══════════════════════════════════════════════════════════════════╝');
-        console.log('');
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
+        console.info(`║  Log Dir:    ${LOG_OUTPUT_DIR.padEnd(52)}║`);
+        console.info('╚══════════════════════════════════════════════════════════════════╝');
+        console.info('');
     },
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
@@ -752,10 +752,10 @@ exports.config = {
         // Log spec file being executed
         const specFile = specs && specs.length > 0 ? specs[0] : 'unknown';
         const shortSpec = specFile.replace(/.*\/test\/specs\//, '');
-        console.log('');
-        console.log('┌──────────────────────────────────────────────────────────────────┐');
-        console.log(`│  📄 SPEC FILE: ${shortSpec.padEnd(50)}│`);
-        console.log('└──────────────────────────────────────────────────────────────────┘');
+        console.info('');
+        console.info('┌──────────────────────────────────────────────────────────────────┐');
+        console.info(`│  📄 SPEC FILE: ${shortSpec.padEnd(50)}│`);
+        console.info('└──────────────────────────────────────────────────────────────────┘');
     },
     /**
      * Runs before a WebdriverIO command gets executed.
@@ -770,16 +770,16 @@ exports.config = {
      */
     beforeSuite: function (suite) {
         // Log suite (describe block) being executed
-        console.log('');
-        console.log(`  📦 SUITE: ${suite.title}`);
-        console.log('  ' + '─'.repeat(60));
+        console.info('');
+        console.info(`  📦 SUITE: ${suite.title}`);
+        console.info('  ' + '─'.repeat(60));
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
     beforeTest: function (test, context) {
         // Log individual test (it block) being executed
-        console.log(`    🧪 TEST: ${test.title}`);
+        console.info(`    🧪 TEST: ${test.title}`);
     },
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
@@ -825,7 +825,7 @@ exports.config = {
             status = '❌ FAIL';
         }
         const durationStr = duration ? ` (${(duration / 1000).toFixed(2)}s)` : '';
-        console.log(`       ${status}${durationStr}`);
+        console.info(`       ${status}${durationStr}`);
         
         if (!passed && !isSkipped) {
             await this.captureFailureScreenshot(test);
@@ -876,9 +876,9 @@ exports.config = {
     onComplete: function () {
         fs.rm(SCREENSHOT_FOLDER, { recursive: true }, function (err) {
         if (err) {
-            console.log(err);
+            console.error(err);
         } else {
-            console.log('Directory successfully removed.');
+            console.info('Directory successfully removed.');
         }
         });
     },

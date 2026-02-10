@@ -89,7 +89,10 @@ describe('Feature Flags E2E Tests', () => {
             
             // Click Favourites tab
             await ProfilePage.tabFavourites.click();
-            await browser.pause(500); // Allow state update
+            await browser.waitUntil(
+                async () => await ProfilePage.isTabSelected('favourites'),
+                { timeout: 5000, timeoutMsg: 'Favourites tab did not become selected' }
+            );
             
             // Verify Favourites is now selected
             const isFavSelected = await ProfilePage.isTabSelected('favourites');
@@ -97,7 +100,10 @@ describe('Feature Flags E2E Tests', () => {
             
             // Click Recent tab
             await ProfilePage.tabRecent.click();
-            await browser.pause(500);
+            await browser.waitUntil(
+                async () => await ProfilePage.isTabSelected('recent'),
+                { timeout: 5000, timeoutMsg: 'Recent tab did not become selected' }
+            );
             
             // Verify Recent is now selected
             const isRecentSelected = await ProfilePage.isTabSelected('recent');
@@ -105,7 +111,10 @@ describe('Feature Flags E2E Tests', () => {
             
             // Click back to All tab
             await ProfilePage.tabAll.click();
-            await browser.pause(500);
+            await browser.waitUntil(
+                async () => await ProfilePage.isTabSelected('all'),
+                { timeout: 5000, timeoutMsg: 'All tab did not become selected' }
+            );
             
             // Verify All is selected again
             const isAllSelected = await ProfilePage.isTabSelected('all');

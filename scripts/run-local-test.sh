@@ -41,6 +41,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         --feature-flag|-f)
             # Add feature flag override (format: FLAG_NAME=true/false)
+            if [ -z "$2" ] || [[ "$2" == -* ]]; then
+                echo "Error: --feature-flag requires a value (e.g., --feature-flag FLAG_NAME=true)"
+                echo "Use --help for usage information"
+                exit 1
+            fi
             FEATURE_FLAGS="$FEATURE_FLAGS $2"
             shift 2
             ;;
@@ -238,6 +243,12 @@ apply_feature_flag_overrides() {
     for FLAG in $FEATURE_FLAGS; do
         FLAG_NAME="${FLAG%%=*}"
         FLAG_VALUE="${FLAG#*=}"
+        
+        # Validate flag name (must be UPPER_SNAKE_CASE, no special chars that could break Node script)
+        if [[ ! "$FLAG_NAME" =~ ^[A-Z][A-Z0-9_]*$ ]]; then
+            log "║  ⚠️  Invalid flag name: $FLAG_NAME (must be UPPER_SNAKE_CASE) ║" "info"
+            continue
+        fi
         
         # Validate flag value
         if [ "$FLAG_VALUE" != "true" ] && [ "$FLAG_VALUE" != "false" ]; then

@@ -91,8 +91,8 @@ const ProfileScreen = () => {
             tabs={tabData}
             value={selectedTab}
             onChange={(tabValue) => setSelectedTab(tabValue as keyof FormattedUserAccounts)}
-            testID="profile-account-tabs"
-            tabTestIDPrefix="profile-tab"
+            testID={TestIDs.PROFILE_ACCOUNT_TABS}
+            tabTestIDPrefix={TestIDs.PROFILE_TAB_PREFIX}
           />
         )}
         <View style={styles.containerCard}>

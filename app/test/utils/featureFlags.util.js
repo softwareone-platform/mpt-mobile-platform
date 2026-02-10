@@ -26,6 +26,17 @@
  */
 
 /**
+ * Shared logger for feature flag utilities
+ * Uses console methods but provides a consistent interface
+ * that can be replaced with a shared logger if one is added later
+ */
+const logger = {
+    info: (...args) => console.info(...args),
+    warn: (...args) => console.warn(...args),
+    error: (...args) => console.error(...args),
+};
+
+/**
  * Get the current feature flag configuration from global scope
  * @returns {object} Feature flags object with helper methods
  */
@@ -195,9 +206,9 @@ const logFlagStatus = (flagKey) => {
         const version = config.minVersion ? ` (minVersion: ${config.minVersion})` : '';
         const portalVer = portalVersion ? ` [portal: ${portalVersion}]` : '';
         const override = config.isOverridden ? ' ⚡OVERRIDE' : '';
-        console.info(`    🚩 Flag ${flagKey}: ${effectiveStatus}${version}${portalVer}${override}`);
+        logger.info(`    🚩 Flag ${flagKey}: ${effectiveStatus}${version}${portalVer}${override}`);
     } else {
-        console.warn(`    🚩 Flag ${flagKey}: ⚠️ NOT FOUND`);
+        logger.warn(`    🚩 Flag ${flagKey}: ⚠️ NOT FOUND`);
     }
 };
 

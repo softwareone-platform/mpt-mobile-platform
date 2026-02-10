@@ -1,7 +1,7 @@
 const { $, $$ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
-const { getSelector, selectors } = require('./utils/selectors');
+const { getSelector, selectors, isIOS } = require('./utils/selectors');
 const { TIMEOUT } = require('./utils/constants');
 
 class ProfilePage extends BasePage {
@@ -135,9 +135,7 @@ class ProfilePage extends BasePage {
     }
     
     try {
-      const isIOS = driver.capabilities.platformName?.toLowerCase() === 'ios';
-      
-      if (isIOS) {
+      if (isIOS()) {
         // On iOS, check for 'Selected' trait in the accessibility traits (case-insensitive)
         const traits = await tab.getAttribute('traits');
         return traits?.toLowerCase().includes('selected') || false;
@@ -147,7 +145,7 @@ class ProfilePage extends BasePage {
         return selected === 'true';
       }
     } catch (error) {
-      console.debug(`Error checking tab selection for ${tabName}: ${error.message}`);
+      console.warn(`Error checking tab selection for ${tabName}: ${error.message}`);
       return false;
     }
   }
@@ -164,9 +162,11 @@ class ProfilePage extends BasePage {
     };
     
     const tab = tabSelectors[tabName];
-    if (tab) {
-      await this.click(tab);
+    if (!tab) {
+      console.warn(`Unknown tab name: ${tabName}`);
+      return;
     }
+    await this.click(tab);
   }
 
   // ========== Empty State (No Accounts) ==========
