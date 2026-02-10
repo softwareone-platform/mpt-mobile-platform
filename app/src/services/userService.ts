@@ -41,7 +41,7 @@ export function useUserApi() {
   const getUserData = useCallback(
     async (userId: string): Promise<UserData> => {
       const endpoint = `/v1/accounts/users/${userId}?select=audit,accounts`;
-      return api.get<User>(endpoint);
+      return api.get<UserData>(endpoint);
     },
     [api],
   );
