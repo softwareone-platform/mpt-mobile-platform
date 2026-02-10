@@ -230,7 +230,7 @@ describe('useAccountApi', () => {
       res = await api.getAccountData('acc-123');
     });
 
-    expect(mockGet).toHaveBeenCalledWith('v1/accounts/accounts/acc-123?select=audit,groups');
+    expect(mockGet).toHaveBeenCalledWith('/v1/accounts/accounts/acc-123?select=audit,groups');
     expect(res).toEqual({ id: 'acc-123' });
   });
 
@@ -245,6 +245,6 @@ describe('useAccountApi', () => {
       }),
     ).rejects.toThrow('API failure');
 
-    expect(mockGet).toHaveBeenCalledWith('v1/accounts/accounts/acc-999?select=audit,groups');
+    expect(mockGet).toHaveBeenCalledWith('/v1/accounts/accounts/acc-999?select=audit,groups');
   });
 });

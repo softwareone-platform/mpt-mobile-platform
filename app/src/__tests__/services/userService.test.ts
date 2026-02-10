@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useUserApi } from '@/services/userService';
-import type { PaginatedResponse, User } from '@/types/api';
+import type { PaginatedResponse, User, UserData, SsoStatus } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -230,5 +230,128 @@ describe('useUserApi', () => {
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
+  });
+
+  it('calls getUserData with correct endpoint and returns user data', async () => {
+    const api = setup();
+    const userId = 'USR-123';
+    const expectedUrl = `/v1/accounts/users/${userId}?select=audit,accounts`;
+    const mockUser: UserData = {
+      id: userId,
+      name: 'John Doe',
+      email: 'john@example.com',
+    };
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockUser);
+
+    await act(async () => {
+      res = await api.getUserData(userId);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockUser);
+  });
+
+  it('handles API error in getUserData', async () => {
+    const api = setup();
+    const userId = 'USR-123';
+    const expectedUrl = `/v1/accounts/users/${userId}?select=audit,accounts`;
+    const mockError = new Error('Failed to fetch user data');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getUserData(userId)).rejects.toThrow('Failed to fetch user data');
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+
+  it('handles multiple getUserData calls correctly', async () => {
+    const api = setup();
+    const userId1 = 'USR-123';
+    const userId2 = 'USR-234';
+    const mockUser1: User = {
+      id: 'USR-123',
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+    };
+    const mockUser2: UserData = {
+      id: 'USR-234',
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
+    };
+    const expectedUrl1 = `/v1/accounts/users/${userId1}?select=audit,accounts`;
+    const expectedUrl2 = `/v1/accounts/users/${userId2}?select=audit,accounts`;
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockUser1);
+    mockGet.mockResolvedValueOnce(mockUser2);
+
+    await act(async () => {
+      res1 = await api.getUserData(userId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getUserData(userId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedUrl2);
+
+    expect(res1).toEqual(mockUser1);
+    expect(res2).toEqual(mockUser2);
+  });
+
+  it('calls getSsoStatus with correct endpoint and returns SSO status', async () => {
+    const api = setup();
+    const userId = 'USR-456';
+    const expectedUrl = `/v1/accounts/users/${userId}/sso`;
+    const mockSsoStatus: SsoStatus = {
+      status: 'enabled',
+    };
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockSsoStatus);
+
+    await act(async () => {
+      res = await api.getSsoStatus(userId);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockSsoStatus);
+  });
+
+  it('handles multiple getSsoStatus calls correctly', async () => {
+    const api = setup();
+    const mockEnabled: SsoStatus = { status: 'enabled' };
+    const mockDisabled: SsoStatus = { status: 'disabled' };
+    const userId1 = 'USR-123';
+    const userId2 = 'USR-234';
+    const expectedUrl1 = `/v1/accounts/users/${userId1}/sso`;
+    const expectedUrl2 = `/v1/accounts/users/${userId2}/sso`;
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockEnabled);
+    mockGet.mockResolvedValueOnce(mockDisabled);
+
+    await act(async () => {
+      res1 = await api.getSsoStatus(userId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getSsoStatus(userId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedUrl2);
+
+    expect(res1).toEqual(mockEnabled);
+    expect(res2).toEqual(mockDisabled);
   });
 });
