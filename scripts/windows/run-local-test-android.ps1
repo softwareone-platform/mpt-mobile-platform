@@ -25,6 +25,12 @@
 .PARAMETER ListEmulators
     List available Android emulators and exit.
 
+.PARAMETER FeatureFlag
+    Override feature flag value for tests. Format: FLAG_NAME=true/false
+    With -Build: bakes flag into app build
+    Without -Build: passes to tests only (tests use these as overrides)
+    Can be specified multiple times as an array.
+
 .PARAMETER TestTarget
     Suite name, spec file path, or 'all' to run all tests.
 
@@ -59,6 +65,14 @@
 .EXAMPLE
     .\run-local-test-android.ps1 -List all
     List all test cases without running them.
+
+.EXAMPLE
+    .\run-local-test-android.ps1 -FeatureFlag "FEATURE_ACCOUNT_TABS=false" featureFlags
+    Run tests with feature flag override (no rebuild).
+
+.EXAMPLE
+    .\run-local-test-android.ps1 -Build -FeatureFlag "FEATURE_ACCOUNT_TABS=false" welcome
+    Build with feature flag baked in and run tests.
 
 .EXAMPLE
     .\run-local-test-android.ps1 -DryRun spotlight
@@ -100,6 +114,11 @@ param(
     [Parameter(ParameterSetName = 'ListTests', Mandatory = $true)]
     [Alias('DryRun')]
     [switch]$List,
+    
+    [Parameter(ParameterSetName = 'Test')]
+    [Parameter(ParameterSetName = 'Build')]
+    [Alias('f')]
+    [string[]]$FeatureFlag,
     
     [Parameter(Position = 0, ParameterSetName = 'Test')]
     [Parameter(Position = 0, ParameterSetName = 'Build')]
@@ -721,6 +740,20 @@ else {
 
 Write-Success "Appium server is ready!"
 Write-Host ""
+
+# Export feature flag overrides to test environment (even without build)
+# This allows tests to know which flags to check/skip
+if ($FeatureFlag -and $FeatureFlag.Count -gt 0) {
+    $overridesStr = ($FeatureFlag -join ",")
+    $env:FEATURE_FLAG_OVERRIDES = $overridesStr
+    Write-Host ""
+    Write-Info "Feature flag overrides exported to tests: $overridesStr"
+    
+    if (-not $Build) {
+        Write-WarningMsg "Feature flags passed without -Build: flags will be passed to tests only"
+        Write-Host "         (The app build will use its original flag values)" -ForegroundColor Yellow
+    }
+}
 
 # Determine test arguments
 if ($TestTarget -eq "all") {

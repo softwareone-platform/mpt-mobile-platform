@@ -138,9 +138,9 @@ class ProfilePage extends BasePage {
       const isIOS = driver.capabilities.platformName?.toLowerCase() === 'ios';
       
       if (isIOS) {
-        // On iOS, check for 'selected' trait in the accessibility traits
+        // On iOS, check for 'Selected' trait in the accessibility traits (case-insensitive)
         const traits = await tab.getAttribute('traits');
-        return traits?.includes('selected') || false;
+        return traits?.toLowerCase().includes('selected') || false;
       } else {
         // On Android, check for selected state or content-desc
         const selected = await tab.getAttribute('selected');

@@ -64,7 +64,9 @@ while [[ $# -gt 0 ]]; do
             echo "  --build, -b                      Build release version of the app before testing"
             echo "  --skip-build, -s                 Skip build and install existing app from last build"
             echo "  --build-from-artifact URL        Download and install app from artifact URL (zip or apk)"
-            echo "  --feature-flag, -f FLAG=VALUE    Override feature flag value (requires --build)"
+            echo "  --feature-flag, -f FLAG=VALUE    Override feature flag value for tests"
+            echo "                                   With --build: bakes flag into app build"
+            echo "                                   Without --build: passes to tests only"
             echo "                                   Can be specified multiple times"
             echo "  --list, --dry-run                List all test cases without running them"
             echo "  --verbose, -v                    Enable verbose output"
@@ -88,6 +90,9 @@ while [[ $# -gt 0 ]]; do
             echo "                                   Build with FEATURE_ACCOUNT_TABS disabled"
             echo "  $0 --build -f FLAG1=true -f FLAG2=false featureFlags"
             echo "                                   Build with multiple flag overrides"
+            echo "  $0 -f FEATURE_ACCOUNT_TABS=false featureFlags"
+            echo "                                   Run tests with flag overrides (no rebuild)"
+            echo "                                   Tests will use overrides; app uses original flags"
             exit 0
             ;;
         -*)
@@ -138,11 +143,12 @@ if [ -n "$ARTIFACT_URL" ] && [ "$SKIP_BUILD" = true ]; then
     exit 1
 fi
 
-# Feature flags require building
+# Feature flags can be used in two modes:
+# 1. With --build: Modifies featureFlags.json before building (baked into app)
+# 2. Without --build: Only exports to tests (tests use these as overrides)
 if [ -n "$FEATURE_FLAGS" ] && [ "$BUILD_APP" != true ]; then
-    echo "Error: --feature-flag requires --build option"
-    echo "Feature flags are embedded at build time, so a build is required to apply them"
-    exit 1
+    log "ℹ️  Feature flags passed without --build: flags will be passed to tests only" "info"
+    log "   (The app build will use its original flag values)" "info"
 fi
 
 # Platform-specific configuration
@@ -911,6 +917,15 @@ if ! curl -s "http://$APPIUM_HOST:$APPIUM_PORT/status" > /dev/null 2>&1; then
     done
 else
     log "✅ Appium server is already running"
+fi
+
+# Export feature flag overrides to test environment (even without build)
+# This allows tests to know which flags to check/skip
+if [ -n "$FEATURE_FLAGS" ]; then
+    # Format: FLAG1=value1,FLAG2=value2 (comma-separated)
+    export FEATURE_FLAG_OVERRIDES=$(echo "$FEATURE_FLAGS" | sed 's/^ *//' | tr ' ' ',')
+    log "" "info"
+    log "🚩 Feature flag overrides exported to tests: $FEATURE_FLAG_OVERRIDES" "info"
 fi
 
 # Determine if target is a suite, spec file, or all tests
