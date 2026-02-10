@@ -66,13 +66,29 @@ const parseExplicitOverrides = () => {
 /**
  * Fetch portal version from the backend API
  * This is the same endpoint the app uses to determine feature availability
+ * Supports both AUTH0_API_URL (direct manifest URL) and API_BASE_URL (portal base URL)
  * @returns {string} Portal version string (e.g., "4.2.1") or fallback
  */
 const fetchPortalVersion = () => {
-    const apiUrl = process.env.AUTH0_API_URL;
+    // Try AUTH0_API_URL first (direct manifest URL used by the app)
+    let apiUrl = process.env.AUTH0_API_URL;
+    
+    // Fallback: Derive API URL from API_BASE_URL (used in CI environments)
+    // Portal URL pattern: https://portal.s1.show -> API URL: https://api.s1.show/public/
+    if (!apiUrl && process.env.API_BASE_URL) {
+        try {
+            const portalUrl = new URL(process.env.API_BASE_URL);
+            // Replace 'portal' subdomain with 'api' and add /public/ path
+            const apiHost = portalUrl.hostname.replace(/^portal\./, 'api.');
+            apiUrl = `${portalUrl.protocol}//${apiHost}/public/`;
+            console.log('ℹ️ Derived API URL from API_BASE_URL:', apiUrl);
+        } catch {
+            console.warn('⚠️ Could not parse API_BASE_URL:', process.env.API_BASE_URL);
+        }
+    }
     
     if (!apiUrl) {
-        console.warn('⚠️ AUTH0_API_URL not set, using fallback portal version:', FALLBACK_PORTAL_VERSION);
+        console.warn('⚠️ AUTH0_API_URL and API_BASE_URL not set, using fallback portal version:', FALLBACK_PORTAL_VERSION);
         return FALLBACK_PORTAL_VERSION;
     }
     
@@ -85,6 +101,7 @@ const fetchPortalVersion = () => {
         if (output) {
             const manifest = JSON.parse(output);
             if (manifest.version) {
+                console.log('✅ Portal version fetched:', manifest.version);
                 return manifest.version;
             }
         }
