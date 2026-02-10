@@ -30,6 +30,7 @@ export default {
         },
       ],
       './plugins/withNetworkSecurityConfig',
+      './plugins/withAppStoreIcon',
     ],
     splash: {
       image: './assets/splash-icon.png',
