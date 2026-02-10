@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const dotenv = require('dotenv');
 const semver = require('semver');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
@@ -94,9 +94,13 @@ const fetchPortalVersion = () => {
     
     try {
         // Fetch the portal manifest (same endpoint as portalVersionService.ts)
-        // Using curl since we're in a synchronous context
-        const cmd = `curl -s -f --max-time 10 "${apiUrl}" -H "Accept: application/json" 2>/dev/null`;
-        const output = execSync(cmd, { encoding: 'utf8', timeout: 15000 }).trim();
+        // Using execFileSync with curl args array to avoid shell injection (S4721)
+        const curlArgs = ['-s', '-f', '--max-time', '10', apiUrl, '-H', 'Accept: application/json'];
+        const output = execFileSync('curl', curlArgs, { 
+            encoding: 'utf8', 
+            timeout: 15000,
+            stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
         
         if (output) {
             const manifest = JSON.parse(output);
