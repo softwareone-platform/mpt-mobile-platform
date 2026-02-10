@@ -103,12 +103,17 @@ export const TestIDs = {
   USERS_ERROR_STATE: 'users-error-state',
   USERS_EMPTY_STATE: 'users-empty-state',
 
+  // User Details Screen
+  USER_DETAILS_LOADING_INDICATOR: 'user-details-loading-indicator',
+  USER_DETAILS_ERROR_STATE: 'user-details-error-state',
+  USER_DETAILS_EMPTY_STATE: 'user-details-empty-state',
+
   // Orders Screen
   ORDERS_LOADING_INDICATOR: 'orders-loading-indicator',
   ORDERS_ERROR_STATE: 'orders-error-state',
   ORDERS_EMPTY_STATE: 'orders-empty-state',
 
-  // Orders Details Screen
+  // Order Details Screen
   ORDER_DETAILS_LOADING_INDICATOR: 'order-details-loading-indicator',
   ORDER_DETAILS_ERROR_STATE: 'order-details-error-state',
   ORDER_DETAILS_EMPTY_STATE: 'order-details-empty-state',

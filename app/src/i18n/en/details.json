@@ -33,6 +33,11 @@
     "city": "City",
     "state": "State",
     "postCode": "ZIP/Postal code",
-    "country": "Country"
+    "country": "Country",
+    "email": "Email",
+    "singleSignOn": "Single sign on",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phoneNumber": "Phone number"
   }
 }
