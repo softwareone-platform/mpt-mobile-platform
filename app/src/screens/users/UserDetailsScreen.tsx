@@ -5,7 +5,7 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import DetailsView from '@/components/details/DetailsView';
 import { listItemConfigFull } from '@/config/list';
 import { useAccount } from '@/context/AccountContext';
-import { useSsoSttatus } from '@/hooks/queries/useSsoStatus';
+import { useSsoStatus } from '@/hooks/queries/useSsoStatus';
 import { useUserDetailsData } from '@/hooks/queries/useUserDetailsData';
 import UserDetailsContent from '@/screens/users/UserDetailsContent';
 import type { RootStackParamList } from '@/types/navigation';
@@ -23,17 +23,21 @@ const UserDetailsScreen = () => {
 
   const {
     data: userDetails,
-    isLoading,
-    isError,
+    isLoading: isUserLoading,
+    isError: isUserError,
     isUnauthorised,
   } = useUserDetailsData(id, currentUserId, currentAccountId);
 
-  const { data: sso } = useSsoSttatus(id, currentUserId, currentAccountId);
+  const {
+    data: sso,
+    isLoading: isSsoLoading,
+    isError: isSsoError,
+  } = useSsoStatus(id, currentUserId, currentAccountId);
 
   return (
     <StatusMessage
-      isLoading={isLoading}
-      isError={!!isError}
+      isLoading={isUserLoading || isSsoLoading}
+      isError={!!isUserError || isSsoError}
       isEmpty={!userDetails || Object.keys(userDetails).length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.USER_DETAILS_LOADING_INDICATOR}

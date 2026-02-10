@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useUserApi } from '@/services/userService';
-import type { PaginatedResponse, User, SsoStatus } from '@/types/api';
+import type { PaginatedResponse, User, UserData, SsoStatus } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -236,14 +236,10 @@ describe('useUserApi', () => {
     const api = setup();
     const userId = 'USR-123';
     const expectedUrl = `/v1/accounts/users/${userId}?select=audit,accounts`;
-    const mockUser: User = {
+    const mockUser: UserData = {
       id: userId,
       name: 'John Doe',
       email: 'john@example.com',
-      audit: {
-        created: { at: '2026-01-01T10:00:00.000Z' },
-      },
-      accounts: [],
     };
 
     let res;
@@ -280,7 +276,7 @@ describe('useUserApi', () => {
       name: 'John Doe',
       email: 'john.doe@example.com',
     };
-    const mockUser2: User = {
+    const mockUser2: UserData = {
       id: 'USR-234',
       name: 'Jane Smith',
       email: 'jane.smith@example.com',

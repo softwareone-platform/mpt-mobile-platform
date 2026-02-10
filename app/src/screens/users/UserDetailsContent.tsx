@@ -7,7 +7,6 @@ import { formatPhoneNumber } from '@/utils/formatting';
 
 const UserDetailsContent = ({ data, sso }: { data: UserData; sso: SsoStatus }) => {
   const { t } = useTranslation();
-
   const ssoStatus = sso?.status === 'enabled' ? t('details.yes') : t('details.no');
 
   return (

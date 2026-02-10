@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useUserApi } from '@/services/userService';
-import { User } from '@/types/api';
+import { UserData } from '@/types/api';
 import { isUnauthorisedError } from '@/utils/apiError';
 
 export const useUserDetailsData = (
@@ -11,7 +11,7 @@ export const useUserDetailsData = (
 ) => {
   const { getUserData } = useUserApi();
 
-  const query = useQuery<User, Error>({
+  const query = useQuery<UserData, Error>({
     queryKey: ['userDetails', userId, currentUserId, currentAccountId],
     queryFn: () => {
       if (!userId) {

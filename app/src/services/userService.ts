@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse, User, SsoStatus } from '@/types/api';
+import type { PaginatedResponse, User, UserData, SsoStatus } from '@/types/api';
 
 export function useUserApi() {
   const api = useApi();
@@ -39,7 +39,7 @@ export function useUserApi() {
   );
 
   const getUserData = useCallback(
-    async (userId: string): Promise<User> => {
+    async (userId: string): Promise<UserData> => {
       const endpoint = `/v1/accounts/users/${userId}?select=audit,accounts`;
       return api.get<User>(endpoint);
     },

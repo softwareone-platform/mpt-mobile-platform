@@ -4,7 +4,7 @@ import { useUserApi } from '@/services/userService';
 import { SsoStatus } from '@/types/api';
 import { isUnauthorisedError } from '@/utils/apiError';
 
-export const useSsoSttatus = (
+export const useSsoStatus = (
   userId: string | undefined,
   currentUserId: string | undefined,
   currentAccountId: string | undefined,
