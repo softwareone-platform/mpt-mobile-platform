@@ -203,3 +203,7 @@ export interface Address {
   state: string;
   country: string;
 }
+
+export interface SsoStatus {
+  status: 'enabled' | 'disabled';
+}

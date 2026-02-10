@@ -106,7 +106,7 @@ export function useAccountApi() {
 
   const getAccountData = useCallback(
     async (accountId: string): Promise<AccountDetails> => {
-      const endpoint = `v1/accounts/accounts/${accountId}?select=audit,groups`;
+      const endpoint = `/v1/accounts/accounts/${accountId}?select=audit,groups`;
       return api.get<AccountDetails>(endpoint);
     },
     [api],

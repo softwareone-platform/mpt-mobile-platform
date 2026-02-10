@@ -29,6 +29,7 @@ export type AppScreensParamList = {
   creditMemoDetails: { id: string };
   orderDetails: { id: string };
   accountDetails: { id: string | undefined; type: 'client' | 'vendor' | 'operations' };
+  userDetails: { id: string };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;
