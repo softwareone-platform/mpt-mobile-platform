@@ -79,6 +79,96 @@ class ProfilePage extends BasePage {
     );
   }
 
+  // ========== Account Tabs (FEATURE_ACCOUNT_TABS) ==========
+  get accountTabsContainer() {
+    return $(
+      getSelector({
+        ios: '~profile-account-tabs',
+        android: '//*[@resource-id="profile-account-tabs"]',
+      }),
+    );
+  }
+
+  get tabAll() {
+    return $(
+      getSelector({
+        ios: '~profile-tab-all',
+        android: '//*[@resource-id="profile-tab-all"]',
+      }),
+    );
+  }
+
+  get tabFavourites() {
+    return $(
+      getSelector({
+        ios: '~profile-tab-favourites',
+        android: '//*[@resource-id="profile-tab-favourites"]',
+      }),
+    );
+  }
+
+  get tabRecent() {
+    return $(
+      getSelector({
+        ios: '~profile-tab-recent',
+        android: '//*[@resource-id="profile-tab-recent"]',
+      }),
+    );
+  }
+
+  /**
+   * Check if a specific tab is currently selected
+   * @param {'all'|'favourites'|'recent'} tabName - The tab name
+   * @returns {Promise<boolean>} True if the tab is selected
+   */
+  async isTabSelected(tabName) {
+    const tabSelectors = {
+      all: this.tabAll,
+      favourites: this.tabFavourites,
+      recent: this.tabRecent,
+    };
+    
+    const tab = tabSelectors[tabName];
+    if (!tab) {
+      console.warn(`Unknown tab name: ${tabName}`);
+      return false;
+    }
+    
+    try {
+      const isIOS = driver.capabilities.platformName?.toLowerCase() === 'ios';
+      
+      if (isIOS) {
+        // On iOS, check for 'selected' trait in the accessibility traits
+        const traits = await tab.getAttribute('traits');
+        return traits?.includes('selected') || false;
+      } else {
+        // On Android, check for selected state or content-desc
+        const selected = await tab.getAttribute('selected');
+        return selected === 'true';
+      }
+    } catch (error) {
+      console.debug(`Error checking tab selection for ${tabName}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Click on a specific tab
+   * @param {'all'|'favourites'|'recent'} tabName - The tab name
+   */
+  async clickTab(tabName) {
+    const tabSelectors = {
+      all: this.tabAll,
+      favourites: this.tabFavourites,
+      recent: this.tabRecent,
+    };
+    
+    const tab = tabSelectors[tabName];
+    if (tab) {
+      await this.click(tab);
+    }
+  }
+
   // ========== Empty State (No Accounts) ==========
   get noAccountsTitle() {
     return $(selectors.byText('No accounts'));
