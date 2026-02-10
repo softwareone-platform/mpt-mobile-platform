@@ -596,7 +596,7 @@ exports.config = {
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 150000, // Increased to 2.5 minutes to accommodate OTP tests
+        timeout: 600000, // 10 minutes - OTP retrieval can take 4+ minutes
         require: ['./test/fixtures/otp.fixture.js']
     },
 

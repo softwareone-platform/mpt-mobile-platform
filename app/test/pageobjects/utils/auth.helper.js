@@ -5,7 +5,8 @@ const headingPage = require('../base/heading.page');
 const profilePage = require('../profile.page');
 const userSettingsPage = require('../user-settings.page');
 const { isAndroid } = require('./selectors');
-const { TIMEOUT } = require('./constants');
+const { TIMEOUT, PAUSE } = require('./constants');
+const { restartApp } = require('./app.helper');
 
 const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'not-set';
 const OTP_TIMEOUT_MS = 120000;
@@ -205,7 +206,7 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY) {
  */
 async function ensureLoggedIn(email = AIRTABLE_EMAIL) {
   // First wait for app to reach a ready state
-  const appState = await waitForAppReady();
+  let appState = await waitForAppReady();
   
   if (appState === 'home') {
     console.info('✓ Already logged in (detected during app ready check)');
@@ -218,7 +219,26 @@ async function ensureLoggedIn(email = AIRTABLE_EMAIL) {
     return;
   }
   
-  // Unknown state - try the traditional check
+  // Unknown state - attempt recovery by restarting app
+  console.warn('⚠️ App in unknown state, attempting recovery via app restart...');
+  await restartApp();
+  
+  // Check state after restart
+  appState = await waitForAppReady();
+  
+  if (appState === 'home') {
+    console.info('✓ Recovery successful - already logged in after restart');
+    return;
+  }
+  
+  if (appState === 'welcome') {
+    console.info('ℹ Recovery successful - on welcome page, proceeding with login');
+    await loginWithOTP(email);
+    return;
+  }
+  
+  // Still unknown after restart - try the traditional check as last resort
+  console.warn('⚠️ App state still unknown after restart, attempting traditional login check...');
   const loggedIn = await isLoggedIn();
   if (!loggedIn) {
     await loginWithOTP(email);

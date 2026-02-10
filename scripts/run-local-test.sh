@@ -297,6 +297,23 @@ restore_feature_flags() {
     fi
 }
 
+# Cleanup trap to ensure feature flags are restored on early exit
+# Handles EXIT, ERR, INT (Ctrl+C), and TERM signals
+cleanup_feature_flags() {
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local project_root="$(dirname "$script_dir")"
+    local flags_path="$project_root/app/src/config/feature-flags/featureFlags.json"
+    local backup_path="${flags_path}.backup"
+    
+    # Only attempt restore if backup exists or FEATURE_FLAG_OVERRIDES was set
+    if [ -f "$backup_path" ] || [ -n "${FEATURE_FLAG_OVERRIDES:-}" ]; then
+        restore_feature_flags "$project_root"
+    fi
+}
+
+# Set trap to clean up on script exit (normal or abnormal)
+trap cleanup_feature_flags EXIT ERR INT TERM
+
 # Function to list tests without running them (dry run)
 list_tests() {
     local target="$1"
