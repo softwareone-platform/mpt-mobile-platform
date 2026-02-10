@@ -134,7 +134,7 @@ const getAllFlags = () => {
 function skipIfFlagDisabled(flagKey, message) {
     if (!isFlagEnabled(flagKey)) {
         const msg = message || `Skipping: Feature flag '${flagKey}' is disabled`;
-        console.log(`    ⏭️  ${msg}`);
+        console.info(`    ⏭️  ${msg}`);
         this.skip();
     }
 }
@@ -148,7 +148,7 @@ function skipIfFlagDisabled(flagKey, message) {
 function skipIfFlagEnabled(flagKey, message) {
     if (isFlagEnabled(flagKey)) {
         const msg = message || `Skipping: Feature flag '${flagKey}' is enabled (test requires disabled state)`;
-        console.log(`    ⏭️  ${msg}`);
+        console.info(`    ⏭️  ${msg}`);
         this.skip();
     }
 }
@@ -195,9 +195,9 @@ const logFlagStatus = (flagKey) => {
         const version = config.minVersion ? ` (minVersion: ${config.minVersion})` : '';
         const portalVer = portalVersion ? ` [portal: ${portalVersion}]` : '';
         const override = config.isOverridden ? ' ⚡OVERRIDE' : '';
-        console.log(`    🚩 Flag ${flagKey}: ${effectiveStatus}${version}${portalVer}${override}`);
+        console.info(`    🚩 Flag ${flagKey}: ${effectiveStatus}${version}${portalVer}${override}`);
     } else {
-        console.log(`    🚩 Flag ${flagKey}: ⚠️ NOT FOUND`);
+        console.warn(`    🚩 Flag ${flagKey}: ⚠️ NOT FOUND`);
     }
 };
 

@@ -146,6 +146,17 @@ if /i "%~1"=="-v" (
     goto :parse_args
 )
 if /i "%~1"=="--feature-flag" (
+    if "%~2"=="" (
+        echo [ERROR] --feature-flag requires a value in FLAG=VALUE format
+        echo Example: --feature-flag FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
+    set "_FF_VAL=%~2"
+    if "!_FF_VAL:~0,1!"=="-" (
+        echo [ERROR] --feature-flag requires a value, got another flag: %~2
+        echo Example: --feature-flag FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
     if "!FEATURE_FLAGS!"=="" (
         set "FEATURE_FLAGS=%~2"
     ) else (
@@ -156,6 +167,17 @@ if /i "%~1"=="--feature-flag" (
     goto :parse_args
 )
 if /i "%~1"=="-f" (
+    if "%~2"=="" (
+        echo [ERROR] -f requires a value in FLAG=VALUE format
+        echo Example: -f FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
+    set "_FF_VAL=%~2"
+    if "!_FF_VAL:~0,1!"=="-" (
+        echo [ERROR] -f requires a value, got another flag: %~2
+        echo Example: -f FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
     if "!FEATURE_FLAGS!"=="" (
         set "FEATURE_FLAGS=%~2"
     ) else (
@@ -196,8 +218,8 @@ echo   --emulator, -e NAME      Specify Android emulator AVD name to use
 echo   --start-emulator NAME    Start emulator and exit (no tests)
 echo   --list-emulators         List available Android emulators and exit
 echo   --feature-flag, -f FLAG=VALUE  Override feature flag value for tests
-echo                                  With --build: bakes flag into app build
-echo                                  Without --build: passes to tests only
+echo                                  These are test-only overrides; app uses
+echo                                  original .env flag values during build
 echo   --list, --dry-run        List all test cases without running them
 echo   --verbose, -v            Enable verbose output
 echo   --help, -h               Show this help message
@@ -751,11 +773,12 @@ if /i "%TARGET%"=="all" (
     if /i "%TARGET%"=="personalInformation" set "SPEC_FILES=%SPECS_DIR%\personal-information.e2e.js"
     if /i "%TARGET%"=="personal" set "SPEC_FILES=%SPECS_DIR%\personal-information.e2e.js"
     if /i "%TARGET%"=="failing" set "SPEC_FILES=%SPECS_DIR%\failing.e2e.js"
+    if /i "%TARGET%"=="featureFlags" set "SPEC_FILES=%SPECS_DIR%\feature-flags.e2e.js"
 )
 
 if "%SPEC_FILES%"=="" (
     echo [ERROR] Unknown suite: %TARGET%
-    echo Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing
+    echo Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing, featureFlags
     endlocal
     exit /b 1
 )

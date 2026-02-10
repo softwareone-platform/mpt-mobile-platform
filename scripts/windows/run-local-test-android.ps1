@@ -27,8 +27,8 @@
 
 .PARAMETER FeatureFlag
     Override feature flag value for tests. Format: FLAG_NAME=true/false
-    With -Build: bakes flag into app build
-    Without -Build: passes to tests only (tests use these as overrides)
+    These are test-only overrides passed via FEATURE_FLAG_OVERRIDES environment
+    variable; the app build uses its original flag values from .env configuration.
     Can be specified multiple times as an array.
 
 .PARAMETER TestTarget
@@ -72,7 +72,7 @@
 
 .EXAMPLE
     .\run-local-test-android.ps1 -Build -FeatureFlag "FEATURE_ACCOUNT_TABS=false" welcome
-    Build with feature flag baked in and run tests.
+    Build app and run tests with feature flag override.
 
 .EXAMPLE
     .\run-local-test-android.ps1 -DryRun spotlight
@@ -260,6 +260,7 @@ function Get-TestList {
             "personalInformation" = "personal-information.e2e.js"
             "personal" = "personal-information.e2e.js"
             "failing" = "failing.e2e.js"
+            "featureFlags" = "feature-flags.e2e.js"
         }
         
         if ($suiteMap.ContainsKey($Target)) {
@@ -270,7 +271,7 @@ function Get-TestList {
         }
         else {
             Write-ErrorMsg "Unknown suite: $Target"
-            Write-Host "Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing" -ForegroundColor Yellow
+            Write-Host "Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing, featureFlags" -ForegroundColor Yellow
             return
         }
     }
@@ -748,11 +749,7 @@ if ($FeatureFlag -and $FeatureFlag.Count -gt 0) {
     $env:FEATURE_FLAG_OVERRIDES = $overridesStr
     Write-Host ""
     Write-Info "Feature flag overrides exported to tests: $overridesStr"
-    
-    if (-not $Build) {
-        Write-WarningMsg "Feature flags passed without -Build: flags will be passed to tests only"
-        Write-Host "         (The app build will use its original flag values)" -ForegroundColor Yellow
-    }
+    Write-Host "         (These are test-only overrides; app uses original .env flag values)" -ForegroundColor Yellow
 }
 
 # Determine test arguments

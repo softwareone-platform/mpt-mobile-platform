@@ -143,14 +143,6 @@ if [ -n "$ARTIFACT_URL" ] && [ "$SKIP_BUILD" = true ]; then
     exit 1
 fi
 
-# Feature flags can be used in two modes:
-# 1. With --build: Modifies featureFlags.json before building (baked into app)
-# 2. Without --build: Only exports to tests (tests use these as overrides)
-if [ -n "$FEATURE_FLAGS" ] && [ "$BUILD_APP" != true ]; then
-    log "ℹ️  Feature flags passed without --build: flags will be passed to tests only" "info"
-    log "   (The app build will use its original flag values)" "info"
-fi
-
 # Platform-specific configuration
 if [ "$PLATFORM" = "android" ]; then
     # Android configuration
@@ -204,6 +196,14 @@ log() {
     esac
 }
 
+# Feature flags can be used in two modes:
+# 1. With --build: Modifies featureFlags.json before building (baked into app)
+# 2. Without --build: Only exports to tests (tests use these as overrides)
+if [ -n "$FEATURE_FLAGS" ] && [ "$BUILD_APP" != true ]; then
+    log "ℹ️  Feature flags passed without --build: flags will be passed to tests only" "info"
+    log "   (The app build will use its original flag values)" "info"
+fi
+
 # Function to apply feature flag overrides to featureFlags.json
 apply_feature_flag_overrides() {
     local project_root="$1"
@@ -230,7 +230,8 @@ apply_feature_flag_overrides() {
     
     # Export overrides for test framework (so tests know which flags were explicitly set)
     # Format: FLAG1=value1,FLAG2=value2
-    export FEATURE_FLAG_OVERRIDES=$(echo "$FEATURE_FLAGS" | tr ' ' ',')
+    # Trim leading/trailing whitespace and collapse multiple spaces before converting to commas
+    export FEATURE_FLAG_OVERRIDES=$(echo "$FEATURE_FLAGS" | xargs | tr ' ' ',')
     log "║  📤 Exporting overrides to test framework                        ║" "info"
     
     # Process each flag override
@@ -314,9 +315,10 @@ list_tests() {
             profile) spec_files=("$specs_dir/profile.e2e.js") ;;
             personalInformation|personal) spec_files=("$specs_dir/personal-information.e2e.js") ;;
             failing) spec_files=("$specs_dir/failing.e2e.js") ;;
+            featureFlags) spec_files=("$specs_dir/feature-flags.e2e.js") ;;
             *) 
                 echo "❌ Unknown suite: $target"
-                echo "Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing"
+                echo "Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing, featureFlags"
                 exit 1
                 ;;
         esac

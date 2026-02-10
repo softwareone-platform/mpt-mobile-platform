@@ -1087,7 +1087,7 @@ Feature flags are defined in `app/src/config/feature-flags/featureFlags.json`:
 
 The test framework fetches the **portal version** from the backend API and applies version gating:
 
-```
+```text
 ╔══════════════════════════════════════════════════════════════════╗
 ║                    🚩 FEATURE FLAGS DISCOVERED                   ║
 ╠══════════════════════════════════════════════════════════════════╣
@@ -1099,7 +1099,7 @@ The test framework fetches the **portal version** from the backend API and appli
 
 On QA (portal v4.x), the same flag would show as disabled:
 
-```
+```text
 ║  🌐 Portal Version: 4.2.1                                        ║
 ╠══════════════════════════════════════════════════════════════════╣
 ║  ❌ FEATURE_ACCOUNT_TABS          minVersion: 5.0.0     (ver)    ║
@@ -1115,7 +1115,7 @@ When testing locally with explicit flag overrides, the override takes precedence
 ./scripts/run-local-test.sh --build --feature-flag FEATURE_ACCOUNT_TABS=false featureFlags
 ```
 
-```
+```text
 ║  🌐 Portal Version: 5.0.3416-g9e78acfc                           ║
 ║  ⚡ Local Overrides: 1 flag(s) explicitly set                     ║
 ╠══════════════════════════════════════════════════════════════════╣
@@ -1278,5 +1278,3 @@ To test with different flag values locally, use the `--feature-flag` option with
    ```
 
 This framework provides a robust foundation for comprehensive cross-platform mobile app testing. Follow these patterns to create maintainable, reliable tests that work on both iOS and Android.
-
-This framework provides a robust foundation for comprehensive iOS app testing. Follow these patterns to create maintainable, reliable tests that cover both unauthenticated and authenticated user journeys.

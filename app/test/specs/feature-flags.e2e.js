@@ -126,13 +126,13 @@ describe('Feature Flags E2E Tests', () => {
             await assertBasedOnFlag(FLAG_KEY,
                 async () => {
                     // Flag enabled: tabs should be visible
-                    console.log('      → Asserting tabs ARE visible (flag enabled)');
+                    console.info('      → Asserting tabs ARE visible (flag enabled)');
                     await expect(ProfilePage.accountTabsContainer).toBeDisplayed();
                     await expect(ProfilePage.tabAll).toBeDisplayed();
                 },
                 async () => {
                     // Flag disabled: tabs should NOT be visible
-                    console.log('      → Asserting tabs are NOT visible (flag disabled)');
+                    console.info('      → Asserting tabs are NOT visible (flag disabled)');
                     const tabsDisplayed = await ProfilePage.accountTabsContainer.isDisplayed().catch(() => false);
                     expect(tabsDisplayed).toBe(false);
                 }
