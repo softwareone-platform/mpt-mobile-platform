@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import AddressCard from '@/components/address/AddressCard';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import type { AccountDetails } from '@/types/api';
@@ -26,29 +27,7 @@ const AccountDetailsContent = ({ data }: { data: AccountDetails }) => {
           isLast={true}
         />
       </CardWithHeader>
-      <CardWithHeader title={t(`details.headquartersAddress`)}>
-        <ListItemWithLabelAndText
-          title={t(`details.addressLine1`)}
-          subtitle={data?.address?.addressLine1}
-        />
-        <ListItemWithLabelAndText
-          title={t(`details.addressLine2`)}
-          subtitle={data?.address?.addressLine2}
-        />
-        <ListItemWithLabelAndText title={t(`details.city`)} subtitle={data?.address?.city} />
-        <ListItemWithLabelAndText title={t(`details.state`)} subtitle={data?.address?.state} />
-        <ListItemWithLabelAndText
-          title={t(`details.postCode`)}
-          subtitle={data?.address?.postCode}
-        />
-        <ListItemWithLabelAndText
-          title={t(`details.country`)}
-          subtitle={
-            data?.address?.country ? t(`common.countries.${data?.address?.country}`) : undefined
-          }
-          isLast={true}
-        />
-      </CardWithHeader>
+      <AddressCard address={data?.address} headerTitle={t(`details.headquartersAddress`)} />
     </>
   );
 };
