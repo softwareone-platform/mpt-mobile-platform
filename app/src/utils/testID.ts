@@ -62,6 +62,8 @@ export const TestIDs = {
   PROFILE_SECTION_SWITCH_ACCOUNT: 'profile-section-switchaccount-text',
   PROFILE_USER_ITEM: 'profile-user-item',
   PROFILE_ACCOUNT_ITEM_PREFIX: 'profile-account-item',
+  PROFILE_ACCOUNT_TABS: 'profile-account-tabs',
+  PROFILE_TAB_PREFIX: 'profile-tab',
 
   // Personal Information Screen
   PERSONAL_INFO_LOADING_INDICATOR: 'personal-info-loading-indicator',

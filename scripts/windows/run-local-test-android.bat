@@ -76,6 +76,7 @@ set APPIUM_PID=
 set LIST_EMULATORS=false
 set START_EMULATOR_ONLY=false
 set DRY_RUN=false
+set FEATURE_FLAGS=
 
 REM Parse command line arguments
 :parse_args
@@ -144,6 +145,48 @@ if /i "%~1"=="-v" (
     shift
     goto :parse_args
 )
+if /i "%~1"=="--feature-flag" (
+    if "%~2"=="" (
+        echo [ERROR] --feature-flag requires a value in FLAG=VALUE format
+        echo Example: --feature-flag FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
+    set "_FF_VAL=%~2"
+    if "!_FF_VAL:~0,1!"=="-" (
+        echo [ERROR] --feature-flag requires a value, got another flag: %~2
+        echo Example: --feature-flag FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
+    if "!FEATURE_FLAGS!"=="" (
+        set "FEATURE_FLAGS=%~2"
+    ) else (
+        set "FEATURE_FLAGS=!FEATURE_FLAGS! %~2"
+    )
+    shift
+    shift
+    goto :parse_args
+)
+if /i "%~1"=="-f" (
+    if "%~2"=="" (
+        echo [ERROR] -f requires a value in FLAG=VALUE format
+        echo Example: -f FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
+    set "_FF_VAL=%~2"
+    if "!_FF_VAL:~0,1!"=="-" (
+        echo [ERROR] -f requires a value, got another flag: %~2
+        echo Example: -f FEATURE_ACCOUNT_TABS=false
+        exit /b 1
+    )
+    if "!FEATURE_FLAGS!"=="" (
+        set "FEATURE_FLAGS=%~2"
+    ) else (
+        set "FEATURE_FLAGS=!FEATURE_FLAGS! %~2"
+    )
+    shift
+    shift
+    goto :parse_args
+)
 if /i "%~1"=="--help" goto :show_help
 if /i "%~1"=="-h" goto :show_help
 
@@ -174,6 +217,9 @@ echo   --skip-build, -s         Skip build, install existing APK from last build
 echo   --emulator, -e NAME      Specify Android emulator AVD name to use
 echo   --start-emulator NAME    Start emulator and exit (no tests)
 echo   --list-emulators         List available Android emulators and exit
+echo   --feature-flag, -f FLAG=VALUE  Override feature flag value for tests
+echo                                  These are test-only overrides; app uses
+echo                                  original .env flag values during build
 echo   --list, --dry-run        List all test cases without running them
 echo   --verbose, -v            Enable verbose output
 echo   --help, -h               Show this help message
@@ -189,6 +235,15 @@ echo   run-local-test-android.bat --start-emulator Pixel_8_API_34 Start emulator
 echo   run-local-test-android.bat --list-emulators                List available AVDs
 echo   run-local-test-android.bat --list all                      List all tests
 echo   run-local-test-android.bat --dry-run spotlight             List spotlight tests
+echo.
+echo Feature Flag Testing:
+echo   run-local-test-android.bat --build -f FEATURE_ACCOUNT_TABS=false welcome
+echo                                   Build with FEATURE_ACCOUNT_TABS disabled
+echo   run-local-test-android.bat --build -f FLAG1=true -f FLAG2=false featureFlags
+echo                                   Build with multiple flag overrides
+echo   run-local-test-android.bat -f FEATURE_ACCOUNT_TABS=false featureFlags
+echo                                   Run tests with flag overrides (no rebuild)
+echo                                   Tests will use overrides; app uses original flags
 echo.
 echo Workflow:
 echo   1. First run: use --build to create fresh APK
@@ -629,6 +684,20 @@ echo   Starting WebDriverIO Tests
 echo ============================================================
 echo.
 
+REM Export feature flag overrides to test environment (even without build)
+REM This allows tests to know which flags to check/skip
+if not "!FEATURE_FLAGS!"=="" (
+    REM Convert spaces to commas for the override format
+    set "FEATURE_FLAG_OVERRIDES=!FEATURE_FLAGS: =,!"
+    echo [INFO] Feature flag overrides exported to tests: !FEATURE_FLAG_OVERRIDES!
+    
+    if "!BUILD_APP!"=="false" (
+        echo [WARN] Feature flags passed without --build: flags will be passed to tests only
+        echo        ^(The app build will use its original flag values^)
+    )
+    echo.
+)
+
 REM Change to app directory and run wdio
 REM Note: We stay within setlocal scope - npm/node inherits environment vars
 cd /d "!APP_DIR!"
@@ -704,11 +773,12 @@ if /i "%TARGET%"=="all" (
     if /i "%TARGET%"=="personalInformation" set "SPEC_FILES=%SPECS_DIR%\personal-information.e2e.js"
     if /i "%TARGET%"=="personal" set "SPEC_FILES=%SPECS_DIR%\personal-information.e2e.js"
     if /i "%TARGET%"=="failing" set "SPEC_FILES=%SPECS_DIR%\failing.e2e.js"
+    if /i "%TARGET%"=="featureFlags" set "SPEC_FILES=%SPECS_DIR%\feature-flags.e2e.js"
 )
 
 if "%SPEC_FILES%"=="" (
     echo [ERROR] Unknown suite: %TARGET%
-    echo Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing
+    echo Available suites: welcome, home, navigation, spotlight, profile, personalInformation, failing, featureFlags
     endlocal
     exit /b 1
 )

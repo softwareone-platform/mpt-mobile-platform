@@ -1,12 +1,344 @@
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const dotenv = require('dotenv');
+const semver = require('semver');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
 
 // Load .env file if it exists (for local development and Windows batch execution)
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const SCREENSHOT_FOLDER = '../screenshots';
+
+// ============================================================================
+// Feature Flag Discovery
+// ============================================================================
+// Reads feature flags from the app's configuration and makes them available
+// to tests. This enables tests to conditionally assert based on flag state.
+// 
+// TWO MODES OF OPERATION:
+// 
+// 1. DEFAULT (Pipeline/Normal Run):
+//    - Fetches portal version from the backend API
+//    - Applies version-based gating (minVersion/maxVersion)
+//    - Tests adapt to the environment's actual feature availability
+// 
+// 2. LOCAL OVERRIDE (--build --feature-flag):
+//    - When flags are explicitly overridden via the test script
+//    - Overridden flags use the explicit value (ignoring portal version)
+//    - Non-overridden flags still use portal version gating
+// 
+// This ensures:
+// - Pipeline tests automatically adapt to environment capabilities
+// - Local testing can force specific flag states for development/debugging
+// 
+// Note: minVersion/maxVersion refer to the PORTAL version (backend API),
+// not the mobile app version. The portal is currently on v4.x (QA) or v5.x (TEST).
+// ============================================================================
+
+// Fallback portal version (matches portalVersionService.ts)
+const FALLBACK_PORTAL_VERSION = '4.0.0';
+
+/**
+ * Parse explicit feature flag overrides from environment variable
+ * Set by run-local-test.sh when using --feature-flag option
+ * @returns {object} Map of flagKey -> boolean value for overridden flags
+ */
+const parseExplicitOverrides = () => {
+    const overridesEnv = process.env.FEATURE_FLAG_OVERRIDES;
+    const overrides = {};
+    
+    if (!overridesEnv) {
+        return overrides;
+    }
+    
+    // Format: FLAG1=true,FLAG2=false
+    overridesEnv.split(',').forEach(pair => {
+        const [key, value] = pair.trim().split('=');
+        if (key && value !== undefined) {
+            overrides[key] = value === 'true';
+        }
+    });
+    
+    return overrides;
+};
+
+/**
+ * Fetch portal version from the backend API
+ * This is the same endpoint the app uses to determine feature availability
+ * Supports both AUTH0_API_URL (direct manifest URL) and API_BASE_URL (portal base URL)
+ * @returns {string} Portal version string (e.g., "4.2.1") or fallback
+ */
+const fetchPortalVersion = () => {
+    // Try AUTH0_API_URL first (direct manifest URL used by the app)
+    let apiUrl = process.env.AUTH0_API_URL;
+    
+    // Fallback: Derive API URL from API_BASE_URL (used in CI environments)
+    // Portal URL pattern: https://portal.s1.show -> API URL: https://api.s1.show/public/
+    if (!apiUrl && process.env.API_BASE_URL) {
+        try {
+            const portalUrl = new URL(process.env.API_BASE_URL);
+            // Replace 'portal' subdomain with 'api' and add /public/ path
+            const apiHost = portalUrl.hostname.replace(/^portal\./, 'api.');
+            apiUrl = `${portalUrl.protocol}//${apiHost}/public/`;
+            console.info('ℹ️ Derived API URL from API_BASE_URL:', apiUrl);
+        } catch {
+            console.warn('⚠️ Could not parse API_BASE_URL:', process.env.API_BASE_URL);
+        }
+    }
+    
+    if (!apiUrl) {
+        console.warn('⚠️ AUTH0_API_URL and API_BASE_URL not set, using fallback portal version:', FALLBACK_PORTAL_VERSION);
+        return FALLBACK_PORTAL_VERSION;
+    }
+    
+    try {
+        // Fetch the portal manifest (same endpoint as portalVersionService.ts)
+        // Using execFileSync with absolute path and curl args array to avoid shell injection (S4721, S4036)
+        const curlArgs = ['-s', '-f', '--connect-timeout', '5', '--max-time', '10', apiUrl, '-H', 'Accept: application/json'];
+        const output = execFileSync('/usr/bin/curl', curlArgs, { 
+            encoding: 'utf8', 
+            timeout: 15000,
+            stdio: ['pipe', 'pipe', 'pipe'],
+        }).trim();
+        
+        if (output) {
+            const manifest = JSON.parse(output);
+            if (manifest.version) {
+                console.info('✅ Portal version fetched:', manifest.version);
+                return manifest.version;
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Could not fetch portal version from API:', error.message);
+    }
+    
+    return FALLBACK_PORTAL_VERSION;
+};
+
+/**
+ * Compare two version strings using semver
+ * @param {string} version1 - First version
+ * @param {string} version2 - Second version
+ * @returns {number|null} -1, 0, or 1 for comparison, null if invalid
+ */
+const compareVersions = (version1, version2) => {
+    const v1 = semver.coerce(version1);
+    const v2 = semver.coerce(version2);
+    
+    if (!v1 || !v2) {
+        return null;
+    }
+    
+    return semver.compare(v1, v2);
+};
+
+/**
+ * Check if a feature flag is enabled for a given portal version
+ * Applies the same logic as the app's featureFlagsService
+ * @param {object} flagConfig - Flag configuration object
+ * @param {string|null} portalVersion - Portal version string
+ * @returns {boolean} Whether the flag is effectively enabled
+ */
+const isFlagEnabledForVersion = (flagConfig, portalVersion) => {
+    // Simple boolean flag
+    if (typeof flagConfig === 'boolean') {
+        return flagConfig;
+    }
+    
+    // Flag is explicitly disabled
+    if (!flagConfig.enabled) {
+        return false;
+    }
+    
+    // No version constraints - use static enabled value
+    if (!flagConfig.minVersion && !flagConfig.maxVersion) {
+        return flagConfig.enabled;
+    }
+    
+    // No portal version available - use static enabled value
+    if (!portalVersion) {
+        return flagConfig.enabled;
+    }
+    
+    // Check minVersion constraint
+    if (flagConfig.minVersion) {
+        const comparison = compareVersions(portalVersion, flagConfig.minVersion);
+        if (comparison === null || comparison < 0) {
+            return false;
+        }
+    }
+    
+    // Check maxVersion constraint
+    if (flagConfig.maxVersion) {
+        const comparison = compareVersions(portalVersion, flagConfig.maxVersion);
+        if (comparison === null || comparison > 0) {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
+/**
+ * Discover feature flags from the app's configuration file
+ * @returns {object} Feature flags configuration with helper methods
+ */
+const discoverFeatureFlags = () => {
+    const flagsPath = path.join(__dirname, 'src/config/feature-flags/featureFlags.json');
+    
+    // Parse any explicit overrides from command line (via run-local-test.sh)
+    const explicitOverrides = parseExplicitOverrides();
+    const hasOverrides = Object.keys(explicitOverrides).length > 0;
+    
+    // Fetch portal version from the backend API
+    const portalVersion = fetchPortalVersion();
+    
+    /**
+     * Determine effective flag state with override priority:
+     * 1. Explicit override (from --feature-flag) takes precedence
+     * 2. Otherwise, use portal version-based gating
+     */
+    const getEffectiveState = (flagKey, flagConfig) => {
+        // Check for explicit override first
+        if (flagKey in explicitOverrides) {
+            return explicitOverrides[flagKey];
+        }
+        // Fall back to portal version-based evaluation
+        return isFlagEnabledForVersion(flagConfig, portalVersion);
+    };
+    
+    try {
+        const flags = JSON.parse(fs.readFileSync(flagsPath, 'utf8'));
+        
+        const featureFlags = {
+            raw: flags,
+            portalVersion: portalVersion,
+            explicitOverrides: explicitOverrides,
+            hasOverrides: hasOverrides,
+            flags: Object.entries(flags).map(([key, config]) => ({
+                key,
+                enabled: typeof config === 'boolean' ? config : config.enabled,
+                minVersion: config.minVersion || null,
+                maxVersion: config.maxVersion || null,
+                // Calculate effective state (override > portal version)
+                effectivelyEnabled: getEffectiveState(key, config),
+                isOverridden: key in explicitOverrides,
+            })),
+            /**
+             * Check if a flag is statically enabled (ignoring version constraints)
+             * Use isEnabled() instead for version-aware checks
+             * @param {string} flagKey - The feature flag key
+             * @returns {boolean}
+             */
+            isStaticallyEnabled: (flagKey) => {
+                const flag = flags[flagKey];
+                if (!flag) return false;
+                return typeof flag === 'boolean' ? flag : flag.enabled;
+            },
+            /**
+             * Check if a flag is effectively enabled
+             * Priority: explicit override > portal version gating
+             * This is the recommended method to use in tests
+             * @param {string} flagKey - The feature flag key
+             * @returns {boolean}
+             */
+            isEnabled: (flagKey) => {
+                const flag = flags[flagKey];
+                if (!flag) return false;
+                return getEffectiveState(flagKey, flag);
+            },
+            /**
+             * Check if a flag was explicitly overridden via command line
+             * @param {string} flagKey - The feature flag key
+             * @returns {boolean}
+             */
+            isOverridden: (flagKey) => {
+                return flagKey in explicitOverrides;
+            },
+            /**
+             * Get configuration for a specific flag
+             * @param {string} flagKey - The feature flag key
+             * @returns {object|null}
+             */
+            getFlag: (flagKey) => {
+                const flag = flags[flagKey];
+                if (!flag) return null;
+                return {
+                    key: flagKey,
+                    enabled: typeof flag === 'boolean' ? flag : flag.enabled,
+                    minVersion: flag.minVersion || null,
+                    maxVersion: flag.maxVersion || null,
+                    effectivelyEnabled: getEffectiveState(flagKey, flag),
+                    isOverridden: flagKey in explicitOverrides,
+                };
+            }
+        };
+        
+        // Log discovered flags with version context
+        console.info('');
+        console.info('╔══════════════════════════════════════════════════════════════════╗');
+        console.info('║                    🚩 FEATURE FLAGS DISCOVERED                   ║');
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
+        
+        if (portalVersion) {
+            console.info(`║  🌐 Portal Version: ${portalVersion.padEnd(45)}║`);
+        }
+        
+        if (hasOverrides) {
+            console.info(`║  ⚡ Local Overrides: ${Object.keys(explicitOverrides).length} flag(s) explicitly set              ║`);
+        }
+        
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
+        
+        if (Object.keys(flags).length === 0) {
+            console.info('║  No feature flags configured                                     ║');
+        } else {
+            Object.entries(flags).forEach(([key, config]) => {
+                const effectiveEnabled = getEffectiveState(key, config);
+                const isOverridden = key in explicitOverrides;
+                const minV = config.minVersion || 'none';
+                
+                // Show effective state
+                const status = effectiveEnabled ? '✅' : '❌';
+                const keyPadded = key.substring(0, 30).padEnd(30);
+                const minVPadded = minV.substring(0, 10).padEnd(10);
+                
+                // Add indicator for override or version gating
+                let note = '';
+                if (isOverridden) {
+                    note = ' ⚡'; // Override indicator
+                } else {
+                    const staticEnabled = typeof config === 'boolean' ? config : config.enabled;
+                    if (staticEnabled && !effectiveEnabled) {
+                        note = ' (ver)'; // Version gating indicator
+                    }
+                }
+                console.info(`║  ${status} ${keyPadded} minVersion: ${minVPadded}${note}║`);
+            });
+        }
+        console.info('╚══════════════════════════════════════════════════════════════════╝');
+        console.info('');
+        
+        return featureFlags;
+    } catch (error) {
+        console.warn('⚠️ Could not read feature flags:', error.message);
+        return {
+            raw: {},
+            portalVersion: portalVersion,
+            explicitOverrides: explicitOverrides,
+            hasOverrides: hasOverrides,
+            flags: [],
+            isStaticallyEnabled: () => false,
+            isEnabled: () => false,
+            isOverridden: () => false,
+            getFlag: () => null,
+        };
+    }
+};
+
+// Discover feature flags at module load time and store globally
+global.featureFlags = discoverFeatureFlags();
 
 // Generate timestamped log directory for this test run
 const getLogDir = () => {
@@ -119,6 +451,8 @@ exports.config = {
         licensees: ['./test/specs/licensees.e2e.js'],
         buyers: ['./test/specs/buyers.e2e.js'],
         logout: ['./test/specs/logout.e2e.js'],
+        // Feature flag validation tests
+        featureFlags: ['./test/specs/feature-flags.e2e.js'],
     },
     //
     // ============
@@ -262,7 +596,7 @@ exports.config = {
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 150000, // Increased to 2.5 minutes to accommodate OTP tests
+        timeout: 600000, // 10 minutes - OTP retrieval can take 4+ minutes
         require: ['./test/fixtures/otp.fixture.js']
     },
 
@@ -289,9 +623,9 @@ exports.config = {
             const fileName = `${timestamp}_${sanitizedPrefix}${sanitizedParent ? sanitizedParent + '_' : ''}${sanitizedTitle}.png`
             const filePath = path.resolve(__dirname, SCREENSHOT_FOLDER, fileName)
             
-            console.log(`📸 Capturing screenshot: ${filePath}`)
+            console.info(`📸 Capturing screenshot: ${filePath}`)
             await browser.saveScreenshot(filePath)
-            console.log(`✅ Screenshot saved: ${fileName}`)
+            console.info(`✅ Screenshot saved: ${fileName}`)
             
             // Send screenshot to ReportPortal if configured
             if (process.env.REPORT_PORTAL_API_KEY && process.env.REPORT_PORTAL_API_KEY !== 'value not set') {
@@ -303,7 +637,7 @@ exports.config = {
                         type: 'image/png',
                         content: screenshotData.toString('base64')
                     });
-                    console.log(`📤 Screenshot sent to ReportPortal`);
+                    console.info(`📤 Screenshot sent to ReportPortal`);
                 } catch (rpError) {
                     console.warn('⚠️ Failed to send screenshot to ReportPortal:', rpError.message);
                 }
@@ -327,9 +661,9 @@ exports.config = {
         
         if (!fs.existsSync(screenshotDir)) {
             fs.mkdirSync(screenshotDir, { recursive: true });
-            console.log(`Created screenshot directory: ${screenshotDir}`);
+            console.info(`Created screenshot directory: ${screenshotDir}`);
         } else {
-            console.log(`Screenshot directory ready: ${screenshotDir}`);
+            console.info(`Screenshot directory ready: ${screenshotDir}`);
         }
 
         // Log test execution configuration
@@ -342,40 +676,40 @@ exports.config = {
         const suiteMatch = cliArgs.match(/--suite\s+(\S+)/);
         const specMatch = cliArgs.match(/--spec\s+(\S+)/);
         
-        console.log('');
-        console.log('╔══════════════════════════════════════════════════════════════════╗');
-        console.log('║                    🧪 TEST EXECUTION CONFIGURATION               ║');
-        console.log('╠══════════════════════════════════════════════════════════════════╣');
-        console.log(`║  Platform:   ${platform.padEnd(52)}║`);
+        console.info('');
+        console.info('╔══════════════════════════════════════════════════════════════════╗');
+        console.info('║                    🧪 TEST EXECUTION CONFIGURATION               ║');
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
+        console.info(`║  Platform:   ${platform.padEnd(52)}║`);
         
         if (specMatch) {
             // Running specific spec file
             const specFile = specMatch[1];
-            console.log(`║  Mode:       Specific Test File                                  ║`);
-            console.log(`║  Test File:  ${specFile.padEnd(52)}║`);
+            console.info(`║  Mode:       Specific Test File                                  ║`);
+            console.info(`║  Test File:  ${specFile.padEnd(52)}║`);
         } else if (suiteMatch) {
             // Running specific suite
             const suiteName = suiteMatch[1];
             const suiteSpecs = suites[suiteName] || [];
-            console.log(`║  Mode:       Test Suite                                          ║`);
-            console.log(`║  Suite:      ${suiteName.padEnd(52)}║`);
+            console.info(`║  Mode:       Test Suite                                          ║`);
+            console.info(`║  Suite:      ${suiteName.padEnd(52)}║`);
             if (suiteSpecs.length > 0) {
-                console.log(`║  Files:      ${suiteSpecs.length} spec file(s)                                      ║`);
+                console.info(`║  Files:      ${suiteSpecs.length} spec file(s)                                      ║`);
                 suiteSpecs.forEach((spec, i) => {
                     const shortSpec = spec.replace('./test/specs/', '');
-                    console.log(`║              ${(i + 1) + '. ' + shortSpec.padEnd(50)}║`);
+                    console.info(`║              ${(i + 1) + '. ' + shortSpec.padEnd(50)}║`);
                 });
             }
         } else {
             // Running all specs
-            console.log(`║  Mode:       All Test Specs                                      ║`);
-            console.log(`║  Specs:      ${specs.length} spec pattern(s) configured                       ║`);
+            console.info(`║  Mode:       All Test Specs                                      ║`);
+            console.info(`║  Specs:      ${specs.length} spec pattern(s) configured                       ║`);
         }
         
-        console.log('╠══════════════════════════════════════════════════════════════════╣');
-        console.log(`║  Log Dir:    ${LOG_OUTPUT_DIR.padEnd(52)}║`);
-        console.log('╚══════════════════════════════════════════════════════════════════╝');
-        console.log('');
+        console.info('╠══════════════════════════════════════════════════════════════════╣');
+        console.info(`║  Log Dir:    ${LOG_OUTPUT_DIR.padEnd(52)}║`);
+        console.info('╚══════════════════════════════════════════════════════════════════╝');
+        console.info('');
     },
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
@@ -418,10 +752,10 @@ exports.config = {
         // Log spec file being executed
         const specFile = specs && specs.length > 0 ? specs[0] : 'unknown';
         const shortSpec = specFile.replace(/.*\/test\/specs\//, '');
-        console.log('');
-        console.log('┌──────────────────────────────────────────────────────────────────┐');
-        console.log(`│  📄 SPEC FILE: ${shortSpec.padEnd(50)}│`);
-        console.log('└──────────────────────────────────────────────────────────────────┘');
+        console.info('');
+        console.info('┌──────────────────────────────────────────────────────────────────┐');
+        console.info(`│  📄 SPEC FILE: ${shortSpec.padEnd(50)}│`);
+        console.info('└──────────────────────────────────────────────────────────────────┘');
     },
     /**
      * Runs before a WebdriverIO command gets executed.
@@ -436,16 +770,16 @@ exports.config = {
      */
     beforeSuite: function (suite) {
         // Log suite (describe block) being executed
-        console.log('');
-        console.log(`  📦 SUITE: ${suite.title}`);
-        console.log('  ' + '─'.repeat(60));
+        console.info('');
+        console.info(`  📦 SUITE: ${suite.title}`);
+        console.info('  ' + '─'.repeat(60));
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
     beforeTest: function (test, context) {
         // Log individual test (it block) being executed
-        console.log(`    🧪 TEST: ${test.title}`);
+        console.info(`    🧪 TEST: ${test.title}`);
     },
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
@@ -491,7 +825,7 @@ exports.config = {
             status = '❌ FAIL';
         }
         const durationStr = duration ? ` (${(duration / 1000).toFixed(2)}s)` : '';
-        console.log(`       ${status}${durationStr}`);
+        console.info(`       ${status}${durationStr}`);
         
         if (!passed && !isSkipped) {
             await this.captureFailureScreenshot(test);
@@ -542,9 +876,9 @@ exports.config = {
     onComplete: function () {
         fs.rm(SCREENSHOT_FOLDER, { recursive: true }, function (err) {
         if (err) {
-            console.log(err);
+            console.error(err);
         } else {
-            console.log('Directory successfully removed.');
+            console.info('Directory successfully removed.');
         }
         });
     },
