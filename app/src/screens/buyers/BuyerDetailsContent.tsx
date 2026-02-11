@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
+import AddressCard from '@/components/address/AddressCard';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
@@ -14,28 +15,31 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
-    <CardWithHeader title={t(`details.title`)}>
-      <DetailsListItem
-        label={t(`details.client`)}
-        data={data.account}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.account?.id,
-            type: 'client',
-          });
-        }}
-      />
+    <>
+      <CardWithHeader title={t(`details.title`)}>
+        <DetailsListItem
+          label={t(`details.client`)}
+          data={data.account}
+          onPress={() => {
+            navigation.navigate('accountDetails', {
+              id: data.account?.id,
+              type: 'client',
+            });
+          }}
+        />
 
-      <ListItemWithLabelAndText
-        title={t(`details.scuIdentifier`)}
-        subtitle={data.externalIds?.erpCustomer}
-      />
-      <ListItemWithLabelAndText
-        title={t(`details.taxNumber`)}
-        subtitle={data.taxId}
-        isLast={true}
-      />
-    </CardWithHeader>
+        <ListItemWithLabelAndText
+          title={t(`details.scuIdentifier`)}
+          subtitle={data.externalIds?.erpCustomer}
+        />
+        <ListItemWithLabelAndText
+          title={t(`details.taxNumber`)}
+          subtitle={data.taxId}
+          isLast={true}
+        />
+      </CardWithHeader>
+      <AddressCard address={data.address} headerTitle={t(`details.address`)} />
+    </>
   );
 };
 

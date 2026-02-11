@@ -6,5 +6,9 @@
   "buyerDetailsScreen": {
     "emptyStateTitle": "No buyer details",
     "emptyStateDescription": "No buyer details found."
+  },
+  "sellerDetailsScreen": {
+    "emptyStateTitle": "No seller details",
+    "emptyStateDescription": "No seller details found."
   }
 }

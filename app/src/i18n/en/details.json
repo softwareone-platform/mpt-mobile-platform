@@ -29,6 +29,7 @@
     "technicalSupportEmail": "Technical support email",
     "pycId": "PYC ID",
     "headquartersAddress": "Headquarters address",
+    "address": "Address",
     "addressLine1": "Address line 1",
     "addressLine2": "Address line 2",
     "city": "City",

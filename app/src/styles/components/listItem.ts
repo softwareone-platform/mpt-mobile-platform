@@ -6,14 +6,13 @@ export const listItemStyle = {
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: Spacing.spacing2,
+    paddingHorizontal: Spacing.spacing2,
   },
   contentWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingRight: Spacing.spacing2,
     borderBottomWidth: 1,
     borderBottomColor: separatorStyle.nonOpaque.borderColor,
   },
