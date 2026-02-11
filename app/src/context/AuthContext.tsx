@@ -4,6 +4,7 @@ import {
   useReducer,
   useEffect,
   useCallback,
+  useMemo,
   PropsWithChildren,
 } from 'react';
 
@@ -11,7 +12,10 @@ import { usePortalVersion } from '@/hooks/queries/usePortalVersion';
 import { tokenProvider } from '@/lib/tokenProvider';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
+import { moduleClaimsService } from '@/services/moduleClaimsService';
 import { PortalVersionInfo } from '@/services/portalVersionService';
+import { AccountType } from '@/types/common';
+import { ModuleClaims } from '@/types/modules';
 
 export type AuthState = 'loading' | 'unauthenticated' | 'authenticated';
 
@@ -27,6 +31,8 @@ interface AuthContextType {
   user: User | null;
   tokens: AuthTokens | null;
   portalVersion: PortalVersionInfo;
+  moduleClaims: ModuleClaims | null;
+  accountType: AccountType | null;
   login: (email: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
   sendPasswordlessEmail: (email: string) => Promise<void>;
@@ -258,11 +264,23 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   }, [authState.status, authState.tokens, refreshAuth]);
 
+  const moduleClaims = useMemo(() => {
+    if (!authState.tokens?.accessToken) return null;
+    return moduleClaimsService.getModuleClaims(authState.tokens.accessToken);
+  }, [authState.tokens?.accessToken]);
+
+  const accountType = useMemo(() => {
+    if (!authState.tokens?.accessToken) return null;
+    return moduleClaimsService.getAccountType(authState.tokens.accessToken);
+  }, [authState.tokens?.accessToken]);
+
   const value: AuthContextType = {
     status: authState.status,
     user: authState.user,
     tokens: authState.tokens,
     portalVersion,
+    moduleClaims,
+    accountType,
     login,
     logout,
     sendPasswordlessEmail,
