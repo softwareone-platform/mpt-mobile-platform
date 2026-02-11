@@ -12,10 +12,10 @@ export const useBuyerDetailsData = (
   const { getBuyerData } = useBuyerApi();
 
   const query = useQuery<BuyerData, Error>({
-    queryKey: ['userDetails', buyerId, currentUserId, currentAccountId],
+    queryKey: ['buyerDetails', buyerId, currentUserId, currentAccountId],
     queryFn: () => {
       if (!buyerId) {
-        throw new Error('User ID is required');
+        throw new Error('Buyer ID is required');
       }
       return getBuyerData(buyerId);
     },
