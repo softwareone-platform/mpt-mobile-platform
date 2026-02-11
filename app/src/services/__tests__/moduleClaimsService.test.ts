@@ -1,7 +1,7 @@
 import { jwtDecode } from 'jwt-decode';
 
 import { moduleClaimsService } from '@/services/moduleClaimsService';
-import { ModuleClaims, MODULES_CLAIMS_KEY } from '@/types/modules';
+import { ModuleClaims, MODULES_CLAIMS_KEY, ACCOUNT_TYPE_CLAIM_KEY } from '@/types/modules';
 
 jest.mock('jwt-decode');
 jest.mock('@/services/appInsightsService', () => ({
@@ -22,31 +22,62 @@ describe('ModuleClaimsService', () => {
     jest.clearAllMocks();
   });
 
-  it('should extract module claims', () => {
-    (jwtDecode as jest.Mock).mockReturnValue({
-      [MODULES_CLAIMS_KEY]: mockClaims,
+  describe('getModuleClaims', () => {
+    it('should extract module claims', () => {
+      (jwtDecode as jest.Mock).mockReturnValue({
+        [MODULES_CLAIMS_KEY]: mockClaims,
+      });
+
+      const result = moduleClaimsService.getModuleClaims(mockToken);
+      expect(result).toEqual(mockClaims);
     });
 
-    const result = moduleClaimsService.getModuleClaims(mockToken);
-    expect(result).toEqual(mockClaims);
+    it('should return null when no claims or error', () => {
+      (jwtDecode as jest.Mock).mockReturnValue({});
+      expect(moduleClaimsService.getModuleClaims(mockToken)).toBeNull();
+
+      (jwtDecode as jest.Mock).mockImplementation(() => {
+        throw new Error('Invalid');
+      });
+      expect(moduleClaimsService.getModuleClaims(mockToken)).toBeNull();
+    });
   });
 
-  it('should return null when no claims or error', () => {
-    (jwtDecode as jest.Mock).mockReturnValue({});
-    expect(moduleClaimsService.getModuleClaims(mockToken)).toBeNull();
+  describe('hasModuleAccess', () => {
+    it('should check module access', () => {
+      (jwtDecode as jest.Mock).mockReturnValue({
+        [MODULES_CLAIMS_KEY]: mockClaims,
+      });
 
-    (jwtDecode as jest.Mock).mockImplementation(() => {
-      throw new Error('Invalid');
+      expect(moduleClaimsService.hasModuleAccess(mockToken, 'billing')).toBe(true);
+      expect(moduleClaimsService.hasModuleAccess(mockToken, 'catalog-management')).toBe(false);
     });
-    expect(moduleClaimsService.getModuleClaims(mockToken)).toBeNull();
   });
 
-  it('should check module access', () => {
-    (jwtDecode as jest.Mock).mockReturnValue({
-      [MODULES_CLAIMS_KEY]: mockClaims,
+  describe('getAccountType', () => {
+    it('should extract account type from token', () => {
+      (jwtDecode as jest.Mock).mockReturnValue({
+        [ACCOUNT_TYPE_CLAIM_KEY]: 'Client',
+      });
+
+      const result = moduleClaimsService.getAccountType(mockToken);
+      expect(result).toBe('Client');
     });
 
-    expect(moduleClaimsService.hasModuleAccess(mockToken, 'billing')).toBe(true);
-    expect(moduleClaimsService.hasModuleAccess(mockToken, 'catalog-management')).toBe(false);
+    it('should return null when no account type in token', () => {
+      (jwtDecode as jest.Mock).mockReturnValue({});
+
+      const result = moduleClaimsService.getAccountType(mockToken);
+      expect(result).toBeNull();
+    });
+
+    it('should return null when decode fails', () => {
+      (jwtDecode as jest.Mock).mockImplementation(() => {
+        throw new Error('Invalid token');
+      });
+
+      const result = moduleClaimsService.getAccountType(mockToken);
+      expect(result).toBeNull();
+    });
   });
 });
