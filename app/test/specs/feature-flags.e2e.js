@@ -29,9 +29,6 @@ describe('Feature Flags E2E Tests', () => {
         const FLAG_KEY = 'FEATURE_ACCOUNT_TABS';
         
         before(async function() {
-            // Set timeout for login flow
-            this.timeout(150000);
-            
             // Log the current flag state for test visibility
             logFlagStatus(FLAG_KEY);
             
@@ -159,7 +156,6 @@ describe('Feature Flags E2E Tests', () => {
         const FLAG_KEY = 'FEATURE_EXAMPLE';
         
         before(async function() {
-            this.timeout(150000);
             logFlagStatus(FLAG_KEY);
             await ensureLoggedIn();
             // Navigate to feature location

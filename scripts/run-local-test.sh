@@ -297,11 +297,21 @@ restore_feature_flags() {
     fi
 }
 
+# Cache project root for use in trap handlers (must be set before trap is triggered)
+_CACHED_PROJECT_ROOT=""
+
 # Cleanup trap to ensure feature flags are restored on early exit
 # Handles EXIT, ERR, INT (Ctrl+C), and TERM signals
 cleanup_feature_flags() {
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local project_root="$(dirname "$script_dir")"
+    # Use cached project root if available, otherwise try to determine it
+    local project_root="${_CACHED_PROJECT_ROOT:-}"
+    if [ -z "$project_root" ]; then
+        # Fallback: try to determine from script location
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || return 0
+        project_root="$(dirname "$script_dir")"
+    fi
+    
     local flags_path="$project_root/app/src/config/feature-flags/featureFlags.json"
     local backup_path="${flags_path}.backup"
     
@@ -580,6 +590,7 @@ build_release_app() {
     # Get absolute paths at the start
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    _CACHED_PROJECT_ROOT="$PROJECT_ROOT"
     APP_DIR="$PROJECT_ROOT/app"
     
     if [ ! -d "$APP_DIR" ]; then
@@ -728,6 +739,7 @@ install_existing_app() {
     # Get absolute paths
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    _CACHED_PROJECT_ROOT="$PROJECT_ROOT"
     APP_DIR="$PROJECT_ROOT/app"
     
     if [ ! -d "$APP_DIR" ]; then
@@ -786,6 +798,7 @@ elif [ "$BUILD_APP" = true ]; then
         log "🤖 Building standalone Android APK for testing..." "info"
         SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+        _CACHED_PROJECT_ROOT="$PROJECT_ROOT"
         APP_DIR="$PROJECT_ROOT/app"
         
         # Apply feature flag overrides before build
@@ -953,7 +966,7 @@ fi
 # This allows tests to know which flags to check/skip
 if [ -n "$FEATURE_FLAGS" ]; then
     # Format: FLAG1=value1,FLAG2=value2 (comma-separated)
-    export FEATURE_FLAG_OVERRIDES=$(echo "$FEATURE_FLAGS" | sed 's/^ *//' | tr ' ' ',')
+    export FEATURE_FLAG_OVERRIDES=$(echo "$FEATURE_FLAGS" | xargs | tr ' ' ',')
     log "" "info"
     log "🚩 Feature flag overrides exported to tests: $FEATURE_FLAG_OVERRIDES" "info"
 fi
@@ -976,6 +989,7 @@ fi
 # Change to app directory and run tests
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+_CACHED_PROJECT_ROOT="$PROJECT_ROOT"
 APP_DIR="$PROJECT_ROOT/app"
 
 if [ ! -d "$APP_DIR" ]; then
