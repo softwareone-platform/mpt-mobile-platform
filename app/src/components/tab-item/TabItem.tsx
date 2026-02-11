@@ -6,14 +6,18 @@ type Props = {
   label: string;
   selected: boolean;
   onPress: () => void;
+  testID?: string;
 };
 
-const TabItem = ({ label, selected, onPress }: Props) => {
+const TabItem = ({ label, selected, onPress, testID }: Props) => {
   return (
     <TouchableOpacity
       style={[styles.container, selected && styles.itemSelected]}
       onPress={onPress}
       activeOpacity={0.7}
+      testID={testID}
+      accessibilityRole="tab"
+      accessibilityState={{ selected }}
     >
       <Text style={[styles.label, selected && styles.labelSelected]}>{label}</Text>
     </TouchableOpacity>
