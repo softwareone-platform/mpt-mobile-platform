@@ -14,6 +14,7 @@ export { default as CreditMemoDetailsScreen } from './credit-memos/CreditMemoDet
 export { default as OrderDetailsScreen } from './orders/OrderDetailsScreen';
 export { default as AccountDetailsScreen } from './account-details/AccountDetailsScreen';
 export { default as UserDetailsScreen } from './users/UserDetailsScreen';
+export { default as BuyerDetailsScreen } from './buyers/BuyerDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

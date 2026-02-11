@@ -1,0 +1,10 @@
+{
+  "buyersScreen": {
+    "emptyStateTitle": "No buyers",
+    "emptyStateDescription": "No buyers found."
+  },
+  "buyerDetailsScreen": {
+    "emptyStateTitle": "No buyer details",
+    "emptyStateDescription": "No buyer details found."
+  }
+}

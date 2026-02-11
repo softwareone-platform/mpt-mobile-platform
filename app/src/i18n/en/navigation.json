@@ -20,7 +20,8 @@
     "buyers": "Buyers",
     "orderDetails": "Order",
     "creditMemoDetails": "Credit Memo",
-    "userDetails": "User"
+    "userDetails": "User",
+    "buyerDetails": "Buyer"
   },
   "tabGroups": {
     "administration": "Administration",

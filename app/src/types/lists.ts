@@ -24,6 +24,7 @@ export type DetailsListItemValue = {
   id?: string;
   name?: string;
   icon?: string;
+  type?: string;
 };
 
 export interface DetailsListItemProps {
