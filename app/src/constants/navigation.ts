@@ -16,6 +16,7 @@ import {
   AccountDetailsScreen,
   UserDetailsScreen,
   BuyerDetailsScreen,
+  SellerDetailsScreen,
 } from '@/screens';
 import type { MainTabItem, SecondaryTabGroup, AppScreenItem } from '@/types/navigation';
 
@@ -75,4 +76,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'accountDetails', component: AccountDetailsScreen },
   { name: 'userDetails', component: UserDetailsScreen },
   { name: 'buyerDetails', component: BuyerDetailsScreen },
+  { name: 'sellerDetails', component: SellerDetailsScreen },
 ];

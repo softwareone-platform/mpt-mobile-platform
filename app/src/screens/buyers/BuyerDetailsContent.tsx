@@ -14,28 +14,53 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
-    <CardWithHeader title={t(`details.title`)}>
-      <DetailsListItem
-        label={t(`details.client`)}
-        data={data.account}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.account?.id,
-            type: 'client',
-          });
-        }}
-      />
+    <>
+      <CardWithHeader title={t(`details.title`)}>
+        <DetailsListItem
+          label={t(`details.client`)}
+          data={data.account}
+          onPress={() => {
+            navigation.navigate('accountDetails', {
+              id: data.account?.id,
+              type: 'client',
+            });
+          }}
+        />
 
-      <ListItemWithLabelAndText
-        title={t(`details.scuIdentifier`)}
-        subtitle={data.externalIds?.erpCustomer}
-      />
-      <ListItemWithLabelAndText
-        title={t(`details.taxNumber`)}
-        subtitle={data.taxId}
-        isLast={true}
-      />
-    </CardWithHeader>
+        <ListItemWithLabelAndText
+          title={t(`details.scuIdentifier`)}
+          subtitle={data.externalIds?.erpCustomer}
+        />
+        <ListItemWithLabelAndText
+          title={t(`details.taxNumber`)}
+          subtitle={data.taxId}
+          isLast={true}
+        />
+      </CardWithHeader>
+      <CardWithHeader title={t(`details.address`)}>
+        <ListItemWithLabelAndText
+          title={t(`details.addressLine1`)}
+          subtitle={data?.address?.addressLine1}
+        />
+        <ListItemWithLabelAndText
+          title={t(`details.addressLine2`)}
+          subtitle={data?.address?.addressLine2}
+        />
+        <ListItemWithLabelAndText title={t(`details.city`)} subtitle={data?.address?.city} />
+        <ListItemWithLabelAndText title={t(`details.state`)} subtitle={data?.address?.state} />
+        <ListItemWithLabelAndText
+          title={t(`details.postCode`)}
+          subtitle={data?.address?.postCode}
+        />
+        <ListItemWithLabelAndText
+          title={t(`details.country`)}
+          subtitle={
+            data?.address?.country ? t(`common.countries.${data?.address?.country}`) : undefined
+          }
+          isLast={true}
+        />
+      </CardWithHeader>
+    </>
   );
 };
 

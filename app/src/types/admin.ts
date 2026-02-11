@@ -20,3 +20,16 @@ export interface BuyerData {
   status?: string;
   data?: { [key: string]: unknown }[];
 }
+
+export interface SellerData {
+  id: string;
+  name: string;
+  icon?: string;
+  phone?: {
+    prefix?: string;
+    number?: string;
+  };
+  address: Address;
+  status?: string;
+  data?: { [key: string]: unknown }[];
+}

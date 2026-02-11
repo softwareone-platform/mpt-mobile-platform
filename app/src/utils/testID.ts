@@ -162,6 +162,11 @@ export const TestIDs = {
   ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
   ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',
   ACCOUNT_DETAILS_EMPTY_STATE: 'account-details-empty-state',
+
+  // Seller Details Screen
+  SELLER_DETAILS_LOADING_INDICATOR: 'seller-details-loading-indicator',
+  SELLER_DETAILS_ERROR_STATE: 'seller-details-error-state',
+  SELLER_DETAILS_EMPTY_STATE: 'seller-details-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;
