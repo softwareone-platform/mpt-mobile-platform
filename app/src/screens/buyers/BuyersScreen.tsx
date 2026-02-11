@@ -1,9 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigFull } from '@/config/list';
 import { useBuyers, BuyersProvider } from '@/context/BuyersContext';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const BuyersScreenContent = () => {
@@ -18,6 +21,8 @@ const BuyersScreenContent = () => {
   } = useBuyers();
 
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
     <StatusMessage
@@ -37,7 +42,11 @@ const BuyersScreenContent = () => {
         hasMore={hasMoreBuyers}
         fetchNext={fetchBuyersNextPage}
         config={listItemConfigFull}
-        onItemPress={(item) => console.info(item)}
+        onItemPress={(id) => {
+          navigation.navigate('buyerDetails', {
+            id,
+          });
+        }}
       />
     </StatusMessage>
   );

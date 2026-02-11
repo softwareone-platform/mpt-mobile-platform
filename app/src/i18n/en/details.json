@@ -7,6 +7,7 @@
     "vendor": "Vendor",
     "operations": "Operations",
     "product": "Product",
+    "account": "Account",
     "agreement": "Agreement",
     "seller": "Seller",
     "currency": "Currency",
@@ -38,6 +39,8 @@
     "singleSignOn": "Single sign on",
     "firstName": "First name",
     "lastName": "Last name",
-    "phoneNumber": "Phone number"
+    "phoneNumber": "Phone number",
+    "taxNumber": "Tax number",
+    "scuIdentifier": "SCU identifier"
   }
 }

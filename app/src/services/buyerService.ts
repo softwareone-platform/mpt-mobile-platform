@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
+import type { BuyerData } from '@/types/admin';
 import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 export function useBuyerApi() {
@@ -26,10 +27,21 @@ export function useBuyerApi() {
     [api],
   );
 
+  const getBuyerData = useCallback(
+    async (buyerId: string): Promise<BuyerData> => {
+      const endpoint =
+        `/v1/accounts/buyers/${buyerId}` +
+        `?select=audit.created.at,audit.created.by,audit.updated.at,sellers,account,account.groups`;
+      return api.get<BuyerData>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getBuyers,
+      getBuyerData,
     }),
-    [getBuyers],
+    [getBuyers, getBuyerData],
   );
 }
