@@ -1,4 +1,5 @@
 import account from './account.json';
+import admin from './admin.json';
 import auth from './auth.json';
 import billing from './billing.json';
 import details from './details.json';
@@ -34,12 +35,15 @@ const en = {
   // Module: Program (programs, enrollments, certificates)
   ...program,
 
-  // Module: Settings (profile, users, account settings, buyers, licensees)
+  // Module: Settings (profile, users, account settings, licensees)
   ...settings,
   ...details,
 
   // Module: Account (account details - vendor, client, operations)
   ...account,
+
+  // Module Administration (buyers, sellers)
+  ...admin,
 };
 
 export default en;

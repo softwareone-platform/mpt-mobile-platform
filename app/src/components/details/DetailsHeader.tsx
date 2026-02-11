@@ -26,11 +26,11 @@ const DetailsHeader = ({ id, imagePath, title, subtitle, statusText }: ListItemW
         <View style={styles.textWrapper}>
           {hasSubtitle && (
             <Text style={styles.title} numberOfLines={1}>
-              {title}
+              {title.trim()}
             </Text>
           )}
           <Text style={[styles.subtitle, !hasSubtitle && styles.title]} numberOfLines={2}>
-            {hasSubtitle ? subtitle : title}
+            {hasSubtitle ? subtitle?.trim() : title.trim()}
           </Text>
         </View>
       </View>

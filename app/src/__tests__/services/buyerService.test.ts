@@ -1,5 +1,16 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import {
+  mockBuyerId1,
+  mockBuyerId2,
+  mockBuyerData,
+  expectedUrl1,
+  expectedUrl2,
+  mockResponse1,
+  mockResponse2,
+  mockNetworkError,
+} from '../__mocks__/services/buyer';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useBuyerApi } from '@/services/buyerService';
 import type { PaginatedResponse, ListItemFull } from '@/types/api';
@@ -192,5 +203,58 @@ describe('useBuyerApi - getBuyers', () => {
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getBuyers('ACC-0000-0001')).rejects.toThrow('Network error');
+  });
+});
+
+describe('useBuyerApi - getBuyerData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getBuyerData with correct endpoint and returns data', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockBuyerData);
+
+    await act(async () => {
+      res = await api.getBuyerData(mockBuyerId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl1);
+    expect(res).toEqual(mockBuyerData);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getBuyerData(mockBuyerId1)).rejects.toThrow('Network error');
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockResponse1);
+    mockGet.mockResolvedValueOnce(mockResponse2);
+
+    await act(async () => {
+      res1 = await api.getBuyerData(mockBuyerId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getBuyerData(mockBuyerId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedUrl2);
+
+    expect(res1).toEqual(mockResponse1);
+    expect(res2).toEqual(mockResponse2);
   });
 });

@@ -155,6 +155,11 @@ export const TestIDs = {
   BUYERS_ERROR_STATE: 'buyers-error-state',
   BUYERS_EMPTY_STATE: 'buyers-empty-state',
 
+  // Buyer Details Screen
+  BUYER_DETAILS_LOADING_INDICATOR: 'buyer-details-loading-indicator',
+  BUYER_DETAILS_ERROR_STATE: 'buyer-details-error-state',
+  BUYER_DETAILS_EMPTY_STATE: 'buyer-details-empty-state',
+
   // Account Details Screen
   ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
   ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',
