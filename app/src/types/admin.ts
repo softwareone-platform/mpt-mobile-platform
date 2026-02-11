@@ -17,5 +17,6 @@ export interface BuyerData {
   taxId: string;
   address: Address;
   account: DetailsListItemValue;
+  status?: string;
   data?: { [key: string]: unknown }[];
 }
