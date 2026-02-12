@@ -62,6 +62,8 @@ export const TestIDs = {
   PROFILE_SECTION_SWITCH_ACCOUNT: 'profile-section-switchaccount-text',
   PROFILE_USER_ITEM: 'profile-user-item',
   PROFILE_ACCOUNT_ITEM_PREFIX: 'profile-account-item',
+  PROFILE_ACCOUNT_TABS: 'profile-account-tabs',
+  PROFILE_TAB_PREFIX: 'profile-tab',
 
   // Personal Information Screen
   PERSONAL_INFO_LOADING_INDICATOR: 'personal-info-loading-indicator',
@@ -162,6 +164,11 @@ export const TestIDs = {
   ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
   ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',
   ACCOUNT_DETAILS_EMPTY_STATE: 'account-details-empty-state',
+
+  // Seller Details Screen
+  SELLER_DETAILS_LOADING_INDICATOR: 'seller-details-loading-indicator',
+  SELLER_DETAILS_ERROR_STATE: 'seller-details-error-state',
+  SELLER_DETAILS_EMPTY_STATE: 'seller-details-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;

@@ -1,7 +1,7 @@
 const { $, $$ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
-const { getSelector, selectors } = require('./utils/selectors');
+const { getSelector, selectors, isIOS } = require('./utils/selectors');
 const { TIMEOUT } = require('./utils/constants');
 
 class ProfilePage extends BasePage {
@@ -77,6 +77,96 @@ class ProfilePage extends BasePage {
         android: '//*[@resource-id="profile-section-switchaccount-text"]',
       }),
     );
+  }
+
+  // ========== Account Tabs (FEATURE_ACCOUNT_TABS) ==========
+  get accountTabsContainer() {
+    return $(
+      getSelector({
+        ios: '~profile-account-tabs',
+        android: '//*[@resource-id="profile-account-tabs"]',
+      }),
+    );
+  }
+
+  get tabAll() {
+    return $(
+      getSelector({
+        ios: '~profile-tab-all',
+        android: '//*[@resource-id="profile-tab-all"]',
+      }),
+    );
+  }
+
+  get tabFavourites() {
+    return $(
+      getSelector({
+        ios: '~profile-tab-favourites',
+        android: '//*[@resource-id="profile-tab-favourites"]',
+      }),
+    );
+  }
+
+  get tabRecent() {
+    return $(
+      getSelector({
+        ios: '~profile-tab-recent',
+        android: '//*[@resource-id="profile-tab-recent"]',
+      }),
+    );
+  }
+
+  /**
+   * Check if a specific tab is currently selected
+   * @param {'all'|'favourites'|'recent'} tabName - The tab name
+   * @returns {Promise<boolean>} True if the tab is selected
+   */
+  async isTabSelected(tabName) {
+    const tabSelectors = {
+      all: this.tabAll,
+      favourites: this.tabFavourites,
+      recent: this.tabRecent,
+    };
+    
+    const tab = tabSelectors[tabName];
+    if (!tab) {
+      console.warn(`Unknown tab name: ${tabName}`);
+      return false;
+    }
+    
+    try {
+      if (isIOS()) {
+        // On iOS, check for 'Selected' trait in the accessibility traits (case-insensitive)
+        const traits = await tab.getAttribute('traits');
+        return traits?.toLowerCase().includes('selected') || false;
+      } else {
+        // On Android, check for selected state or content-desc
+        const selected = await tab.getAttribute('selected');
+        return selected === 'true';
+      }
+    } catch (error) {
+      console.warn(`Error checking tab selection for ${tabName}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Click on a specific tab
+   * @param {'all'|'favourites'|'recent'} tabName - The tab name
+   */
+  async clickTab(tabName) {
+    const tabSelectors = {
+      all: this.tabAll,
+      favourites: this.tabFavourites,
+      recent: this.tabRecent,
+    };
+    
+    const tab = tabSelectors[tabName];
+    if (!tab) {
+      console.warn(`Unknown tab name: ${tabName}`);
+      return;
+    }
+    await this.click(tab);
   }
 
   // ========== Empty State (No Accounts) ==========

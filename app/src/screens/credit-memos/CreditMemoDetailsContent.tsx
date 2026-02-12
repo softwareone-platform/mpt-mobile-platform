@@ -25,7 +25,15 @@ const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
           });
         }}
       />
-      <DetailsListItem label={t(`details.buyer`)} data={data.buyer} />
+      <DetailsListItem
+        label={t(`details.buyer`)}
+        data={data.buyer}
+        onPress={() => {
+          navigation.navigate('buyerDetails', {
+            id: data.buyer?.id,
+          });
+        }}
+      />
       <DetailsListItem label={t(`details.licencee`)} data={data.licencee} />
       <DetailsListItem
         label={t(`details.vendor`)}
@@ -39,7 +47,15 @@ const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
       />
       <DetailsListItem label={t(`details.product`)} data={data.product} />
       <DetailsListItem label={t(`details.agreement`)} data={data.agreement} hideImage={true} />
-      <DetailsListItem label={t(`details.seller`)} data={data.seller} />
+      <DetailsListItem
+        label={t(`details.seller`)}
+        data={data.seller}
+        onPress={() => {
+          navigation.navigate('sellerDetails', {
+            id: data.seller?.id,
+          });
+        }}
+      />
       <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
       <ListItemWithLabelAndText title={t(`details.documentId`)} subtitle={data.documentNo} />
       <ListItemWithLabelAndText

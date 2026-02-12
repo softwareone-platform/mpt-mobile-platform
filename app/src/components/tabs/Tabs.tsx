@@ -12,17 +12,20 @@ type Props = {
   tabs: TabData[];
   value: string;
   onChange: (value: string) => void;
+  testID?: string;
+  tabTestIDPrefix?: string;
 };
 
-const Tabs = ({ tabs, value, onChange }: Props) => {
+const Tabs = ({ tabs, value, onChange, testID, tabTestIDPrefix }: Props) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={testID}>
       {tabs.map((tab) => (
         <TabItem
           key={tab.value}
           label={tab.label}
           selected={value === tab.value}
           onPress={() => onChange(tab.value)}
+          testID={tabTestIDPrefix ? `${tabTestIDPrefix}-${tab.value}` : undefined}
         />
       ))}
     </View>

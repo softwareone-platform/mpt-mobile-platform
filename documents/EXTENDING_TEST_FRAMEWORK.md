@@ -1059,6 +1059,222 @@ adb devices
 adb logcat | grep -i "ReactNative\|Appium"
 ```
 
-This framework provides a robust foundation for comprehensive cross-platform mobile app testing. Follow these patterns to create maintainable, reliable tests that work on both iOS and Android.
+## Feature Flag Testing
 
-This framework provides a robust foundation for comprehensive iOS app testing. Follow these patterns to create maintainable, reliable tests that cover both unauthenticated and authenticated user journeys.
+The framework includes built-in support for testing features controlled by feature flags. Feature flags are discovered at test startup and made available to tests for conditional assertions.
+
+### How Feature Flags Work
+
+Feature flags are defined in `app/src/config/feature-flags/featureFlags.json`:
+
+```json
+{
+  "FEATURE_ACCOUNT_TABS": {
+    "enabled": true,
+    "minVersion": "5.0.0"
+  }
+}
+```
+
+**Key concepts:**
+- `enabled`: Static enabled/disabled state
+- `minVersion`: Minimum **portal version** required (not app version!)
+- The portal is the backend API - currently v4.x (QA) or v5.x (TEST)
+
+### Two Modes of Operation
+
+#### 1. Default Mode (Pipeline/Normal Run)
+
+The test framework fetches the **portal version** from the backend API and applies version gating:
+
+```text
+╔══════════════════════════════════════════════════════════════════╗
+║                    🚩 FEATURE FLAGS DISCOVERED                   ║
+╠══════════════════════════════════════════════════════════════════╣
+║  🌐 Portal Version: 5.0.3416-g9e78acfc                           ║
+╠══════════════════════════════════════════════════════════════════╣
+║  ✅ FEATURE_ACCOUNT_TABS          minVersion: 5.0.0              ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+On QA (portal v4.x), the same flag would show as disabled:
+
+```text
+║  🌐 Portal Version: 4.2.1                                        ║
+╠══════════════════════════════════════════════════════════════════╣
+║  ❌ FEATURE_ACCOUNT_TABS          minVersion: 5.0.0     (ver)    ║
+```
+
+The `(ver)` indicator shows the flag is disabled due to version gating.
+
+#### 2. Local Override Mode (--build --feature-flag)
+
+When testing locally with explicit flag overrides, the override takes precedence over portal version:
+
+```bash
+./scripts/run-local-test.sh --build --feature-flag FEATURE_ACCOUNT_TABS=false featureFlags
+```
+
+```text
+║  🌐 Portal Version: 5.0.3416-g9e78acfc                           ║
+║  ⚡ Local Overrides: 1 flag(s) explicitly set                     ║
+╠══════════════════════════════════════════════════════════════════╣
+║  ❌ FEATURE_ACCOUNT_TABS          minVersion: 5.0.0     ⚡       ║
+```
+
+The `⚡` indicator shows the flag was explicitly overridden.
+
+### Using Feature Flag Utilities in Tests
+
+Import the utilities in your test file:
+
+```javascript
+const {
+    isFlagEnabled,
+    isFlagOverridden,
+    hasExplicitOverrides,
+    skipIfFlagDisabled,
+    skipIfFlagEnabled,
+    assertBasedOnFlag,
+    logFlagStatus,
+    getPortalVersion,
+} = require('../utils/featureFlags.util');
+```
+
+#### Skip Tests Based on Flag State
+
+```javascript
+it('should show tabs when enabled', async function() {
+    // Skip this test if flag is disabled
+    skipIfFlagDisabled.call(this, 'FEATURE_ACCOUNT_TABS');
+    
+    await expect(ProfilePage.accountTabs).toBeDisplayed();
+});
+
+it('should NOT show tabs when disabled', async function() {
+    // Skip this test if flag is enabled
+    skipIfFlagEnabled.call(this, 'FEATURE_ACCOUNT_TABS');
+    
+    const isDisplayed = await ProfilePage.accountTabs.isDisplayed().catch(() => false);
+    expect(isDisplayed).toBe(false);
+});
+```
+
+#### Conditional Assertions
+
+```javascript
+it('should correctly show/hide feature based on flag', async function() {
+    await assertBasedOnFlag('FEATURE_ACCOUNT_TABS',
+        async () => {
+            // Flag enabled: feature should be visible
+            await expect(ProfilePage.accountTabs).toBeDisplayed();
+        },
+        async () => {
+            // Flag disabled: feature should NOT be visible
+            const isDisplayed = await ProfilePage.accountTabs.isDisplayed().catch(() => false);
+            expect(isDisplayed).toBe(false);
+        }
+    );
+});
+```
+
+#### Check Flag State Programmatically
+
+```javascript
+// Check if flag is enabled (considers portal version + overrides)
+if (isFlagEnabled('FEATURE_ACCOUNT_TABS')) {
+    // Do something when flag is enabled
+}
+
+// Check if flag was explicitly overridden via --feature-flag
+if (isFlagOverridden('FEATURE_ACCOUNT_TABS')) {
+    console.log('Flag was explicitly set for this test run');
+}
+
+// Check if running in local override mode
+if (hasExplicitOverrides()) {
+    console.log('Running with explicit flag overrides');
+}
+
+// Get portal version for logging
+console.log('Portal version:', getPortalVersion());
+
+// Log flag status for debugging
+logFlagStatus('FEATURE_ACCOUNT_TABS');
+// Output: 🚩 Flag FEATURE_ACCOUNT_TABS: ✅ ENABLED (minVersion: 5.0.0) [portal: 5.0.3416]
+```
+
+### Testing with Modified Flag Values
+
+To test with different flag values locally, use the `--feature-flag` option with `--build`:
+
+```bash
+# Build with FEATURE_ACCOUNT_TABS disabled (overrides portal version gating)
+./scripts/run-local-test.sh --build --feature-flag FEATURE_ACCOUNT_TABS=false featureFlags
+
+# Build with multiple flag overrides
+./scripts/run-local-test.sh --build \
+    --feature-flag FEATURE_ACCOUNT_TABS=false \
+    --feature-flag FEATURE_EXAMPLE=true \
+    featureFlags
+```
+
+> **Note:** Feature flags are embedded at build time, so `--feature-flag` requires `--build`. The original flags are automatically restored after tests complete.
+
+### Running Feature Flag Tests
+
+```bash
+# Run feature flag test suite (uses portal version for gating)
+./scripts/run-local-test.sh featureFlags
+
+# Run with fresh build (uses portal version for gating)
+./scripts/run-local-test.sh --build featureFlags
+
+# Run with specific flag forced to disabled (ignores portal version)
+./scripts/run-local-test.sh --build --feature-flag FEATURE_ACCOUNT_TABS=false featureFlags
+
+# Run on Android with flag override
+./scripts/run-local-test.sh -p android --build --feature-flag FEATURE_ACCOUNT_TABS=true featureFlags
+```
+
+### Adding Tests for New Feature Flags
+
+1. **Add testIDs to the feature's UI components** (see TEST_ELEMENT_IDENTIFICATION_STRATEGY.md)
+
+2. **Add selectors to the relevant Page Object:**
+   ```javascript
+   // In profile.page.js
+   get myNewFeature() {
+       return $(getSelector({
+           ios: '~my-new-feature',
+           android: '//*[@resource-id="my-new-feature"]',
+       }));
+   }
+   ```
+
+3. **Add tests to `feature-flags.e2e.js`:**
+   ```javascript
+   describe('MY_NEW_FEATURE_FLAG', () => {
+       const FLAG_KEY = 'MY_NEW_FEATURE_FLAG';
+       
+       before(async function() {
+           this.timeout(150000);
+           logFlagStatus(FLAG_KEY);
+           await ensureLoggedIn();
+           // Navigate to feature location
+       });
+       
+       it('should show feature when flag is enabled', async function() {
+           skipIfFlagDisabled.call(this, FLAG_KEY);
+           await expect(SomePage.myNewFeature).toBeDisplayed();
+       });
+       
+       it('should hide feature when flag is disabled', async function() {
+           skipIfFlagEnabled.call(this, FLAG_KEY);
+           const isDisplayed = await SomePage.myNewFeature.isDisplayed().catch(() => false);
+           expect(isDisplayed).toBe(false);
+       });
+   });
+   ```
+
+This framework provides a robust foundation for comprehensive cross-platform mobile app testing. Follow these patterns to create maintainable, reliable tests that work on both iOS and Android.
