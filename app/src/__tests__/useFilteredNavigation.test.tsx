@@ -44,11 +44,9 @@ describe('useFilteredNavigation', () => {
       accountType: 'Client',
     });
 
-    (canShowNavItem as jest.Mock).mockImplementation(
-      (_token, _accountType, navItemId) => {
-        return navItemId === 'home' || navItemId === 'orders';
-      },
-    );
+    (canShowNavItem as jest.Mock).mockImplementation((_token, _accountType, navItemId) => {
+      return navItemId === 'home' || navItemId === 'orders';
+    });
 
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
 

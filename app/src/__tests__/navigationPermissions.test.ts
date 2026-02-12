@@ -1,11 +1,10 @@
 import { NavigationMapper } from '@/types/navigation';
+import { hasModuleAccess } from '@/utils/moduleClaims';
 import { canShowNavItem, filterNavItems } from '@/utils/navigationPermissions';
 
 jest.mock('@/utils/moduleClaims', () => ({
   hasModuleAccess: jest.fn(),
 }));
-
-import { hasModuleAccess } from '@/utils/moduleClaims';
 
 describe('Navigation Permissions Utils', () => {
   const mockToken = 'mock.token';
@@ -40,25 +39,19 @@ describe('Navigation Permissions Utils', () => {
     it('should return false when module access denied', () => {
       (hasModuleAccess as jest.Mock).mockReturnValue(false);
 
-      expect(
-        canShowNavItem(mockToken, 'Client', 'billing', mockMapper),
-      ).toBe(false);
+      expect(canShowNavItem(mockToken, 'Client', 'billing', mockMapper)).toBe(false);
     });
 
     it('should return true when role and module access granted', () => {
       (hasModuleAccess as jest.Mock).mockReturnValue(true);
 
-      expect(
-        canShowNavItem(mockToken, 'Client', 'billing', mockMapper),
-      ).toBe(true);
+      expect(canShowNavItem(mockToken, 'Client', 'billing', mockMapper)).toBe(true);
     });
 
     it('should return true when only module access is required', () => {
       (hasModuleAccess as jest.Mock).mockReturnValue(true);
 
-      expect(
-        canShowNavItem(mockToken, 'Operations', 'users', mockMapper),
-      ).toBe(true);
+      expect(canShowNavItem(mockToken, 'Operations', 'users', mockMapper)).toBe(true);
     });
 
     it('should check any of multiple modules', () => {
@@ -66,47 +59,26 @@ describe('Navigation Permissions Utils', () => {
         dashboard: { modules: ['billing', 'new-marketplace'] },
       };
 
-      (hasModuleAccess as jest.Mock)
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(true);
+      (hasModuleAccess as jest.Mock).mockReturnValueOnce(false).mockReturnValueOnce(true);
 
-      expect(
-        canShowNavItem(
-          mockToken,
-          'Client',
-          'dashboard',
-          mapperWithMultiple,
-        ),
-      ).toBe(true);
+      expect(canShowNavItem(mockToken, 'Client', 'dashboard', mapperWithMultiple)).toBe(true);
     });
   });
 
   describe('filterNavItems', () => {
     it('should filter nav items based on permissions', () => {
-      (hasModuleAccess as jest.Mock).mockImplementation(
-        (token: string, module: string) => {
-          return module === 'new-marketplace' || module === 'access-management';
-        },
-      );
+      (hasModuleAccess as jest.Mock).mockImplementation((token: string, module: string) => {
+        return module === 'new-marketplace' || module === 'access-management';
+      });
 
       const navItems = ['home', 'orders', 'billing', 'users'];
-      const result = filterNavItems(
-        mockToken,
-        'Client',
-        navItems,
-        mockMapper,
-      );
+      const result = filterNavItems(mockToken, 'Client', navItems, mockMapper);
 
       expect(result).toEqual(['home', 'orders', 'users']);
     });
 
     it('should return empty array when no token', () => {
-      const result = filterNavItems(
-        null,
-        'Client',
-        ['home', 'orders'],
-        mockMapper,
-      );
+      const result = filterNavItems(null, 'Client', ['home', 'orders'], mockMapper);
 
       expect(result).toEqual([]);
     });
@@ -114,12 +86,7 @@ describe('Navigation Permissions Utils', () => {
     it('should filter based on account type', () => {
       (hasModuleAccess as jest.Mock).mockReturnValue(true);
 
-      const result = filterNavItems(
-        mockToken,
-        'Operations',
-        ['orders', 'billing'],
-        mockMapper,
-      );
+      const result = filterNavItems(mockToken, 'Operations', ['orders', 'billing'], mockMapper);
 
       expect(result).toEqual([]);
     });
