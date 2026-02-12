@@ -86,6 +86,11 @@ export const TestIDs = {
   AGREEMENTS_ERROR_STATE: 'agreements-error-state',
   AGREEMENTS_EMPTY_STATE: 'agreements-empty-state',
 
+  // Agreement Details Screen
+  AGREEMENT_DETAILS_LOADING_INDICATOR: 'agreement-details-loading-indicator',
+  AGREEMENT_DETAILS_ERROR_STATE: 'agreement-details-error-state',
+  AGREEMENT_DETAILS_EMPTY_STATE: 'agreement-details-empty-state',
+
   // Common
   HEADER_LOGO: 'header-logo-image',
   LOADING_INDICATOR: 'loading-indicator',

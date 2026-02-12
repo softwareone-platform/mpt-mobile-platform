@@ -22,7 +22,8 @@
     "creditMemoDetails": "Credit Memo",
     "userDetails": "User",
     "buyerDetails": "Buyer",
-    "sellerDetails": "Seller"
+    "sellerDetails": "Seller",
+    "agreementDetails": "Agreement"
   },
   "tabGroups": {
     "administration": "Administration",

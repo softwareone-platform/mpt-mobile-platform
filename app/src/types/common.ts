@@ -5,7 +5,7 @@ export interface BaseObjectDetails {
   status: string;
   client?: DetailsListItemValue;
   buyer?: DetailsListItemValue;
-  licencee?: DetailsListItemValue & {
+  licensee?: DetailsListItemValue & {
     eligibility?: {
       partner?: boolean;
     };
@@ -14,12 +14,36 @@ export interface BaseObjectDetails {
   product?: DetailsListItemValue;
   agreement?: DetailsListItemValue;
   seller?: DetailsListItemValue;
-  price: {
-    currency: string;
-    totalSP: number;
-    totalGT: number;
-    markup?: number;
-    margin?: number;
-    defaultMarkup?: number;
+  price: Price;
+}
+
+export interface Address {
+  addressLine1: string;
+  addressLine2?: string;
+  postCode: string;
+  city: string;
+  state: string;
+  country: string;
+}
+
+export interface Price {
+  currency: string;
+  totalSP?: number;
+  totalGT?: number;
+  markup?: number;
+  margin?: number;
+  defaultMarkup?: number;
+  defaultMargin?: number;
+  SPxY?: number;
+  SPxM?: number;
+  PPxY?: number;
+  PPxM?: number;
+  billingCurrency?: string;
+  source?: string;
+  defaultMarkupSource?: {
+    type?: string;
+    ref?: {
+      id: string;
+    };
   };
 }

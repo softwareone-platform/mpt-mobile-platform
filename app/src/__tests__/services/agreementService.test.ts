@@ -1,5 +1,16 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import {
+  mockAgreementId1,
+  mockAgreementId2,
+  mockAgreementData,
+  expectedUrl1,
+  expectedUrl2,
+  mockResponse1,
+  mockResponse2,
+  mockNetworkError,
+} from '../__mocks__/services/agreement';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useAgreementApi } from '@/services/agreementService';
 import type { Agreement } from '@/types/agreement';
@@ -221,5 +232,58 @@ describe('useAgreementApi', () => {
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getAgreements()).rejects.toThrow('Network error');
+  });
+});
+
+describe('useAgreementApi - getAgreementData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getAgreementData with correct endpoint and returns data', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockAgreementData);
+
+    await act(async () => {
+      res = await api.getAgreementData(mockAgreementId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl1);
+    expect(res).toEqual(mockAgreementData);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getAgreementData(mockAgreementId1)).rejects.toThrow('Network error');
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockResponse1);
+    mockGet.mockResolvedValueOnce(mockResponse2);
+
+    await act(async () => {
+      res1 = await api.getAgreementData(mockAgreementId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getAgreementData(mockAgreementId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedUrl2);
+
+    expect(res1).toEqual(mockResponse1);
+    expect(res2).toEqual(mockResponse2);
   });
 });

@@ -1,3 +1,5 @@
+import type { Address } from './common';
+
 export enum HttpMethod {
   GET = 'GET',
   POST = 'POST',
@@ -193,15 +195,6 @@ export interface AccountDetails {
   description?: string;
   type: string;
   status: string;
-}
-
-export interface Address {
-  addressLine1: string;
-  addressLine2?: string;
-  postCode: string;
-  city: string;
-  state: string;
-  country: string;
 }
 
 export interface SsoStatus {

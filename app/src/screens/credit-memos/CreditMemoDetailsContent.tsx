@@ -34,7 +34,7 @@ const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
           });
         }}
       />
-      <DetailsListItem label={t(`details.licencee`)} data={data.licencee} />
+      <DetailsListItem label={t(`details.licencee`)} data={data.licensee} />
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
@@ -60,11 +60,11 @@ const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
       <ListItemWithLabelAndText title={t(`details.documentId`)} subtitle={data.documentNo} />
       <ListItemWithLabelAndText
         title={t(`details.sp`)}
-        subtitle={`${data.price.currency} ${data.price.totalSP.toFixed(2)}`}
+        subtitle={`${data.price.currency} ${data.price.totalSP?.toFixed(2)}`}
       />
       <ListItemWithLabelAndText
         title={t(`details.gt`)}
-        subtitle={`${data.price.currency} ${data.price.totalGT.toFixed(2)}`}
+        subtitle={`${data.price.currency} ${data.price.totalGT?.toFixed(2)}`}
         isLast={true}
       />
     </CardWithHeader>

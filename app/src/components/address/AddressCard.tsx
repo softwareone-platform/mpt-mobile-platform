@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
-import type { Address } from '@/types/api';
+import type { Address } from '@/types/common';
 
 interface Props {
   address: Address | undefined;

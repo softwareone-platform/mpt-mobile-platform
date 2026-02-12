@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { Agreement } from '@/types/agreement';
+import type { Agreement, AgreementData } from '@/types/agreement';
 import type { PaginatedResponse } from '@/types/api';
 
 export function useAgreementApi() {
@@ -27,10 +27,21 @@ export function useAgreementApi() {
     [api],
   );
 
+  const getAgreementData = useCallback(
+    async (agreementId: string): Promise<AgreementData> => {
+      const endpoint =
+        `/v1/commerce/agreements/${agreementId}` +
+        `?select=+listing,product,audit,licensee,buyer,seller,certificates,-subscriptions,-lines,termsAndConditions,termsAndConditions.acceptedBy`;
+      return api.get<AgreementData>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getAgreements,
+      getAgreementData,
     }),
-    [getAgreements],
+    [getAgreements, getAgreementData],
   );
 }
