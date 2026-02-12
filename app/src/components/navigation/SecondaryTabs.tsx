@@ -2,11 +2,13 @@ import { OutlinedIcons } from '@assets/icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { secondaryTabsData } from '@/constants/navigation';
+import { secondaryTabsData, secondaryTabItems } from '@/constants/navigation';
+import { useFilteredNavigation } from '@/hooks/useFilteredNavigation';
 import { Color, navigationStyle, screenStyle } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
@@ -15,9 +17,22 @@ const SecondaryTabs = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
 
+  const filteredItems = useFilteredNavigation(secondaryTabItems);
+
+  const filteredSections = useMemo(() => {
+    const filteredItemNames = new Set(filteredItems.map((item) => item.name));
+
+    return secondaryTabsData
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => filteredItemNames.has(item.name)),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [filteredItems]);
+
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>
-      {secondaryTabsData.map((section) => (
+      {filteredSections.map((section) => (
         <View key={section.title} style={styles.container}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardHeaderText}>{t(`navigation.tabGroups.${section.title}`)}</Text>
