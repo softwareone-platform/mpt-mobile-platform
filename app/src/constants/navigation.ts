@@ -17,7 +17,12 @@ import {
   UserDetailsScreen,
   BuyerDetailsScreen,
 } from '@/screens';
-import type { MainTabItem, SecondaryTabGroup, AppScreenItem } from '@/types/navigation';
+import type {
+  MainTabItem,
+  SecondaryTabGroup,
+  SecondaryTabItem,
+  AppScreenItem,
+} from '@/types/navigation';
 
 export const mainTabsData: MainTabItem[] = [
   { name: 'spotlight', icon: 'flare', component: SpotlightScreen, stackRootName: 'spotlightRoot' },
@@ -59,6 +64,10 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
     ],
   },
 ];
+
+export const secondaryTabItems: SecondaryTabItem[] = secondaryTabsData.flatMap(
+  (section) => section.items,
+);
 
 export const appScreensData: AppScreenItem[] = [
   { name: 'agreements', component: AgreementsScreen },

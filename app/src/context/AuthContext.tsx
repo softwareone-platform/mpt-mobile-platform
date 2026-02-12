@@ -12,10 +12,10 @@ import { usePortalVersion } from '@/hooks/queries/usePortalVersion';
 import { tokenProvider } from '@/lib/tokenProvider';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
-import { moduleClaimsService } from '@/services/moduleClaimsService';
 import { PortalVersionInfo } from '@/services/portalVersionService';
 import { AccountType } from '@/types/common';
 import { ModuleClaims } from '@/types/modules';
+import { getModuleClaims, getAccountType } from '@/utils/moduleClaims';
 
 export type AuthState = 'loading' | 'unauthenticated' | 'authenticated';
 
@@ -266,12 +266,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const moduleClaims = useMemo(() => {
     if (!authState.tokens?.accessToken) return null;
-    return moduleClaimsService.getModuleClaims(authState.tokens.accessToken);
+    return getModuleClaims(authState.tokens.accessToken);
   }, [authState.tokens?.accessToken]);
 
   const accountType = useMemo(() => {
     if (!authState.tokens?.accessToken) return null;
-    return moduleClaimsService.getAccountType(authState.tokens.accessToken);
+    return getAccountType(authState.tokens.accessToken);
   }, [authState.tokens?.accessToken]);
 
   const value: AuthContextType = {

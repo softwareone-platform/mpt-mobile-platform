@@ -2,17 +2,15 @@ import { renderHook } from '@testing-library/react-native';
 
 import { useAuth } from '@/context/AuthContext';
 import { useFilteredNavigation } from '@/hooks/useFilteredNavigation';
-import { navigationPermissionService } from '@/services/navigationPermissionService';
+import { canShowNavItem } from '@/utils/navigationPermissions';
 
 // Mock dependencies
 jest.mock('@/context/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock('@/services/navigationPermissionService', () => ({
-  navigationPermissionService: {
-    canShowNavItem: jest.fn(),
-  },
+jest.mock('@/utils/navigationPermissions', () => ({
+  canShowNavItem: jest.fn(),
 }));
 
 jest.mock('@/config/navigation-mapper.json', () => ({}));
@@ -37,7 +35,7 @@ describe('useFilteredNavigation', () => {
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
 
     expect(result.current).toEqual(mockItems);
-    expect(navigationPermissionService.canShowNavItem).not.toHaveBeenCalled();
+    expect(canShowNavItem).not.toHaveBeenCalled();
   });
 
   it('should filter items based on permissions', () => {
@@ -46,7 +44,7 @@ describe('useFilteredNavigation', () => {
       accountType: 'Client',
     });
 
-    (navigationPermissionService.canShowNavItem as jest.Mock).mockImplementation(
+    (canShowNavItem as jest.Mock).mockImplementation(
       (_token, _accountType, navItemId) => {
         return navItemId === 'home' || navItemId === 'orders';
       },
@@ -57,7 +55,7 @@ describe('useFilteredNavigation', () => {
     expect(result.current).toHaveLength(2);
     expect(result.current[0].name).toBe('home');
     expect(result.current[1].name).toBe('orders');
-    expect(navigationPermissionService.canShowNavItem).toHaveBeenCalledTimes(3);
+    expect(canShowNavItem).toHaveBeenCalledTimes(3);
   });
 
   it('should return empty array when no items match permissions', () => {
@@ -66,7 +64,7 @@ describe('useFilteredNavigation', () => {
       accountType: 'Client',
     });
 
-    (navigationPermissionService.canShowNavItem as jest.Mock).mockReturnValue(false);
+    (canShowNavItem as jest.Mock).mockReturnValue(false);
 
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
 
@@ -79,7 +77,7 @@ describe('useFilteredNavigation', () => {
       accountType: 'Client',
     });
 
-    (navigationPermissionService.canShowNavItem as jest.Mock).mockReturnValue(true);
+    (canShowNavItem as jest.Mock).mockReturnValue(true);
 
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
 
@@ -92,12 +90,12 @@ describe('useFilteredNavigation', () => {
       accountType: null,
     });
 
-    (navigationPermissionService.canShowNavItem as jest.Mock).mockReturnValue(true);
+    (canShowNavItem as jest.Mock).mockReturnValue(true);
 
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
 
     expect(result.current).toEqual(mockItems);
-    expect(navigationPermissionService.canShowNavItem).toHaveBeenCalledWith(
+    expect(canShowNavItem).toHaveBeenCalledWith(
       'mock.token',
       null,
       expect.any(String),

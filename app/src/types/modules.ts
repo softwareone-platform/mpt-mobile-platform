@@ -1,5 +1,4 @@
-export const MODULES_CLAIMS_KEY = 'https://claims.softwareone.com/modules';
-export const ACCOUNT_TYPE_CLAIM_KEY = 'https://claims.softwareone.com/accountType';
+import { MODULES_CLAIMS_KEY, ACCOUNT_TYPE_CLAIM_KEY } from '@/constants/auth';
 
 export type ModulePermission = 'read' | 'edit';
 

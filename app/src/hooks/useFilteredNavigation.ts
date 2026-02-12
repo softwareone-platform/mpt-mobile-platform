@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 
 import navigationMapperJson from '@/config/navigation-mapper.json';
 import { useAuth } from '@/context/AuthContext';
-import { navigationPermissionService } from '@/services/navigationPermissionService';
-import { NavigationMapper } from '@/types/navigation-permissions';
+import { NavigationMapper } from '@/types/navigation';
+import { canShowNavItem } from '@/utils/navigationPermissions';
 
 const navigationMapper = navigationMapperJson as unknown as NavigationMapper;
 
@@ -14,12 +14,7 @@ export function useFilteredNavigation<T extends { name: string }>(items: T[]): T
     if (!tokens?.accessToken) return items;
 
     return items.filter((item) =>
-      navigationPermissionService.canShowNavItem(
-        tokens.accessToken,
-        accountType,
-        item.name,
-        navigationMapper,
-      ),
+      canShowNavItem(tokens.accessToken, accountType, item.name, navigationMapper),
     );
   }, [items, tokens?.accessToken, accountType]);
 

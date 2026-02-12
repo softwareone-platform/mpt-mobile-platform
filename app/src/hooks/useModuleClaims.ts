@@ -1,18 +1,18 @@
 import { useCallback, useMemo } from 'react';
 
-import { moduleClaimsService } from '@/services/moduleClaimsService';
 import { ModuleClaims, ModuleName } from '@/types/modules';
+import { getModuleClaims, hasModuleAccess as checkModuleAccess } from '@/utils/moduleClaims';
 
 export const useModuleClaims = (accessToken: string | null) => {
   const moduleClaims = useMemo((): ModuleClaims | null => {
     if (!accessToken) return null;
-    return moduleClaimsService.getModuleClaims(accessToken);
+    return getModuleClaims(accessToken);
   }, [accessToken]);
 
   const hasModuleAccess = useCallback(
     (moduleName: ModuleName): boolean => {
       if (!accessToken) return false;
-      return moduleClaimsService.hasModuleAccess(accessToken, moduleName);
+      return checkModuleAccess(accessToken, moduleName);
     },
     [accessToken],
   );
