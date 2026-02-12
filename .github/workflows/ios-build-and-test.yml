@@ -1,8 +1,7 @@
 name: iOS Build and Appium Tests
 
-permissions:
-  contents: write  # Required for creating releases
-  actions: read    # Required for downloading artifacts
+# Permissions are scoped to individual jobs for least privilege
+# See job definitions below for specific permission requirements
 
 on:
   # Manual trigger only
@@ -106,6 +105,9 @@ jobs:
     if: ${{ inputs.artifact-url == '' && github.event.inputs.artifact-url == '' }}
     runs-on: macos-26
     timeout-minutes: 45
+    permissions:
+      contents: write  # Required for creating releases
+      actions: read    # Required for artifact operations
 
     defaults:
       run:
@@ -474,6 +476,8 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 60
     environment: ${{ inputs.environment || 'test' }}
+    permissions:
+      actions: read  # Required for downloading artifacts
     
     steps:
       - name: Checkout code

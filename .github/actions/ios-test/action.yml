@@ -87,11 +87,16 @@ runs:
   steps:
     - name: Verify Required Inputs
       shell: bash
+      env:
+        APP_BUNDLE_ID: ${{ inputs.app_bundle_id }}
+        APPIUM_HOST: ${{ inputs.appium_host }}
+        APPIUM_PORT: ${{ inputs.appium_port }}
+        DEVICE_UUID: ${{ inputs.device_uuid }}
       run: |
         echo "🔍 Verifying required inputs..."
         
         # Check required inputs
-        if [ -z "${{ inputs.app_bundle_id }}" ]; then
+        if [ -z "$APP_BUNDLE_ID" ]; then
           echo "❌ ERROR: app_bundle_id input is required"
           exit 1
         else
@@ -99,24 +104,24 @@ runs:
         fi
         
         # Check optional inputs (show defaults if not set)
-        if [ -z "${{ inputs.appium_host }}" ]; then
+        if [ -z "$APPIUM_HOST" ]; then
           echo "ℹ️  appium_host not set, using default: localhost"
         else
           echo "✅ appium_host is set"
         fi
         
-        if [ -z "${{ inputs.appium_port }}" ]; then
+        if [ -z "$APPIUM_PORT" ]; then
           echo "ℹ️  appium_port not set, using default: 4723"
         else
           echo "✅ appium_port is set"
         fi
         
         # Verify required inputs
-        if [ -z "${{ inputs.device_uuid }}" ]; then
+        if [ -z "$DEVICE_UUID" ]; then
           echo "❌ ERROR: device_uuid input is required"
           exit 1
         else
-          echo "✅ device_uuid input is provided: ${{ inputs.device_uuid }}"
+          echo "✅ device_uuid input is provided: $DEVICE_UUID"
         fi
         
         echo "🎉 All required inputs are properly configured!"
@@ -149,8 +154,10 @@ runs:
 
     - name: Install Appium
       shell: bash
+      env:
+        APPIUM_VERSION: ${{ inputs.appium_version }}
       run: |
-        npm install -g appium@${{ inputs.appium_version }}
+        npm install -g "appium@${APPIUM_VERSION}"
         appium --version
         
     - name: Install Appium XCUITest driver
@@ -180,7 +187,7 @@ runs:
           xcodebuild build-for-testing \
             -project WebDriverAgent.xcodeproj \
             -scheme WebDriverAgentRunner \
-            -destination "platform=iOS Simulator,id=${{ env.DEVICE_UDID }}" \
+            -destination "platform=iOS Simulator,id=$DEVICE_UDID" \
             -derivedDataPath /tmp/wda-derived-data \
             -quiet || echo "⚠️ WebDriverAgent pre-build failed, continuing anyway"
           
@@ -198,7 +205,7 @@ runs:
         echo "🔍 Preparing simulator for XCUITest in CI environment..."
         
         # Check simulator status
-        SIMULATOR_STATUS=$(xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" | head -1 || echo "Not found")
+        SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$DEVICE_UDID" | head -1 || echo "Not found")
         echo "Initial simulator status: $SIMULATOR_STATUS"
         
         if ! echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
@@ -209,11 +216,11 @@ runs:
         
         # CI-specific: Reset simulator state for clean XCUITest connection
         echo "🔄 Resetting simulator state for XCUITest..."
-        xcrun simctl shutdown "${{ env.DEVICE_UDID }}" || true
+        xcrun simctl shutdown "$DEVICE_UDID" || true
         sleep 3
         
         echo "🚀 Booting simulator with fresh state..."
-        xcrun simctl boot "${{ env.DEVICE_UDID }}"
+        xcrun simctl boot "$DEVICE_UDID"
         
         # Wait for simulator to be fully ready - use multiple readiness indicators
         echo "⏳ Waiting for simulator to be fully operational..."
@@ -223,13 +230,13 @@ runs:
         
         while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
           # Check if simulator is booted (primary indicator)
-          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" | head -1 || echo "Not found")
+          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$DEVICE_UDID" | head -1 || echo "Not found")
           if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
             echo "✅ Simulator is booted"
             
             # Try boot status check with timeout - if it hangs, skip it
             echo "🔍 Checking boot status readiness (with timeout)..."
-            if timeout 5 xcrun simctl bootstatus "${{ env.DEVICE_UDID }}" 2>/dev/null | grep -q "Boot status is ready" 2>/dev/null; then
+            if timeout 5 xcrun simctl bootstatus "$DEVICE_UDID" 2>/dev/null | grep -q "Boot status is ready" 2>/dev/null; then
               echo "✅ Simulator boot status is ready"
               BOOT_READY=true
               break
@@ -262,7 +269,7 @@ runs:
         
         # CI-specific: Ensure Simulator UI is visible for WebDriverAgent
         echo "📺 Ensuring Simulator UI is visible for WebDriverAgent..."
-        open -a Simulator.app --args -CurrentDeviceUDID "${{ env.DEVICE_UDID }}" || true
+        open -a Simulator.app --args -CurrentDeviceUDID "$DEVICE_UDID" || true
         sleep 3
         
         # Verify simulator UI is properly visible
@@ -274,7 +281,7 @@ runs:
         fi
         
         # Verify app is still installed after reset
-        if xcrun simctl listapps "${{ env.DEVICE_UDID }}" 2>/dev/null | grep -q "${{ env.APP_BUNDLE_ID }}"; then
+        if xcrun simctl listapps "$DEVICE_UDID" 2>/dev/null | grep -q "$APP_BUNDLE_ID"; then
           echo "✅ App is installed and ready"
         else
           echo "⚠️ WARNING: Could not verify app installation, but proceeding with test"
@@ -350,27 +357,27 @@ runs:
       run: |
         echo "=== Pre-test Debug Information ==="
         echo "Environment Variables:"
-        echo "DEVICE_UDID: ${{ env.DEVICE_UDID }}"
-        echo "DEVICE_NAME: ${{ env.DEVICE_NAME }}"
-        echo "PLATFORM_VERSION: ${{ env.PLATFORM_VERSION }}"
-        echo "APP_BUNDLE_ID: ${{ env.APP_BUNDLE_ID }}"
-        echo "APPIUM_HOST: ${{ env.APPIUM_HOST }}"
-        echo "APPIUM_PORT: ${{ env.APPIUM_PORT }}"
+        echo "DEVICE_UDID: $DEVICE_UDID"
+        echo "DEVICE_NAME: $DEVICE_NAME"
+        echo "PLATFORM_VERSION: $PLATFORM_VERSION"
+        echo "APP_BUNDLE_ID: $APP_BUNDLE_ID"
+        echo "APPIUM_HOST: $APPIUM_HOST"
+        echo "APPIUM_PORT: $APPIUM_PORT"
         echo "VERIFIED_APPIUM_URL: ${VERIFIED_APPIUM_URL:-'Not set'}"
         
         echo "Current Simulator Status:"
-        xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" || echo "Device not found"
+        xcrun simctl list devices | grep "$DEVICE_UDID" || echo "Device not found"
         
         echo "App Installation Status:"
-        if xcrun simctl list devices | grep "${{ env.DEVICE_UDID }}" | grep -q "(Booted)"; then
-          xcrun simctl listapps ${{ env.DEVICE_UDID }} | grep -i "${{ env.APP_BUNDLE_ID }}" || echo "App not found"
+        if xcrun simctl list devices | grep "$DEVICE_UDID" | grep -q "(Booted)"; then
+          xcrun simctl listapps "$DEVICE_UDID" | grep -i "$APP_BUNDLE_ID" || echo "App not found"
         else
           echo "Cannot check app status - simulator not booted"
         fi
         
         echo "Appium Server Status Check:"
-        echo "  Testing default URL: http://${{ env.APPIUM_HOST }}:${{ env.APPIUM_PORT }}/status"
-        curl -s "http://${{ env.APPIUM_HOST }}:${{ env.APPIUM_PORT }}/status" | jq '.' || echo "Default URL not reachable"
+        echo "  Testing default URL: http://${APPIUM_HOST}:${APPIUM_PORT}/status"
+        curl -s "http://${APPIUM_HOST}:${APPIUM_PORT}/status" | jq '.' || echo "Default URL not reachable"
         
         if [ -n "$VERIFIED_APPIUM_URL" ]; then
           echo "  Testing verified URL: ${VERIFIED_APPIUM_URL}/status"
@@ -507,7 +514,7 @@ runs:
         DEVICE_UDID: ${{ inputs.device_uuid }}
       run: |
         echo "Capturing simulator logs..."
-        xcrun simctl spawn ${{ env.DEVICE_UDID }} log collect --output simulator.log || true
+        xcrun simctl spawn "$DEVICE_UDID" log collect --output simulator.log || true
         
     - name: Upload simulator logs
       if: always()
@@ -525,7 +532,7 @@ runs:
         DEVICE_UDID: ${{ inputs.device_uuid }}
       run: |
         echo "Shutting down simulator..."
-        xcrun simctl shutdown ${{ env.DEVICE_UDID }} || true
+        xcrun simctl shutdown "$DEVICE_UDID" || true
         echo "✓ Simulator shutdown complete"
         
     - name: Stop Appium Server
@@ -549,5 +556,5 @@ runs:
       run: |
         echo "Cleaning up test artifacts..."
         # Optional: Remove app from simulator
-        # xcrun simctl uninstall ${{ env.DEVICE_UDID }} ${{ env.APP_BUNDLE_ID }} || true
+        # xcrun simctl uninstall "$DEVICE_UDID" "$APP_BUNDLE_ID" || true
         echo "✓ Cleanup complete"
