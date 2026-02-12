@@ -1,0 +1,49 @@
+{
+  "spotlight": {
+    "modules": ["new-marketplace"]
+  },
+  "orders": {
+    "modules": ["new-marketplace"],
+    "roles": ["Client", "Vendor", "Operations"]
+  },
+  "subscriptions": {
+    "modules": ["new-marketplace"],
+    "roles": ["Client", "Vendor", "Operations"]
+  },
+  "agreements": {
+    "modules": ["new-marketplace"],
+    "roles": ["Client", "Vendor", "Operations"]
+  },
+  "invoices": {
+    "modules": ["billing"],
+    "roles": ["Client", "Operations"]
+  },
+  "creditMemos": {
+    "modules": ["billing"],
+    "roles": ["Client", "Operations"]
+  },
+  "statements": {
+    "modules": ["billing"],
+    "roles": ["Client", "Operations"]
+  },
+  "users": {
+    "modules": ["access-management"],
+    "roles": ["Client", "Vendor", "Operations"]
+  },
+  "programs": {
+    "modules": ["new-marketplace"],
+    "roles": ["Client", "Vendor", "Operations"]
+  },
+  "enrollments": {
+    "modules": ["new-marketplace"],
+    "roles": ["Client", "Vendor", "Operations"]
+  },
+  "licensees": {
+    "modules": ["account-management"],
+    "roles": ["Client"]
+  },
+  "buyers": {
+    "modules": ["account-management"],
+    "roles": ["Client", "Operations"]
+  }
+}

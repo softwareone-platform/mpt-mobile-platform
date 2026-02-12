@@ -1,3 +1,6 @@
+import { AccountType } from '@/types/common';
+import { ModuleName } from '@/types/modules';
+
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
@@ -97,3 +100,10 @@ export type ProfileStackParamList = {
   notificationSettings: undefined;
   emailSettings: undefined;
 };
+
+export interface NavigationPermission {
+  modules: ModuleName[];
+  roles?: AccountType[];
+}
+
+export type NavigationMapper = Record<string, NavigationPermission>;

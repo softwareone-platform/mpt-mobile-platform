@@ -1,5 +1,8 @@
 import { configService } from '@/config/env.config';
 
+export const MODULES_CLAIMS_KEY = 'https://claims.softwareone.com/modules';
+export const ACCOUNT_TYPE_CLAIM_KEY = 'https://claims.softwareone.com/accountType';
+
 const getValidOTPLength = (envValue?: string): number => {
   const defaultLength = 6;
 

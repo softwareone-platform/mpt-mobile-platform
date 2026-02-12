@@ -1,5 +1,7 @@
 import type { DetailsListItemValue } from '@/types/lists';
 
+export type AccountType = 'Client' | 'Vendor' | 'Operations';
+
 export interface BaseObjectDetails {
   id: string;
   status: string;
