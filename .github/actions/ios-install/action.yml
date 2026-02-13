@@ -39,15 +39,17 @@ runs:
     - name: Download iOS app from URL
       if: inputs.download_url != ''
       shell: bash
+      env:
+        DOWNLOAD_URL: ${{ inputs.download_url }}
       run: |
         echo "📥 Downloading iOS app from URL..."
-        echo "URL: ${{ inputs.download_url }}"
+        echo "URL: $DOWNLOAD_URL"
         
         # Create download directory
         mkdir -p ./downloaded-app
         
         # Download the file
-        curl -L -o ./downloaded-app/app_bundle.zip "${{ inputs.download_url }}"
+        curl -L -o ./downloaded-app/app_bundle.zip "$DOWNLOAD_URL"
         
         # Verify download
         if [ ! -f "./downloaded-app/app_bundle.zip" ]; then
@@ -61,13 +63,16 @@ runs:
 
     - name: Verify download method
       shell: bash
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        DOWNLOAD_URL: ${{ inputs.download_url }}
       run: |
-        if [ -z "${{ inputs.artifact_name }}" ] && [ -z "${{ inputs.download_url }}" ]; then
+        if [ -z "$ARTIFACT_NAME" ] && [ -z "$DOWNLOAD_URL" ]; then
           echo "❌ ERROR: Either artifact_name or download_url must be provided"
           exit 1
         fi
         
-        if [ -n "${{ inputs.artifact_name }}" ] && [ -n "${{ inputs.download_url }}" ]; then
+        if [ -n "$ARTIFACT_NAME" ] && [ -n "$DOWNLOAD_URL" ]; then
           echo "⚠️ WARNING: Both artifact_name and download_url provided, using artifact_name"
         fi
 
@@ -128,10 +133,13 @@ runs:
     - name: Find and boot iOS Simulator
       id: boot-simulator
       shell: bash
+      env:
+        INPUT_DEVICE_NAME: ${{ inputs.device_name }}
+        INPUT_IOS_VERSION: ${{ inputs.ios_version }}
       run: |
         set -e
-        DEVICE_NAME="${{ inputs.device_name }}"
-        PLATFORM_VERSION="${{ inputs.ios_version }}"
+        DEVICE_NAME="$INPUT_DEVICE_NAME"
+        PLATFORM_VERSION="$INPUT_IOS_VERSION"
         
         echo "🔍 Looking for: $DEVICE_NAME with iOS $PLATFORM_VERSION"
         
@@ -263,14 +271,14 @@ runs:
       shell: bash
       run: |
         echo "📲 Installing app on simulator..."
-        echo "Device UDID: ${{ env.DEVICE_UDID }}"
-        echo "App path: ${{ env.APP_PATH }}"
+        echo "Device UDID: $DEVICE_UDID"
+        echo "App path: $APP_PATH"
         
         # Install the app
-        xcrun simctl install "${{ env.DEVICE_UDID }}" "${{ env.APP_PATH }}"
+        xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
         
         # Extract and output bundle ID
-        BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${{ env.APP_PATH }}/Info.plist")
+        BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
         echo "BUNDLE_ID=${BUNDLE_ID}" >> $GITHUB_ENV
         echo "bundle_id=${BUNDLE_ID}" >> $GITHUB_OUTPUT
         
@@ -281,19 +289,19 @@ runs:
       shell: bash
       run: |
         echo "🚀 Launching app..."
-        xcrun simctl launch "${{ env.DEVICE_UDID }}" "${{ env.BUNDLE_ID }}"
+        xcrun simctl launch "$DEVICE_UDID" "$BUNDLE_ID"
         
         echo "⏳ Waiting for app to initialize..."
         sleep 5
         
         # Verify app is installed and accessible for testing
         echo "🔍 Final app verification before testing..."
-        if xcrun simctl listapps "${{ env.DEVICE_UDID }}" | grep -q "${{ env.BUNDLE_ID }}"; then
-          echo "✅ App ${{ env.BUNDLE_ID }} is installed and available for Appium testing"
+        if xcrun simctl listapps "$DEVICE_UDID" | grep -q "$BUNDLE_ID"; then
+          echo "✅ App $BUNDLE_ID is installed and available for Appium testing"
         else
           echo "❌ ERROR: App not found after installation"
           echo "Installed apps:"
-          xcrun simctl listapps "${{ env.DEVICE_UDID }}"
+          xcrun simctl listapps "$DEVICE_UDID"
           exit 1
         fi
         
