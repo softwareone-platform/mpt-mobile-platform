@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import { EMPTY_VALUE } from '@/constants/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { OrderDetails } from '@/types/order';
 import { formatPercentage } from '@/utils/formatting';
@@ -14,13 +15,14 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const labelUp = t('details.up');
+  const labelDown = t('details.down');
 
-  const formattedAverageMarkup = formatPercentage(data.price.markup, 2) + ` ${t(`details.up`)}`;
-  const formattedAverageMargin = formatPercentage(data.price.margin, 2) + ` ${t(`details.down`)}`;
-  const formattedDefaultMarkup =
-    formatPercentage(data.price.defaultMarkup, 2) + ` ${t(`details.up`)}`;
+  const formattedAverageMarkup = `${formatPercentage(data.price.markup, 2) || EMPTY_VALUE} ${labelUp}`;
+  const formattedAverageMargin = `${formatPercentage(data.price.margin, 2) || EMPTY_VALUE} ${labelDown}`;
+  const formattedDefaultMarkup = `${formatPercentage(data.price.defaultMarkup, 2) || EMPTY_VALUE} ${labelUp}`;
   const defaultMargin = calculateMarginWithMarkup(data.price.defaultMarkup || 0);
-  const formattedDefaultMargin = formatPercentage(defaultMargin, 2) + ` ${t(`details.down`)}`;
+  const formattedDefaultMargin = `${formatPercentage(defaultMargin, 2) || EMPTY_VALUE} ${labelDown}`;
 
   return (
     <CardWithHeader title={t(`details.title`)}>
@@ -48,11 +50,11 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
         }}
       />
       <ListItemWithLabelAndText
-        title={t(`details.resaleLicencee`)}
+        title={t(`details.resaleLicensee`)}
         subtitle={
-          data.licencee?.eligibility?.partner === undefined
+          data.licensee?.eligibility?.partner === undefined
             ? '-'
-            : data.licencee?.eligibility?.partner
+            : data.licensee?.eligibility?.partner
               ? t(`details.yes`)
               : t(`details.no`)
         }

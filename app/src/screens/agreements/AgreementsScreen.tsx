@@ -1,9 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImage } from '@/config/list';
 import { useAgreements, AgreementsProvider } from '@/context/AgreementsContext';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const AgreementsScreenContent = () => {
@@ -18,6 +21,8 @@ const AgreementsScreenContent = () => {
   } = useAgreements();
 
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
     <StatusMessage
@@ -37,7 +42,11 @@ const AgreementsScreenContent = () => {
         hasMore={hasMoreAgreements}
         fetchNext={fetchAgreements}
         config={listItemConfigNoImage}
-        onItemPress={(item) => console.info(item.id)}
+        onItemPress={(id) => {
+          navigation.navigate('agreementDetails', {
+            id,
+          });
+        }}
       />
     </StatusMessage>
   );

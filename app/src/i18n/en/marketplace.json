@@ -15,5 +15,9 @@
   "agreementsScreen": {
     "emptyStateTitle": "No agreements",
     "emptyStateDescription": "No agreements found."
+  },
+  "agreementDetailsScreen": {
+    "emptyStateTitle": "No agreement details",
+    "emptyStateDescription": "No agreement details found."
   }
 }

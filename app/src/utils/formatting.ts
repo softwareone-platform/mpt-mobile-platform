@@ -11,8 +11,29 @@ export const formatPercentage = (
   numberToFormat?: number,
   decimals: number = DEFAULT_DECIMAL_SPACES,
 ): string => {
-  if (numberToFormat === undefined) {
+  if (numberToFormat === undefined || !numberToFormat) {
     return EMPTY_STRING;
   }
+
   return numberToFormat.toFixed(decimals) + '%';
+};
+
+export const numberFormatter = (fractionDigits: number, language: string) =>
+  new Intl.NumberFormat(language || 'en-GB', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
+
+export const formatNumber = (
+  numberToFormat: number | undefined,
+  fractionDigits: number,
+  language: string,
+): string => {
+  if (!numberToFormat || isNaN(numberToFormat)) {
+    return EMPTY_STRING;
+  }
+
+  const formattedNumber = numberFormatter(fractionDigits, language).format(numberToFormat);
+
+  return formattedNumber;
 };

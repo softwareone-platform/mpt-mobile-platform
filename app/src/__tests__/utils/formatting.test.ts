@@ -1,4 +1,9 @@
-import { formatPhoneNumber, formatPercentage } from '@/utils/formatting';
+import {
+  formatPhoneNumber,
+  formatPercentage,
+  numberFormatter,
+  formatNumber,
+} from '@/utils/formatting';
 
 const EMPTY_STRING = '';
 
@@ -62,7 +67,7 @@ describe('formatPercentage', () => {
   });
 
   it('should handle zero correctly', () => {
-    expect(formatPercentage(0)).toBe('0.00%');
+    expect(formatPercentage(0)).toBe('');
   });
 
   it('should handle negative numbers', () => {
@@ -76,5 +81,61 @@ describe('formatPercentage', () => {
 
   it('should handle very large numbers', () => {
     expect(formatPercentage(1234567.89, 2)).toBe('1234567.89%');
+  });
+});
+
+describe('numberFormatter', () => {
+  it('returns a NumberFormat instance', () => {
+    const nf = numberFormatter(2, 'en-GB');
+    expect(nf.format).toBeDefined();
+    expect(typeof nf.format).toBe('function');
+  });
+
+  it('formats number with correct fraction digits', () => {
+    const nf = numberFormatter(3, 'en-GB');
+    expect(nf.format(1.23456)).toBe('1.235'); // rounded
+  });
+
+  it('defaults language to en-GB when undefined', () => {
+    const nf = numberFormatter(2, '');
+    expect(nf.format(1234.56)).toBe('1,234.56');
+  });
+
+  it('works for other locales', () => {
+    const nf = numberFormatter(2, 'de-DE');
+    expect(nf.format(1234.56)).toBe('1.234,56');
+  });
+});
+
+describe('formatNumber', () => {
+  const language = 'en';
+
+  it('formats valid numbers correctly', () => {
+    expect(formatNumber(1234.567, 2, language)).toBe('1,234.57');
+    /**
+     * note: 0 should be treated as empty (platform behaviour)
+     */
+    expect(formatNumber(0, 2, language)).toBe('');
+  });
+
+  it('returns EMPTY_STRING for undefined', () => {
+    expect(formatNumber(undefined, 2, language)).toBe('');
+  });
+
+  it('returns EMPTY_STRING for NaN', () => {
+    expect(formatNumber(NaN, 2, language)).toBe('');
+  });
+
+  it('respects fraction digits', () => {
+    expect(formatNumber(1.234567, 0, language)).toBe('1');
+    expect(formatNumber(1.234567, 4, language)).toBe('1.2346');
+  });
+
+  it('respects different locales', () => {
+    expect(formatNumber(1234.56, 2, 'de-DE')).toBe('1.234,56');
+  });
+
+  it('handles negative numbers', () => {
+    expect(formatNumber(-1234.56, 2, language)).toBe('-1,234.56');
   });
 });
