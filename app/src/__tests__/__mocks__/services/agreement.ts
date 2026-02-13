@@ -4,7 +4,7 @@ export const mockAgreementId2 = 'AGR-234';
 
 export const mockAgreementData = {
   id: 'AGR-123',
-  name: 'Test Agremenet',
+  name: 'Test Agreement',
   status: 'Active',
 };
 
@@ -22,7 +22,7 @@ export const mockResponse1 = {
 };
 
 export const mockResponse2 = {
-  id: 'AGE-234',
+  id: 'AGR-234',
   name: 'Agreement Two',
 };
 
