@@ -1,5 +1,16 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import { mockNetworkError } from '../__mocks__/services/common';
+import {
+  mockLicenseeId1,
+  mockLicenseeId2,
+  mockLicenseeData,
+  expectedUrl1,
+  expectedUrl2,
+  mockResponse1,
+  mockResponse2,
+} from '../__mocks__/services/licensee';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useLicenseeApi } from '@/services/licenseeService';
 import type { PaginatedResponse, ListItemFull } from '@/types/api';
@@ -196,5 +207,58 @@ describe('useLicenseeApi - getLicensees', () => {
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getLicensees('ACC-0000-0001')).rejects.toThrow('Network error');
+  });
+});
+
+describe('useLicenseeApi - getLicenseeData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getLicenseeData with correct endpoint and returns data', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockLicenseeData);
+
+    await act(async () => {
+      res = await api.getLicenseeData(mockLicenseeId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl1);
+    expect(res).toEqual(mockLicenseeData);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getLicenseeData(mockLicenseeId1)).rejects.toThrow('Network error');
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockResponse1);
+    mockGet.mockResolvedValueOnce(mockResponse2);
+
+    await act(async () => {
+      res1 = await api.getLicenseeData(mockLicenseeId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getLicenseeData(mockLicenseeId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedUrl2);
+
+    expect(res1).toEqual(mockResponse1);
+    expect(res2).toEqual(mockResponse2);
   });
 });

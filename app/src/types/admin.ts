@@ -1,4 +1,4 @@
-import type { Address } from '@/types/api';
+import type { Address } from '@/types/common';
 import type { DetailsListItemValue } from '@/types/lists';
 
 export interface BuyerData {
@@ -31,5 +31,20 @@ export interface SellerData {
   };
   address: Address;
   status?: string;
+  data?: { [key: string]: unknown }[];
+}
+
+export interface LicenseeData {
+  id: string;
+  name: string;
+  icon?: string;
+  address: Address;
+  status?: string;
+  eligibility?: {
+    partner: boolean;
+  };
+  buyer: DetailsListItemValue;
+  seller: DetailsListItemValue;
+  account: DetailsListItemValue;
   data?: { [key: string]: unknown }[];
 }

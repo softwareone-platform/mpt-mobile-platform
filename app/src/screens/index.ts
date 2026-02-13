@@ -17,6 +17,7 @@ export { default as UserDetailsScreen } from './users/UserDetailsScreen';
 export { default as BuyerDetailsScreen } from './buyers/BuyerDetailsScreen';
 export { default as SellerDetailsScreen } from './sellers/SellerDetailsScreen';
 export { default as AgreementDetailsScreen } from './agreements/AgreementDetailsScreen';
+export { default as LicenseeDetailsScreen } from './licensees/LicenseeDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

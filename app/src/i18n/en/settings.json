@@ -44,9 +44,5 @@
   "userDetailsScreen": {
     "emptyStateTitle": "No user details",
     "emptyStateDescription": "No user details found."
-  },
-  "licenseesScreen": {
-    "emptyStateTitle": "No licensees",
-    "emptyStateDescription": "No licensees found."
   }
 }

@@ -31,11 +31,12 @@ export type SecondaryTabsParamList = {
 export type AppScreensParamList = {
   creditMemoDetails: { id: string };
   orderDetails: { id: string };
-  accountDetails: { id: string | undefined; type: 'client' | 'vendor' | 'operations' };
+  accountDetails: { id: string | undefined; type: 'client' | 'vendor' | 'operations' | 'account' };
   userDetails: { id: string | undefined };
   buyerDetails: { id: string | undefined };
   sellerDetails: { id: string | undefined };
   agreementDetails: { id: string | undefined };
+  licenseeDetails: { id: string | undefined };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;

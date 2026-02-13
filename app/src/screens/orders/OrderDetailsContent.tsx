@@ -17,6 +17,9 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const labelUp = t('details.up');
   const labelDown = t('details.down');
+  const labelResaleLicensee = data.licensee?.eligibility?.partner
+    ? t(`details.yes`)
+    : t(`details.no`);
 
   const formattedAverageMarkup = `${formatPercentage(data.price.markup, 2) || EMPTY_VALUE} ${labelUp}`;
   const formattedAverageMargin = `${formatPercentage(data.price.margin, 2) || EMPTY_VALUE} ${labelDown}`;
@@ -51,13 +54,7 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
       />
       <ListItemWithLabelAndText
         title={t(`details.resaleLicensee`)}
-        subtitle={
-          data.licensee?.eligibility?.partner === undefined
-            ? '-'
-            : data.licensee?.eligibility?.partner
-              ? t(`details.yes`)
-              : t(`details.no`)
-        }
+        subtitle={data.licensee?.eligibility?.partner === undefined ? '' : labelResaleLicensee}
       />
       <ListItemWithLabelAndText
         title={t(`details.averageYield`)}

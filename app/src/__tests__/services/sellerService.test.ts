@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import { mockNetworkError } from '../__mocks__/services/common';
 import {
   mockSellerId1,
   mockSellerId2,
@@ -8,7 +9,6 @@ import {
   mockSellerData,
   mockSellerResponse1,
   mockSellerResponse2,
-  mockNetworkError,
 } from '../__mocks__/services/seller';
 
 import { useSellerApi } from '@/services/sellerService';

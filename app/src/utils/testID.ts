@@ -155,6 +155,11 @@ export const TestIDs = {
   LICENSEES_ERROR_STATE: 'licensees-error-state',
   LICENSEES_EMPTY_STATE: 'licensees-empty-state',
 
+  // Licensee Details Screen
+  LICENSEE_DETAILS_LOADING_INDICATOR: 'licensee-details-loading-indicator',
+  LICENSEE_DETAILS_ERROR_STATE: 'licensee-details-error-state',
+  LICENSEE_DETAILS_EMPTY_STATE: 'licensee-details-empty-state',
+
   // Buyers Screen
   BUYERS_LOADING_INDICATOR: 'buyers-loading-indicator',
   BUYERS_ERROR_STATE: 'buyers-error-state',
