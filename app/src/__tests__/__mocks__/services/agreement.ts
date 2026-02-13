@@ -25,5 +25,3 @@ export const mockResponse2 = {
   id: 'AGR-234',
   name: 'Agreement Two',
 };
-
-export const mockNetworkError = new Error('Network error');

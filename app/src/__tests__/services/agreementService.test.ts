@@ -8,8 +8,8 @@ import {
   expectedUrl2,
   mockResponse1,
   mockResponse2,
-  mockNetworkError,
 } from '../__mocks__/services/agreement';
+import { mockNetworkError } from '../__mocks__/services/common';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useAgreementApi } from '@/services/agreementService';

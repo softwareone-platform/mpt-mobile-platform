@@ -22,6 +22,9 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const labelYear = `${data.price?.currency}/${t('details.year')}`;
   const labelUp = t('details.up');
   const labelDown = t('details.down');
+  const labelResaleLicensee = data.licensee?.eligibility?.partner
+    ? t(`details.yes`)
+    : t(`details.no`);
 
   const PPxM = `${formatNumber(data.price?.PPxM, 2, language) || EMPTY_VALUE} ${labelMonth}`;
   const PPxY = `${formatNumber(data.price?.PPxY, 2, language) || EMPTY_VALUE} ${labelYear}`;
@@ -49,13 +52,7 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
       <DetailsListItem label={t(`details.product`)} data={data.product} />
       <ListItemWithLabelAndText
         title={t(`details.resaleLicensee`)}
-        subtitle={
-          data.licensee?.eligibility?.partner === undefined
-            ? '-'
-            : data.licensee?.eligibility?.partner
-              ? t(`details.yes`)
-              : t(`details.no`)
-        }
+        subtitle={data.licensee?.eligibility?.partner === undefined ? '' : labelResaleLicensee}
       />
       <DetailsListItem
         label={t(`details.client`)}

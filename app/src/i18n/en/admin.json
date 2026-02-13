@@ -10,5 +10,13 @@
   "sellerDetailsScreen": {
     "emptyStateTitle": "No seller details",
     "emptyStateDescription": "No seller details found."
+  },
+  "licenseesScreen": {
+    "emptyStateTitle": "No licensees",
+    "emptyStateDescription": "No licensees found."
+  },
+  "licenseeDetailsScreen": {
+    "emptyStateTitle": "No licensee details",
+    "emptyStateDescription": "No licensee details found."
   }
 }

@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
+import type { LicenseeData } from '@/types/admin';
 import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 export function useLicenseeApi() {
@@ -26,10 +27,21 @@ export function useLicenseeApi() {
     [api],
   );
 
+  const getLicenseeData = useCallback(
+    async (licenseeId: string): Promise<LicenseeData> => {
+      const endpoint =
+        `/v1/accounts/licensees/${licenseeId}` +
+        `?select=audit.created.at,audit.created.by,audit.updated.at,seller,buyer.status`;
+      return api.get<LicenseeData>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getLicensees,
+      getLicenseeData,
     }),
-    [getLicensees],
+    [getLicensees, getLicenseeData],
   );
 }

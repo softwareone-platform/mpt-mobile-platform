@@ -139,14 +139,9 @@ describe('useBillingApi – getCreditMemoDetails', () => {
       id: creditMemoId,
       documentNo: 'CH-CM-160386',
       status: 'Issued',
-      postingDate: '2026-01-20T00:00:00.000Z',
-      documentDate: '2026-01-20T00:00:00.000Z',
-      buyerName: 'Siemens Canada Limited',
-      sellerName: 'SoftwareONE Switzerland',
-      sellerCountry: 'CH',
-      totalAmount: 32.43,
-      currency: 'USD',
-      audit: {},
+      price: {
+        currency: 'USD',
+      },
     };
 
     mockGet.mockResolvedValueOnce(mockResponse);

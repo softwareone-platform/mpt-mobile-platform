@@ -23,7 +23,8 @@
     "userDetails": "User",
     "buyerDetails": "Buyer",
     "sellerDetails": "Seller",
-    "agreementDetails": "Agreement"
+    "agreementDetails": "Agreement",
+    "licenseeDetails": "Licensee"
   },
   "tabGroups": {
     "administration": "Administration",
