@@ -76,19 +76,24 @@ jobs:
       # Deploy fresh app using the deploy-ios.sh script
       - name: Expo Build and Deploy iOS App
         id: expo-deploy-ios
+        env:
+          CLIENT_ID: ${{ inputs.client_id }}
+          DEVICE_NAME: ${{ inputs.device_name || 'iPhone 16' }}
+          BUILD_MODE: ${{ inputs.build_mode }}
+          SHOW_LOGS: ${{ inputs.show_logs }}
         run: |
           echo "🚀 Starting iOS Expo build and deployment using deploy-ios.sh..."
           
           # Set deployment parameters
           DEPLOY_ARGS=""
-          DEPLOY_ARGS="$DEPLOY_ARGS --client-id '${{ inputs.client_id }}'"
-          DEPLOY_ARGS="$DEPLOY_ARGS --simulator '${{ inputs.device_name || 'iPhone 16' }}'"
+          DEPLOY_ARGS="$DEPLOY_ARGS --client-id '$CLIENT_ID'"
+          DEPLOY_ARGS="$DEPLOY_ARGS --simulator '$DEVICE_NAME'"
           
-          if [ "${{ inputs.build_mode }}" = "release" ]; then
+          if [ "$BUILD_MODE" = "release" ]; then
             DEPLOY_ARGS="$DEPLOY_ARGS --release"
           fi
           
-          if [ "${{ inputs.show_logs }}" = "true" ]; then
+          if [ "$SHOW_LOGS" = "true" ]; then
             DEPLOY_ARGS="$DEPLOY_ARGS --logs"
           fi
           
@@ -98,11 +103,11 @@ jobs:
           echo "✅ iOS app built and deployed successfully with Expo"
           
           # Get the deployed simulator details for testing
-          SIMULATOR_ID=$(xcrun simctl list devices | grep "${{ inputs.device_name || 'iPhone 16' }}" | grep "Booted" | head -1 | grep -E -o '\([A-F0-9\-]+\)' | tr -d '()')
+          SIMULATOR_ID=$(xcrun simctl list devices | grep "$DEVICE_NAME" | grep "Booted" | head -1 | grep -E -o '\([A-F0-9\-]+\)' | tr -d '()')
           echo "device_udid=$SIMULATOR_ID" >> $GITHUB_OUTPUT
           echo "bundle_id=com.softwareone.marketplaceMobile" >> $GITHUB_OUTPUT
           
-          echo "📱 Deployed to simulator: ${{ inputs.device_name || 'iPhone 16' }} ($SIMULATOR_ID)"
+          echo "📱 Deployed to simulator: $DEVICE_NAME ($SIMULATOR_ID)"
           
       # Wait for app to be fully ready
       - name: Wait for App Startup

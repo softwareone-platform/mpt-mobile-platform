@@ -38,21 +38,27 @@ runs:
   steps:
     - name: Verify Required Inputs
       shell: bash
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        DOWNLOAD_URL: ${{ inputs.download_url }}
+        API_LEVEL: ${{ inputs.api_level }}
+        DEVICE_PROFILE: ${{ inputs.device_profile }}
+        ARCH: ${{ inputs.arch }}
       run: |
         echo "🔍 Verifying required inputs..."
         
-        if [ -z "${{ inputs.artifact_name }}" ] && [ -z "${{ inputs.download_url }}" ]; then
+        if [ -z "$ARTIFACT_NAME" ] && [ -z "$DOWNLOAD_URL" ]; then
           echo "❌ ERROR: Either artifact_name or download_url must be provided"
           exit 1
         fi
         
-        if [ -n "${{ inputs.artifact_name }}" ] && [ -n "${{ inputs.download_url }}" ]; then
+        if [ -n "$ARTIFACT_NAME" ] && [ -n "$DOWNLOAD_URL" ]; then
           echo "⚠️ WARNING: Both artifact_name and download_url provided, using artifact_name"
         fi
         
-        echo "✅ API Level: ${{ inputs.api_level }}"
-        echo "✅ Device Profile: ${{ inputs.device_profile }}"
-        echo "✅ Architecture: ${{ inputs.arch }}"
+        echo "✅ API Level: $API_LEVEL"
+        echo "✅ Device Profile: $DEVICE_PROFILE"
+        echo "✅ Architecture: $ARCH"
         echo "🎉 Input verification complete!"
 
     - name: Download APK from artifact
@@ -65,12 +71,14 @@ runs:
     - name: Download APK from URL
       if: inputs.download_url != '' && inputs.artifact_name == ''
       shell: bash
+      env:
+        DOWNLOAD_URL: ${{ inputs.download_url }}
       run: |
         echo "📥 Downloading APK from URL..."
-        echo "URL: ${{ inputs.download_url }}"
+        echo "URL: $DOWNLOAD_URL"
         
         mkdir -p ./downloaded-apk
-        curl -L -o ./downloaded-apk/app.apk "${{ inputs.download_url }}"
+        curl -L -o ./downloaded-apk/app.apk "$DOWNLOAD_URL"
         
         if [ ! -f "./downloaded-apk/app.apk" ]; then
           echo "❌ ERROR: Download failed"
@@ -183,26 +191,33 @@ runs:
 
     - name: Install SDK Components
       shell: bash
+      env:
+        API_LEVEL: ${{ inputs.api_level }}
+        ARCH: ${{ inputs.arch }}
       run: |
-        echo "📦 Installing SDK components for API ${{ inputs.api_level }}..."
+        echo "📦 Installing SDK components for API $API_LEVEL..."
         
         SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
         
         # Install required components
-        $SDKMANAGER "system-images;android-${{ inputs.api_level }};google_apis;${{ inputs.arch }}" --verbose
+        $SDKMANAGER "system-images;android-${API_LEVEL};google_apis;${ARCH}" --verbose
         $SDKMANAGER "emulator" --verbose
         $SDKMANAGER "platform-tools" --verbose
-        $SDKMANAGER "platforms;android-${{ inputs.api_level }}" --verbose
+        $SDKMANAGER "platforms;android-${API_LEVEL}" --verbose
         
         echo "✅ SDK components installed"
 
     - name: Create Android Virtual Device
       id: create-avd
       shell: bash
+      env:
+        API_LEVEL: ${{ inputs.api_level }}
+        ARCH: ${{ inputs.arch }}
+        DEVICE_PROFILE: ${{ inputs.device_profile }}
       run: |
         echo "📱 Creating Android Virtual Device..."
         
-        AVD_NAME="test_avd_${{ inputs.api_level }}"
+        AVD_NAME="test_avd_${API_LEVEL}"
         AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
         
         # Set up Android SDK home directories
@@ -226,8 +241,8 @@ runs:
         # Create AVD
         echo "no" | $AVDMANAGER create avd \
           --name "$AVD_NAME" \
-          --package "system-images;android-${{ inputs.api_level }};google_apis;${{ inputs.arch }}" \
-          --device "${{ inputs.device_profile }}" \
+          --package "system-images;android-${API_LEVEL};google_apis;${ARCH}" \
+          --device "$DEVICE_PROFILE" \
           --force
         
         # Verify AVD was created in expected location
@@ -571,13 +586,19 @@ runs:
 
     - name: Installation Summary
       shell: bash
+      env:
+        API_LEVEL: ${{ inputs.api_level }}
+        DEVICE_PROFILE: ${{ inputs.device_profile }}
+        DEVICE_SERIAL: ${{ steps.boot-emulator.outputs.device_serial }}
+        AVD_NAME: ${{ steps.create-avd.outputs.avd_name }}
+        PACKAGE_NAME: ${{ steps.verify-apk.outputs.package_name }}
       run: |
         echo "## 📱 Android Install Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Device Serial:** ${{ steps.boot-emulator.outputs.device_serial }}" >> $GITHUB_STEP_SUMMARY
-        echo "**AVD Name:** ${{ steps.create-avd.outputs.avd_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "**API Level:** ${{ inputs.api_level }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Device Profile:** ${{ inputs.device_profile }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Package Name:** ${{ steps.verify-apk.outputs.package_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Device Serial:** $DEVICE_SERIAL" >> $GITHUB_STEP_SUMMARY
+        echo "**AVD Name:** $AVD_NAME" >> $GITHUB_STEP_SUMMARY
+        echo "**API Level:** $API_LEVEL" >> $GITHUB_STEP_SUMMARY
+        echo "**Device Profile:** $DEVICE_PROFILE" >> $GITHUB_STEP_SUMMARY
+        echo "**Package Name:** $PACKAGE_NAME" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "✅ **Status:** App installed and ready for testing" >> $GITHUB_STEP_SUMMARY
