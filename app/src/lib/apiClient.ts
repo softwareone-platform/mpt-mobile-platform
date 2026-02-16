@@ -6,14 +6,17 @@ import { configService } from '@/config/env.config';
 import { appInsightsService } from '@/services/appInsightsService';
 import { createApiError } from '@/utils/apiError';
 
-const BASE_URL = configService.get('AUTH0_API_URL');
-
 const apiClient: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: configService.get('AUTH0_API_URL'),
   headers: {
     Accept: 'application/json',
   },
 });
+
+export function updateApiClientBaseURL(): void {
+  const newBaseURL = configService.get('AUTH0_API_URL');
+  apiClient.defaults.baseURL = newBaseURL;
+}
 
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig & { noAuth?: boolean }) => {
