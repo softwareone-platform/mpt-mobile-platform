@@ -24,7 +24,8 @@
     "buyerDetails": "Buyer",
     "sellerDetails": "Seller",
     "agreementDetails": "Agreement",
-    "licenseeDetails": "Licensee"
+    "licenseeDetails": "Licensee",
+    "subscriptionDetails": "Subscription"
   },
   "tabGroups": {
     "administration": "Administration",

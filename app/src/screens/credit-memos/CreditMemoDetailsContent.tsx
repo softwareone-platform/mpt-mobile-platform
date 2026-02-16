@@ -35,7 +35,7 @@ const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
           });
         }}
       />
-      <DetailsListItem label={t(`details.licensee`)} data={data.licensee} />
+      <DetailsListItem label={t(`details.licencee`)} data={data.licensee} />
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
