@@ -6,12 +6,12 @@ jest.mock('@/config/reviewers.config');
 jest.mock('@/services/appInsightsService');
 
 // Import after mocks are defined
-import { environmentSwitcherService } from '@/services/environmentSwitcherService';
 import { configService } from '@/config/env.config';
-import authService from '@/services/authService';
+import { isReviewerEmail } from '@/config/reviewers.config';
 import { updateApiClientBaseURL } from '@/lib/apiClient';
-import { isReviewerEmail, REVIEW_ENVIRONMENT } from '@/config/reviewers.config';
 import { appInsightsService } from '@/services/appInsightsService';
+import authService from '@/services/authService';
+import { environmentSwitcherService } from '@/services/environmentSwitcherService';
 
 // Get mock references
 const mockConfigServiceGet = configService.get as jest.Mock;
@@ -25,7 +25,7 @@ const mockTrackException = appInsightsService.trackException as jest.Mock;
 describe('EnvironmentSwitcherService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    
+
     // Setup mocks first
     mockConfigServiceGet.mockImplementation((key: string) => {
       const config: Record<string, string> = {
@@ -37,7 +37,7 @@ describe('EnvironmentSwitcherService', () => {
       return config[key];
     });
     mockAuthServiceReinitialize.mockResolvedValue(undefined);
-    
+
     // Reset the service state before each test
     await environmentSwitcherService.reset();
   });
@@ -81,14 +81,15 @@ describe('EnvironmentSwitcherService', () => {
     it('should not switch when already in correct environment', async () => {
       mockIsReviewerEmail.mockReturnValue(false);
       const result = await environmentSwitcherService.switchEnvironmentForEmail('user@example.com');
-      
+
       expect(result).toBe('default');
       expect(mockConfigServiceUpdate).not.toHaveBeenCalled();
     });
 
     it('should switch to review environment for reviewer email', async () => {
       mockIsReviewerEmail.mockReturnValue(true);
-      const result = await environmentSwitcherService.switchEnvironmentForEmail('reviewer@apple.com');
+      const result =
+        await environmentSwitcherService.switchEnvironmentForEmail('reviewer@apple.com');
 
       expect(result).toBe('review');
       expect(mockConfigServiceUpdate).toHaveBeenCalledWith({
