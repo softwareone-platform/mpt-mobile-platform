@@ -13,6 +13,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  copilot-review:
+    name: Request Copilot Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Request GitHub Copilot review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                reviewers: ['copilot-pull-request-reviewer']
+              });
+              core.info('Successfully requested Copilot review');
+            } catch (error) {
+              core.warning(`Could not request Copilot review: ${error.message}`);
+            }
+
   validate:
     name: Validate PR
     uses: ./.github/workflows/reusable-build-test.yml
