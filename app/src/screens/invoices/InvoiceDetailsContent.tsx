@@ -19,7 +19,7 @@ const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
 
   const totalSP = formatNumber(data.price.totalSP, 2, language) || EMPTY_VALUE;
   const totalGT = formatNumber(data.price.totalGT, 2, language) || EMPTY_VALUE;
-  const dueDate = formatDateForLocale(data?.erpData?.dueDate, language);
+  const dueDate = formatDateForLocale(data.attributes?.dueDate, language);
 
   return (
     <CardWithHeader title={t(`details.title`)}>
@@ -79,7 +79,10 @@ const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
         title={t(`details.gt`)}
         subtitle={`${data.price.currency} ${totalGT}`}
       />
-      <ListItemWithLabelAndText title={t(`details.salesOrderId`)} subtitle={data.price.currency} />
+      <ListItemWithLabelAndText
+        title={t(`details.salesOrderId`)}
+        subtitle={data.attributes?.orderNo}
+      />
       <ListItemWithLabelAndText title={t(`details.dueDate`)} subtitle={dueDate} isLast={true} />
     </CardWithHeader>
   );

@@ -9,7 +9,7 @@ export const useInvoiceDetailsData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
 ) => {
-  const { getInvoiceDetails } = useBillingApi();
+  const { getInvoiceData } = useBillingApi();
 
   const query = useQuery<InvoiceDetails, Error>({
     queryKey: ['invoiceDetails', invoiceId, userId, currentAccountId],
@@ -17,7 +17,7 @@ export const useInvoiceDetailsData = (
       if (!invoiceId) {
         throw new Error('Invoice ID is required');
       }
-      return getInvoiceDetails(invoiceId);
+      return getInvoiceData(invoiceId);
     },
     enabled: !!invoiceId && !!userId && !!currentAccountId,
   });

@@ -40,8 +40,9 @@ export interface InvoiceDetails extends BaseObjectDetails {
       name: string;
     };
   };
-  erpData?: {
-    dueDate?: string;
+  attributes?: {
+    dueDate: string;
+    orderNo: string;
   };
 }
 

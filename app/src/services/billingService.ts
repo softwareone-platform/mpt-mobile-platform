@@ -61,7 +61,7 @@ export function useBillingApi() {
     [api],
   );
 
-  const getInvoiceDetails = useCallback(
+  const getInvoiceData = useCallback(
     async (invoiceId: string): Promise<InvoiceDetails> => {
       const endpoint =
         `/v1/billing/invoices/${invoiceId}` +
@@ -95,9 +95,9 @@ export function useBillingApi() {
       getCreditMemos,
       getCreditMemoDetails,
       getInvoices,
-      getInvoiceDetails,
+      getInvoiceData,
       getStatements,
     }),
-    [getCreditMemos, getCreditMemoDetails, getInvoices, getInvoiceDetails, getStatements],
+    [getCreditMemos, getCreditMemoDetails, getInvoiceData, getStatements],
   );
 }
