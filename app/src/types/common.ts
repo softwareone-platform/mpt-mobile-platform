@@ -30,7 +30,9 @@ export interface Address {
 
 export interface Price {
   currency: string;
+  totalPP?: number;
   totalSP?: number;
+  totalST?: number;
   totalGT?: number;
   markup?: number;
   margin?: number;

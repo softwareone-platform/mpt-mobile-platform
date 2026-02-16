@@ -31,6 +31,20 @@ export interface Invoice {
   };
 }
 
+export interface InvoiceDetails extends BaseObjectDetails {
+  documentNo: string;
+  statement?: {
+    id: string;
+    customLedger: {
+      id: string;
+      name: string;
+    };
+  };
+  erpData?: {
+    dueDate?: string;
+  };
+}
+
 export interface Statement {
   id: string;
   status: string;
