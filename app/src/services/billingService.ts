@@ -98,6 +98,6 @@ export function useBillingApi() {
       getInvoiceData,
       getStatements,
     }),
-    [getCreditMemos, getCreditMemoDetails, getInvoiceData, getStatements],
+    [getCreditMemos, getCreditMemoDetails, getInvoices, getInvoiceData, getStatements],
   );
 }
