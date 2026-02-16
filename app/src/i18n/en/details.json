@@ -4,6 +4,7 @@
     "client": "Client",
     "baseCurrency": "Base currency",
     "billingCurrency": "Billing currency",
+    "billingModel": "Billing model",
     "buyer": "Buyer",
     "licensee": "Licensee",
     "vendor": "Vendor",
@@ -44,10 +45,28 @@
     "month": "month",
     "phoneNumber": "Phone number",
     "ppx": "PPx",
+    "renewalDate": "Renewal date",
     "taxNumber": "Tax number",
+    "terms": "Terms",
     "scuIdentifier": "SCU identifier",
     "spx": "SPx",
     "year": "year",
-    "yes": "Yes"
+    "yes": "Yes",
+    "model": {
+      "one-time": "One-time",
+      "usage": "Usage",
+      "quantity": "Quantity"
+    },
+    "period": {
+      "1m": "Monthly billing",
+      "1y": "Annual billing",
+      "3y": "Annual billing",
+      "one-time": "One-time"
+    },
+    "commitment": {
+      "1m": "1 month commitment",
+      "1y": "1 years commitment",
+      "3y": "3 year commitment"
+    }
   }
 }
