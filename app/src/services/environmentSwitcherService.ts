@@ -31,7 +31,7 @@ class EnvironmentSwitcherService {
     const targetEnvironment = this.getEnvironmentForEmail(email);
 
     if (this.currentEnvironment === targetEnvironment) {
-      return targetEnvironment;
+      return this.currentEnvironment;
     }
 
     if (targetEnvironment === 'review') {
@@ -40,19 +40,17 @@ class EnvironmentSwitcherService {
       await this.switchToDefault();
     }
 
-    return targetEnvironment;
+    return this.currentEnvironment;
   }
 
   private async switchToReview(): Promise<void> {
     try {
-      if (!this.originalConfig) {
-        this.originalConfig = {
-          AUTH0_DOMAIN: configService.get('AUTH0_DOMAIN'),
-          AUTH0_CLIENT_ID: configService.get('AUTH0_CLIENT_ID'),
-          AUTH0_AUDIENCE: configService.get('AUTH0_AUDIENCE'),
-          AUTH0_API_URL: configService.get('AUTH0_API_URL'),
-        };
-      }
+      this.originalConfig ??= {
+        AUTH0_DOMAIN: configService.get('AUTH0_DOMAIN'),
+        AUTH0_CLIENT_ID: configService.get('AUTH0_CLIENT_ID'),
+        AUTH0_AUDIENCE: configService.get('AUTH0_AUDIENCE'),
+        AUTH0_API_URL: configService.get('AUTH0_API_URL'),
+      };
 
       configService.update({
         AUTH0_DOMAIN: REVIEW_ENVIRONMENT.AUTH0_DOMAIN,

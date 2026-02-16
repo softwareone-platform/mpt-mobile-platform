@@ -41,16 +41,12 @@ interface JWTPayload {
 
 class AuthenticationService {
   private auth0: Auth0;
-  private domain: string;
-  private clientId: string;
-  private audience?: string;
-  private scope: string;
+  private domain: string = '';
+  private clientId: string = '';
+  private audience?: string = '';
+  private scope: string = '';
 
   constructor() {
-    this.domain = '';
-    this.clientId = '';
-    this.audience = '';
-    this.scope = '';
     this.auth0 = this.createAuth0Instance();
   }
 
