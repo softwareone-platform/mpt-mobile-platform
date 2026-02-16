@@ -1,6 +1,6 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useSubscriptionApi } from '@/services/subscriptionService';
-import type { Subscription } from '@/types/subscription';
+import type { ListItemNoImage } from '@/types/api';
 
 export const useSubscriptionsData = (
   userId: string | undefined,
@@ -8,7 +8,7 @@ export const useSubscriptionsData = (
 ) => {
   const { getSubscriptions } = useSubscriptionApi();
 
-  return usePaginatedQuery<Subscription>({
+  return usePaginatedQuery<ListItemNoImage>({
     queryKey: ['subscriptions', userId, currentAccountId],
     queryFn: getSubscriptions,
     enabled: !!userId && !!currentAccountId,

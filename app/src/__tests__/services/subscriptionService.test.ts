@@ -13,8 +13,7 @@ import {
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useSubscriptionApi } from '@/services/subscriptionService';
-import type { PaginatedResponse } from '@/types/api';
-import type { Subscription } from '@/types/subscription';
+import type { PaginatedResponse, ListItemNoImage } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -33,7 +32,7 @@ describe('useSubscriptionApi', () => {
 
   it('calls getSubscriptions with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Subscription> = {
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -53,7 +52,7 @@ describe('useSubscriptionApi', () => {
 
     const expectedUrl =
       `/v1/commerce/subscriptions` +
-      `?select=agreement,agreement.listing.priceList,audit.created,audit.updated,seller.address` +
+      `?select=-*,id,name,status` +
       `&filter(group.buyers)` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -64,7 +63,7 @@ describe('useSubscriptionApi', () => {
 
   it('calls getSubscriptions with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Subscription> = {
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -84,7 +83,7 @@ describe('useSubscriptionApi', () => {
 
     const expectedUrl =
       `/v1/commerce/subscriptions` +
-      `?select=agreement,agreement.listing.priceList,audit.created,audit.updated,seller.address` +
+      `?select=-*,id,name,status` +
       `&filter(group.buyers)` +
       `&offset=50` +
       `&limit=25`;
@@ -96,55 +95,43 @@ describe('useSubscriptionApi', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Subscription> = {
+    const mockResponse1: PaginatedResponse<ListItemNoImage> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
           id: 'SUB-0001',
           name: 'Premium Plan',
           status: 'Active',
-          audit: {
-            created: { at: '2026-01-15T10:00:00.000Z' },
-          },
-        } as Subscription,
+        },
         {
           id: 'SUB-0002',
           name: 'Basic Plan',
           status: 'Active',
-          audit: {
-            created: { at: '2026-01-14T10:00:00.000Z' },
-          },
-        } as Subscription,
+        },
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Subscription> = {
+    const mockResponse2: PaginatedResponse<ListItemNoImage> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
           id: 'SUB-0003',
           name: 'Enterprise Plan',
           status: 'Terminated',
-          audit: {
-            created: { at: '2026-01-13T10:00:00.000Z' },
-          },
-        } as Subscription,
+        },
         {
           id: 'SUB-0004',
           name: 'Starter Plan',
           status: 'Suspended',
-          audit: {
-            created: { at: '2026-01-12T10:00:00.000Z' },
-          },
-        } as Subscription,
+        },
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Subscription> | undefined;
-    let res2: PaginatedResponse<Subscription> | undefined;
+    let res1: PaginatedResponse<ListItemNoImage> | undefined;
+    let res2: PaginatedResponse<ListItemNoImage> | undefined;
 
     await act(async () => {
       res1 = await api.getSubscriptions(0, 2);
@@ -167,30 +154,13 @@ describe('useSubscriptionApi', () => {
 
   it('returns correct subscription data structure', async () => {
     const api = setup();
-    const mockSubscription: Subscription = {
+    const mockSubscription: ListItemNoImage = {
       id: 'SUB-1234',
       name: 'Premium Subscription',
       status: 'Active',
-      agreement: {
-        id: 'AGR-001',
-        listing: {
-          priceList: { currency: 'USD' },
-        },
-      },
-      seller: {
-        address: { country: 'US' },
-      },
-      audit: {
-        created: {
-          at: '2026-01-01T10:00:00.000Z',
-        },
-        updated: {
-          at: '2026-01-15T14:30:00.000Z',
-        },
-      },
     };
 
-    const mockResponse: PaginatedResponse<Subscription> = {
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
         pagination: {
           offset: 0,
