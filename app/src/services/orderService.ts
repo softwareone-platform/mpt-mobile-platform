@@ -15,7 +15,7 @@ export function useOrderApi() {
     ): Promise<PaginatedResponse<Order>> => {
       const endpoint =
         `/v1/commerce/orders` +
-        `?select=audit` +
+        `?select=-*,id,status` +
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}` +

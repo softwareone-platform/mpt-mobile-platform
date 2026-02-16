@@ -42,7 +42,7 @@ describe('useOrderApi', () => {
 
     const expectedUrl =
       `/v1/commerce/orders` +
-      `?select=audit` +
+      `?select=-*,id,status` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=${DEFAULT_OFFSET}` +
@@ -74,7 +74,7 @@ describe('useOrderApi', () => {
 
     const expectedUrl =
       `/v1/commerce/orders` +
-      `?select=audit` +
+      `?select=-*,id,status` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=50` +
