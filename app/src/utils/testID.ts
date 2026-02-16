@@ -130,6 +130,11 @@ export const TestIDs = {
   SUBSCRIPTIONS_ERROR_STATE: 'subscriptions-error-state',
   SUBSCRIPTIONS_EMPTY_STATE: 'subscriptions-empty-state',
 
+  // Subscription Details Screen
+  SUBSCRIPTION_DETAILS_LOADING_INDICATOR: 'subscription-details-loading-indicator',
+  SUBSCRIPTION_DETAILS_ERROR_STATE: 'subscription-details-error-state',
+  SUBSCRIPTION_DETAILS_EMPTY_STATE: 'subscription-details-empty-state',
+
   // Invoices Screen
   INVOICES_LOADING_INDICATOR: 'invoices-loading-indicator',
   INVOICES_ERROR_STATE: 'invoices-error-state',

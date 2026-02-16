@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse } from '@/types/api';
-import type { Subscription } from '@/types/subscription';
+import type { Subscription, SubscriptionData } from '@/types/subscription';
 
 export function useSubscriptionApi() {
   const api = useApi();
@@ -25,10 +25,24 @@ export function useSubscriptionApi() {
     [api],
   );
 
+  const getSubscriptionData = useCallback(
+    async (subscriptionId: string): Promise<SubscriptionData> => {
+      const endpoint =
+        `/v1/commerce/subscriptions/${subscriptionId}` +
+        `?select=-agreement.subscriptions,-agreement.parameters,-agreement.lines,agreement,` +
+        `lines,lines.item.terms,lines.item.unit,lines.item.quantityNotApplicable,` +
+        `agreement.listing.priceList,licensee,buyer,seller,audit,split.allocations,` +
+        `product.settings.splitBilling,product.settings.subscriptionCessation`;
+      return api.get<SubscriptionData>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getSubscriptions,
+      getSubscriptionData,
     }),
-    [getSubscriptions],
+    [getSubscriptions, getSubscriptionData],
   );
 }
