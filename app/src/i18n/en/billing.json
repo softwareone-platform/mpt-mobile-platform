@@ -12,6 +12,10 @@
     "emptyStateTitle": "No invoices",
     "emptyStateDescription": "No invoices found."
   },
+  "invoiceDetailsScreen": {
+    "emptyStateTitle": "No invoice details",
+    "emptyStateDescription": "No invoice details found."
+  },
   "statementsScreen": {
     "emptyStateTitle": "No statements",
     "emptyStateDescription": "No statements found."

@@ -38,7 +38,7 @@ export const formatNumber = (
   return formattedNumber;
 };
 
-export const formatDateForLocale = (isoDate: string, locale: string) => {
+export const formatDateForLocale = (isoDate: string | undefined, locale: string) => {
   if (!isoDate) {
     return EMPTY_STRING;
   }

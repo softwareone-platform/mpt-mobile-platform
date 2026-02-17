@@ -19,6 +19,7 @@ export { default as SellerDetailsScreen } from './sellers/SellerDetailsScreen';
 export { default as AgreementDetailsScreen } from './agreements/AgreementDetailsScreen';
 export { default as LicenseeDetailsScreen } from './licensees/LicenseeDetailsScreen';
 export { default as SubscriptionDetailsScreen } from './subscriptions/SubscriptionDetailsScreen';
+export { default as InvoiceDetailsScreen } from './invoices/InvoiceDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';
