@@ -1,9 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useStatements, StatementsProvider } from '@/context/StatementsContext';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const StatementsScreenContent = () => {
@@ -18,6 +21,8 @@ const StatementsScreenContent = () => {
   } = useStatements();
 
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
     <StatusMessage
@@ -37,7 +42,11 @@ const StatementsScreenContent = () => {
         hasMore={hasMoreStatements}
         fetchNext={fetchStatements}
         config={listItemConfigNoImageNoSubtitle}
-        onItemPress={(item) => console.info(item.id)}
+        onItemPress={(id) => {
+          navigation.navigate('statementDetails', {
+            id,
+          });
+        }}
       />
     </StatusMessage>
   );

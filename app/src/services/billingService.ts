@@ -9,6 +9,7 @@ import type {
   Invoice,
   InvoiceDetails,
   Statement,
+  StatementDetails,
 } from '@/types/billing';
 
 export function useBillingApi() {
@@ -90,6 +91,15 @@ export function useBillingApi() {
     [api],
   );
 
+  const getStatementData = useCallback(
+    async (statementId: string): Promise<StatementDetails> => {
+      const endpoint = `/v1/billing/statements/${statementId}?select=seller.address.country,audit,ledger.owner`;
+
+      return api.get<StatementDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getCreditMemos,
@@ -97,7 +107,15 @@ export function useBillingApi() {
       getInvoices,
       getInvoiceData,
       getStatements,
+      getStatementData,
     }),
-    [getCreditMemos, getCreditMemoDetails, getInvoices, getInvoiceData, getStatements],
+    [
+      getCreditMemos,
+      getCreditMemoDetails,
+      getInvoices,
+      getInvoiceData,
+      getStatements,
+      getStatementData,
+    ],
   );
 }

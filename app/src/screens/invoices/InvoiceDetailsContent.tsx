@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import CommonBillingDetailsSection from '../billing/CommonBillingDetailsSection';
@@ -7,12 +9,15 @@ import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
 import type { InvoiceDetails } from '@/types/billing';
+import type { RootStackParamList } from '@/types/navigation';
 import { formatDateForLocale, formatNumber } from '@/utils/formatting';
 
 const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
   const { t, i18n } = useTranslation();
 
   const language = i18n.language;
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const totalSP = formatNumber(data.price.totalSP, 2, language) || EMPTY_VALUE;
   const totalGT = formatNumber(data.price.totalGT, 2, language) || EMPTY_VALUE;
@@ -22,12 +27,22 @@ const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
     <CardWithHeader title={t(`details.title`)}>
       <CommonBillingDetailsSection data={data} />
 
+      <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
       <ListItemWithLabelAndText
         title={t(`details.source`)}
         subtitle={data.statement?.customLedger?.name}
       />
       <ListItemWithLabelAndText title={t(`details.documentId`)} subtitle={data.documentNo} />
       <DetailsListItem label={t(`details.statement`)} data={data.statement} hideImage={true} />
+      <DetailsListItem
+        label={t(`details.owner`)}
+        data={data.statement?.ledger?.owner}
+        onPress={() => {
+          navigation.navigate('sellerDetails', {
+            id: data.statement?.ledger?.owner?.id,
+          });
+        }}
+      />
       <ListItemWithLabelAndText
         title={t(`details.sp`)}
         subtitle={`${data.price.currency} ${totalSP}`}

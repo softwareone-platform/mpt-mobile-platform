@@ -14,6 +14,7 @@ const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
     <CardWithHeader title={t(`details.title`)}>
       <CommonBillingDetailsSection data={data} />
 
+      <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
       <ListItemWithLabelAndText title={t(`details.documentId`)} subtitle={data.documentNo} />
       <ListItemWithLabelAndText
         title={t(`details.sp`)}

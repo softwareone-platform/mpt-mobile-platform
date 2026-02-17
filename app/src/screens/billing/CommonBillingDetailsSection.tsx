@@ -3,11 +3,10 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import DetailsListItem from '@/components/list-item/DetailsListItem';
-import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
-import type { CreditMemoDetails, InvoiceDetails } from '@/types/billing';
+import type { CommonBillingDetails } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 
-const CommonBillingDetailsSection = ({ data }: { data: CreditMemoDetails | InvoiceDetails }) => {
+const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -55,7 +54,6 @@ const CommonBillingDetailsSection = ({ data }: { data: CreditMemoDetails | Invoi
           });
         }}
       />
-      <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
     </>
   );
 };

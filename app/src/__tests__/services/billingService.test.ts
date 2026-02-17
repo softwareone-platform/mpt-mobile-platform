@@ -10,6 +10,15 @@ import {
   mockResponse1,
   mockResponse2,
 } from '../__mocks__/services/invoice';
+import {
+  mockStatementId1,
+  mockStatementId2,
+  mockStatementData,
+  expectedStatementUrl1,
+  expectedStatementUrl2,
+  mockStatementResponse1,
+  mockStatementResponse2,
+} from '../__mocks__/services/statement';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useBillingApi } from '@/services/billingService';
@@ -237,5 +246,58 @@ describe('useBillingApi - getInvoiceData', () => {
 
     expect(res1).toEqual(mockResponse1);
     expect(res2).toEqual(mockResponse2);
+  });
+});
+
+describe('useBillingApi - getStatementData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getStatementData with correct endpoint and returns data', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockStatementData);
+
+    await act(async () => {
+      res = await api.getStatementData(mockStatementId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedStatementUrl1);
+    expect(res).toEqual(mockStatementData);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getStatementData(mockStatementId1)).rejects.toThrow('Network error');
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockStatementResponse1);
+    mockGet.mockResolvedValueOnce(mockStatementResponse2);
+
+    await act(async () => {
+      res1 = await api.getStatementData(mockStatementId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getStatementData(mockStatementId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedStatementUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedStatementUrl2);
+
+    expect(res1).toEqual(mockStatementResponse1);
+    expect(res2).toEqual(mockStatementResponse2);
   });
 });

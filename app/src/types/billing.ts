@@ -1,4 +1,5 @@
-import { BaseObjectDetails } from '@/types/common';
+import { CommonBillingDetails, Price, Audit } from '@/types/common';
+import type { DetailsListItemValue } from '@/types/lists';
 
 export interface CreditMemo {
   id: string;
@@ -12,8 +13,9 @@ export interface CreditMemo {
   audit?: Record<string, unknown>;
 }
 
-export interface CreditMemoDetails extends BaseObjectDetails {
+export interface CreditMemoDetails extends CommonBillingDetails {
   documentNo: string;
+  price: Price;
 }
 
 export interface Invoice {
@@ -31,7 +33,7 @@ export interface Invoice {
   };
 }
 
-export interface InvoiceDetails extends BaseObjectDetails {
+export interface InvoiceDetails extends CommonBillingDetails {
   documentNo: string;
   statement?: {
     id: string;
@@ -39,11 +41,16 @@ export interface InvoiceDetails extends BaseObjectDetails {
       id: string;
       name: string;
     };
+    ledger?: {
+      id: string;
+      owner?: DetailsListItemValue;
+    };
   };
   attributes?: {
     dueDate: string;
     orderNo: string;
   };
+  price: Price;
 }
 
 export interface Statement {
@@ -58,4 +65,24 @@ export interface Statement {
       at?: string;
     };
   };
+}
+
+export interface StatementDetails extends CommonBillingDetails {
+  type: 'Debit' | 'Credit';
+  ledger?: {
+    id: string;
+    owner?: DetailsListItemValue;
+  };
+  price: {
+    currency: {
+      purchase: string;
+      sale: string;
+      rate: number;
+    };
+    markup: number;
+    margin: number;
+    totalPP: number;
+    totalSP: number;
+  };
+  audit: Audit;
 }

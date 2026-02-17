@@ -64,18 +64,18 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 
 ## File Naming Conventions
 
-| Category | Convention | Examples |
-|----------|------------|----------|
-| **Components** | PascalCase with `.tsx` extension | `AuthButton.tsx`, `OTPInput.tsx`, `UserProfile.tsx` |
-| **Services** | camelCase with `Service` suffix | `authService.ts`, `billingService.ts`, `accountService.ts` |
-| **Hooks** | camelCase with `use` prefix | `useApi.ts`, `useAuth.ts`, `useUserData.ts` |
-| **Context** | PascalCase with `Context` suffix | `AuthContext.tsx`, `NavigationContext.tsx` |
-| **Types** | camelCase (lowercase) | `navigation.ts`, `api.ts`, `auth.ts` |
-| **Utils** | camelCase | `validation.ts`, `apiError.ts`, `image.ts` |
-| **Constants** | camelCase | `auth.ts`, `api.ts`, `icons.ts` |
-| **Tests** | Same name with `.test.ts(x)` suffix | `validation.test.ts`, `OTPInput.test.tsx` |
-| **Styles** | camelCase | `button.ts`, `authLayout.ts`, `otpInput.ts` |
-| **Config** | kebab-case | `feature-flags.json`, `env.config.ts` |
+| Category       | Convention                          | Examples                                                   |
+| -------------- | ----------------------------------- | ---------------------------------------------------------- |
+| **Components** | PascalCase with `.tsx` extension    | `AuthButton.tsx`, `OTPInput.tsx`, `UserProfile.tsx`        |
+| **Services**   | camelCase with `Service` suffix     | `authService.ts`, `billingService.ts`, `accountService.ts` |
+| **Hooks**      | camelCase with `use` prefix         | `useApi.ts`, `useAuth.ts`, `useUserData.ts`                |
+| **Context**    | PascalCase with `Context` suffix    | `AuthContext.tsx`, `NavigationContext.tsx`                 |
+| **Types**      | camelCase (lowercase)               | `navigation.ts`, `api.ts`, `auth.ts`                       |
+| **Utils**      | camelCase                           | `validation.ts`, `apiError.ts`, `image.ts`                 |
+| **Constants**  | camelCase                           | `auth.ts`, `api.ts`, `icons.ts`                            |
+| **Tests**      | Same name with `.test.ts(x)` suffix | `validation.test.ts`, `OTPInput.test.tsx`                  |
+| **Styles**     | camelCase                           | `button.ts`, `authLayout.ts`, `otpInput.ts`                |
+| **Config**     | kebab-case                          | `feature-flags.json`, `env.config.ts`                      |
 
 ---
 
@@ -85,23 +85,24 @@ Imports must follow this specific order with newlines between groups:
 
 ```typescript
 // 1. React/React Native core
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 // 2. Third-party libraries (alphabetized)
-import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
+import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 // 3. Internal imports using @ path aliases (alphabetized)
-import { AuthButton } from '@/components/auth';
-import { useAuth } from '@/context/AuthContext';
-import { screenStyle, linkStyle } from '@/styles';
-import { Color } from '@/styles/tokens';
-import type { AuthStackParamList } from '@/types/navigation';
-import { TestIDs } from '@/utils/testID';
+import { AuthButton } from "@/components/auth";
+import { useAuth } from "@/context/AuthContext";
+import { screenStyle, linkStyle } from "@/styles";
+import { Color } from "@/styles/tokens";
+import type { AuthStackParamList } from "@/types/navigation";
+import { TestIDs } from "@/utils/testID";
 ```
 
 **Rules:**
+
 - Newlines between import groups
 - Alphabetical ordering within each group (case-insensitive)
 - No duplicate imports
@@ -112,6 +113,7 @@ import { TestIDs } from '@/utils/testID';
 ## Export Patterns
 
 ### Default Exports
+
 Use for components and services:
 
 ```typescript
@@ -125,6 +127,7 @@ export default new AuthenticationService();
 ```
 
 ### Named Exports
+
 Use for hooks, types, and utilities:
 
 ```typescript
@@ -134,18 +137,19 @@ export const validateEmail = (email: string): boolean => { ... };
 ```
 
 ### Barrel Files (index.ts)
+
 Use for grouped re-exports:
 
 ```typescript
 // Components barrel file
-export { default as AuthButton } from './AuthButton';
-export { default as AuthInput } from './AuthInput';
-export { default as OTPInput } from './OTPInput';
+export { default as AuthButton } from "./AuthButton";
+export { default as AuthInput } from "./AuthInput";
+export { default as OTPInput } from "./OTPInput";
 
 // Constants barrel file
-export { AUTH_CONSTANTS } from './auth';
-export * from './api';
-export * from './links';
+export { AUTH_CONSTANTS } from "./auth";
+export * from "./api";
+export * from "./links";
 ```
 
 ---
@@ -187,23 +191,23 @@ const AuthButton: React.FC<AuthButtonProps> = ({
 }) => {
   // 4a. Hooks (useTranslation, useAuth, useNavigation, etc.)
   const { t } = useTranslation();
-  
+
   // 4b. State declarations
   const [focused, setFocused] = useState(false);
-  
+
   // 4c. Effects
   useEffect(() => {
     // Effect logic
   }, []);
-  
+
   // 4d. Handlers/callbacks
   const handlePress = useCallback(() => {
     onPress();
   }, [onPress]);
-  
+
   // 4e. Computed values
   const buttonStyles = variant === 'primary' ? styles.button : styles.secondaryButton;
-  
+
   // 4f. Render
   return (
     <TouchableOpacity testID={testID} style={buttonStyles} onPress={handlePress}>
@@ -242,6 +246,7 @@ export default AuthButton;
 ### Interface vs Type
 
 **Use `interface` for:**
+
 - Object shapes
 - Props definitions
 - API responses
@@ -269,24 +274,39 @@ interface AuthContextValue {
 ```
 
 **Use `type` for:**
+
 - Unions
 - Primitives
 - Simple type aliases
 
 ```typescript
-type AuthState = 'loading' | 'unauthenticated' | 'authenticated';
-type TestIDSuffix = 'button' | 'input' | 'text' | 'label';
+type AuthState = "loading" | "unauthenticated" | "authenticated";
+type TestIDSuffix = "button" | "input" | "text" | "label";
 type UserId = string;
+```
+
+**Use `inline type definition for props` for:**
+
+- When there are only one or two props
+- Types are only used in this component (no need to export interface)
+- Type / interface is already defined elsewhere and is imported into component
+
+```typescript
+import type MainTabItem from '@/types/navigation';
+
+const TabStack = ({ tab }: { tab: MainTabItem }) => { ... }
+
+const CategoryOutlined = ({ color }: { color: string }) => { ... }
 ```
 
 ### Naming Conventions
 
-| Pattern | Naming Convention | Example |
-|---------|-------------------|---------|
-| Props | `[ComponentName]Props` | `AuthButtonProps`, `OTPInputProps` |
+| Pattern        | Naming Convention           | Example                                      |
+| -------------- | --------------------------- | -------------------------------------------- |
+| Props          | `[ComponentName]Props`      | `AuthButtonProps`, `OTPInputProps`           |
 | Context Values | `[ContextName]ContextValue` | `AuthContextValue`, `NavigationContextValue` |
-| API Responses | `[Entity]Response` | `UserResponse`, `InvoiceResponse` |
-| Param Lists | `[StackName]ParamList` | `AuthStackParamList`, `MainTabParamList` |
+| API Responses  | `[Entity]Response`          | `UserResponse`, `InvoiceResponse`            |
+| Param Lists    | `[StackName]ParamList`      | `AuthStackParamList`, `MainTabParamList`     |
 
 ### Generics
 
@@ -324,7 +344,7 @@ Components/Screens   →  Import shared styles, never use tokens directly
 
 ```typescript
 // ✅ Correct - import from shared styles only
-import { buttonStyle, screenStyle } from '@/styles/components';
+import { buttonStyle, screenStyle } from "@/styles/components";
 
 const styles = StyleSheet.create({
   button: buttonStyle.authPrimary,
@@ -343,12 +363,12 @@ const styles = StyleSheet.create({
 });
 
 // ❌ Incorrect - using design tokens directly in component
-import { Color, Spacing } from '@/styles/tokens';  // Don't do this in components!
+import { Color, Spacing } from "@/styles/tokens"; // Don't do this in components!
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Color.background.primary,  // Don't do this!
-    padding: Spacing.md,                         // Don't do this!
+    backgroundColor: Color.background.primary, // Don't do this!
+    padding: Spacing.md, // Don't do this!
   },
 });
 ```
@@ -359,7 +379,7 @@ Design tokens should **only** be used in shared style files:
 
 ```typescript
 // @/styles/components/button.ts
-import { Color, Spacing, BorderRadius, Typography } from '@/styles/tokens';
+import { Color, Spacing, BorderRadius, Typography } from "@/styles/tokens";
 
 export const buttonStyle = {
   authPrimary: {
@@ -377,10 +397,11 @@ export const buttonStyle = {
 ### ESLint Rules
 
 The following are enforced:
+
 - **No inline styles** (warning) - use `StyleSheet.create()`
 - **No color literals** (warning) - use design tokens in shared styles
 - **No unused styles** (warning) - remove unused style definitions
-  - *Exception:* Can be bypassed for dynamic styling (e.g., styles selected at runtime based on props/state)
+  - _Exception:_ Can be bypassed for dynamic styling (e.g., styles selected at runtime based on props/state)
 
 ---
 
@@ -444,12 +465,12 @@ export const useInvoices = () => {
 ```typescript
 export const useInvoicesData = (
   userId: string | undefined,
-  currentAccountId: string | undefined
+  currentAccountId: string | undefined,
 ) => {
   const { getInvoices } = useBillingApi();
 
   return usePaginatedQuery<Invoice>({
-    queryKey: ['invoices', userId, currentAccountId],
+    queryKey: ["invoices", userId, currentAccountId],
     queryFn: getInvoices,
     enabled: !!userId && !!currentAccountId,
   });
@@ -467,7 +488,7 @@ export function useBillingApi() {
       const endpoint = `/v1/billing/invoices?offset=${offset}&limit=${limit}`;
       return api.get<PaginatedResponse<Invoice>>(endpoint);
     },
-    [api]
+    [api],
   );
 
   return useMemo(() => ({ getInvoices }), [getInvoices]);
@@ -485,15 +506,19 @@ export function useBillingApi() {
   const api = useApi();
 
   const getInvoices = useCallback(
-    async (offset = DEFAULT_OFFSET, limit = DEFAULT_PAGE_SIZE): Promise<PaginatedResponse<Invoice>> => {
-      const endpoint = `/v1/billing/invoices` +
+    async (
+      offset = DEFAULT_OFFSET,
+      limit = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedResponse<Invoice>> => {
+      const endpoint =
+        `/v1/billing/invoices` +
         `?select=-*,id,status` +
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}&limit=${limit}`;
       return api.get<PaginatedResponse<Invoice>>(endpoint);
     },
-    [api]
+    [api],
   );
 
   return useMemo(() => ({ getInvoices }), [getInvoices]);
@@ -507,15 +532,17 @@ Use for services that need initialization or don't depend on React context:
 ```typescript
 class AuthenticationService {
   private auth0: Auth0;
-  
+
   constructor() {
     this.auth0 = new Auth0({ domain, clientId });
   }
 
-  async sendPasswordlessEmail(email: string): Promise<Auth0PasswordlessResponse> {
+  async sendPasswordlessEmail(
+    email: string,
+  ): Promise<Auth0PasswordlessResponse> {
     return this.auth0.auth.passwordlessWithEmail({
       email,
-      send: 'code',
+      send: "code",
     });
   }
 }
@@ -533,7 +560,7 @@ export default new AuthenticationService();
 // Content component (consumes context)
 const InvoicesScreenContent = () => {
   const { invoices, invoicesLoading } = useInvoices();
-  
+
   return (
     <StatusMessage isLoading={invoicesLoading}>
       <ListView data={invoices} />
@@ -558,31 +585,31 @@ export default InvoicesScreen;
 ### Test File Structure
 
 ```typescript
-import { validateOTP, validateEmail } from '@/utils/validation';
+import { validateOTP, validateEmail } from "@/utils/validation";
 
-describe('Validation Utils', () => {
-  describe('validateOTP', () => {
-    it('should validate correct OTP codes with default length', () => {
-      const validCodes = ['123456', '000000'];
+describe("Validation Utils", () => {
+  describe("validateOTP", () => {
+    it("should validate correct OTP codes with default length", () => {
+      const validCodes = ["123456", "000000"];
       validCodes.forEach((code) => {
         expect(validateOTP(code)).toBe(true);
       });
     });
 
-    it('should reject invalid OTP codes', () => {
-      expect(validateOTP('abcdef')).toBe(false);
-      expect(validateOTP('12345')).toBe(false);
-      expect(validateOTP('')).toBe(false);
+    it("should reject invalid OTP codes", () => {
+      expect(validateOTP("abcdef")).toBe(false);
+      expect(validateOTP("12345")).toBe(false);
+      expect(validateOTP("")).toBe(false);
     });
   });
 
-  describe('validateEmail', () => {
-    it('should validate correct email addresses', () => {
-      expect(validateEmail('test@example.com')).toBe(true);
+  describe("validateEmail", () => {
+    it("should validate correct email addresses", () => {
+      expect(validateEmail("test@example.com")).toBe(true);
     });
 
-    it('should reject invalid email addresses', () => {
-      expect(validateEmail('invalid-email')).toBe(false);
+    it("should reject invalid email addresses", () => {
+      expect(validateEmail("invalid-email")).toBe(false);
     });
   });
 });
@@ -592,15 +619,15 @@ describe('Validation Utils', () => {
 
 ```typescript
 // Mock React Native modules
-jest.mock('react-native', () => ({
-  View: 'View',
-  Text: 'Text',
+jest.mock("react-native", () => ({
+  View: "View",
+  Text: "Text",
   StyleSheet: { create: (styles: any) => styles },
-  Platform: { OS: 'ios' },
+  Platform: { OS: "ios" },
 }));
 
 // Mock Auth0
-jest.mock('react-native-auth0', () => {
+jest.mock("react-native-auth0", () => {
   return jest.fn().mockImplementation(() => ({
     auth: {
       passwordlessWithEmail: jest.fn(),
@@ -610,7 +637,7 @@ jest.mock('react-native-auth0', () => {
 });
 
 // Mock navigation
-jest.mock('@react-navigation/native', () => ({
+jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
@@ -626,7 +653,7 @@ jest.mock('@react-navigation/native', () => ({
 
 ```typescript
 export type ApiError = {
-  name: 'API Error';
+  name: "API Error";
   status: number | null;
   message: string;
   details?: unknown;
@@ -635,22 +662,22 @@ export type ApiError = {
 export const createApiError = (error: unknown): ApiError => {
   if (error instanceof Error) {
     return {
-      name: 'API Error',
+      name: "API Error",
       status: null,
       message: error.message,
       details: error,
     };
   }
   return {
-    name: 'API Error',
+    name: "API Error",
     status: null,
-    message: 'Unknown error occurred',
+    message: "Unknown error occurred",
     details: error,
   };
 };
 
 export const isUnauthorisedError = (error: unknown): boolean => {
-  if (error && typeof error === 'object' && 'status' in error) {
+  if (error && typeof error === "object" && "status" in error) {
     return (error as ApiError).status === 401;
   }
   return false;
@@ -664,15 +691,16 @@ try {
   await login(email, otp);
 } catch (error) {
   console.error(
-    'OTP verification error:',
-    error instanceof Error ? error.message : 'Unknown error'
+    "OTP verification error:",
+    error instanceof Error ? error.message : "Unknown error",
   );
-  
+
   if (error instanceof Error) {
-    const translationKey = auth0ErrorParsingService.getTranslationKeyForError(error);
+    const translationKey =
+      auth0ErrorParsingService.getTranslationKeyForError(error);
     setOtpError(t(translationKey));
   } else {
-    setOtpError(t('auth.errors.unknownError'));
+    setOtpError(t("auth.errors.unknownError"));
   }
 }
 ```
@@ -687,39 +715,43 @@ try {
 // utils/testID.ts
 export const TestIDs = {
   // Welcome Screen
-  WELCOME_EMAIL_INPUT: 'welcome-email-input',
-  WELCOME_CONTINUE_BUTTON: 'welcome-continue-button',
-  
+  WELCOME_EMAIL_INPUT: "welcome-email-input",
+  WELCOME_CONTINUE_BUTTON: "welcome-continue-button",
+
   // OTP Screen
-  OTP_INPUT_PREFIX: 'otp-digit-input',
-  OTP_VERIFY_BUTTON: 'otp-verify-button',
-  
+  OTP_INPUT_PREFIX: "otp-digit-input",
+  OTP_VERIFY_BUTTON: "otp-verify-button",
+
   // Navigation
-  NAV_TAB_SPOTLIGHT: 'nav-tab-spotlight',
-  NAV_TAB_PROFILE: 'nav-tab-profile',
+  NAV_TAB_SPOTLIGHT: "nav-tab-spotlight",
+  NAV_TAB_PROFILE: "nav-tab-profile",
 };
 
 // Helper function for dynamic TestIDs
-export type TestIDSuffix = 'button' | 'input' | 'text' | 'label' | 'container';
+export type TestIDSuffix = "button" | "input" | "text" | "label" | "container";
 
-export function testID(screen: string, element: string, suffix: TestIDSuffix): string {
-  return [screen, element, suffix].join('-');
+export function testID(
+  screen: string,
+  element: string,
+  suffix: TestIDSuffix,
+): string {
+  return [screen, element, suffix].join("-");
 }
 ```
 
 ### Usage in Components
 
 ```typescript
-<TouchableOpacity 
-  testID={TestIDs.WELCOME_CONTINUE_BUTTON} 
+<TouchableOpacity
+  testID={TestIDs.WELCOME_CONTINUE_BUTTON}
   onPress={handleContinue}
 >
   <Text>{t('welcome.continue')}</Text>
 </TouchableOpacity>
 
-<OTPInput 
-  testIDPrefix={TestIDs.OTP_INPUT_PREFIX} 
-  value={otp} 
+<OTPInput
+  testIDPrefix={TestIDs.OTP_INPUT_PREFIX}
+  value={otp}
   onChange={setOtp}
 />
 ```
@@ -745,9 +777,9 @@ export const DEFAULT_OFFSET = 0;
 
 ```typescript
 // constants/index.ts
-export { AUTH_CONSTANTS } from './auth';
-export * from './api';
-export * from './links';
+export { AUTH_CONSTANTS } from "./auth";
+export * from "./api";
+export * from "./links";
 ```
 
 ---
@@ -816,14 +848,14 @@ Proper nouns, product names, and brand names retain their official capitalizatio
 
 ### Quick Reference
 
-| Text Type | Case | Example |
-|-----------|------|---------|
-| Button labels | Sentence case | "Save changes" |
-| Screen titles | Sentence case | "Account settings" |
-| Form labels | Sentence case | "Email address" |
-| Error messages | Sentence case | "Please enter a valid email" |
-| Product names | Official capitalization | "Microsoft Azure" |
-| Brand names | Official capitalization | "SoftwareONE" |
+| Text Type      | Case                    | Example                      |
+| -------------- | ----------------------- | ---------------------------- |
+| Button labels  | Sentence case           | "Save changes"               |
+| Screen titles  | Sentence case           | "Account settings"           |
+| Form labels    | Sentence case           | "Email address"              |
+| Error messages | Sentence case           | "Please enter a valid email" |
+| Product names  | Official capitalization | "Microsoft Azure"            |
+| Brand names    | Official capitalization | "SoftwareONE"                |
 
 ---
 
@@ -833,18 +865,24 @@ Proper nouns, product names, and brand names retain their official capitalizatio
 
 ```typescript
 // ✅ Good: Pure function, explicitly passed context
-const isFeatureEnabled = (key: FeatureFlagKey, portalVersion: PortalVersionInfo): boolean => {
+const isFeatureEnabled = (
+  key: FeatureFlagKey,
+  portalVersion: PortalVersionInfo,
+): boolean => {
   return checkFeature(key, portalVersion);
 };
 
 // ❌ Bad: Hidden mutable state in singleton
 class FeatureService {
   private portalVersion: PortalVersionInfo; // hidden state!
-  setPortalVersion(v: PortalVersionInfo) { this.portalVersion = v; }
+  setPortalVersion(v: PortalVersionInfo) {
+    this.portalVersion = v;
+  }
 }
 ```
 
 **Rules:**
+
 - Prefer pure functions over stateful classes
 - Pass context as parameters, don't hold globally
 - No hidden shared mutable state
@@ -852,21 +890,21 @@ class FeatureService {
 
 ### Separation of Concerns
 
-| Layer | Responsibility |
-|-------|----------------|
-| **Services** | API communication only |
-| **Contexts** | State management & side effects |
-| **Hooks** | Data fetching logic |
-| **Components** | UI rendering |
+| Layer          | Responsibility                  |
+| -------------- | ------------------------------- |
+| **Services**   | API communication only          |
+| **Contexts**   | State management & side effects |
+| **Hooks**      | Data fetching logic             |
+| **Components** | UI rendering                    |
 
 ### Code Organization Rules
 
-| Rule | Guideline |
-|------|----------|
-| **Rule of Three** | Don't abstract until 3+ similar implementations |
-| **File size** | Split at ~300-400 lines |
-| **Service size** | Split at ~15-20 methods |
-| **API grouping** | Group services by API path prefix |
+| Rule                  | Guideline                                       |
+| --------------------- | ----------------------------------------------- |
+| **Rule of Three**     | Don't abstract until 3+ similar implementations |
+| **File size**         | Split at ~300-400 lines                         |
+| **Service size**      | Split at ~15-20 methods                         |
+| **API grouping**      | Group services by API path prefix               |
 | **No redundant data** | Don't pass both `id` and object containing `id` |
 
 ---
@@ -878,45 +916,47 @@ class FeatureService {
 ```javascript
 // ✅ Good: Page object encapsulates UI interactions
 class AgreementsPage extends ListPage {
-  get agreementsList() { return $(this.getSelector('agreements-list')); }
-  
+  get agreementsList() {
+    return $(this.getSelector("agreements-list"));
+  }
+
   async getVisibleAgreementsCount() {
-    return (await this.agreementsList.$$('item')).length;
+    return (await this.agreementsList.$$("item")).length;
   }
 }
 
 // ❌ Bad: Selectors and logic scattered in tests
-it('test', async () => {
-  const count = (await $$('~agreements-list item')).length; // Don't do this
+it("test", async () => {
+  const count = (await $$("~agreements-list item")).length; // Don't do this
 });
 ```
 
 ### Method Naming Prefixes
 
-| Prefix | Purpose | Example |
-|--------|---------|--------|
-| `get*` | Retrieve values | `getVisibleCount()` |
-| `has*` | Boolean checks | `hasEmptyState()` |
-| `is*` | State checks | `isLoading()` |
-| `wait*` | Async waits | `waitForList()` |
-| `navigate*` | Navigation | `navigateToDetails()` |
+| Prefix      | Purpose         | Example               |
+| ----------- | --------------- | --------------------- |
+| `get*`      | Retrieve values | `getVisibleCount()`   |
+| `has*`      | Boolean checks  | `hasEmptyState()`     |
+| `is*`       | State checks    | `isLoading()`         |
+| `wait*`     | Async waits     | `waitForList()`       |
+| `navigate*` | Navigation      | `navigateToDetails()` |
 
 ### Test Structure (AAA Pattern)
 
 ```javascript
-describe('Agreements Screen', () => {
-  it('should display agreements list when agreements exist', async () => {
+describe("Agreements Screen", () => {
+  it("should display agreements list when agreements exist", async () => {
     // Arrange
     await agreementsPage.navigateTo();
-    
+
     // Act
     await agreementsPage.waitForList();
-    
+
     // Assert
     expect(await agreementsPage.hasAgreements()).toBe(true);
   });
 
-  it('should skip when no data available', function() {
+  it("should skip when no data available", function () {
     if (!hasTestData) this.skip(); // Graceful degradation
   });
 });
@@ -924,14 +964,14 @@ describe('Agreements Screen', () => {
 
 ### E2E Testing Rules
 
-| Rule | Description |
-|------|-------------|
+| Rule                      | Description                                   |
+| ------------------------- | --------------------------------------------- |
 | **Centralized selectors** | Platform-specific selectors in `selectors.js` |
-| **Named constants** | No magic numbers (`TIMEOUT_MS` not `30000`) |
-| **Never empty catch** | Always log errors in catch blocks |
-| **Validate inputs** | Check ID formats with regex |
-| **JSDoc with @example** | Document API client methods |
-| **Conditional skip** | Use `this.skip()` when prerequisites missing |
+| **Named constants**       | No magic numbers (`TIMEOUT_MS` not `30000`)   |
+| **Never empty catch**     | Always log errors in catch blocks             |
+| **Validate inputs**       | Check ID formats with regex                   |
+| **JSDoc with @example**   | Document API client methods                   |
+| **Conditional skip**      | Use `this.skip()` when prerequisites missing  |
 
 ---
 
@@ -941,39 +981,39 @@ The project enforces these rules (from `app/eslint.config.js`):
 
 ### Error Level (Build Breaking)
 
-| Rule | Description |
-|------|-------------|
-| `react-hooks/rules-of-hooks` | Enforce React Hooks rules |
-| `import/order` | Import ordering with groups and newlines |
-| `import/no-duplicates` | No duplicate imports |
-| `unused-imports/no-unused-imports` | Remove unused imports |
-| `no-console` | **Only `console.warn`, `console.error`, `console.info` allowed** - `console.log` is banned |
-| `eqeqeq` | Must use `===` and `!==` (no `==` or `!=`) |
-| `no-var` | Use `const` or `let`, never `var` |
-| `@typescript-eslint/no-floating-promises` | Must handle all promises (await, .then(), or void) |
-| `prettier/prettier` | Code formatting via Prettier |
+| Rule                                      | Description                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `react-hooks/rules-of-hooks`              | Enforce React Hooks rules                                                                  |
+| `import/order`                            | Import ordering with groups and newlines                                                   |
+| `import/no-duplicates`                    | No duplicate imports                                                                       |
+| `unused-imports/no-unused-imports`        | Remove unused imports                                                                      |
+| `no-console`                              | **Only `console.warn`, `console.error`, `console.info` allowed** - `console.log` is banned |
+| `eqeqeq`                                  | Must use `===` and `!==` (no `==` or `!=`)                                                 |
+| `no-var`                                  | Use `const` or `let`, never `var`                                                          |
+| `@typescript-eslint/no-floating-promises` | Must handle all promises (await, .then(), or void)                                         |
+| `prettier/prettier`                       | Code formatting via Prettier                                                               |
 
 ### Warning Level
 
-| Rule | Description |
-|------|-------------|
-| `react-hooks/exhaustive-deps` | Verify effect dependencies |
-| `react-native/no-unused-styles` | No unused StyleSheet styles |
-| `react-native/no-inline-styles` | Use `StyleSheet.create()` instead |
-| `react-native/no-color-literals` | Use design tokens, not hardcoded colors |
-| `react-native/no-single-element-style-arrays` | Don't wrap single style in array |
-| `@typescript-eslint/no-unused-vars` | No unused variables (ignores `_` prefixed) |
-| `@typescript-eslint/no-explicit-any` | Avoid `any` type |
-| `prefer-const` | Use `const` when variable is never reassigned |
-| `no-debugger` | No debugger statements |
+| Rule                                          | Description                                   |
+| --------------------------------------------- | --------------------------------------------- |
+| `react-hooks/exhaustive-deps`                 | Verify effect dependencies                    |
+| `react-native/no-unused-styles`               | No unused StyleSheet styles                   |
+| `react-native/no-inline-styles`               | Use `StyleSheet.create()` instead             |
+| `react-native/no-color-literals`              | Use design tokens, not hardcoded colors       |
+| `react-native/no-single-element-style-arrays` | Don't wrap single style in array              |
+| `@typescript-eslint/no-unused-vars`           | No unused variables (ignores `_` prefixed)    |
+| `@typescript-eslint/no-explicit-any`          | Avoid `any` type                              |
+| `prefer-const`                                | Use `const` when variable is never reassigned |
+| `no-debugger`                                 | No debugger statements                        |
 
 ### Disabled Rules
 
-| Rule | Reason |
-|------|--------|
+| Rule                       | Reason                            |
+| -------------------------- | --------------------------------- |
 | `react/react-in-jsx-scope` | Not needed with new JSX transform |
-| `react/prop-types` | Using TypeScript instead |
-| `react-native/no-raw-text` | Disabled for flexibility |
+| `react/prop-types`         | Using TypeScript instead          |
+| `react-native/no-raw-text` | Disabled for flexibility          |
 
 ---
 
@@ -983,25 +1023,25 @@ SonarCloud runs on every PR and main branch push. PRs must pass the quality gate
 
 ### Conditions on New Code (PRs & All Branches)
 
-| Metric | Requirement |
-|--------|-------------|
-| **Coverage** | ≥ 80% |
-| **Duplicated Lines** | ≤ 3% |
-| **Maintainability Rating** | A |
-| **Reliability Rating** | A (no new bugs) |
-| **Security Rating** | A (no new vulnerabilities) |
-| **Security Hotspots Reviewed** | ≥ 50% |
-| **Blocker Issues** | 0 |
-| **Critical Issues** | ≤ 1 |
-| **Major Issues** | ≤ 3 |
-| **Code Smells** | ≤ 30 |
+| Metric                         | Requirement                |
+| ------------------------------ | -------------------------- |
+| **Coverage**                   | ≥ 80%                      |
+| **Duplicated Lines**           | ≤ 3%                       |
+| **Maintainability Rating**     | A                          |
+| **Reliability Rating**         | A (no new bugs)            |
+| **Security Rating**            | A (no new vulnerabilities) |
+| **Security Hotspots Reviewed** | ≥ 50%                      |
+| **Blocker Issues**             | 0                          |
+| **Critical Issues**            | ≤ 1                        |
+| **Major Issues**               | ≤ 3                        |
+| **Code Smells**                | ≤ 30                       |
 
 ### Conditions on Overall Code (Long-lived Branches)
 
-| Metric | Requirement |
-|--------|-------------|
-| **Coverage** | ≥ 70% |
-| **Duplicated Lines** | ≤ 1% |
+| Metric               | Requirement |
+| -------------------- | ----------- |
+| **Coverage**         | ≥ 70%       |
+| **Duplicated Lines** | ≤ 1%        |
 
 ### Coverage Exclusions
 

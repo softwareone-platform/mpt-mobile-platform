@@ -2,7 +2,7 @@ import type { DetailsListItemValue } from '@/types/lists';
 
 export type AccountType = 'Client' | 'Vendor' | 'Operations';
 
-export interface BaseObjectDetails {
+export interface CommonBillingDetails {
   id: string;
   status: string;
   client?: DetailsListItemValue;
@@ -16,7 +16,6 @@ export interface BaseObjectDetails {
   product?: DetailsListItemValue;
   agreement?: DetailsListItemValue;
   seller?: DetailsListItemValue;
-  price: Price;
 }
 
 export interface Address {
@@ -50,4 +49,25 @@ export interface Price {
       id: string;
     };
   };
+}
+
+export interface AuditTimestamp {
+  at: string;
+  by: {
+    id: string;
+    name: string;
+    icon: string;
+  };
+}
+
+export interface Audit {
+  created?: AuditTimestamp;
+  updated?: AuditTimestamp;
+  generated?: AuditTimestamp;
+  queued?: AuditTimestamp;
+  error: AuditTimestamp;
+  cancelled: AuditTimestamp;
+  pending: AuditTimestamp;
+  issued: AuditTimestamp;
+  generating: AuditTimestamp;
 }
