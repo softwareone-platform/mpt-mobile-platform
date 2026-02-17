@@ -38,6 +38,7 @@ export type AppScreensParamList = {
   agreementDetails: { id: string | undefined };
   licenseeDetails: { id: string | undefined };
   subscriptionDetails: { id: string | undefined };
+  invoiceDetails: { id: string | undefined };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;
@@ -66,6 +67,8 @@ export type SecondaryTabItem = {
   icon: string;
   /* eslint-disable @typescript-eslint/no-explicit-any */
   component?: React.ComponentType<any>;
+  modules?: ModuleName[];
+  roles?: AccountType[];
 };
 
 export type SecondaryTabGroupTitle =
