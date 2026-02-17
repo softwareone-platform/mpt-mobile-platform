@@ -2,8 +2,8 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useBillingApi } from '@/services/billingService';
-import type { PaginatedResponse } from '@/types/api';
-import type { CreditMemo, CreditMemoDetails } from '@/types/billing';
+import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
+import type { CreditMemoDetails } from '@/types/billing';
 
 const mockGet = jest.fn();
 
@@ -22,7 +22,7 @@ describe('useBillingApi', () => {
 
   it('calls getCreditMemos with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<CreditMemo> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -42,7 +42,7 @@ describe('useBillingApi', () => {
 
     const expectedUrl =
       `/v1/billing/credit-memos` +
-      `?select=-*,id,documentNo,attributes.postingDate,attributes.documentDate,attributes.externalDocumentNo,status,price.totalSP` +
+      `?select=-*,id,status` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=${DEFAULT_OFFSET}` +
@@ -54,7 +54,7 @@ describe('useBillingApi', () => {
 
   it('calls getCreditMemos with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<CreditMemo> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -74,7 +74,7 @@ describe('useBillingApi', () => {
 
     const expectedUrl =
       `/v1/billing/credit-memos` +
-      `?select=-*,id,documentNo,attributes.postingDate,attributes.documentDate,attributes.externalDocumentNo,status,price.totalSP` +
+      `?select=-*,id,status` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=50` +
@@ -87,27 +87,27 @@ describe('useBillingApi', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<CreditMemo> = {
+    const mockResponse1: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
-        { id: 'CM1', documentNo: 'DOC1' } as CreditMemo,
-        { id: 'CM2', documentNo: 'DOC2' } as CreditMemo,
+        { id: 'CRD-111-222-333', status: 'Issued' },
+        { id: 'CRD-111-222-334', status: 'Issued' },
       ],
     };
 
-    const mockResponse2: PaginatedResponse<CreditMemo> = {
+    const mockResponse2: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
-        { id: 'CM3', documentNo: 'DOC3' } as CreditMemo,
-        { id: 'CM4', documentNo: 'DOC4' } as CreditMemo,
+        { id: 'CRD-111-222-335', status: 'Issued' },
+        { id: 'CRD-111-222-336', status: 'Issued' },
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<CreditMemo> | undefined;
-    let res2: PaginatedResponse<CreditMemo> | undefined;
+    let res1: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
+    let res2: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
 
     await act(async () => {
       res1 = await api.getCreditMemos(0, 2);
@@ -119,11 +119,11 @@ describe('useBillingApi', () => {
 
     expect(res1).toBeDefined();
     expect(res1!.data.length).toBe(2);
-    expect(res1!.data.map((item) => item.id)).toEqual(['CM1', 'CM2']);
+    expect(res1!.data.map((item) => item.id)).toEqual(['CRD-111-222-333', 'CRD-111-222-334']);
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
-    expect(res2!.data.map((item) => item.id)).toEqual(['CM3', 'CM4']);
+    expect(res2!.data.map((item) => item.id)).toEqual(['CRD-111-222-335', 'CRD-111-222-336']);
   });
 });
 

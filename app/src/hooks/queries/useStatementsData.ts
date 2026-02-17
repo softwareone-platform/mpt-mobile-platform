@@ -1,6 +1,6 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useBillingApi } from '@/services/billingService';
-import type { Statement } from '@/types/billing';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 export const useStatementsData = (
   userId: string | undefined,
@@ -8,7 +8,7 @@ export const useStatementsData = (
 ) => {
   const { getStatements } = useBillingApi();
 
-  return usePaginatedQuery<Statement>({
+  return usePaginatedQuery<ListItemNoImageNoSubtitle>({
     queryKey: ['statements', userId, currentAccountId],
     queryFn: getStatements,
     enabled: !!userId && !!currentAccountId,

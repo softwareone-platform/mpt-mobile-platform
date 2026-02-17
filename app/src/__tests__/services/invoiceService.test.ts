@@ -2,8 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useBillingApi } from '@/services/billingService';
-import type { PaginatedResponse } from '@/types/api';
-import type { Invoice } from '@/types/billing';
+import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -22,7 +21,7 @@ describe('useBillingApi - Invoices', () => {
 
   it('calls getInvoices with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Invoice> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -42,7 +41,7 @@ describe('useBillingApi - Invoices', () => {
 
     const expectedUrl =
       `/v1/billing/invoices` +
-      `?select=-*,id,status,audit.created.at` +
+      `?select=-*,id,status` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=${DEFAULT_OFFSET}` +
@@ -54,7 +53,7 @@ describe('useBillingApi - Invoices', () => {
 
   it('calls getInvoices with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Invoice> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -74,7 +73,7 @@ describe('useBillingApi - Invoices', () => {
 
     const expectedUrl =
       `/v1/billing/invoices` +
-      `?select=-*,id,status,audit.created.at` +
+      `?select=-*,id,status` +
       `&filter(group.buyers)` +
       `&order=-audit.created.at` +
       `&offset=50` +
@@ -87,27 +86,27 @@ describe('useBillingApi - Invoices', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Invoice> = {
+    const mockResponse1: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
-        { id: 'INV-1234-7564-9753-3487', documentNo: 'INV-1234-7564-9753-3487' } as Invoice,
-        { id: 'INV-1234-7564-9753-3486', documentNo: 'INV-1234-7564-9753-3486' } as Invoice,
+        { id: 'INV-1234-7564-9753-3487', status: 'Issued' },
+        { id: 'INV-1234-7564-9753-3486', status: 'Issued' },
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Invoice> = {
+    const mockResponse2: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
-        { id: 'INV-1234-7564-9753-3485', documentNo: 'INV-1234-7564-9753-3485' } as Invoice,
-        { id: 'INV-1234-7564-9753-3484', documentNo: 'INV-1234-7564-9753-3484' } as Invoice,
+        { id: 'INV-1234-7564-9753-3485', status: 'Paid' },
+        { id: 'INV-1234-7564-9753-3484', status: 'Overdue' },
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Invoice> | undefined;
-    let res2: PaginatedResponse<Invoice> | undefined;
+    let res1: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
+    let res2: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
 
     await act(async () => {
       res1 = await api.getInvoices(0, 2);
@@ -119,22 +118,22 @@ describe('useBillingApi - Invoices', () => {
 
     expect(res1).toBeDefined();
     expect(res1!.data.length).toBe(2);
-    expect(res1!.data.map((item) => item.documentNo)).toEqual([
+    expect(res1!.data.map((item) => item.id)).toEqual([
       'INV-1234-7564-9753-3487',
       'INV-1234-7564-9753-3486',
     ]);
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
-    expect(res2!.data.map((item) => item.documentNo)).toEqual([
-      'INV-1234-7564-9753-3485',
-      'INV-1234-7564-9753-3484',
+    expect(res2!.data.map((item) => item.status)).toEqual([
+      'Paid',
+      'Overdue',
     ]);
   });
 
   it('returns invoices with correct structure', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Invoice> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: 0,
@@ -145,12 +144,7 @@ describe('useBillingApi - Invoices', () => {
       data: [
         {
           id: 'INV-1234-7564-9753-3487',
-          documentNo: 'INV-1234-7564-9753-3487',
-          status: 'Issued',
-          audit: {
-            created: { at: '2026-01-15T10:00:00.000Z' },
-            updated: { at: '2026-01-15T10:00:00.000Z' },
-          },
+          status: 'Issued'
         },
       ],
     };
@@ -165,7 +159,6 @@ describe('useBillingApi - Invoices', () => {
     expect(res).toEqual(mockResponse);
     expect(res!.data[0]).toMatchObject({
       id: 'INV-1234-7564-9753-3487',
-      documentNo: 'INV-1234-7564-9753-3487',
       status: 'Issued',
     });
   });

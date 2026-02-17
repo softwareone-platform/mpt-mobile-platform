@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useCreditMemosData } from '@/hooks/queries/useCreditMemosData';
-import type { CreditMemo } from '@/types/billing';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 interface BillingContextValue {
-  creditMemos: CreditMemo[];
+  creditMemos: ListItemNoImageNoSubtitle[];
   creditMemosLoading: boolean;
   creditMemosFetchingNext: boolean;
   hasMoreCreditMemos: boolean;
