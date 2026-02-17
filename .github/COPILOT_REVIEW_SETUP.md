@@ -1,6 +1,14 @@
 # Copilot Code Review Setup
 
-This repository is configured with custom review instructions in `.github/copilot-review-instructions.md` that GitHub Copilot uses when reviewing pull requests. The instructions enforce the coding conventions defined in `CONVENTIONS.md`.
+This repository is configured with custom review instructions in `.github/copilot-review-instructions.md` that GitHub Copilot uses when reviewing pull requests.
+
+## How it works
+
+- **`CONVENTIONS.md`** is the single source of truth for all coding standards
+- **`CLAUDE.md`** is the single source of truth for project context (tech stack, structure, architecture)
+- **`.github/copilot-review-instructions.md`** references both files and adds PR-specific review guidance (change quality, test coverage, backwards compatibility, dependencies, i18n, type safety)
+
+This design ensures that when conventions are updated in `CONVENTIONS.md`, Copilot reviews automatically apply the latest rules without any additional changes.
 
 ## Enabling automatic Copilot code review
 
@@ -22,10 +30,10 @@ On any open pull request, click **Reviewers** in the sidebar and select **Copilo
 - An organization admin must enable Copilot code review in **Organization settings** → **Copilot** → **Policies** → **Code review**
 - Repository access must be granted under **Organization settings** → **Copilot** → **Policies** → **Repository access**
 
-### How it works
+### Review behavior
 
 - When Copilot reviews a PR, it reads `.github/copilot-review-instructions.md` for custom guidelines
-- Reviews cover file naming, import ordering, TypeScript patterns, component structure, style patterns, testing, and architecture
+- The instructions direct Copilot to read `CONVENTIONS.md` and `CLAUDE.md` for the full, current set of rules
 - Copilot posts inline review comments on specific lines that violate the conventions
 - The review runs alongside existing CI checks (linting, tests, SonarCloud) defined in `pr-build.yml`
 

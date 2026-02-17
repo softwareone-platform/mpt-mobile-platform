@@ -1,97 +1,52 @@
 # Copilot Review Instructions
 
-This is a TypeScript codebase for a React Native mobile app using Expo. There is no Python code in this project. All source code lives under the `app/` directory.
+This is a TypeScript codebase for a React Native mobile app using Expo. There is no Python code in this project.
 
-When reviewing pull requests, validate changes against the conventions defined in `CONVENTIONS.md` at the repository root. Focus on the following areas:
+## Sources of Truth
 
-## File Naming
+All coding conventions and project context are maintained in two files. Always read and apply them when reviewing:
 
-- Components use PascalCase with `.tsx` extension (e.g., `AuthButton.tsx`)
-- Services use camelCase with `Service` suffix (e.g., `authService.ts`)
-- Hooks use camelCase with `use` prefix (e.g., `useApi.ts`)
-- Context files use PascalCase with `Context` suffix (e.g., `AuthContext.tsx`)
-- Types use camelCase (e.g., `navigation.ts`)
-- Tests use the same name with `.test.ts(x)` suffix
-- Config files use kebab-case (e.g., `feature-flags.json`)
+- **`CONVENTIONS.md`** (repository root) — The single source of truth for all coding standards including file naming, import ordering, TypeScript patterns, component structure, style patterns, testing, error handling, and architecture principles.
+- **`CLAUDE.md`** (repository root) — The single source of truth for project context including tech stack, project structure, dependencies, state management, navigation, API integration, and development commands.
 
-## Import Ordering
+Do not rely on rules stated in this file alone. Always validate PR changes against the full and current content of `CONVENTIONS.md` and `CLAUDE.md`.
 
-Imports must follow this order with newlines between groups:
+## PR Review Guidelines
 
-1. React/React Native core
-2. Third-party libraries (alphabetized)
-3. Internal imports using `@/` path aliases (alphabetized)
+When reviewing a pull request, check the following in addition to the conventions:
 
-Type imports must use `import type` syntax.
+### Change Quality
 
-## TypeScript
+- Every changed file must have a clear purpose related to the PR description
+- No unrelated changes should be bundled into the PR
+- New files must follow the established directory structure defined in `CLAUDE.md`
+- File sizes should stay under ~300-400 lines; suggest splitting if exceeded
 
-- Use `interface` for object shapes, props, API responses, and context values
-- Use `type` for unions, primitives, and simple aliases
-- Props interfaces must use `[ComponentName]Props` naming
-- Avoid `any` type
-- Use generics for reusable functions and hooks
+### Test Coverage
 
-## Component Structure
+- New utilities, services, and hooks must include corresponding test files
+- Tests must exist alongside source files in `__tests__` directories
+- Modified logic should have updated or new tests covering the changes
+- Test files must use `.test.ts` or `.test.tsx` extensions
 
-Components must follow this ordering:
+### Backwards Compatibility
 
-1. Imports
-2. Helper functions (pure functions, outside component)
-3. Interface/type definitions
-4. Component definition using `React.FC` pattern
-5. Styles (using `StyleSheet.create`, imported from `@/styles/components`)
-6. Default export
+- Changes to shared components, hooks, or contexts must not break existing consumers
+- Changes to API service functions must maintain their existing signatures or be additive
+- Changes to navigation types must be compatible with all screens using them
 
-## Style Patterns
+### Dependencies
 
-- Never use inline styles; use `StyleSheet.create()`
-- Never use color or spacing literals; use design tokens via shared styles
-- Components import from `@/styles/components`, never directly from `@/styles/tokens`
-- Design tokens are only used inside `@/styles/components/` files
+- New dependencies must be justified and not duplicate existing functionality
+- No dependencies with known security vulnerabilities
 
-## Banned Practices
+### Internationalization
 
-- No `console.log()` — only `console.error()`, `console.warn()`, `console.info()` are allowed
-- No `==` or `!=` — always use `===` and `!==`
-- No `var` — use `const` or `let`
-- No floating promises — handle with `await`, `.then()`, or explicit `void`
-- No unused imports or variables (variables prefixed with `_` are exempt)
-- No empty `catch {}` blocks — always log errors
-- No magic numbers — extract to named constants
+- All user-facing strings must use `t()` from `react-i18next`, not hardcoded text
+- New translation keys must be added to the appropriate file in `app/src/i18n/en/`
 
-## Testing
+### Type Safety
 
-- Tests must be written as functions, not classes
-- Follow AAA (Arrange-Act-Assert) pattern strictly
-- No `if` statements or branching logic inside tests
-- Prefer fixtures over mocks
-- Use `it.each` or `describe.each` for testing permutations of the same behavior
-- When mocking is unavoidable, always use `jest.fn()` with proper type constraints
-
-## Text and Copy
-
-- All user-facing text must use sentence case (e.g., "Save changes" not "Save Changes")
-- Proper nouns and brand names retain their official capitalization
-- Use i18n translations (`t()`) instead of hardcoded strings
-
-## Context and Hook Patterns
-
-- Create context with `undefined` default value
-- Provider components must include a custom hook with error handling for missing provider
-- Use `useCallback` and `useMemo` for performance
-- Query hooks should use TanStack React Query patterns
-
-## Error Handling
-
-- Components must handle both loading and error states
-- Use typed `ApiError` for API errors
-- Never leave errors unhandled
-
-## Architecture
-
-- Prefer pure functions over stateful classes
-- Pass context as parameters, don't hold globally
-- No hidden shared mutable state
-- Follow Rule of Three — don't abstract until 3+ similar implementations
-- Split files at ~300-400 lines
+- No new occurrences of `any` type
+- No type assertions (`as`) unless strictly necessary with a justifying comment
+- New interfaces and types must follow the naming conventions in `CONVENTIONS.md`
