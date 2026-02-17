@@ -41,7 +41,7 @@ export const mainTabsData: MainTabItem[] = [
 
 export const secondaryTabsData: SecondaryTabGroup[] = [
   {
-    title: 'administration',
+    title: 'settings',
     items: [
       {
         name: 'buyers',
