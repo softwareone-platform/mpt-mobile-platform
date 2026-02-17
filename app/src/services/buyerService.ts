@@ -17,7 +17,7 @@ export function useBuyerApi() {
     ): Promise<PaginatedResponse<ListItemFull>> => {
       const endpoint =
         `/v1/accounts/buyers` +
-        `?select=sellers,audit.created.at,audit.updated.at,sellers.erpLink.status` +
+        `?select=-*,id,name,status,icon` +
         `&ne(status,%22Deleted%22)` +
         `&order=name` +
         `&offset=${offset}` +
