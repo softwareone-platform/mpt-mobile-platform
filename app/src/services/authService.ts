@@ -2,6 +2,7 @@ import { jwtDecode } from 'jwt-decode';
 import Auth0 from 'react-native-auth0';
 
 import { configService } from '@/config/env.config';
+import { AUTH0_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import { appInsightsService } from '@/services/appInsightsService';
 
 export interface AuthTokens {
@@ -60,7 +61,7 @@ class AuthenticationService {
       domain: this.domain,
       clientId: this.clientId,
       useDPoP: false,
-      timeout: 20000,
+      timeout: AUTH0_REQUEST_TIMEOUT_MS,
     });
   }
 
