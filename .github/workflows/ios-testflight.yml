@@ -491,7 +491,7 @@ jobs:
             process.exit(1);
           });
           SCRIPT
-          )
+          ) || BUILD_ID=""
 
           if [ -n "$BUILD_ID" ]; then
             BUILD_URL="https://appstoreconnect.apple.com/apps/${APP_APPLE_ID}/testflight/ios/${BUILD_ID}"
