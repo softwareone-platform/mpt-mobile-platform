@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useUsersData } from '@/hooks/queries/useUsersData';
-import type { User } from '@/types/api';
+import type { ListItemFull } from '@/types/api';
 
 interface UsersContextValue {
-  users: User[];
+  users: ListItemFull[];
   usersLoading: boolean;
   usersFetchingNext: boolean;
   hasMoreUsers: boolean;

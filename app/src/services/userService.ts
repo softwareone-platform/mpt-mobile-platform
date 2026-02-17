@@ -15,7 +15,8 @@ export function useUserApi() {
     ): Promise<PaginatedResponse<User>> => {
       const endpoint =
         `/v1/accounts/accounts/${accountId}/users` +
-        `?order=name` +
+        `?select=-*,id,name,status,icon` +
+        `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
