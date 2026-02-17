@@ -467,12 +467,12 @@ jobs:
             const appId = apps.data[0].id;
             process.stderr.write(`App API ID: ${appId}\n`);
 
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= 20; i++) {
               if (i > 1) await sleep(15000);
-              process.stderr.write(`Attempt ${i}/6: looking for v${buildVersion} build ${buildNumber}...\n`);
+              process.stderr.write(`Attempt ${i}/20: looking for v${buildVersion} build ${buildNumber}...\n`);
 
               const builds = await apiGet(token,
-                `/v1/builds?filter[app]=${appId}&filter[version]=${buildNumber}&filter[preReleaseVersion.version]=${buildVersion}&sort=-uploadedDate&limit=1`
+                `/v1/builds?filter[app]=${appId}&filter[version]=${buildNumber}&sort=-uploadedDate&limit=1`
               );
 
               if (builds.data?.length) {
