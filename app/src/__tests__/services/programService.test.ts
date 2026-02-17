@@ -41,7 +41,7 @@ describe('useProgramApi', () => {
 
     const expectedUrl =
       `/v1/program/programs` +
-      `?select=audit&ne(status,%22Deleted%22)` +
+      `?select=-*,id,name,status,icon` +
       `&order=name` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -72,7 +72,7 @@ describe('useProgramApi', () => {
 
     const expectedUrl =
       `/v1/program/programs` +
-      `?select=audit&ne(status,%22Deleted%22)` +
+      `?select=-*,id,name,status,icon` +
       `&order=name` +
       `&offset=50` +
       `&limit=25`;
@@ -91,11 +91,13 @@ describe('useProgramApi', () => {
           id: 'PRG-0001-0001',
           name: 'Partner Program',
           status: 'Published',
+          icon: '/path/to/programIcon1.png',
         } as ListItemFull,
         {
           id: 'PRG-0002-0002',
           name: 'Reseller Program',
           status: 'Published',
+          icon: '/path/to/programIcon2.png',
         } as ListItemFull,
       ],
     };
@@ -107,11 +109,13 @@ describe('useProgramApi', () => {
           id: 'PRG-0003-0003',
           name: 'Enterprise Program',
           status: 'Unpublished',
+          icon: '/path/to/programIcon1.png',
         } as ListItemFull,
         {
           id: 'PRG-0004-0004',
           name: 'Starter Program',
           status: 'Published',
+          icon: '/path/to/programIcon2.png',
         } as ListItemFull,
       ],
     };

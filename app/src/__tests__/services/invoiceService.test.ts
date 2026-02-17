@@ -125,10 +125,7 @@ describe('useBillingApi - Invoices', () => {
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
-    expect(res2!.data.map((item) => item.status)).toEqual([
-      'Paid',
-      'Overdue',
-    ]);
+    expect(res2!.data.map((item) => item.status)).toEqual(['Paid', 'Overdue']);
   });
 
   it('returns invoices with correct structure', async () => {
@@ -144,7 +141,7 @@ describe('useBillingApi - Invoices', () => {
       data: [
         {
           id: 'INV-1234-7564-9753-3487',
-          status: 'Issued'
+          status: 'Issued',
         },
       ],
     };

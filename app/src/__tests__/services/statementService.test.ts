@@ -135,7 +135,7 @@ describe('useBillingApi - Statements', () => {
     const api = setup();
     const mockStatement: ListItemNoImageNoSubtitle = {
       id: 'SOM-1234-7564-9753-3487',
-      status: 'Issued'
+      status: 'Issued',
     };
 
     const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
