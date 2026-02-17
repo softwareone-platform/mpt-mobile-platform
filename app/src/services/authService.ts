@@ -60,6 +60,7 @@ class AuthenticationService {
       domain: this.domain,
       clientId: this.clientId,
       useDPoP: false,
+      timeout: 20000,
     });
   }
 
