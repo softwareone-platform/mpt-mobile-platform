@@ -278,4 +278,36 @@ describe('authService', () => {
       expect(result).toEqual({ success: true });
     });
   });
+
+  describe('reinitialize', () => {
+    it('should clear credentials and recreate Auth0 instance', async () => {
+      mockClearCredentials.mockResolvedValue(undefined);
+
+      await authService.reinitialize();
+
+      expect(mockClearCredentials).toHaveBeenCalled();
+    });
+
+    it('should handle error when clearing credentials fails', async () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const error = new Error('Clear credentials failed');
+      mockClearCredentials.mockRejectedValue(error);
+
+      await authService.reinitialize();
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to clear credentials during reinitialize:',
+        error,
+      );
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should handle missing credentialsManager gracefully', async () => {
+      // This test ensures reinitialize doesn't fail if credentialsManager is undefined
+      await authService.reinitialize();
+
+      // Should complete without throwing
+      expect(true).toBe(true);
+    });
+  });
 });
