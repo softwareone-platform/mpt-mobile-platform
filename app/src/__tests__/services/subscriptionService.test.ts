@@ -1,5 +1,16 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import { mockNetworkError } from '../__mocks__/services/common';
+import {
+  mockSubscriptionId1,
+  mockSubscriptionId2,
+  mockSubscriptionData,
+  expectedUrl1,
+  expectedUrl2,
+  mockResponse1,
+  mockResponse2,
+} from '../__mocks__/services/subscription';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useSubscriptionApi } from '@/services/subscriptionService';
 import type { PaginatedResponse } from '@/types/api';
@@ -212,5 +223,58 @@ describe('useSubscriptionApi', () => {
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getSubscriptions()).rejects.toThrow('Network error');
+  });
+});
+
+describe('useSubscriptionApi - getSubscriptionData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getSubscriptionData with correct endpoint and returns data', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockSubscriptionData);
+
+    await act(async () => {
+      res = await api.getSubscriptionData(mockSubscriptionId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl1);
+    expect(res).toEqual(mockSubscriptionData);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getSubscriptionData(mockSubscriptionId1)).rejects.toThrow('Network error');
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockResponse1);
+    mockGet.mockResolvedValueOnce(mockResponse2);
+
+    await act(async () => {
+      res1 = await api.getSubscriptionData(mockSubscriptionId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getSubscriptionData(mockSubscriptionId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedUrl2);
+
+    expect(res1).toEqual(mockResponse1);
+    expect(res2).toEqual(mockResponse2);
   });
 });

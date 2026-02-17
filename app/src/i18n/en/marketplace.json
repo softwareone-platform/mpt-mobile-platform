@@ -12,6 +12,10 @@
     "emptyStateTitle": "No subscriptions",
     "emptyStateDescription": "No subscriptions found."
   },
+  "subscriptionDetailsScreen": {
+    "emptyStateTitle": "No subscription details",
+    "emptyStateDescription": "No subscription details found."
+  },
   "agreementsScreen": {
     "emptyStateTitle": "No agreements",
     "emptyStateDescription": "No agreements found."

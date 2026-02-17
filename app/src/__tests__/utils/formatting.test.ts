@@ -3,6 +3,7 @@ import {
   formatPercentage,
   numberFormatter,
   formatNumber,
+  formatDateForLocale,
 } from '@/utils/formatting';
 
 const EMPTY_STRING = '';
@@ -137,5 +138,53 @@ describe('formatNumber', () => {
 
   it('handles negative numbers', () => {
     expect(formatNumber(-1234.56, 2, language)).toBe('-1,234.56');
+  });
+});
+
+describe('formatDateForLocale', () => {
+  const locale = 'en-US';
+
+  it('returns EMPTY_STRING when isoDate is empty string', () => {
+    expect(formatDateForLocale('', locale)).toBe(EMPTY_STRING);
+  });
+
+  it('returns EMPTY_STRING when isoDate is null', () => {
+    expect(formatDateForLocale(null as unknown as string, locale)).toBe(EMPTY_STRING);
+  });
+
+  it('returns EMPTY_STRING when isoDate is undefined', () => {
+    expect(formatDateForLocale(undefined as unknown as string, locale)).toBe(EMPTY_STRING);
+  });
+
+  it('returns EMPTY_STRING when isoDate is invalid', () => {
+    expect(formatDateForLocale('invalid-date', locale)).toBe(EMPTY_STRING);
+    expect(formatDateForLocale('2025-13-01T00:00:00Z', locale)).toBe(EMPTY_STRING);
+  });
+
+  it('formats a valid ISO date correctly', () => {
+    expect(formatDateForLocale('2025-04-23T11:06:29.000Z', locale)).toBe('23 Apr 2025');
+    expect(formatDateForLocale('2023-12-05T00:00:00.000Z', locale)).toBe('05 Dec 2023');
+  });
+
+  it('formats different locales correctly - for example German and French', () => {
+    expect(formatDateForLocale('2025-04-23T11:06:29.000Z', 'de-DE')).toBe('23 Apr. 2025');
+    expect(formatDateForLocale('2025-04-23T11:06:29.000Z', 'fr-FR')).toBe('23 avr. 2025');
+  });
+
+  it('returns EMPTY_STRING if Intl.DateTimeFormat returns parts with missing day, month, or year', () => {
+    const originalFormatToParts = Intl.DateTimeFormat.prototype.formatToParts;
+
+    Intl.DateTimeFormat.prototype.formatToParts = jest.fn(() => [
+      { type: 'month', value: 'Apr' },
+      { type: 'year', value: '2025' },
+    ]);
+
+    expect(formatDateForLocale('2025-04-23T11:06:29.000Z', locale)).toBe(EMPTY_STRING);
+
+    Intl.DateTimeFormat.prototype.formatToParts = originalFormatToParts;
+  });
+
+  it('pads day with leading zero correctly', () => {
+    expect(formatDateForLocale('2025-04-05T11:06:29.000Z', locale)).toBe('05 Apr 2025');
   });
 });
