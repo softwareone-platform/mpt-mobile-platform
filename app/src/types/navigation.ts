@@ -67,6 +67,8 @@ export type SecondaryTabItem = {
   icon: string;
   /* eslint-disable @typescript-eslint/no-explicit-any */
   component?: React.ComponentType<any>;
+  modules?: ModuleName[];
+  roles?: AccountType[];
 };
 
 export type SecondaryTabGroupTitle =

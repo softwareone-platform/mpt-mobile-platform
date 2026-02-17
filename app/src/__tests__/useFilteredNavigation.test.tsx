@@ -2,24 +2,22 @@ import { renderHook } from '@testing-library/react-native';
 
 import { useAuth } from '@/context/AuthContext';
 import { useFilteredNavigation } from '@/hooks/useFilteredNavigation';
-import { canShowNavItem } from '@/utils/navigationPermissions';
+import { hasModuleAccess } from '@/utils/moduleClaims';
 
 // Mock dependencies
 jest.mock('@/context/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock('@/utils/navigationPermissions', () => ({
-  canShowNavItem: jest.fn(),
+jest.mock('@/utils/moduleClaims', () => ({
+  hasModuleAccess: jest.fn(),
 }));
-
-jest.mock('@/config/navigation-mapper.json', () => ({}));
 
 describe('useFilteredNavigation', () => {
   const mockItems = [
-    { name: 'home', component: jest.fn() },
-    { name: 'orders', component: jest.fn() },
-    { name: 'billing', component: jest.fn() },
+    { name: 'home', component: jest.fn(), modules: ['new-marketplace'] },
+    { name: 'orders', component: jest.fn(), modules: ['new-marketplace'], roles: ['Client'] },
+    { name: 'billing', component: jest.fn(), modules: ['billing'], roles: ['Client'] },
   ];
 
   beforeEach(() => {
@@ -35,7 +33,7 @@ describe('useFilteredNavigation', () => {
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
 
     expect(result.current).toEqual(mockItems);
-    expect(canShowNavItem).not.toHaveBeenCalled();
+    expect(hasModuleAccess).not.toHaveBeenCalled();
   });
 
   it('should filter items based on permissions', () => {
@@ -44,8 +42,8 @@ describe('useFilteredNavigation', () => {
       accountType: 'Client',
     });
 
-    (canShowNavItem as jest.Mock).mockImplementation((_token, _accountType, navItemId) => {
-      return navItemId === 'home' || navItemId === 'orders';
+    (hasModuleAccess as jest.Mock).mockImplementation((_token, module) => {
+      return module === 'new-marketplace';
     });
 
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
@@ -53,7 +51,6 @@ describe('useFilteredNavigation', () => {
     expect(result.current).toHaveLength(2);
     expect(result.current[0].name).toBe('home');
     expect(result.current[1].name).toBe('orders');
-    expect(canShowNavItem).toHaveBeenCalledTimes(3);
   });
 
   it('should return empty array when no items match permissions', () => {
@@ -62,42 +59,37 @@ describe('useFilteredNavigation', () => {
       accountType: 'Client',
     });
 
-    (canShowNavItem as jest.Mock).mockReturnValue(false);
+    (hasModuleAccess as jest.Mock).mockReturnValue(false);
 
     const { result } = renderHook(() => useFilteredNavigation(mockItems));
 
     expect(result.current).toEqual([]);
   });
 
-  it('should return all items when all match permissions', () => {
+  it('should filter by role when user does not have required role', () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      tokens: { accessToken: 'mock.token' },
+      accountType: 'Operations',
+    });
+
+    (hasModuleAccess as jest.Mock).mockReturnValue(true);
+
+    const { result } = renderHook(() => useFilteredNavigation(mockItems));
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].name).toBe('home');
+  });
+
+  it('should handle items without permissions', () => {
+    const itemsWithoutPerms = [{ name: 'public', component: jest.fn() }];
+
     (useAuth as jest.Mock).mockReturnValue({
       tokens: { accessToken: 'mock.token' },
       accountType: 'Client',
     });
 
-    (canShowNavItem as jest.Mock).mockReturnValue(true);
+    const { result } = renderHook(() => useFilteredNavigation(itemsWithoutPerms));
 
-    const { result } = renderHook(() => useFilteredNavigation(mockItems));
-
-    expect(result.current).toEqual(mockItems);
-  });
-
-  it('should handle accountType being null', () => {
-    (useAuth as jest.Mock).mockReturnValue({
-      tokens: { accessToken: 'mock.token' },
-      accountType: null,
-    });
-
-    (canShowNavItem as jest.Mock).mockReturnValue(true);
-
-    const { result } = renderHook(() => useFilteredNavigation(mockItems));
-
-    expect(result.current).toEqual(mockItems);
-    expect(canShowNavItem).toHaveBeenCalledWith(
-      'mock.token',
-      null,
-      expect.any(String),
-      expect.any(Object),
-    );
+    expect(result.current).toEqual(itemsWithoutPerms);
   });
 });
