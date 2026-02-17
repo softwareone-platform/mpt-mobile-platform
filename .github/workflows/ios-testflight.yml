@@ -38,7 +38,7 @@ jobs:
     # Repository-level secrets: distribution certificate, App Store Connect API keys
     environment:
       name: ${{ inputs.environment }}
-      url: https://appstoreconnect.apple.com
+      url: ${{ steps.build_url.outputs.url || format('https://appstoreconnect.apple.com/apps/{0}/testflight/ios', vars.APP_STORE_APP_ID) }}
 
     defaults:
       run:
@@ -398,6 +398,112 @@ jobs:
           echo "Successfully uploaded to TestFlight!"
           echo "The build will be available in TestFlight within 10-15 minutes"
 
+      - name: Get TestFlight build URL
+        id: build_url
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_APPLE_ID: ${{ vars.APP_STORE_APP_ID }}
+          BUNDLE_ID: ${{ vars.APP_BUNDLE_ID }}
+          BUILD_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build }}
+        run: |
+          FALLBACK_URL="https://appstoreconnect.apple.com/apps/${APP_APPLE_ID}/testflight/ios"
+
+          BUILD_ID=$(node << 'SCRIPT'
+          const crypto = require('crypto');
+          const https = require('https');
+          const fs = require('fs');
+
+          const keyId = process.env.API_KEY_ID;
+          const issuerId = process.env.ISSUER_ID;
+          const keyPath = `${process.env.HOME}/private_keys/AuthKey_${keyId}.p8`;
+          const bundleId = process.env.BUNDLE_ID;
+          const buildVersion = process.env.BUILD_VERSION;
+          const buildNumber = process.env.BUILD_NUMBER;
+
+          function base64url(buf) {
+            return buf.toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+          }
+
+          function generateJWT() {
+            const key = fs.readFileSync(keyPath, 'utf8');
+            const header = { alg: 'ES256', kid: keyId, typ: 'JWT' };
+            const now = Math.floor(Date.now() / 1000);
+            const payload = { iss: issuerId, iat: now, exp: now + 1200, aud: 'appstoreconnect-v1' };
+            const h = base64url(Buffer.from(JSON.stringify(header)));
+            const p = base64url(Buffer.from(JSON.stringify(payload)));
+            const input = `${h}.${p}`;
+            const sig = crypto.sign('SHA256', Buffer.from(input), { key, dsaEncoding: 'ieee-p1363' });
+            return `${input}.${base64url(sig)}`;
+          }
+
+          function apiGet(token, path) {
+            return new Promise((resolve, reject) => {
+              https.get({
+                hostname: 'api.appstoreconnect.apple.com',
+                path,
+                headers: { Authorization: `Bearer ${token}` }
+              }, res => {
+                let data = '';
+                res.on('data', c => data += c);
+                res.on('end', () => {
+                  if (res.statusCode !== 200) reject(new Error(`HTTP ${res.statusCode}: ${data.substring(0, 300)}`));
+                  else resolve(JSON.parse(data));
+                });
+              }).on('error', reject);
+            });
+          }
+
+          const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+          async function main() {
+            const token = generateJWT();
+
+            process.stderr.write(`Looking up app: ${bundleId}\n`);
+            const apps = await apiGet(token, `/v1/apps?filter[bundleId]=${encodeURIComponent(bundleId)}`);
+            if (!apps.data?.length) throw new Error('App not found');
+
+            const appId = apps.data[0].id;
+            process.stderr.write(`App API ID: ${appId}\n`);
+
+            for (let i = 1; i <= 6; i++) {
+              if (i > 1) await sleep(15000);
+              process.stderr.write(`Attempt ${i}/6: looking for v${buildVersion} build ${buildNumber}...\n`);
+
+              const builds = await apiGet(token,
+                `/v1/builds?filter[app]=${appId}&filter[version]=${buildNumber}&filter[preReleaseVersion.version]=${buildVersion}&sort=-uploadedDate&limit=1`
+              );
+
+              if (builds.data?.length) {
+                const buildId = builds.data[0].id;
+                process.stderr.write(`Found build: ${buildId}\n`);
+                process.stdout.write(buildId);
+                return;
+              }
+            }
+
+            throw new Error('Build not found after polling');
+          }
+
+          main().catch(e => {
+            process.stderr.write(`Error: ${e.message}\n`);
+            process.exit(1);
+          });
+          SCRIPT
+          )
+
+          if [ -n "$BUILD_ID" ]; then
+            BUILD_URL="https://appstoreconnect.apple.com/apps/${APP_APPLE_ID}/testflight/ios/${BUILD_ID}"
+            echo "Found TestFlight build: ${BUILD_ID}"
+          else
+            BUILD_URL="${FALLBACK_URL}"
+            echo "Could not find build in App Store Connect API, using fallback URL"
+          fi
+
+          echo "url=${BUILD_URL}" >> $GITHUB_OUTPUT
+          echo "TestFlight URL: ${BUILD_URL}"
+
       - name: Upload build artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -505,6 +611,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. Wait 10-15 minutes for App Store Connect processing" >> $GITHUB_STEP_SUMMARY
-          echo "2. Check TestFlight: [App Store Connect](https://appstoreconnect.apple.com/apps/${{ vars.APP_STORE_APP_ID }}/testflight/ios)" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check TestFlight: [App Store Connect](${{ steps.build_url.outputs.url }})" >> $GITHUB_STEP_SUMMARY
           echo "3. Merge the version bump PR to sync build numbers" >> $GITHUB_STEP_SUMMARY
           echo "4. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
