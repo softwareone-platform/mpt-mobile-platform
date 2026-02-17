@@ -538,9 +538,14 @@ jobs:
             process.stderr.write(`App API ID: ${appId}\n`);
             process.stderr.write(`Pre-upload latest build: ${preUploadBuildId || 'none'}\n`);
 
-            for (let i = 1; i <= 20; i++) {
+            // Builds typically appear in the API ~2 min after altool upload.
+            // Wait 90s before first check, then poll every 15s for up to 8 more attempts.
+            process.stderr.write('Waiting 90s for Apple to register the build...\n');
+            await sleep(90000);
+
+            for (let i = 1; i <= 8; i++) {
               if (i > 1) await sleep(15000);
-              process.stderr.write(`Attempt ${i}/20: checking for new build...\n`);
+              process.stderr.write(`Attempt ${i}/8: checking for new build...\n`);
 
               const builds = await apiGet(token,
                 `/v1/builds?filter[app]=${appId}&sort=-uploadedDate&limit=1&fields[builds]=version,processingState`
