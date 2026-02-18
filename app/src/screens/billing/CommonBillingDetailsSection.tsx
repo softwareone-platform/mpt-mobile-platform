@@ -43,7 +43,15 @@ const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) =
           });
         }}
       />
-      <DetailsListItem label={t(`details.product`)} data={data.product} />
+      <DetailsListItem
+        label={t(`details.product`)}
+        data={data.product}
+        onPress={() => {
+          navigation.navigate('productDetails', {
+            id: data.product?.id,
+          });
+        }}
+      />
       <DetailsListItem label={t(`details.agreement`)} data={data.agreement} hideImage={true} />
       <DetailsListItem
         label={t(`details.seller`)}
