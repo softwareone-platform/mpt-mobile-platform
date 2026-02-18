@@ -36,8 +36,8 @@ const ProductDetailsScreen = () => {
       loadingTestId={TestIDs.PRODUCT_DETAILS_LOADING_INDICATOR}
       errorTestId={TestIDs.PRODUCT_DETAILS_ERROR_STATE}
       emptyTestId={TestIDs.PRODUCT_DETAILS_EMPTY_STATE}
-      emptyTitle={t('productDetailsScreen.emptyStateTitle')}
-      emptyDescription={t('productDetailsScreen.emptyStateDescription')}
+      emptyTitle={t('marketplace:productDetailsScreen.emptyStateTitle')}
+      emptyDescription={t('marketplace:productDetailsScreen.emptyStateDescription')}
     >
       {productDetails && (
         <DetailsView data={productDetails} config={listItemConfigFull}>

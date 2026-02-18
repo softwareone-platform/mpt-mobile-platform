@@ -11,10 +11,6 @@
     "emptyStateTitle": "No seller details",
     "emptyStateDescription": "No seller details found."
   },
-  "productDetailsScreen": {
-    "emptyStateTitle": "No product details",
-    "emptyStateDescription": "No product details found."
-  },
   "licenseesScreen": {
     "emptyStateTitle": "No licensees",
     "emptyStateDescription": "No licensees found."
