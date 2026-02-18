@@ -22,6 +22,7 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - [Text and Copy Conventions](#text-and-copy-conventions)
 - [Architecture Principles](#architecture-principles)
 - [E2E Testing Conventions](#e2e-testing-conventions)
+- [Commit & PR Naming Convention](#commit--pr-naming-convention)
 - [SonarCloud Quality Gate](#sonarcloud-quality-gate)
 
 ---
@@ -38,6 +39,8 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - Use `useCallback` and `useMemo` for performance
 - Write tests for all utilities and services
 - Use i18n translations instead of hardcoded strings
+- Use shared constants (e.g. `EMPTY_VALUE`) instead of hardcoded fallback literals
+- Use single quotes `'` in `t()` calls; only use backticks when interpolation is needed
 - Use `===` and `!==` for comparisons
 - Handle all promises with `await`, `.then()`, or explicit `void`
 - Use `console.error()`, `console.warn()`, or `console.info()` for logging
@@ -56,9 +59,11 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - Don't import from relative paths when aliases are available
 - Don't use empty `catch {}` blocks - always log errors
 - Don't use magic numbers - extract to named constants
+- Don't hardcode fallback strings (e.g. `'-'`) - use `EMPTY_VALUE` from `@/constants/common`
 - Don't hold mutable state in singletons
 - Don't abstract until you have 3+ similar implementations
-- Don't skip null checks for `route.params`
+- Don't skip null-checking `route.params` when the screen param type is `undefined`
+- Don't forget to handle nullable properties inside params (e.g. `id?: string`)
 
 ---
 
@@ -107,6 +112,7 @@ import { TestIDs } from "@/utils/testID";
 - Alphabetical ordering within each group (case-insensitive)
 - No duplicate imports
 - Type imports use `import type` syntax
+- **Import order is enforced by ESLint** (`import/order` rule). Do not manually reorder imports based on code review suggestions or AI recommendations — if lint passes, the order is correct. Changing the order requires updating the ESLint config first, then fixing all files.
 
 ---
 
@@ -578,6 +584,78 @@ const InvoicesScreen = () => (
 export default InvoicesScreen;
 ```
 
+### Route Params Handling
+
+How you access `route.params` depends on the screen's param type in the navigation type map.
+
+#### Param type is `undefined` — always null-check `route.params`
+
+When a screen declares its params as `undefined`, React Navigation may or may not supply `params` at runtime. Always guard before accessing:
+
+```typescript
+// Navigation type map
+type RootStackParamList = {
+  Home: undefined; // no params
+};
+
+// ✅ Good: null-check route.params
+const HomeScreen = ({ route }: HomeScreenProps) => {
+  const value = route.params?.someFlag; // safe
+  // ...
+};
+
+// ❌ Bad: accessing params without check
+const HomeScreen = ({ route }: HomeScreenProps) => {
+  const value = route.params.someFlag; // may crash at runtime
+};
+```
+
+#### Param type is an object — `route.params` is guaranteed
+
+When the type map declares a concrete params object, TypeScript guarantees `route.params` is present. No null-check is needed on `route.params` itself:
+
+```typescript
+type RootStackParamList = {
+  Details: { id: string };
+};
+
+// ✅ Good: route.params is guaranteed by TypeScript
+const DetailsScreen = ({ route }: DetailsScreenProps) => {
+  const { id } = route.params; // safe — always defined
+};
+```
+
+#### Always handle nullable properties inside params
+
+Even when `route.params` is guaranteed, individual properties can be optional. Always handle them:
+
+```typescript
+type RootStackParamList = {
+  Profile: { userId: string; tab?: string };
+};
+
+// ✅ Good: handle optional property
+const ProfileScreen = ({ route }: ProfileScreenProps) => {
+  const { userId, tab } = route.params;
+  const activeTab = tab ?? 'overview'; // default for optional param
+};
+
+// ❌ Bad: assuming optional property exists
+const ProfileScreen = ({ route }: ProfileScreenProps) => {
+  const { userId, tab } = route.params;
+  navigation.navigate(tab); // tab may be undefined!
+};
+```
+
+#### Quick reference table
+
+| Param type definition          | `route.params` null-check needed? | Nullable properties need handling? |
+| ------------------------------ | --------------------------------- | ---------------------------------- |
+| `undefined`                    | **Yes** — always null-check       | N/A (no params)                    |
+| `{ id: string }`              | No — guaranteed by TypeScript     | No — all required                  |
+| `{ id: string; tab?: string }` | No — guaranteed by TypeScript     | **Yes** — handle `tab`             |
+| `{ id: string \| undefined }`  | No — guaranteed by TypeScript     | **Yes** — handle `id`              |
+
 ---
 
 ## Testing Patterns
@@ -773,6 +851,20 @@ export const DEFAULT_PAGE_SIZE = 50;
 export const DEFAULT_OFFSET = 0;
 ```
 
+### Shared Fallback Constants
+
+Use the shared `EMPTY_VALUE` constant for fallback display text. Never hardcode the literal `'-'` (or similar) in components — if the fallback ever changes, it should only need updating in one place.
+
+```typescript
+import { EMPTY_VALUE } from '@/constants/common';
+
+// ✅ Good: shared constant
+<Text>{data.shortDescription || EMPTY_VALUE}</Text>
+
+// ❌ Bad: hardcoded fallback
+<Text>{data.shortDescription || '-'}</Text>
+```
+
 ### Barrel File Exports
 
 ```typescript
@@ -823,6 +915,50 @@ Proper nouns, product names, and brand names retain their official capitalizatio
 - "Sign in with google"
 - "Softwareone marketplace"
 ```
+
+### Quote Style in `t()` Calls
+
+Use **single quotes** `'...'` for static translation keys. Only use **backticks** `` `...` `` when you need string interpolation.
+
+```typescript
+// ✅ Good: single quotes for static keys
+t('details.eligibility')
+t('settings.title')
+
+// ✅ Good: backticks when interpolation is needed
+t(`details.${sectionKey}`)
+t(`errors.${errorCode}`)
+
+// ❌ Bad: backticks without interpolation (unnecessary)
+t(`details.website`)
+t(`settings.title`)
+```
+
+### Translation File Organization (i18n)
+
+Translation keys must live in the JSON file that matches their **domain**, not in unrelated files. The existing files map to feature areas:
+
+| File               | Domain / Contents                                |
+| ------------------ | ------------------------------------------------ |
+| `auth.json`        | Authentication, login, OTP                       |
+| `billing.json`     | Invoices, credit memos, statements               |
+| `marketplace.json` | Catalog, products, sellers                       |
+| `program.json`     | Programs, enrollments                            |
+| `account.json`     | Account settings, profile                        |
+| `navigation.json`  | Tab labels, menu items                           |
+| `settings.json`    | App settings, preferences                        |
+| `shared.json`      | Truly cross-cutting keys (e.g. "Loading...")     |
+| `status.json`      | Status labels and badges                         |
+| `details.json`     | Detail screen labels                             |
+| `home.json`        | Home / spotlight                                 |
+| `admin.json`       | Admin-specific features                          |
+
+**Rules:**
+
+- Place keys in the most specific file that matches the feature (e.g. product detail keys go in `marketplace.json`, not `admin.json`).
+- If a new feature area warrants its own file (e.g. `catalog.json`), create it and register it in `i18n/en/index.ts`.
+- Only use `shared.json` for keys genuinely reused across 3+ features.
+- Don't dump unrelated keys into an existing file just because it's convenient.
 
 ### Examples in Translations (i18n)
 
@@ -972,6 +1108,60 @@ describe("Agreements Screen", () => {
 | **Validate inputs**       | Check ID formats with regex                   |
 | **JSDoc with @example**   | Document API client methods                   |
 | **Conditional skip**      | Use `this.skip()` when prerequisites missing  |
+
+---
+
+## Commit & PR Naming Convention
+
+The project follows [Conventional Commits](https://www.conventionalcommits.org/). Because GitHub auto-squash derives the merge commit message from the **PR title**, PR titles **must** follow this format.
+
+### Format
+
+```
+<type>: <short description>
+```
+
+Optionally include a scope:
+
+```
+<type>(<scope>): <short description>
+```
+
+### Allowed Types
+
+| Type       | Purpose                                                  |
+| ---------- | -------------------------------------------------------- |
+| `feat`     | New feature or user-facing change                        |
+| `fix`      | Bug fix                                                  |
+| `chore`    | Maintenance, dependency updates, config changes          |
+| `docs`     | Documentation only                                       |
+| `test`     | Adding or updating tests                                 |
+| `refactor` | Code change that neither fixes a bug nor adds a feature  |
+| `style`    | Formatting, whitespace — no logic changes                |
+| `ci`       | CI/CD workflow changes                                   |
+| `perf`     | Performance improvement                                  |
+| `build`    | Build system or external dependency changes              |
+| `revert`   | Reverts a previous commit                                |
+
+### Examples
+
+```
+feat: add biometric login support
+fix: resolve OTP input crash on Android
+chore: bump expo to SDK 54
+docs: update CONVENTIONS.md with commit rules
+test: add unit tests for validation utils
+refactor: extract account switching logic into hook
+ci: add Android build to main CI workflow
+```
+
+### Rules
+
+- **PR titles must use this convention** — the squash-merge commit inherits the PR title.
+- Type is always lowercase (`feat`, not `Feat`).
+- Description starts lowercase, no trailing period.
+- Keep descriptions concise (≤ 72 characters total).
+- Individual commit messages within a PR are free-form, but using the convention is encouraged.
 
 ---
 

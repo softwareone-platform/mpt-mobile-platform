@@ -925,8 +925,11 @@ These must match Auth0 dashboard configuration.
 
 **Commit Guidelines:**
 - Do NOT include Claude/AI attribution in commit messages (no "Generated with Claude Code" or "Co-Authored-By: Claude")
-- Write clear, concise commit messages describing the changes
-- Use conventional commit format when appropriate
+- Use [Conventional Commits](https://www.conventionalcommits.org/) format: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, `ci:`, etc.
+- **PR titles must follow the convention** — GitHub auto-squash uses the PR title as the merge commit message
+- Type is always lowercase, description starts lowercase, no trailing period
+- Keep descriptions concise (≤ 72 characters total)
+- See [CONVENTIONS.md](CONVENTIONS.md#commit--pr-naming-convention) for the full list of allowed types
 
 See `.github/CODEOWNERS` for code review assignments.
 
