@@ -65,9 +65,9 @@ export interface Audit {
   updated?: AuditTimestamp;
   generated?: AuditTimestamp;
   queued?: AuditTimestamp;
-  error: AuditTimestamp;
-  cancelled: AuditTimestamp;
-  pending: AuditTimestamp;
-  issued: AuditTimestamp;
-  generating: AuditTimestamp;
+  error?: AuditTimestamp;
+  cancelled?: AuditTimestamp;
+  pending?: AuditTimestamp;
+  issued?: AuditTimestamp;
+  generating?: AuditTimestamp;
 }

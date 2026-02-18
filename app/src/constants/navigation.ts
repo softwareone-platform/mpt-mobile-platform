@@ -11,6 +11,7 @@ import {
   EnrollmentsScreen,
   LicenseesScreen,
   BuyersScreen,
+  ProductsScreen,
   CreditMemoDetailsScreen,
   OrderDetailsScreen,
   AccountDetailsScreen,
@@ -22,6 +23,7 @@ import {
   SubscriptionDetailsScreen,
   InvoiceDetailsScreen,
   StatementDetailsScreen,
+  ProductDetailsScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -135,6 +137,7 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'enrollments', component: EnrollmentsScreen },
   { name: 'licensees', component: LicenseesScreen },
   { name: 'buyers', component: BuyersScreen },
+  { name: 'products', component: ProductsScreen },
   { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
   { name: 'orderDetails', component: OrderDetailsScreen },
   { name: 'accountDetails', component: AccountDetailsScreen },
@@ -146,4 +149,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'subscriptionDetails', component: SubscriptionDetailsScreen },
   { name: 'invoiceDetails', component: InvoiceDetailsScreen },
   { name: 'statementDetails', component: StatementDetailsScreen },
+  { name: 'productDetails', component: ProductDetailsScreen },
 ];

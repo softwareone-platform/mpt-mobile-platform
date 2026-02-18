@@ -10,6 +10,7 @@ export { default as ProgramsScreen } from './programs/ProgramsScreen';
 export { default as EnrollmentsScreen } from './programs/EnrollmentsScreen';
 export { default as LicenseesScreen } from './licensees/LicenseesScreen';
 export { default as BuyersScreen } from './buyers/BuyersScreen';
+export { default as ProductsScreen } from './products/ProductsScreen';
 export { default as CreditMemoDetailsScreen } from './credit-memos/CreditMemoDetailsScreen';
 export { default as OrderDetailsScreen } from './orders/OrderDetailsScreen';
 export { default as AccountDetailsScreen } from './account-details/AccountDetailsScreen';
@@ -21,6 +22,7 @@ export { default as LicenseeDetailsScreen } from './licensees/LicenseeDetailsScr
 export { default as SubscriptionDetailsScreen } from './subscriptions/SubscriptionDetailsScreen';
 export { default as InvoiceDetailsScreen } from './invoices/InvoiceDetailsScreen';
 export { default as StatementDetailsScreen } from './statements/StatementDetailsScreen';
+export { default as ProductDetailsScreen } from './products/ProductDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';
