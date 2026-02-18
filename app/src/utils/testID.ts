@@ -140,10 +140,20 @@ export const TestIDs = {
   INVOICES_ERROR_STATE: 'invoices-error-state',
   INVOICES_EMPTY_STATE: 'invoices-empty-state',
 
+  // Invoice Details Screen
+  INVOICE_DETAILS_LOADING_INDICATOR: 'invoice-details-loading-indicator',
+  INVOICE_DETAILS_ERROR_STATE: 'invoice-details-error-state',
+  INVOICE_DETAILS_EMPTY_STATE: 'invoice-details-empty-state',
+
   // Statements Screen
   STATEMENTS_LOADING_INDICATOR: 'statements-loading-indicator',
   STATEMENTS_ERROR_STATE: 'statements-error-state',
   STATEMENTS_EMPTY_STATE: 'statements-empty-state',
+
+  // Statement Details Screen
+  STATEMENT_DETAILS_LOADING_INDICATOR: 'statement-details-loading-indicator',
+  STATEMENT_DETAILS_ERROR_STATE: 'statement-details-error-state',
+  STATEMENT_DETAILS_EMPTY_STATE: 'statement-details-empty-state',
 
   // Programs Screen
   PROGRAMS_LOADING_INDICATOR: 'programs-loading-indicator',

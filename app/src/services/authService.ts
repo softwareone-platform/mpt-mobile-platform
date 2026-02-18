@@ -2,12 +2,8 @@ import { jwtDecode } from 'jwt-decode';
 import Auth0 from 'react-native-auth0';
 
 import { configService } from '@/config/env.config';
+import { AUTH0_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import { appInsightsService } from '@/services/appInsightsService';
-
-const AUTH0_DOMAIN = configService.get('AUTH0_DOMAIN');
-const AUTH0_CLIENT_ID = configService.get('AUTH0_CLIENT_ID');
-const AUTH0_AUDIENCE = configService.get('AUTH0_AUDIENCE');
-const AUTH0_SCOPE = configService.get('AUTH0_SCOPE');
 
 export interface AuthTokens {
   accessToken: string;
@@ -46,20 +42,39 @@ interface JWTPayload {
 
 class AuthenticationService {
   private auth0: Auth0;
-  private domain: string;
-  private clientId: string;
-  private audience?: string;
+  private domain: string = '';
+  private clientId: string = '';
+  private audience?: string = '';
+  private scope: string = '';
 
   constructor() {
-    this.domain = AUTH0_DOMAIN;
-    this.clientId = AUTH0_CLIENT_ID;
-    this.audience = AUTH0_AUDIENCE;
+    this.auth0 = this.createAuth0Instance();
+  }
 
-    this.auth0 = new Auth0({
+  private createAuth0Instance(): Auth0 {
+    this.domain = configService.get('AUTH0_DOMAIN');
+    this.clientId = configService.get('AUTH0_CLIENT_ID');
+    this.audience = configService.get('AUTH0_AUDIENCE');
+    this.scope = configService.get('AUTH0_SCOPE');
+
+    return new Auth0({
       domain: this.domain,
       clientId: this.clientId,
       useDPoP: false,
+      timeout: AUTH0_REQUEST_TIMEOUT_MS,
     });
+  }
+
+  public async reinitialize(): Promise<void> {
+    try {
+      if (this.auth0.credentialsManager) {
+        await this.auth0.credentialsManager.clearCredentials();
+      }
+    } catch (error) {
+      console.warn('Failed to clear credentials during reinitialize:', error);
+    }
+
+    this.auth0 = this.createAuth0Instance();
   }
 
   private getExpiryFromJWT(accessToken: string): number | undefined {
@@ -83,7 +98,7 @@ class AuthenticationService {
         email,
         send: 'code',
         authParams: {
-          scope: AUTH0_SCOPE,
+          scope: this.scope,
           ...(this.audience && { audience: this.audience }),
         },
       });
@@ -102,7 +117,7 @@ class AuthenticationService {
         email,
         code: otp,
         audience: this.audience,
-        scope: AUTH0_SCOPE,
+        scope: this.scope,
       });
 
       const expiresAt = this.getExpiryFromJWT(result.accessToken);

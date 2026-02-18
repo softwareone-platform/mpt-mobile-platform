@@ -4,6 +4,7 @@ import {
   numberFormatter,
   formatNumber,
   formatDateForLocale,
+  getTime,
 } from '@/utils/formatting';
 
 const EMPTY_STRING = '';
@@ -186,5 +187,47 @@ describe('formatDateForLocale', () => {
 
   it('pads day with leading zero correctly', () => {
     expect(formatDateForLocale('2025-04-05T11:06:29.000Z', locale)).toBe('05 Apr 2025');
+  });
+});
+
+describe('getTime', () => {
+  describe('valid ISO dates (UTC)', () => {
+    it('returns correct UTC time (HH:mm)', () => {
+      expect(getTime('2026-02-17T09:55:24.190Z')).toBe('09:55');
+    });
+
+    it('pads single digit hours and minutes', () => {
+      expect(getTime('2026-02-17T05:07:00.000Z')).toBe('05:07');
+    });
+
+    it('handles midnight correctly', () => {
+      expect(getTime('2026-02-17T00:00:00.000Z')).toBe('00:00');
+    });
+
+    it('handles end of day correctly', () => {
+      expect(getTime('2026-02-17T23:59:59.999Z')).toBe('23:59');
+    });
+  });
+
+  describe('invalid input', () => {
+    it('returns EMPTY_STRING for empty string', () => {
+      expect(getTime('')).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for invalid date string', () => {
+      expect(getTime('not-a-date')).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for malformed ISO string', () => {
+      expect(getTime('2026-99-99T99:99:99Z')).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for null (runtime edge case)', () => {
+      expect(getTime(null as unknown as string)).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for undefined (runtime edge case)', () => {
+      expect(getTime(undefined as unknown as string)).toBe(EMPTY_STRING);
+    });
   });
 });

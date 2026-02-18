@@ -91,6 +91,17 @@ class ConfigService {
   public getAll(): Readonly<EnvironmentConfig> {
     return { ...this.config };
   }
+
+  public update(updates: Partial<EnvironmentConfig>): void {
+    this.config = {
+      ...this.config,
+      ...updates,
+    };
+
+    if (!isTestEnvironment()) {
+      this.validateConfig();
+    }
+  }
 }
 
 export const configService = new ConfigService();

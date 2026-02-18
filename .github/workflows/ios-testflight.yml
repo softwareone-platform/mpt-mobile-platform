@@ -38,7 +38,7 @@ jobs:
     # Repository-level secrets: distribution certificate, App Store Connect API keys
     environment:
       name: ${{ inputs.environment }}
-      url: https://appstoreconnect.apple.com
+      url: ${{ steps.build_url.outputs.url || format('https://appstoreconnect.apple.com/apps/{0}/testflight/ios', vars.APP_STORE_APP_ID) }}
 
     defaults:
       run:
@@ -370,6 +370,18 @@ jobs:
           echo "IPA exported successfully"
           ls -la build/ipa/
 
+      - name: Record latest build before upload
+        id: pre_upload
+        working-directory: .
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          BUNDLE_ID: ${{ vars.APP_BUNDLE_ID }}
+        run: |
+          LATEST_BUILD_ID=$(node .github/scripts/appstore-connect-build.js latest) || LATEST_BUILD_ID=""
+          echo "latest_build_id=${LATEST_BUILD_ID}" >> $GITHUB_OUTPUT
+          echo "Latest build before upload: ${LATEST_BUILD_ID:-none}"
+
       - name: Upload to TestFlight
         working-directory: ./app/ios
         env:
@@ -397,6 +409,31 @@ jobs:
 
           echo "Successfully uploaded to TestFlight!"
           echo "The build will be available in TestFlight within 10-15 minutes"
+
+      - name: Get TestFlight build URL
+        id: build_url
+        working-directory: .
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_APPLE_ID: ${{ vars.APP_STORE_APP_ID }}
+          BUNDLE_ID: ${{ vars.APP_BUNDLE_ID }}
+          PRE_UPLOAD_BUILD_ID: ${{ steps.pre_upload.outputs.latest_build_id }}
+        run: |
+          FALLBACK_URL="https://appstoreconnect.apple.com/apps/${APP_APPLE_ID}/testflight/ios"
+
+          BUILD_ID=$(node .github/scripts/appstore-connect-build.js poll "${PRE_UPLOAD_BUILD_ID}") || BUILD_ID=""
+
+          if [ -n "$BUILD_ID" ]; then
+            BUILD_URL="https://appstoreconnect.apple.com/apps/${APP_APPLE_ID}/testflight/ios/${BUILD_ID}"
+            echo "Found TestFlight build: ${BUILD_ID}"
+          else
+            BUILD_URL="${FALLBACK_URL}"
+            echo "Could not find build in App Store Connect API, using fallback URL"
+          fi
+
+          echo "url=${BUILD_URL}" >> $GITHUB_OUTPUT
+          echo "TestFlight URL: ${BUILD_URL}"
 
       - name: Upload build artifacts
         if: always()
@@ -505,6 +542,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. Wait 10-15 minutes for App Store Connect processing" >> $GITHUB_STEP_SUMMARY
-          echo "2. Check TestFlight: [App Store Connect](https://appstoreconnect.apple.com/apps/${{ vars.APP_STORE_APP_ID }}/testflight/ios)" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check TestFlight: [App Store Connect](${{ steps.build_url.outputs.url }})" >> $GITHUB_STEP_SUMMARY
           echo "3. Merge the version bump PR to sync build numbers" >> $GITHUB_STEP_SUMMARY
           echo "4. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY

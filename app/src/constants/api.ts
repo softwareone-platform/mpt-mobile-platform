@@ -6,3 +6,5 @@ export const DEFAULT_SPOTLIGHT_LIMIT = 100;
 export const MAX_RECENT_ACCOUNTS = 10;
 
 export const FLATLIST_END_REACHED_THRESHOLD = 0.6;
+
+export const AUTH0_REQUEST_TIMEOUT_MS = 20000;
