@@ -46,6 +46,7 @@
     "firstName": "First name",
     "lastName": "Last name",
     "month": "month",
+    "name": "Name",
     "owner": "Owner",
     "phoneNumber": "Phone number",
     "pp": "∑ PP",
@@ -90,6 +91,17 @@
       "pending": "Pending",
       "issued": "Issued",
       "generating": "Generating"
+    },
+    "website": "Website",
+    "eligibility": "Eligibility",
+    "eligibilityValue": {
+      "client": "Client",
+      "partner": "Partner"
+    },
+    "applicableTo": "Applicable To",
+    "applicableToValue": {
+      "buyer": "Buyer",
+      "licensee": "Licensee"
     }
   }
 }
