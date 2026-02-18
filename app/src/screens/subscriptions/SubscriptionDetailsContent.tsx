@@ -38,7 +38,15 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
 
   return (
     <CardWithHeader title={t(`details.title`)}>
-      <DetailsListItem label={t(`details.product`)} data={data.product} />
+      <DetailsListItem
+        label={t(`details.product`)}
+        data={data.product}
+        onPress={() => {
+          navigation.navigate('productDetails', {
+            id: data.product?.id,
+          });
+        }}
+      />
       <DetailsListItem
         label={t(`details.agreement`)}
         data={data.agreement}
