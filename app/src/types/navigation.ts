@@ -26,6 +26,7 @@ export type SecondaryTabsParamList = {
   enrollments: undefined;
   licensees: undefined;
   buyers: undefined;
+  products: undefined;
 };
 
 export type AppScreensParamList = {
@@ -40,6 +41,7 @@ export type AppScreensParamList = {
   subscriptionDetails: { id: string | undefined };
   invoiceDetails: { id: string | undefined };
   statementDetails: { id: string | undefined };
+  productDetails: { id: string | undefined };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;
