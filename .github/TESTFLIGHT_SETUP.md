@@ -81,7 +81,27 @@ AUTH0_AUDIENCE_PROD
 AUTH0_API_URL_PROD
 ```
 
-**Total: 15 secrets required**
+#### Reviewer Environment (5 variables/secrets)
+
+These variables support dynamic environment switching for App Store reviewers.
+On lower environments (test, qa), `REVIEWER_EMAILS` should be empty.
+On prod, set `REVIEWER_EMAILS` to the designated reviewer email(s).
+The `REVIEW_ENV_*` values should correspond with the QA environment.
+
+**Variables (public):**
+```
+REVIEW_ENV_AUTH0_DOMAIN
+REVIEW_ENV_AUTH0_AUDIENCE
+REVIEW_ENV_AUTH0_API_URL
+REVIEWER_EMAILS              # comma-separated list of reviewer email addresses
+```
+
+**Secrets (encrypted):**
+```
+REVIEW_ENV_AUTH0_CLIENT_ID
+```
+
+**Total: 20 secrets/variables required**
 
 ### 2. (Optional) Configure Environment Protection Rules
 
