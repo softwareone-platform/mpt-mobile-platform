@@ -522,6 +522,16 @@ Auth0 configuration is stored in the target environment (test or prod), not in T
 - `AUTH0_OTP_DIGITS` - Number of OTP digits (e.g., 6)
 - `AUTH0_SCHEME` - URL scheme for Auth0 callback
 
+**Reviewer Environment Variables (per environment):**
+
+Used for dynamic environment switching for App Store reviewers. The `REVIEW_ENV_*` values should correspond with the QA environment. On lower environments (test, qa), `REVIEWER_EMAILS` should be empty. On prod, set it to designated reviewer email(s).
+
+- `REVIEW_ENV_AUTH0_DOMAIN` - Auth0 domain for reviewer environment (variable)
+- `REVIEW_ENV_AUTH0_CLIENT_ID` - Auth0 client ID for reviewer environment (secret)
+- `REVIEW_ENV_AUTH0_AUDIENCE` - API audience for reviewer environment (variable)
+- `REVIEW_ENV_AUTH0_API_URL` - API base URL for reviewer environment (variable)
+- `REVIEWER_EMAILS` - Comma-separated list of reviewer email addresses (variable)
+
 **App Configuration (Hardcoded in Workflow):**
 - Development Team ID: `47PY6J2KQC`
 - Bundle ID: `com.softwareone.marketplaceMobile`

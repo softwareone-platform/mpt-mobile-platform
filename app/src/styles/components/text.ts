@@ -15,6 +15,10 @@ export const textStyle = {
     ...textCommon,
     fontSize: Typography.fontSize.font3,
   },
+  textLarge: {
+    ...textCommon,
+    fontSize: Typography.fontSize.font4,
+  },
   textSmall: {
     ...textCommon,
     fontSize: Typography.fontSize.font2,
