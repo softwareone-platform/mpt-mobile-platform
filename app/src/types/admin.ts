@@ -48,3 +48,14 @@ export interface LicenseeData {
   account: DetailsListItemValue;
   data?: { [key: string]: unknown }[];
 }
+
+export interface ProductData {
+  id: string;
+  name: string;
+  icon?: string;
+  shortDescription?: string;
+  website?: string;
+  vendor: DetailsListItemValue;
+  status?: string;
+  data?: { [key: string]: unknown }[];
+}

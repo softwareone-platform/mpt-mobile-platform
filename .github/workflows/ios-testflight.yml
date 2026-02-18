@@ -112,6 +112,11 @@ jobs:
           APP_BUNDLE_ID=${{ vars.APP_BUNDLE_ID }}
           APP_ENVIRONMENT=${{ inputs.environment }}
           APPLICATION_INSIGHTS_CONNECTION_STRING=${{ secrets.APPLICATION_INSIGHTS_CONNECTION_STRING }}
+          REVIEW_ENV_AUTH0_DOMAIN=${{ vars.REVIEW_ENV_AUTH0_DOMAIN }}
+          REVIEW_ENV_AUTH0_CLIENT_ID=${{ secrets.REVIEW_ENV_AUTH0_CLIENT_ID }}
+          REVIEW_ENV_AUTH0_AUDIENCE=${{ vars.REVIEW_ENV_AUTH0_AUDIENCE }}
+          REVIEW_ENV_AUTH0_API_URL=${{ vars.REVIEW_ENV_AUTH0_API_URL }}
+          REVIEWER_EMAILS=${{ vars.REVIEWER_EMAILS }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"

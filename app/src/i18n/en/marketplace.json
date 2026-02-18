@@ -23,5 +23,9 @@
   "agreementDetailsScreen": {
     "emptyStateTitle": "No agreement details",
     "emptyStateDescription": "No agreement details found."
+  },
+  "productDetailsScreen": {
+    "emptyStateTitle": "No product details",
+    "emptyStateDescription": "No product details found."
   }
 }
