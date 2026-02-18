@@ -45,4 +45,12 @@ export const cardStyle = {
     color: Color.brand.primary,
     textAlign: 'center',
   },
+  body: {
+    padding: Spacing.spacing2,
+  },
+  bodyText: {
+    fontSize: Typography.fontSize.font4,
+    color: Color.brand.type,
+    fontWeight: Typography.fontWeight.regular,
+  },
 } as const;

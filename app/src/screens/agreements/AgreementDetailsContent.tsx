@@ -49,7 +49,15 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
           });
         }}
       />
-      <DetailsListItem label={t(`details.product`)} data={data.product} />
+      <DetailsListItem
+        label={t(`details.product`)}
+        data={data.product}
+        onPress={() => {
+          navigation.navigate('productDetails', {
+            id: data.product?.id,
+          });
+        }}
+      />
       <ListItemWithLabelAndText
         title={t(`details.resaleLicensee`)}
         subtitle={data.licensee?.eligibility?.partner === undefined ? '' : labelResaleLicensee}
