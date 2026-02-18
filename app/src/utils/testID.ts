@@ -160,6 +160,11 @@ export const TestIDs = {
   PROGRAMS_ERROR_STATE: 'programs-error-state',
   PROGRAMS_EMPTY_STATE: 'programs-empty-state',
 
+  // Program Details Screen
+  PROGRAM_DETAILS_LOADING_INDICATOR: 'program-details-loading-indicator',
+  PROGRAM_DETAILS_ERROR_STATE: 'program-details-error-state',
+  PROGRAM_DETAILS_EMPTY_STATE: 'program-details-empty-state',
+
   // Enrollments Screen
   ENROLLMENTS_LOADING_INDICATOR: 'enrollments-loading-indicator',
   ENROLLMENTS_ERROR_STATE: 'enrollments-error-state',
