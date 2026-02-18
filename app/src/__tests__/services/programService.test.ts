@@ -14,6 +14,8 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useProgramApi()).result.current;
 
+const expectedUrlBase = `/v1/program/programs` + `?select=-*,id,name,status,icon` + `&order=name`;
+
 describe('useProgramApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,11 +42,7 @@ describe('useProgramApi', () => {
     });
 
     const expectedUrl =
-      `/v1/program/programs` +
-      `?select=-*,id,name,status,icon` +
-      `&order=name` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -70,12 +68,7 @@ describe('useProgramApi', () => {
       res = await api.getPrograms(50, 25);
     });
 
-    const expectedUrl =
-      `/v1/program/programs` +
-      `?select=-*,id,name,status,icon` +
-      `&order=name` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);

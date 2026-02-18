@@ -25,6 +25,13 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useAgreementApi()).result.current;
 
+const expectedUrlBase =
+  `/v1/commerce/agreements` +
+  `?select=-*,id,name,status` +
+  `&filter(group.buyers)` +
+  `&and(ne(status,"Draft"),ne(status,"Failed"))` +
+  `&order=name`;
+
 describe('useAgreementApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -51,13 +58,7 @@ describe('useAgreementApi', () => {
     });
 
     const expectedUrl =
-      `/v1/commerce/agreements` +
-      `?select=-*,id,name,status` +
-      `&filter(group.buyers)` +
-      `&and(ne(status,"Draft"),ne(status,"Failed"))` +
-      `&order=name` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -83,14 +84,7 @@ describe('useAgreementApi', () => {
       res = await api.getAgreements(50, 25);
     });
 
-    const expectedUrl =
-      `/v1/commerce/agreements` +
-      `?select=-*,id,name,status` +
-      `&filter(group.buyers)` +
-      `&and(ne(status,"Draft"),ne(status,"Failed"))` +
-      `&order=name` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);

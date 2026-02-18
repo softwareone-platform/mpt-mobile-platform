@@ -35,6 +35,12 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useBillingApi()).result.current;
 
+const expectedUrlBase =
+  `/v1/billing/credit-memos` +
+  `?select=-*,id,status` +
+  `&filter(group.buyers)` +
+  `&order=-audit.created.at`;
+
 describe('useBillingApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -61,12 +67,7 @@ describe('useBillingApi', () => {
     });
 
     const expectedUrl =
-      `/v1/billing/credit-memos` +
-      `?select=-*,id,status` +
-      `&filter(group.buyers)` +
-      `&order=-audit.created.at` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -92,13 +93,7 @@ describe('useBillingApi', () => {
       res = await api.getCreditMemos(50, 25);
     });
 
-    const expectedUrl =
-      `/v1/billing/credit-memos` +
-      `?select=-*,id,status` +
-      `&filter(group.buyers)` +
-      `&order=-audit.created.at` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);

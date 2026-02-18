@@ -25,6 +25,12 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useBuyerApi()).result.current;
 
+const expectedUrlBase =
+  `/v1/accounts/buyers` +
+  `?select=-*,id,name,status,icon` +
+  `&ne(status,%22Deleted%22)` +
+  `&order=name`;
+
 describe('useBuyerApi - getBuyers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -51,12 +57,7 @@ describe('useBuyerApi - getBuyers', () => {
     });
 
     const expectedUrl =
-      `/v1/accounts/buyers` +
-      `?select=-*,id,name,status,icon` +
-      `&ne(status,%22Deleted%22)` +
-      `&order=name` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -82,13 +83,7 @@ describe('useBuyerApi - getBuyers', () => {
       res = await api.getBuyers('ACC-0000-0001', 50, 25);
     });
 
-    const expectedUrl =
-      `/v1/accounts/buyers` +
-      `?select=-*,id,name,status,icon` +
-      `&ne(status,%22Deleted%22)` +
-      `&order=name` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);

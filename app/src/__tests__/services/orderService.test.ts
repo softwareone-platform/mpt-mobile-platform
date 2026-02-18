@@ -14,6 +14,12 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useOrderApi()).result.current;
 
+const expectedUrlBase =
+  `/v1/commerce/orders` +
+  `?select=-*,id,status` +
+  `&filter(group.buyers)` +
+  `&order=-audit.created.at`;
+
 describe('useOrderApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,12 +46,7 @@ describe('useOrderApi', () => {
     });
 
     const expectedUrl =
-      `/v1/commerce/orders` +
-      `?select=-*,id,status` +
-      `&filter(group.buyers)` +
-      `&order=-audit.created.at` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -71,13 +72,7 @@ describe('useOrderApi', () => {
       res = await api.getOrders(50, 25);
     });
 
-    const expectedUrl =
-      `/v1/commerce/orders` +
-      `?select=-*,id,status` +
-      `&filter(group.buyers)` +
-      `&order=-audit.created.at` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);

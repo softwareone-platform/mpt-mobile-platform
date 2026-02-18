@@ -14,6 +14,9 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useUserApi()).result.current;
 
+const expectedUrlBase = (accountId: string) =>
+  `/v1/accounts/accounts/${accountId}/users` + `?select=-*,id,name,status,icon` + `&order=name`;
+
 describe('useUserApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,9 +43,7 @@ describe('useUserApi', () => {
     });
 
     const expectedUrl =
-      `/v1/accounts/accounts/ACC-0000-0001/users` +
-      `?select=-*,id,name,status,icon` +
-      `&order=name` +
+      expectedUrlBase('ACC-0000-0001') +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 
@@ -70,12 +71,7 @@ describe('useUserApi', () => {
       res = await api.getUsers('ACC-0000-0001', 50, 25);
     });
 
-    const expectedUrl =
-      `/v1/accounts/accounts/ACC-0000-0001/users` +
-      `?select=-*,id,name,status,icon` +
-      `&order=name` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase('ACC-0000-0001') + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
