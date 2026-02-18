@@ -150,6 +150,11 @@ export const TestIDs = {
   STATEMENTS_ERROR_STATE: 'statements-error-state',
   STATEMENTS_EMPTY_STATE: 'statements-empty-state',
 
+  // Statement Details Screen
+  STATEMENT_DETAILS_LOADING_INDICATOR: 'statement-details-loading-indicator',
+  STATEMENT_DETAILS_ERROR_STATE: 'statement-details-error-state',
+  STATEMENT_DETAILS_EMPTY_STATE: 'statement-details-empty-state',
+
   // Programs Screen
   PROGRAMS_LOADING_INDICATOR: 'programs-loading-indicator',
   PROGRAMS_ERROR_STATE: 'programs-error-state',

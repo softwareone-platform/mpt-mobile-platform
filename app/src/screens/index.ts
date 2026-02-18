@@ -20,6 +20,7 @@ export { default as AgreementDetailsScreen } from './agreements/AgreementDetails
 export { default as LicenseeDetailsScreen } from './licensees/LicenseeDetailsScreen';
 export { default as SubscriptionDetailsScreen } from './subscriptions/SubscriptionDetailsScreen';
 export { default as InvoiceDetailsScreen } from './invoices/InvoiceDetailsScreen';
+export { default as StatementDetailsScreen } from './statements/StatementDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

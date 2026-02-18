@@ -63,3 +63,19 @@ export const formatDateForLocale = (isoDate: string | undefined, locale: string)
 
   return `${day} ${month} ${year}`;
 };
+
+export function getTime(isoDate: string): string {
+  if (!isoDate) {
+    return EMPTY_STRING;
+  }
+  const date = new Date(isoDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return EMPTY_STRING;
+  }
+
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+
+  return `${hours}:${minutes}`;
+}

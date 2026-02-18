@@ -1,4 +1,4 @@
-import { BaseObjectDetails } from '@/types/common';
+import { CommonBillingDetails, Price } from '@/types/common';
 import type { DetailsListItemValue } from '@/types/lists';
 
 export interface Order {
@@ -15,7 +15,8 @@ export interface Order {
   };
 }
 
-export interface OrderDetails extends BaseObjectDetails {
+export interface OrderDetails extends CommonBillingDetails {
   type: string;
   assignee: DetailsListItemValue;
+  price: Price;
 }
