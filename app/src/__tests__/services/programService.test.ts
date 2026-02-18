@@ -1,5 +1,16 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import { mockNetworkError } from '../__mocks__/services/common';
+import {
+  mockProgramId1,
+  mockProgramId2,
+  mockProgramData,
+  expectedProgramUrl1,
+  expectedProgramUrl2,
+  mockProgramResponse1,
+  mockProgramResponse2,
+} from '../__mocks__/services/program';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useProgramApi } from '@/services/programService';
 import type { PaginatedResponse, ListItemFull } from '@/types/api';
@@ -183,5 +194,58 @@ describe('useProgramApi', () => {
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getPrograms()).rejects.toThrow('Network error');
+  });
+});
+
+describe('useProgramApi - getProgramData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getProgramData with correct endpoint and returns data', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockProgramData);
+
+    await act(async () => {
+      res = await api.getProgramData(mockProgramId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedProgramUrl1);
+    expect(res).toEqual(mockProgramData);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getProgramData(mockProgramId1)).rejects.toThrow('Network error');
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockProgramResponse1);
+    mockGet.mockResolvedValueOnce(mockProgramResponse2);
+
+    await act(async () => {
+      res1 = await api.getProgramData(mockProgramId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getProgramData(mockProgramId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedProgramUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedProgramUrl2);
+
+    expect(res1).toEqual(mockProgramResponse1);
+    expect(res2).toEqual(mockProgramResponse2);
   });
 });

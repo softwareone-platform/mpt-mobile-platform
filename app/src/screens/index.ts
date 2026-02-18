@@ -7,7 +7,7 @@ export { default as CreditMemosScreen } from './credit-memos/CreditMemosScreen';
 export { default as StatementsScreen } from './statements/StatementsScreen';
 export { default as UsersScreen } from './users/UsersScreen';
 export { default as ProgramsScreen } from './programs/ProgramsScreen';
-export { default as EnrollmentsScreen } from './programs/EnrollmentsScreen';
+export { default as EnrollmentsScreen } from './enrollments/EnrollmentsScreen';
 export { default as LicenseesScreen } from './licensees/LicenseesScreen';
 export { default as BuyersScreen } from './buyers/BuyersScreen';
 export { default as ProductsScreen } from './products/ProductsScreen';
@@ -23,6 +23,7 @@ export { default as SubscriptionDetailsScreen } from './subscriptions/Subscripti
 export { default as InvoiceDetailsScreen } from './invoices/InvoiceDetailsScreen';
 export { default as StatementDetailsScreen } from './statements/StatementDetailsScreen';
 export { default as ProductDetailsScreen } from './products/ProductDetailsScreen';
+export { default as ProgramDetailsScreen } from './programs/ProgramDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';
