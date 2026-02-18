@@ -18,6 +18,7 @@
     "enrollments": "Enrollments",
     "licensees": "Licensees",
     "buyers": "Buyers",
+    "products": "Products",
     "orderDetails": "Order",
     "creditMemoDetails": "Credit Memo",
     "userDetails": "User",
@@ -25,7 +26,11 @@
     "sellerDetails": "Seller",
     "agreementDetails": "Agreement",
     "licenseeDetails": "Licensee",
-    "subscriptionDetails": "Subscription"
+    "subscriptionDetails": "Subscription",
+    "invoiceDetails": "Invoice",
+    "statementDetails": "Statement",
+    "productDetails": "Product",
+    "programDetails": "Program"
   },
   "tabGroups": {
     "administration": "Administration",

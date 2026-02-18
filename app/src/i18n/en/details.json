@@ -22,6 +22,7 @@
     "no": "No",
     "up": "M↑",
     "down": "M↓",
+    "dueDate": "Due date",
     "averageYield": "Average yield",
     "defaultYield": "Default yield",
     "serviceLevel": "Service level",
@@ -34,8 +35,7 @@
     "address": "Address",
     "addressLine1": "Address line 1",
     "addressLine2": "Address line 2",
-    "city": "City",
-    "state": "State",
+    "city": "City",    
     "postCode": "ZIP/Postal code",
     "country": "Country",
     "email": "Email",
@@ -43,13 +43,22 @@
     "firstName": "First name",
     "lastName": "Last name",
     "month": "month",
+    "name": "Name",
+    "owner": "Owner",
     "phoneNumber": "Phone number",
+    "pp": "∑ PP",
     "ppx": "PPx",
     "renewalDate": "Renewal date",
     "taxNumber": "Tax number",
     "terms": "Terms",
+    "timestamps": "Timestamps",
+    "salesOrderId": "Sales order ID",
     "scuIdentifier": "SCU identifier",
+    "source": "Source",
     "spx": "SPx",
+    "state": "State",
+    "statement": "Statement",
+    "statementType": "Statement type",
     "year": "year",
     "yes": "Yes",
     "model": {
@@ -67,6 +76,29 @@
       "1m": "1 month commitment",
       "1y": "1 years commitment",
       "3y": "3 year commitment"
+    },
+    "yield": "Yield",
+    "audit": {
+      "created": "Created",
+      "updated": "Updated",
+      "generated": "Generated",
+      "queued": "Queued",
+      "error": "Error",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "issued": "Issued",
+      "generating": "Generating"
+    },
+    "website": "Website",
+    "eligibility": "Eligibility",
+    "eligibilityValue": {
+      "client": "Client",
+      "partner": "Partner"
+    },
+    "applicableTo": "Applicable To",
+    "applicableToValue": {
+      "buyer": "Buyer",
+      "licensee": "Licensee"
     }
   }
 }

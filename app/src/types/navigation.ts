@@ -26,6 +26,7 @@ export type SecondaryTabsParamList = {
   enrollments: undefined;
   licensees: undefined;
   buyers: undefined;
+  products: undefined;
 };
 
 export type AppScreensParamList = {
@@ -38,6 +39,10 @@ export type AppScreensParamList = {
   agreementDetails: { id: string | undefined };
   licenseeDetails: { id: string | undefined };
   subscriptionDetails: { id: string | undefined };
+  invoiceDetails: { id: string | undefined };
+  statementDetails: { id: string | undefined };
+  productDetails: { id: string | undefined };
+  programDetails: { id: string | undefined };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;
@@ -66,6 +71,8 @@ export type SecondaryTabItem = {
   icon: string;
   /* eslint-disable @typescript-eslint/no-explicit-any */
   component?: React.ComponentType<any>;
+  modules?: ModuleName[];
+  roles?: AccountType[];
 };
 
 export type SecondaryTabGroupTitle =

@@ -3,7 +3,14 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse } from '@/types/api';
-import type { CreditMemo, CreditMemoDetails, Invoice, Statement } from '@/types/billing';
+import type {
+  CreditMemo,
+  CreditMemoDetails,
+  Invoice,
+  InvoiceDetails,
+  Statement,
+  StatementDetails,
+} from '@/types/billing';
 
 export function useBillingApi() {
   const api = useApi();
@@ -55,6 +62,17 @@ export function useBillingApi() {
     [api],
   );
 
+  const getInvoiceData = useCallback(
+    async (invoiceId: string): Promise<InvoiceDetails> => {
+      const endpoint =
+        `/v1/billing/invoices/${invoiceId}` +
+        `?select=seller.address.country,statement,statement.ledger.owner,audit`;
+
+      return api.get<InvoiceDetails>(endpoint);
+    },
+    [api],
+  );
+
   const getStatements = useCallback(
     async (
       offset: number = DEFAULT_OFFSET,
@@ -73,13 +91,31 @@ export function useBillingApi() {
     [api],
   );
 
+  const getStatementData = useCallback(
+    async (statementId: string): Promise<StatementDetails> => {
+      const endpoint = `/v1/billing/statements/${statementId}?select=seller.address.country,audit,ledger.owner`;
+
+      return api.get<StatementDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getCreditMemos,
       getCreditMemoDetails,
       getInvoices,
+      getInvoiceData,
       getStatements,
+      getStatementData,
     }),
-    [getCreditMemos, getCreditMemoDetails, getInvoices, getStatements],
+    [
+      getCreditMemos,
+      getCreditMemoDetails,
+      getInvoices,
+      getInvoiceData,
+      getStatements,
+      getStatementData,
+    ],
   );
 }

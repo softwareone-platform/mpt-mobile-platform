@@ -1,21 +1,42 @@
 import { useMemo } from 'react';
 
-import navigationMapperJson from '@/config/navigation-mapper.json';
 import { useAuth } from '@/context/AuthContext';
-import { NavigationMapper } from '@/types/navigation';
-import { canShowNavItem } from '@/utils/navigationPermissions';
+import type { ModuleName } from '@/types/modules';
+import { hasModuleAccess } from '@/utils/moduleClaims';
 
-const navigationMapper = navigationMapperJson as unknown as NavigationMapper;
+function canAccessNavItem<T extends { modules?: string[]; roles?: string[] }>(
+  item: T,
+  accessToken: string,
+  accountType: string | null,
+): boolean {
+  if (!item.modules && !item.roles) return true;
 
-export function useFilteredNavigation<T extends { name: string }>(items: T[]): T[] {
+  if (item.roles && item.roles.length > 0) {
+    if (!accountType || !item.roles.includes(accountType)) {
+      return false;
+    }
+  }
+
+  if (item.modules && item.modules.length > 0) {
+    const hasAccess = item.modules.some((module) =>
+      hasModuleAccess(accessToken, module as ModuleName),
+    );
+    if (!hasAccess) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function useFilteredNavigation<
+  T extends { name: string; modules?: string[]; roles?: string[] },
+>(items: T[]): T[] {
   const { tokens, accountType } = useAuth();
 
   const filteredItems = useMemo(() => {
     if (!tokens?.accessToken) return items;
-
-    return items.filter((item) =>
-      canShowNavItem(tokens.accessToken, accountType, item.name, navigationMapper),
-    );
+    return items.filter((item) => canAccessNavItem(item, tokens.accessToken, accountType));
   }, [items, tokens?.accessToken, accountType]);
 
   return filteredItems;

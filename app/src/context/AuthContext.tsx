@@ -12,6 +12,7 @@ import { usePortalVersion } from '@/hooks/queries/usePortalVersion';
 import { tokenProvider } from '@/lib/tokenProvider';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
+import { environmentSwitcherService } from '@/services/environmentSwitcherService';
 import { PortalVersionInfo } from '@/services/portalVersionService';
 import { AccountType } from '@/types/common';
 import { ModuleClaims } from '@/types/modules';
@@ -203,6 +204,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const sendPasswordlessEmail = async (email: string) => {
     try {
+      await environmentSwitcherService.switchEnvironmentForEmail(email);
       await authService.sendPasswordlessEmail(email);
     } catch (error) {
       console.error(
@@ -214,6 +216,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   };
 
   const login = async (email: string, otp: string) => {
+    await environmentSwitcherService.switchEnvironmentForEmail(email);
+
     const tokens = await authService.verifyPasswordlessOtp(email, otp);
     const user = authService.getUserFromToken(tokens.accessToken);
 

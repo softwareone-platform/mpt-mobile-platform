@@ -9,8 +9,17 @@ jest.mock('@/services/appInsightsService', () => ({
     getRequestId: jest.fn(() => '|0af7651916cd43dd8448eb211c80319c.b9c7c989_'),
   },
 }));
+jest.mock('@/config/env.config', () => ({
+  configService: {
+    get: jest.fn((key: string) => {
+      if (key === 'AUTH0_API_URL') return 'https://api.default.com';
+      return '';
+    }),
+  },
+}));
 
-import apiClient from '@/lib/apiClient';
+import { configService } from '@/config/env.config';
+import apiClient, { updateApiClientBaseURL } from '@/lib/apiClient';
 import { getAccessTokenAsync } from '@/lib/tokenProvider';
 import { appInsightsService } from '@/services/appInsightsService';
 import { createApiError } from '@/utils/apiError';
@@ -143,5 +152,27 @@ describe('apiClient interceptors', () => {
       { url: 'unknown', method: 'unknown', statusCode: 404, statusText: 'Not Found' },
       'Warning',
     );
+  });
+});
+
+describe('updateApiClientBaseURL', () => {
+  it('should update apiClient baseURL from config', () => {
+    const mockConfigGet = configService.get as jest.Mock;
+    mockConfigGet.mockReturnValue('https://api.newurl.com');
+
+    updateApiClientBaseURL();
+
+    expect(mockConfigGet).toHaveBeenCalledWith('AUTH0_API_URL');
+    expect(apiClient.defaults.baseURL).toBe('https://api.newurl.com');
+  });
+
+  it('should handle empty baseURL', () => {
+    const mockConfigGet = configService.get as jest.Mock;
+    mockConfigGet.mockReturnValue('');
+
+    updateApiClientBaseURL();
+
+    expect(mockConfigGet).toHaveBeenCalledWith('AUTH0_API_URL');
+    expect(apiClient.defaults.baseURL).toBe('');
   });
 });

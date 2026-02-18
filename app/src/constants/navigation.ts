@@ -11,6 +11,7 @@ import {
   EnrollmentsScreen,
   LicenseesScreen,
   BuyersScreen,
+  ProductsScreen,
   CreditMemoDetailsScreen,
   OrderDetailsScreen,
   AccountDetailsScreen,
@@ -20,6 +21,10 @@ import {
   AgreementDetailsScreen,
   LicenseeDetailsScreen,
   SubscriptionDetailsScreen,
+  InvoiceDetailsScreen,
+  StatementDetailsScreen,
+  ProductDetailsScreen,
+  ProgramDetailsScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -42,29 +47,79 @@ export const mainTabsData: MainTabItem[] = [
 
 export const secondaryTabsData: SecondaryTabGroup[] = [
   {
-    title: 'administration',
+    title: 'settings',
     items: [
-      { name: 'buyers', icon: 'shopping-cart-checkout', component: BuyersScreen },
-      { name: 'users', icon: 'group', component: UsersScreen },
+      {
+        name: 'buyers',
+        icon: 'shopping-cart-checkout',
+        component: BuyersScreen,
+        modules: ['account-management'],
+        roles: ['Client', 'Operations'],
+      },
+      {
+        name: 'users',
+        icon: 'group',
+        component: UsersScreen,
+        modules: ['access-management'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
     ],
   },
   {
     title: 'billing',
     items: [
-      { name: 'creditMemos', icon: 'credit-card', component: CreditMemosScreen },
-      { name: 'invoices', icon: 'receipt-long', component: InvoicesScreen },
-      { name: 'statements', icon: 'receipt', component: StatementsScreen },
+      {
+        name: 'creditMemos',
+        icon: 'credit-card',
+        component: CreditMemosScreen,
+        modules: ['billing'],
+        roles: ['Client', 'Operations'],
+      },
+      {
+        name: 'invoices',
+        icon: 'receipt-long',
+        component: InvoicesScreen,
+        modules: ['billing'],
+        roles: ['Client', 'Operations'],
+      },
+      {
+        name: 'statements',
+        icon: 'receipt',
+        component: StatementsScreen,
+        modules: ['billing'],
+        roles: ['Client', 'Operations'],
+      },
     ],
   },
   {
     title: 'marketplace',
-    items: [{ name: 'agreements', icon: 'fact-check', component: AgreementsScreen }],
+    items: [
+      {
+        name: 'agreements',
+        icon: 'fact-check',
+        component: AgreementsScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
+    ],
   },
   {
     title: 'program',
     items: [
-      { name: 'enrollments', icon: 'badge', component: EnrollmentsScreen },
-      { name: 'programs', icon: 'redeem', component: ProgramsScreen },
+      {
+        name: 'enrollments',
+        icon: 'badge',
+        component: EnrollmentsScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
+      {
+        name: 'programs',
+        icon: 'redeem',
+        component: ProgramsScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
     ],
   },
 ];
@@ -83,6 +138,7 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'enrollments', component: EnrollmentsScreen },
   { name: 'licensees', component: LicenseesScreen },
   { name: 'buyers', component: BuyersScreen },
+  { name: 'products', component: ProductsScreen },
   { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
   { name: 'orderDetails', component: OrderDetailsScreen },
   { name: 'accountDetails', component: AccountDetailsScreen },
@@ -92,4 +148,8 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'agreementDetails', component: AgreementDetailsScreen },
   { name: 'licenseeDetails', component: LicenseeDetailsScreen },
   { name: 'subscriptionDetails', component: SubscriptionDetailsScreen },
+  { name: 'invoiceDetails', component: InvoiceDetailsScreen },
+  { name: 'statementDetails', component: StatementDetailsScreen },
+  { name: 'productDetails', component: ProductDetailsScreen },
+  { name: 'programDetails', component: ProgramDetailsScreen },
 ];

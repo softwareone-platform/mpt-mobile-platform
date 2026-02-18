@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse, ListItemFull } from '@/types/api';
+import type { ProgramDetails } from '@/types/program';
 
 export function useProgramApi() {
   const api = useApi();
@@ -24,10 +25,20 @@ export function useProgramApi() {
     [api],
   );
 
+  const getProgramData = useCallback(
+    async (programId: string): Promise<ProgramDetails> => {
+      const endpoint = `/v1/program/programs/${programId}`;
+
+      return api.get<ProgramDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getPrograms,
+      getProgramData,
     }),
-    [getPrograms],
+    [getPrograms, getProgramData],
   );
 }

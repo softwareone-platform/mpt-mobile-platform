@@ -3,6 +3,10 @@
     "emptyStateTitle": "No programs",
     "emptyStateDescription": "No programs found."
   },
+  "programDetailsScreen": {
+    "emptyStateTitle": "No program details",
+    "emptyStateDescription": "No program details found."
+  },
   "enrollmentsScreen": {
     "emptyStateTitle": "No enrollments",
     "emptyStateDescription": "No enrollments found."

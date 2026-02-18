@@ -14,7 +14,7 @@ export type ModuleName =
   | 'notification-administration'
   | 'notifications'
   | 'partner-management'
-  | 'platform-account-management'
+  | 'platform-account-management' //Administration operations context (Users, Buyers etc)
   | 'procurement'
   | 'purchase-approval'
   | 'service-provider';
