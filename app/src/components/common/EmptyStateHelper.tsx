@@ -36,9 +36,9 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
   children,
 }) => {
   const { t } = useTranslation();
-  const { isSwitchingAccount, userDataLoading } = useAccount();
+  const { isSwitchingAccount, isUserDataLoading } = useAccount();
 
-  if (isLoading || isSwitchingAccount || userDataLoading) {
+  if (isLoading || isSwitchingAccount || isUserDataLoading) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
         <ActivityIndicator testID={loadingTestId} size="large" color={Color.brand.primary} />
