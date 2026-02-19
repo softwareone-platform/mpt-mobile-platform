@@ -1,4 +1,5 @@
-import { createContext, useContext, useCallback, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
@@ -15,6 +16,7 @@ interface AccountContextValue {
   spotlightData: Record<string, SpotlightItem[]>;
   spotlightError: boolean;
   spotlightDataLoading: boolean;
+  isSwitchingAccount: boolean;
   switchAccount: (accountId: string) => Promise<void>;
 }
 
@@ -50,13 +52,32 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     useUserAccountsData(userId);
 
   const switchAccountMutation = useSwitchAccount(userId);
+  const queryClient = useQueryClient();
+  const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
 
   const switchAccount = useCallback(
     async (accountId: string) => {
       if (!userId) return;
-      await switchAccountMutation.mutateAsync(accountId);
+      setIsSwitchingAccount(true);
+      try {
+        await switchAccountMutation.mutateAsync(accountId);
+
+        // Remove account-specific caches to avoid stale-token refetch.
+        // After refreshAuth (inside the mutation) dispatches UPDATE_TOKENS,
+        // the token closure updates on the next render and queries refetch naturally.
+        queryClient.removeQueries({ queryKey: ['userData', userId] });
+        queryClient.removeQueries({ queryKey: ['spotlightData', userId] });
+
+        // The account list is user-level (not account-specific), so keep stale
+        // data visible while refetching in the background to avoid list flicker.
+        void queryClient.invalidateQueries({ queryKey: ['userAccountsData', userId] });
+      } catch (error) {
+        console.error('Failed to switch account', error);
+      } finally {
+        setIsSwitchingAccount(false);
+      }
     },
-    [userId, switchAccountMutation],
+    [userId, switchAccountMutation, queryClient],
   );
 
   return (
@@ -69,6 +90,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         spotlightData,
         spotlightError,
         spotlightDataLoading: isSpotlightLoading,
+        isSwitchingAccount,
         switchAccount,
       }}
     >

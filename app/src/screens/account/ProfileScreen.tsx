@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
@@ -27,6 +27,12 @@ const ProfileScreen = () => {
 
   const { userData, userAccountsData, switchAccount } = useAccount();
   const { isEnabled } = useFeatureFlags();
+
+  const lastUserDataRef = useRef(userData);
+  if (userData) {
+    lastUserDataRef.current = userData;
+  }
+  const displayUserData = userData ?? lastUserDataRef.current;
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { t } = useTranslation();
 
@@ -63,19 +69,19 @@ const ProfileScreen = () => {
           {t('profileScreen.yourProfile')}
         </Text>
         <View style={styles.containerCard}>
-          {userData && (
+          {displayUserData && (
             <NavigationItemWithImage
               testID={TestIDs.PROFILE_USER_ITEM}
-              id={userData?.id}
-              imagePath={userData?.icon}
-              title={userData?.name}
-              subtitle={userData?.id}
+              id={displayUserData.id}
+              imagePath={displayUserData.icon}
+              title={displayUserData.name}
+              subtitle={displayUserData.id}
               isLast={true}
               onPress={() =>
                 navigation.navigate('userSettings', {
-                  id: userData.id,
-                  name: userData.name,
-                  icon: userData.icon,
+                  id: displayUserData.id,
+                  name: displayUserData.name,
+                  icon: displayUserData.icon,
                 })
               }
             />
@@ -117,7 +123,7 @@ const ProfileScreen = () => {
                 title={account.name}
                 subtitle={account.id}
                 isLast={index === accountsToDisplay.length - 1}
-                isSelected={account.id === userData?.currentAccount?.id}
+                isSelected={account.id === selectedAccountId}
                 isUpdatingSelection={isSwitching && account.id === selectedAccountId}
                 onPress={() => handleSwitchAccount(account.id)}
               />

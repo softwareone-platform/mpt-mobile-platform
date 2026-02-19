@@ -1,11 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, TouchableOpacity, StyleSheet } from 'react-native';
 
 import Avatar from '@/components/avatar/Avatar';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
 import { useAccount } from '@/context/AccountContext';
-import { avatarStyle } from '@/styles';
+import { avatarStyle, Color } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
@@ -13,7 +13,7 @@ type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Prof
 
 const AccountToolbarButton: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-  const { userData } = useAccount();
+  const { userData, isSwitchingAccount } = useAccount();
 
   const handlePress = () => {
     navigation.navigate('ProfileRoot');
@@ -27,12 +27,16 @@ const AccountToolbarButton: React.FC = () => {
       activeOpacity={0.7}
     >
       <View style={styles.topBarIconWrapper}>
-        <Avatar
-          id={userData?.currentAccount?.id || ''}
-          imagePath={userData?.currentAccount?.icon}
-          size={DEFAULT_AVATAR_SIZE}
-          variant="small"
-        />
+        {isSwitchingAccount || !userData?.currentAccount?.id ? (
+          <ActivityIndicator size="small" color={Color.brand.primary} />
+        ) : (
+          <Avatar
+            id={userData?.currentAccount?.id || ''}
+            imagePath={userData?.currentAccount?.icon}
+            size={DEFAULT_AVATAR_SIZE}
+            variant="small"
+          />
+        )}
       </View>
     </TouchableOpacity>
   );
