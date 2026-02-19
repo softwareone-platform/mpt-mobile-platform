@@ -11,6 +11,8 @@ import {
   mockProductResponse2,
   mockProductListItem1,
   mockProductListItem2,
+  mockProductListItem3,
+  mockProductListItem4,
 } from '../__mocks__/services/product';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
@@ -27,9 +29,7 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useProductApi()).result.current;
 
-const expectedUrlBase = `/v1/catalog/products` +
-      `?ne(status,%22Draft%22)` +
-      `&order=name`;
+const expectedUrlBase = `/v1/catalog/products` + `?ne(status,%22Draft%22)` + `&order=name`;
 
 describe('useProductApi - getProducts', () => {
   beforeEach(() => {
@@ -57,9 +57,7 @@ describe('useProductApi - getProducts', () => {
     });
 
     const expectedUrl =
-      expectedUrlBase +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -85,10 +83,7 @@ describe('useProductApi - getProducts', () => {
       res = await api.getProducts(50, 25);
     });
 
-    const expectedUrl =
-     expectedUrlBase +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -101,19 +96,13 @@ describe('useProductApi - getProducts', () => {
       $meta: {
         pagination: { offset: 0, limit: 10, total: 20 },
       },
-      data: [
-        mockProductListItem1 as ListItemFull,
-        mockProductListItem2 as ListItemFull,
-      ],
+      data: [mockProductListItem1 as ListItemFull, mockProductListItem2 as ListItemFull],
     };
     const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: { offset: 10, limit: 10, total: 20 },
       },
-      data: [
-        mockProductListItem1 as ListItemFull,
-        mockProductListItem2 as ListItemFull,
-      ],
+      data: [mockProductListItem3 as ListItemFull, mockProductListItem4 as ListItemFull],
     };
 
     let res1: PaginatedResponse<ListItemFull> | undefined;

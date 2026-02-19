@@ -55,15 +55,15 @@ export const mockProductListItem2 = {
 };
 
 export const mockProductListItem3 = {
-  id: "PRD-1234-5673",
+  id: 'PRD-1234-5673',
   name: 'Amazon Web Services',
   icon: '/v1/catalog/products/PRD-1234-5673/icon',
-  status: 'Published',
+  status: 'Unpublished',
 };
 
 export const mockProductListItem4 = {
-  id: "PRD-1234-5674",
+  id: 'PRD-1234-5674',
   name: 'Microsoft Azure',
   icon: '/v1/catalog/products/PRD-1234-5674/icon',
-  status: 'Published',
+  status: 'Pending',
 };

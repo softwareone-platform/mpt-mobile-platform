@@ -93,6 +93,18 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
     ],
   },
   {
+    title: 'catalog',
+    items: [
+      {
+        name: 'products',
+        icon: 'fact-check',
+        component: ProductsScreen,
+        modules: ['catalog-management'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
+    ],
+  },
+  {
     title: 'marketplace',
     items: [
       {
