@@ -1,12 +1,12 @@
 import { Image } from 'expo-image';
 import { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import Jdenticon from '@/components/common/JdenticonIcon';
 import { configService } from '@/config/env.config';
 import { DEFAULT_AVATAR_SIZE, DEFAULT_AVATAR_VARIANT } from '@/constants';
 import { getAccessTokenAsync } from '@/lib/tokenProvider';
-import { Color, avatarStyle } from '@/styles';
+import { avatarStyle } from '@/styles';
 import { HttpMethod } from '@/types/api';
 import type { AvatarProps } from '@/types/icons';
 import { getImageUrl, getImageHeaders } from '@/utils/image';
@@ -16,14 +16,21 @@ interface AuthenticatedImageSource {
   headers?: { [key: string]: string };
 }
 
+const imageSourceCache = new Map<string, AuthenticatedImageSource>();
+
+export const clearAvatarCache = () => {
+  imageSourceCache.clear();
+};
+
 const Avatar: React.FC<AvatarProps> = ({
   id,
   imagePath,
   size = DEFAULT_AVATAR_SIZE,
   variant = DEFAULT_AVATAR_VARIANT,
 }) => {
-  const [imageSource, setImageSource] = useState<AuthenticatedImageSource | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [imageSource, setImageSource] = useState<AuthenticatedImageSource | null>(
+    imagePath ? (imageSourceCache.get(imagePath) ?? null) : null,
+  );
   const [hasError, setHasError] = useState(false);
 
   const BASE_URL = configService.get('AUTH0_API_URL');
@@ -45,9 +52,13 @@ const Avatar: React.FC<AvatarProps> = ({
         return;
       }
 
-      try {
-        setIsLoading(true);
+      const cached = imageSourceCache.get(imagePath);
+      if (cached) {
+        setImageSource(cached);
+        return;
+      }
 
+      try {
         const token = await getAccessTokenAsync();
         const uri = getImageUrl(BASE_URL, imagePath);
         const headers = token ? getImageHeaders(token, HttpMethod.GET) : undefined;
@@ -57,12 +68,12 @@ const Avatar: React.FC<AvatarProps> = ({
           return;
         }
 
-        setImageSource({ uri, headers });
+        const source = { uri, headers };
+        imageSourceCache.set(imagePath, source);
+        setImageSource(source);
       } catch (error) {
         console.warn('Failed to get authenticated image URL:', error);
         setImageSource(null);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -71,9 +82,7 @@ const Avatar: React.FC<AvatarProps> = ({
 
   const handleImageLoadError = () => {
     console.warn('Failed to load avatar image');
-
     setHasError(true);
-    setIsLoading(false);
     setImageSource(null);
   };
 
@@ -85,15 +94,9 @@ const Avatar: React.FC<AvatarProps> = ({
             source={{ uri: imageSource.uri, headers: imageSource.headers }}
             style={styles.imageStyle}
             contentFit="contain"
-            onLoadStart={() => setIsLoading(true)}
-            onLoadEnd={() => setIsLoading(false)}
             onError={handleImageLoadError}
+            cachePolicy="memory-disk"
           />
-          {isLoading && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="small" color={Color.brand.primary} />
-            </View>
-          )}
         </View>
       ) : (
         <Jdenticon value={id} size={size} />
@@ -105,7 +108,6 @@ const Avatar: React.FC<AvatarProps> = ({
 const styles = StyleSheet.create({
   container: avatarStyle.container,
   commonIconContainer: avatarStyle.commonIconContainer,
-  loadingOverlay: avatarStyle.loadingOverlay,
   imageStyle: avatarStyle.imageStyle,
   default: avatarStyle.iconContainer,
   small: avatarStyle.smallIconContainer,

@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
-import Avatar from '@/components/avatar/Avatar';
+import Avatar, { clearAvatarCache } from '@/components/avatar/Avatar';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
 import { useAccount } from '@/context/AccountContext';
 import { avatarStyle } from '@/styles';
@@ -11,28 +11,42 @@ import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileRoot'>;
 
+let cachedAccount: { id?: string; icon?: string } | null = null;
+
 const AccountToolbarButton: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-  const { userData } = useAccount();
+  const { userData, userAccountsData, pendingAccountId } = useAccount();
 
-  const handlePress = () => {
-    navigation.navigate('ProfileRoot');
-  };
+  const currentAccount = userData?.currentAccount;
+  const pendingAccount = pendingAccountId
+    ? userAccountsData.all.find((a) => a.id === pendingAccountId)
+    : null;
+
+  const accountToCache = pendingAccount ?? currentAccount;
+
+  if (accountToCache && accountToCache.id !== cachedAccount?.id) {
+    clearAvatarCache();
+    cachedAccount = accountToCache;
+  }
+
+  const displayAccount = cachedAccount ?? accountToCache;
 
   return (
     <TouchableOpacity
       testID={TestIDs.NAV_ACCOUNT_BUTTON}
       style={styles.container}
-      onPress={handlePress}
+      onPress={() => navigation.navigate('ProfileRoot')}
       activeOpacity={0.7}
     >
       <View style={styles.topBarIconWrapper}>
-        <Avatar
-          id={userData?.currentAccount?.id || ''}
-          imagePath={userData?.currentAccount?.icon}
-          size={DEFAULT_AVATAR_SIZE}
-          variant="small"
-        />
+        {displayAccount && (
+          <Avatar
+            id={displayAccount.id || ''}
+            imagePath={displayAccount.icon}
+            size={DEFAULT_AVATAR_SIZE}
+            variant="small"
+          />
+        )}
       </View>
     </TouchableOpacity>
   );
