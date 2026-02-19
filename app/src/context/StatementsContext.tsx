@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useStatementsData } from '@/hooks/queries/useStatementsData';
-import type { Statement } from '@/types/billing';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 interface StatementsContextValue {
-  statements: Statement[];
+  statements: ListItemNoImageNoSubtitle[];
   statementsLoading: boolean;
   statementsFetchingNext: boolean;
   hasMoreStatements: boolean;

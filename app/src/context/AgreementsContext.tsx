@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useAgreementsData } from '@/hooks/queries/useAgreementsData';
-import type { Agreement } from '@/types/agreement';
+import type { ListItemNoImage } from '@/types/api';
 
 interface AgreementsContextValue {
-  agreements: Agreement[];
+  agreements: ListItemNoImage[];
   agreementsLoading: boolean;
   agreementsFetchingNext: boolean;
   hasMoreAgreements: boolean;

@@ -178,6 +178,12 @@ export interface ListItemFull {
   icon?: string;
 }
 
+export interface ListItemNoImage {
+  id: string;
+  name: string;
+  status?: string;
+}
+
 export interface ListItemNoImageNoSubtitle {
   id: string;
   status?: string;
