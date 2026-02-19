@@ -47,7 +47,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
   const spotlightData = spotlightDataRaw ?? {};
 
-  const isSpotlightLoading = isUserDataLoading || isSpotlightDataLoading || fetchStatus === 'fetching';
+  const isSpotlightLoading =
+    isUserDataLoading || isSpotlightDataLoading || fetchStatus === 'fetching';
 
   const { data: userAccountsData = { all: [], favourites: [], recent: [] } } =
     useUserAccountsData(userId);

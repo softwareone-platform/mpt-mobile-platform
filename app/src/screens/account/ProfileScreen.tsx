@@ -29,9 +29,13 @@ const ProfileScreen = () => {
   const { isEnabled } = useFeatureFlags();
 
   const lastUserDataRef = useRef(userData);
-  if (userData) {
-    lastUserDataRef.current = userData;
-  }
+
+  useEffect(() => {
+    if (userData) {
+      lastUserDataRef.current = userData;
+    }
+  }, [userData]);
+
   const displayUserData = userData ?? lastUserDataRef.current;
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { t } = useTranslation();

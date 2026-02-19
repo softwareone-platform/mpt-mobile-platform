@@ -18,7 +18,8 @@ const SpotlightScreen = () => {
   const [filteredData, setFilteredData] = useState<Record<string, SpotlightItem[]>>({});
   const [filterKeys, setFilterKeys] = useState<string[]>([]);
 
-  const { spotlightData, isSpotlightError, isSpotlightDataLoading, isSwitchingAccount } = useAccount();
+  const { spotlightData, isSpotlightError, isSpotlightDataLoading, isSwitchingAccount } =
+    useAccount();
   const { t } = useTranslation();
 
   useEffect(() => {
