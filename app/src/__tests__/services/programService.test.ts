@@ -25,6 +25,8 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useProgramApi()).result.current;
 
+const expectedUrlBase = `/v1/program/programs` + `?select=-*,id,name,status,icon` + `&order=name`;
+
 describe('useProgramApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -51,11 +53,7 @@ describe('useProgramApi', () => {
     });
 
     const expectedUrl =
-      `/v1/program/programs` +
-      `?select=audit&ne(status,%22Deleted%22)` +
-      `&order=name` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -81,12 +79,7 @@ describe('useProgramApi', () => {
       res = await api.getPrograms(50, 25);
     });
 
-    const expectedUrl =
-      `/v1/program/programs` +
-      `?select=audit&ne(status,%22Deleted%22)` +
-      `&order=name` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -102,11 +95,13 @@ describe('useProgramApi', () => {
           id: 'PRG-0001-0001',
           name: 'Partner Program',
           status: 'Published',
+          icon: '/path/to/programIcon1.png',
         } as ListItemFull,
         {
           id: 'PRG-0002-0002',
           name: 'Reseller Program',
           status: 'Published',
+          icon: '/path/to/programIcon2.png',
         } as ListItemFull,
       ],
     };
@@ -118,11 +113,13 @@ describe('useProgramApi', () => {
           id: 'PRG-0003-0003',
           name: 'Enterprise Program',
           status: 'Unpublished',
+          icon: '/path/to/programIcon1.png',
         } as ListItemFull,
         {
           id: 'PRG-0004-0004',
           name: 'Starter Program',
           status: 'Published',
+          icon: '/path/to/programIcon2.png',
         } as ListItemFull,
       ],
     };

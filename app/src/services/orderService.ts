@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse } from '@/types/api';
-import type { Order, OrderDetails } from '@/types/order';
+import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
+import type { OrderDetails } from '@/types/order';
 
 export function useOrderApi() {
   const api = useApi();
@@ -12,16 +12,16 @@ export function useOrderApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Order>> => {
+    ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
       const endpoint =
         `/v1/commerce/orders` +
-        `?select=audit` +
+        `?select=-*,id,status` +
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Order>>(endpoint);
+      return api.get<PaginatedResponse<ListItemNoImageNoSubtitle>>(endpoint);
     },
     [api],
   );

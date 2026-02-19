@@ -170,6 +170,11 @@ export const TestIDs = {
   ENROLLMENTS_ERROR_STATE: 'enrollments-error-state',
   ENROLLMENTS_EMPTY_STATE: 'enrollments-empty-state',
 
+  // Enrollment Details Screen
+  ENROLLMENT_DETAILS_LOADING_INDICATOR: 'enrollment-details-loading-indicator',
+  ENROLLMENT_DETAILS_ERROR_STATE: 'enrollment-details-error-state',
+  ENROLLMENT_DETAILS_EMPTY_STATE: 'enrollment-details-empty-state',
+
   // Licensees Screen
   LICENSEES_LOADING_INDICATOR: 'licensees-loading-indicator',
   LICENSEES_ERROR_STATE: 'licensees-error-state',

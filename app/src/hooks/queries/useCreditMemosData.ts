@@ -1,6 +1,6 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useBillingApi } from '@/services/billingService';
-import type { CreditMemo } from '@/types/billing';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 export const useCreditMemosData = (
   userId: string | undefined,
@@ -8,7 +8,7 @@ export const useCreditMemosData = (
 ) => {
   const { getCreditMemos } = useBillingApi();
 
-  return usePaginatedQuery<CreditMemo>({
+  return usePaginatedQuery<ListItemNoImageNoSubtitle>({
     queryKey: ['creditMemos', userId, currentAccountId],
     queryFn: getCreditMemos,
     enabled: !!userId && !!currentAccountId,

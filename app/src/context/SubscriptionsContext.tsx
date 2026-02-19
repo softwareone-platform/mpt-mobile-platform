@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useSubscriptionsData } from '@/hooks/queries/useSubscriptionsData';
-import type { Subscription } from '@/types/subscription';
+import type { ListItemNoImage } from '@/types/api';
 
 interface SubscriptionsContextValue {
-  subscriptions: Subscription[];
+  subscriptions: ListItemNoImage[];
   subscriptionsLoading: boolean;
   subscriptionsFetchingNext: boolean;
   hasMoreSubscriptions: boolean;

@@ -13,8 +13,7 @@ import { mockNetworkError } from '../__mocks__/services/common';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useAgreementApi } from '@/services/agreementService';
-import type { Agreement } from '@/types/agreement';
-import type { PaginatedResponse } from '@/types/api';
+import type { PaginatedResponse, ListItemNoImage } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -26,6 +25,13 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useAgreementApi()).result.current;
 
+const expectedUrlBase =
+  `/v1/commerce/agreements` +
+  `?select=-*,id,name,status` +
+  `&filter(group.buyers)` +
+  `&and(ne(status,"Draft"),ne(status,"Failed"))` +
+  `&order=name`;
+
 describe('useAgreementApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,7 +39,7 @@ describe('useAgreementApi', () => {
 
   it('calls getAgreements with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Agreement> = {
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -52,13 +58,7 @@ describe('useAgreementApi', () => {
     });
 
     const expectedUrl =
-      `/v1/commerce/agreements` +
-      `?select=audit` +
-      `&filter(group.buyers)` +
-      `&and(ne(status,"Draft"),ne(status,"Failed"))` +
-      `&order=externalIds.client` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -66,7 +66,7 @@ describe('useAgreementApi', () => {
 
   it('calls getAgreements with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Agreement> = {
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -84,14 +84,7 @@ describe('useAgreementApi', () => {
       res = await api.getAgreements(50, 25);
     });
 
-    const expectedUrl =
-      `/v1/commerce/agreements` +
-      `?select=audit` +
-      `&filter(group.buyers)` +
-      `&and(ne(status,"Draft"),ne(status,"Failed"))` +
-      `&order=externalIds.client` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -100,55 +93,43 @@ describe('useAgreementApi', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Agreement> = {
+    const mockResponse1: PaginatedResponse<ListItemNoImage> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
           id: 'AGR-0001',
           name: '365 Analytics for Advance Systems Corp',
           status: 'Active',
-          audit: {
-            created: { at: '2026-01-15T10:00:00.000Z' },
-          },
-        } as Agreement,
+        },
         {
           id: 'AGR-0002',
           name: 'Power Automate – VertexPoint Systems',
           status: 'Updating',
-          audit: {
-            created: { at: '2026-01-14T10:00:00.000Z' },
-          },
-        } as Agreement,
+        },
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Agreement> = {
+    const mockResponse2: PaginatedResponse<ListItemNoImage> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
           id: 'AGR-0003',
           name: 'Microsoft Teams – PulseWave Media',
           status: 'Active',
-          audit: {
-            created: { at: '2026-01-13T10:00:00.000Z' },
-          },
-        } as Agreement,
+        },
         {
           id: 'AGR-0004',
           name: 'Adobe Analytics – RadiantPath Creative Ventures',
           status: 'Terminated',
-          audit: {
-            created: { at: '2026-01-12T10:00:00.000Z' },
-          },
-        } as Agreement,
+        },
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Agreement> | undefined;
-    let res2: PaginatedResponse<Agreement> | undefined;
+    let res1: PaginatedResponse<ListItemNoImage> | undefined;
+    let res2: PaginatedResponse<ListItemNoImage> | undefined;
 
     await act(async () => {
       res1 = await api.getAgreements(0, 2);
@@ -174,32 +155,13 @@ describe('useAgreementApi', () => {
 
   it('returns correct agreement data structure', async () => {
     const api = setup();
-    const mockAgreement: Agreement = {
+    const mockAgreement: ListItemNoImage = {
       id: 'AGR-1234',
       name: 'Premium Agreement',
       status: 'Active',
-      externalIds: {
-        client: 'EXT-001',
-      },
-      product: { name: 'Product A' },
-      seller: {
-        address: { country: 'US' },
-      },
-      listing: { id: 'LST-001' },
-      licensee: {
-        eligibility: { type: 'enterprise' },
-      },
-      audit: {
-        created: {
-          at: '2026-01-01T10:00:00.000Z',
-        },
-        updated: {
-          at: '2026-01-15T14:30:00.000Z',
-        },
-      },
     };
 
-    const mockResponse: PaginatedResponse<Agreement> = {
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
         pagination: {
           offset: 0,
