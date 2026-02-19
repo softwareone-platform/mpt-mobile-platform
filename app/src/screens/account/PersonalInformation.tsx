@@ -26,9 +26,9 @@ const personalInformationData: Array<PersonalInformationItem> = [
 
 const PersonalInformation = () => {
   const { t } = useTranslation();
-  const { userData, userDataLoading, userDataError } = useAccount();
+  const { userData, isUserDataLoading, isUserDataError } = useAccount();
 
-  if (userDataLoading) {
+  if (isUserDataLoading) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
         <ActivityIndicator
@@ -40,7 +40,7 @@ const PersonalInformation = () => {
     );
   }
 
-  if (userDataError) {
+  if (isUserDataError) {
     return (
       <View style={styles.containerCenterContent}>
         <EmptyState
