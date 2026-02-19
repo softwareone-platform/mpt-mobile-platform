@@ -69,6 +69,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         queryClient.removeQueries({ queryKey: ['spotlightData', userId] });
       } catch (error) {
         console.error('Failed to switch account', error);
+        throw error;
       } finally {
         setIsSwitchingAccount(false);
         setPendingAccountId(null);
