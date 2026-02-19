@@ -32,12 +32,12 @@ const ListItemWithImage = ({
   testID,
 }: Props) => (
   <TouchableOpacity testID={testID} style={styles.container} onPress={onPress} activeOpacity={0.7}>
-    {!hideImage && (
-      <View style={styles.avatarWrapper}>
-        <AvatarIcon id={id} imagePath={imagePath} size={44} />
-      </View>
-    )}
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
+      {!hideImage && (
+        <View style={styles.avatarWrapper}>
+          <AvatarIcon id={id} imagePath={imagePath} size={44} />
+        </View>
+      )}
       <View style={styles.textContainer}>
         <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
           {title}
