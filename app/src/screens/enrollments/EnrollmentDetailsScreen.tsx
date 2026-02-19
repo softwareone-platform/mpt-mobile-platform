@@ -3,24 +3,24 @@ import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import DetailsView from '@/components/details/DetailsView';
-import { listItemConfigFull } from '@/config/list';
+import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useAccount } from '@/context/AccountContext';
-import { useProgramDetailsData } from '@/hooks/queries/useProgramDetailsData';
-import ProgramDetailsContent from '@/screens/programs/ProgramDetailsContent';
+import { useEnrollmentDetailsData } from '@/hooks/queries/useEnrollmentDetailsData';
+import EnrollmentDetailsContent from '@/screens/enrollments/EnrollmentDetailsContent';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type ProgramDetailsRouteProp = RouteProp<RootStackParamList, 'programDetails'>;
+type EnrollmentDetailsRouteProp = RouteProp<RootStackParamList, 'enrollmentDetails'>;
 
-const ProgramDetailsScreen = () => {
+const EnrollmentDetailsScreen = () => {
   const { t } = useTranslation();
-  const { id } = useRoute<ProgramDetailsRouteProp>().params;
+  const { id } = useRoute<EnrollmentDetailsRouteProp>().params;
 
   const { userData } = useAccount();
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useProgramDetailsData(
+  const { data, isLoading, isError, isUnauthorised } = useEnrollmentDetailsData(
     id,
     userId,
     currentAccountId,
@@ -39,12 +39,12 @@ const ProgramDetailsScreen = () => {
       emptyDescription={t('programDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigFull}>
-          <ProgramDetailsContent data={data} />
+        <DetailsView data={data} config={listItemConfigNoImageNoSubtitle}>
+          <EnrollmentDetailsContent data={data} />
         </DetailsView>
       )}
     </StatusMessage>
   );
 };
 
-export default ProgramDetailsScreen;
+export default EnrollmentDetailsScreen;

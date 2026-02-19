@@ -43,6 +43,7 @@ export type AppScreensParamList = {
   statementDetails: { id: string | undefined };
   productDetails: { id: string | undefined };
   programDetails: { id: string | undefined };
+  enrollmentDetails: { id: string | undefined };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;

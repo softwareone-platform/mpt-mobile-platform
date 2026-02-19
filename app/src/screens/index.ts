@@ -24,6 +24,7 @@ export { default as InvoiceDetailsScreen } from './invoices/InvoiceDetailsScreen
 export { default as StatementDetailsScreen } from './statements/StatementDetailsScreen';
 export { default as ProductDetailsScreen } from './products/ProductDetailsScreen';
 export { default as ProgramDetailsScreen } from './programs/ProgramDetailsScreen';
+export { default as EnrollmentDetailsScreen } from './enrollments/EnrollmentDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

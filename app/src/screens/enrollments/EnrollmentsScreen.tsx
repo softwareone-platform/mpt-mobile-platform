@@ -1,9 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useEnrollments, EnrollmentProvider } from '@/context/EnrollmentContext';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const EnrollmentsScreenContent = () => {
@@ -18,6 +21,8 @@ const EnrollmentsScreenContent = () => {
   } = useEnrollments();
 
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
     <StatusMessage
@@ -37,7 +42,9 @@ const EnrollmentsScreenContent = () => {
         hasMore={hasMoreEnrollments}
         fetchNext={fetchEnrollmentsNextPage}
         config={listItemConfigNoImageNoSubtitle}
-        onItemPress={() => {}}
+        onItemPress={(id) => {
+          navigation.navigate('enrollmentDetails', { id });
+        }}
       />
     </StatusMessage>
   );

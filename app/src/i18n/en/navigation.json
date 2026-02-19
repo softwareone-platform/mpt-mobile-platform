@@ -30,7 +30,8 @@
     "invoiceDetails": "Invoice",
     "statementDetails": "Statement",
     "productDetails": "Product",
-    "programDetails": "Program"
+    "programDetails": "Program",
+    "enrollmentDetails": "Enrollment"
   },
   "tabGroups": {
     "administration": "Administration",
