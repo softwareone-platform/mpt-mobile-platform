@@ -1,6 +1,6 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useBillingApi } from '@/services/billingService';
-import type { Invoice } from '@/types/billing';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 export const useInvoicesData = (
   userId: string | undefined,
@@ -8,7 +8,7 @@ export const useInvoicesData = (
 ) => {
   const { getInvoices } = useBillingApi();
 
-  return usePaginatedQuery<Invoice>({
+  return usePaginatedQuery<ListItemNoImageNoSubtitle>({
     queryKey: ['invoices', userId, currentAccountId],
     queryFn: getInvoices,
     enabled: !!userId && !!currentAccountId,

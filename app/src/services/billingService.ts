@@ -2,15 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse } from '@/types/api';
-import type {
-  CreditMemo,
-  CreditMemoDetails,
-  Invoice,
-  InvoiceDetails,
-  Statement,
-  StatementDetails,
-} from '@/types/billing';
+import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
+import type { CreditMemoDetails, InvoiceDetails, StatementDetails } from '@/types/billing';
 
 export function useBillingApi() {
   const api = useApi();
@@ -19,16 +12,16 @@ export function useBillingApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<CreditMemo>> => {
+    ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
       const endpoint =
         `/v1/billing/credit-memos` +
-        `?select=-*,id,documentNo,attributes.postingDate,attributes.documentDate,attributes.externalDocumentNo,status,price.totalSP` +
+        `?select=-*,id,status` +
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<CreditMemo>>(endpoint);
+      return api.get<PaginatedResponse<ListItemNoImageNoSubtitle>>(endpoint);
     },
     [api],
   );
@@ -48,16 +41,16 @@ export function useBillingApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Invoice>> => {
+    ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
       const endpoint =
         `/v1/billing/invoices` +
-        `?select=-*,id,status,audit.created.at` +
+        `?select=-*,id,status` +
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Invoice>>(endpoint);
+      return api.get<PaginatedResponse<ListItemNoImageNoSubtitle>>(endpoint);
     },
     [api],
   );
@@ -77,16 +70,16 @@ export function useBillingApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Statement>> => {
+    ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
       const endpoint =
         `/v1/billing/statements` +
-        `?select=-*,id,status,audit.created.at,audit.updated.at` +
+        `?select=-*,id,status` +
         `&filter(group.buyers)` +
         `&order=-audit.created.at` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Statement>>(endpoint);
+      return api.get<PaginatedResponse<ListItemNoImageNoSubtitle>>(endpoint);
     },
     [api],
   );

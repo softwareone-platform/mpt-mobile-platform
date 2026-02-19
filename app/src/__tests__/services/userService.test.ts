@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useUserApi } from '@/services/userService';
-import type { PaginatedResponse, User, UserData, SsoStatus } from '@/types/api';
+import type { PaginatedResponse, ListItemFull, User, UserData, SsoStatus } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -13,6 +13,9 @@ jest.mock('@/hooks/useApi', () => ({
 }));
 
 const setup = () => renderHook(() => useUserApi()).result.current;
+
+const expectedUrlBase = (accountId: string) =>
+  `/v1/accounts/accounts/${accountId}/users` + `?select=-*,id,name,status,icon` + `&order=name`;
 
 describe('useUserApi', () => {
   beforeEach(() => {
@@ -40,8 +43,7 @@ describe('useUserApi', () => {
     });
 
     const expectedUrl =
-      `/v1/accounts/accounts/ACC-0000-0001/users` +
-      `?order=name` +
+      expectedUrlBase('ACC-0000-0001') +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 
@@ -51,7 +53,7 @@ describe('useUserApi', () => {
 
   it('calls getUsers with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<User> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -69,8 +71,7 @@ describe('useUserApi', () => {
       res = await api.getUsers('ACC-0000-0001', 50, 25);
     });
 
-    const expectedUrl =
-      `/v1/accounts/accounts/ACC-0000-0001/users` + `?order=name` + `&offset=50` + `&limit=25`;
+    const expectedUrl = expectedUrlBase('ACC-0000-0001') + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -79,7 +80,7 @@ describe('useUserApi', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<User> = {
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
@@ -87,17 +88,17 @@ describe('useUserApi', () => {
           name: 'John Doe',
           status: 'Active',
           icon: '/path/to/icon1.png',
-        } as User,
+        },
         {
           id: 'USR-2',
           name: 'Jane Smith',
           status: 'Invited',
           icon: '/path/to/icon2.png',
-        } as User,
+        },
       ],
     };
 
-    const mockResponse2: PaginatedResponse<User> = {
+    const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
@@ -105,21 +106,21 @@ describe('useUserApi', () => {
           name: 'Bob Johnson',
           status: 'Active',
           icon: '/path/to/icon3.png',
-        } as User,
+        },
         {
           id: 'USR-4',
           name: 'Alice Williams',
           status: 'New',
           icon: '/path/to/icon4.png',
-        } as User,
+        },
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<User> | undefined;
-    let res2: PaginatedResponse<User> | undefined;
+    let res1: PaginatedResponse<ListItemFull> | undefined;
+    let res2: PaginatedResponse<ListItemFull> | undefined;
 
     await act(async () => {
       res1 = await api.getUsers('ACC-0000-0001', 0, 2);
@@ -165,7 +166,7 @@ describe('useUserApi', () => {
       },
     };
 
-    const mockResponse: PaginatedResponse<User> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: 0,

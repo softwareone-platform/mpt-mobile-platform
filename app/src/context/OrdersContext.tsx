@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useOrdersData } from '@/hooks/queries/useOrdersData';
-import type { Order } from '@/types/order';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 interface OrdersContextValue {
-  orders: Order[];
+  orders: ListItemNoImageNoSubtitle[];
   ordersLoading: boolean;
   ordersFetchingNext: boolean;
   hasMoreOrders: boolean;

@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse } from '@/types/api';
-import type { Subscription, SubscriptionData } from '@/types/subscription';
+import type { PaginatedResponse, ListItemNoImage } from '@/types/api';
+import type { SubscriptionData } from '@/types/subscription';
 
 export function useSubscriptionApi() {
   const api = useApi();
@@ -12,15 +12,15 @@ export function useSubscriptionApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Subscription>> => {
+    ): Promise<PaginatedResponse<ListItemNoImage>> => {
       const endpoint =
         `/v1/commerce/subscriptions` +
-        `?select=agreement,agreement.listing.priceList,audit.created,audit.updated,seller.address` +
+        `?select=-*,id,name,status` +
         `&filter(group.buyers)` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Subscription>>(endpoint);
+      return api.get<PaginatedResponse<ListItemNoImage>>(endpoint);
     },
     [api],
   );

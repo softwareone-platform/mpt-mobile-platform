@@ -2,10 +2,10 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useInvoicesData } from '@/hooks/queries/useInvoicesData';
-import type { Invoice } from '@/types/billing';
+import type { ListItemNoImageNoSubtitle } from '@/types/api';
 
 interface InvoicesContextValue {
-  invoices: Invoice[];
+  invoices: ListItemNoImageNoSubtitle[];
   invoicesLoading: boolean;
   invoicesFetchingNext: boolean;
   hasMoreInvoices: boolean;

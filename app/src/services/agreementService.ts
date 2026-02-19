@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { Agreement, AgreementData } from '@/types/agreement';
-import type { PaginatedResponse } from '@/types/api';
+import type { AgreementData } from '@/types/agreement';
+import type { PaginatedResponse, ListItemNoImage } from '@/types/api';
 
 export function useAgreementApi() {
   const api = useApi();
@@ -12,17 +12,17 @@ export function useAgreementApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedResponse<Agreement>> => {
+    ): Promise<PaginatedResponse<ListItemNoImage>> => {
       const endpoint =
         `/v1/commerce/agreements` +
-        `?select=audit` +
+        `?select=-*,id,name,status` +
         `&filter(group.buyers)` +
         `&and(ne(status,"Draft"),ne(status,"Failed"))` +
-        `&order=externalIds.client` +
+        `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<Agreement>>(endpoint);
+      return api.get<PaginatedResponse<ListItemNoImage>>(endpoint);
     },
     [api],
   );

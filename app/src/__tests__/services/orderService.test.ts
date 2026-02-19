@@ -2,8 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useOrderApi } from '@/services/orderService';
-import type { PaginatedResponse } from '@/types/api';
-import type { Order } from '@/types/order';
+import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
 
 const mockGet = jest.fn();
 
@@ -15,6 +14,12 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useOrderApi()).result.current;
 
+const expectedUrlBase =
+  `/v1/commerce/orders` +
+  `?select=-*,id,status` +
+  `&filter(group.buyers)` +
+  `&order=-audit.created.at`;
+
 describe('useOrderApi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -22,7 +27,7 @@ describe('useOrderApi', () => {
 
   it('calls getOrders with default offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Order> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
@@ -41,12 +46,7 @@ describe('useOrderApi', () => {
     });
 
     const expectedUrl =
-      `/v1/commerce/orders` +
-      `?select=audit` +
-      `&filter(group.buyers)` +
-      `&order=-audit.created.at` +
-      `&offset=${DEFAULT_OFFSET}` +
-      `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -54,7 +54,7 @@ describe('useOrderApi', () => {
 
   it('calls getOrders with custom offset and limit', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<Order> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: 50,
@@ -72,13 +72,7 @@ describe('useOrderApi', () => {
       res = await api.getOrders(50, 25);
     });
 
-    const expectedUrl =
-      `/v1/commerce/orders` +
-      `?select=audit` +
-      `&filter(group.buyers)` +
-      `&order=-audit.created.at` +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -87,51 +81,39 @@ describe('useOrderApi', () => {
   it('handles multiple calls correctly', async () => {
     const api = setup();
 
-    const mockResponse1: PaginatedResponse<Order> = {
+    const mockResponse1: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
       data: [
         {
           id: 'ORD-1234-7564-9753',
           status: 'Completed',
-          audit: {
-            created: { at: '2026-01-15T10:00:00.000Z' },
-          },
-        } as Order,
+        },
         {
           id: 'ORD-1234-7564-9777',
           status: 'Completed',
-          audit: {
-            created: { at: '2026-01-14T10:00:00.000Z' },
-          },
-        } as Order,
+        },
       ],
     };
 
-    const mockResponse2: PaginatedResponse<Order> = {
+    const mockResponse2: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
       data: [
         {
           id: 'ORD-1234-7564-8799',
           status: 'Deleted',
-          audit: {
-            created: { at: '2026-01-13T10:00:00.000Z' },
-          },
-        } as Order,
+        },
         {
           id: 'ORD-1234-7564-8777',
           status: 'Failed',
-          audit: {
-            created: { at: '2026-01-12T10:00:00.000Z' },
-          },
-        } as Order,
+        },
       ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
     mockGet.mockResolvedValueOnce(mockResponse2);
 
-    let res1: PaginatedResponse<Order> | undefined;
-    let res2: PaginatedResponse<Order> | undefined;
+    let res1: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
+    let res2: PaginatedResponse<ListItemNoImageNoSubtitle> | undefined;
 
     await act(async () => {
       res1 = await api.getOrders(0, 2);
@@ -154,20 +136,12 @@ describe('useOrderApi', () => {
 
   it('returns correct order data structure', async () => {
     const api = setup();
-    const mockOrder: Order = {
+    const mockOrder: ListItemNoImageNoSubtitle = {
       id: 'ORD-1234-7564-9753',
       status: 'Completed',
-      audit: {
-        created: {
-          at: '2026-01-01T10:00:00.000Z',
-        },
-        updated: {
-          at: '2026-01-15T14:30:00.000Z',
-        },
-      },
     };
 
-    const mockResponse: PaginatedResponse<Order> = {
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: {
         pagination: {
           offset: 0,
