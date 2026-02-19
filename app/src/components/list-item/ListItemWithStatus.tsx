@@ -36,12 +36,6 @@ const ListItemWithStatus = ({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      {hasImage && (
-        <View style={styles.avatarWrapper}>
-          <AvatarIcon id={id} imagePath={imagePath} size={44} />
-        </View>
-      )}
-
       <View
         style={[
           styles.contentWrapper,
@@ -49,6 +43,12 @@ const ListItemWithStatus = ({
           isLast && styles.lastItem,
         ]}
       >
+        {hasImage && (
+          <View style={styles.avatarWrapper}>
+            <AvatarIcon id={id} imagePath={imagePath} size={44} />
+          </View>
+        )}
+
         <View style={styles.textContainer}>
           {hasSubtitle && (
             <Text style={[styles.title, styles.titleMain]} numberOfLines={1} ellipsizeMode="tail">
