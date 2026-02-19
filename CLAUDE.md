@@ -522,6 +522,16 @@ Auth0 configuration is stored in the target environment (test or prod), not in T
 - `AUTH0_OTP_DIGITS` - Number of OTP digits (e.g., 6)
 - `AUTH0_SCHEME` - URL scheme for Auth0 callback
 
+**Reviewer Environment Variables (per environment):**
+
+Used for dynamic environment switching for App Store reviewers. The `REVIEW_ENV_*` values should correspond with the QA environment. On lower environments (test, qa), `REVIEWER_EMAILS` should be empty. On prod, set it to designated reviewer email(s).
+
+- `REVIEW_ENV_AUTH0_DOMAIN` - Auth0 domain for reviewer environment (variable)
+- `REVIEW_ENV_AUTH0_CLIENT_ID` - Auth0 client ID for reviewer environment (secret)
+- `REVIEW_ENV_AUTH0_AUDIENCE` - API audience for reviewer environment (variable)
+- `REVIEW_ENV_AUTH0_API_URL` - API base URL for reviewer environment (variable)
+- `REVIEWER_EMAILS` - Comma-separated list of reviewer email addresses (variable)
+
 **App Configuration (Hardcoded in Workflow):**
 - Development Team ID: `47PY6J2KQC`
 - Bundle ID: `com.softwareone.marketplaceMobile`
@@ -915,8 +925,11 @@ These must match Auth0 dashboard configuration.
 
 **Commit Guidelines:**
 - Do NOT include Claude/AI attribution in commit messages (no "Generated with Claude Code" or "Co-Authored-By: Claude")
-- Write clear, concise commit messages describing the changes
-- Use conventional commit format when appropriate
+- Use [Conventional Commits](https://www.conventionalcommits.org/) format: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, `ci:`, etc.
+- **PR titles must follow the convention** — GitHub auto-squash uses the PR title as the merge commit message
+- Type is always lowercase, description starts lowercase, no trailing period
+- Keep descriptions concise (≤ 72 characters total)
+- See [CONVENTIONS.md](CONVENTIONS.md#commit--pr-naming-convention) for the full list of allowed types
 
 See `.github/CODEOWNERS` for code review assignments.
 

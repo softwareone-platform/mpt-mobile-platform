@@ -37,7 +37,7 @@ const EnrollmentsScreenContent = () => {
         hasMore={hasMoreEnrollments}
         fetchNext={fetchEnrollmentsNextPage}
         config={listItemConfigNoImageNoSubtitle}
-        onItemPress={(item) => console.info(item.id)}
+        onItemPress={() => {}}
       />
     </StatusMessage>
   );

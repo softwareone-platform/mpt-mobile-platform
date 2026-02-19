@@ -1,9 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigFull } from '@/config/list';
 import { usePrograms, ProgramProvider } from '@/context/ProgramContext';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const ProgramsScreenContent = () => {
@@ -18,6 +21,8 @@ const ProgramsScreenContent = () => {
   } = usePrograms();
 
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
     <StatusMessage
@@ -37,7 +42,9 @@ const ProgramsScreenContent = () => {
         hasMore={hasMorePrograms}
         fetchNext={fetchPrograms}
         config={listItemConfigFull}
-        onItemPress={(item) => console.info(item.id)}
+        onItemPress={(id) => {
+          navigation.navigate('programDetails', { id });
+        }}
       />
     </StatusMessage>
   );

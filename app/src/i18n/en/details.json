@@ -1,6 +1,8 @@
 {
   "details": {
     "title": "Details",
+    "name": "Name",
+    "description": "Description",
     "client": "Client",
     "baseCurrency": "Base currency",
     "billingCurrency": "Billing currency",
@@ -27,6 +29,7 @@
     "defaultYield": "Default yield",
     "serviceLevel": "Service level",
     "companyWebsite": "Company website",
+    "website": "Website",
     "companyDescription": "Company description",
     "currency": "Currency",
     "technicalSupportEmail": "Technical support email",
@@ -43,6 +46,7 @@
     "firstName": "First name",
     "lastName": "Last name",
     "month": "month",
+    "name": "Name",
     "owner": "Owner",
     "phoneNumber": "Phone number",
     "pp": "∑ PP",
@@ -87,6 +91,17 @@
       "pending": "Pending",
       "issued": "Issued",
       "generating": "Generating"
+    },
+    "website": "Website",
+    "eligibility": "Eligibility",
+    "eligibilityValue": {
+      "client": "Client",
+      "partner": "Partner"
+    },
+    "applicableTo": "Applicable To",
+    "applicableToValue": {
+      "buyer": "Buyer",
+      "licensee": "Licensee"
     }
   }
 }

@@ -18,7 +18,8 @@ const SpotlightScreen = () => {
   const [filteredData, setFilteredData] = useState<Record<string, SpotlightItem[]>>({});
   const [filterKeys, setFilterKeys] = useState<string[]>([]);
 
-  const { spotlightData, spotlightError, spotlightDataLoading } = useAccount();
+  const { spotlightData, isSpotlightError, isSpotlightDataLoading, isSwitchingAccount } =
+    useAccount();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -44,7 +45,7 @@ const SpotlightScreen = () => {
     }
   };
 
-  if (spotlightDataLoading) {
+  if (isSpotlightDataLoading || isSwitchingAccount) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
         <ActivityIndicator
@@ -56,7 +57,7 @@ const SpotlightScreen = () => {
     );
   }
 
-  if (spotlightError) {
+  if (isSpotlightError) {
     return (
       <View style={styles.containerCenterContent}>
         <EmptyState

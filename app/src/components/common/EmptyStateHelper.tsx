@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
+import { useAccount } from '@/context/AccountContext';
 import { screenStyle } from '@/styles/components';
 import { Color } from '@/styles/tokens';
 
@@ -35,8 +36,9 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
   children,
 }) => {
   const { t } = useTranslation();
+  const { isSwitchingAccount, isUserDataLoading } = useAccount();
 
-  if (isLoading) {
+  if (isLoading || isSwitchingAccount || isUserDataLoading) {
     return (
       <View style={[styles.containerMain, styles.containerCenterContent]}>
         <ActivityIndicator testID={loadingTestId} size="large" color={Color.brand.primary} />

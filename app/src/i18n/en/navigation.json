@@ -29,7 +29,8 @@
     "subscriptionDetails": "Subscription",
     "invoiceDetails": "Invoice",
     "statementDetails": "Statement",
-    "productDetails": "Product"
+    "productDetails": "Product",
+    "programDetails": "Program"
   },
   "tabGroups": {
     "administration": "Administration",

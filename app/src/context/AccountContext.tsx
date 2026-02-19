@@ -1,4 +1,5 @@
-import { createContext, useContext, useCallback, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
@@ -9,12 +10,14 @@ import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
 
 interface AccountContextValue {
   userData: UserData | null;
-  userDataLoading: boolean;
-  userDataError: boolean;
+  isUserDataLoading: boolean;
+  isUserDataError: boolean;
   userAccountsData: FormattedUserAccounts;
   spotlightData: Record<string, SpotlightItem[]>;
-  spotlightError: boolean;
-  spotlightDataLoading: boolean;
+  isSpotlightError: boolean;
+  isSpotlightDataLoading: boolean;
+  isSwitchingAccount: boolean;
+  pendingAccountId: string | null;
   switchAccount: (accountId: string) => Promise<void>;
 }
 
@@ -31,44 +34,63 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
   const {
     data: userData = null,
-    isLoading: userDataLoading,
-    isError: userDataError,
+    isLoading: isUserDataLoading,
+    isError: isUserDataError,
   } = useUserData(userId);
 
   const {
     data: spotlightDataRaw,
-    isLoading: spotlightDataLoading,
-    isError: spotlightError,
+    isLoading: isSpotlightDataLoading,
+    isError: isSpotlightError,
     fetchStatus,
   } = useSpotlightData(userId);
 
   const spotlightData = spotlightDataRaw ?? {};
 
-  const isSpotlightLoading = userDataLoading || spotlightDataLoading || fetchStatus === 'fetching';
+  const isSpotlightLoading =
+    isUserDataLoading || isSpotlightDataLoading || fetchStatus === 'fetching';
 
   const { data: userAccountsData = { all: [], favourites: [], recent: [] } } =
     useUserAccountsData(userId);
 
   const switchAccountMutation = useSwitchAccount(userId);
+  const queryClient = useQueryClient();
+  const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
+  const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
 
   const switchAccount = useCallback(
     async (accountId: string) => {
       if (!userId) return;
-      await switchAccountMutation.mutateAsync(accountId);
+      setIsSwitchingAccount(true);
+      setPendingAccountId(accountId);
+      try {
+        await switchAccountMutation.mutateAsync(accountId);
+
+        queryClient.removeQueries({ queryKey: ['userData', userId] });
+        queryClient.removeQueries({ queryKey: ['spotlightData', userId] });
+      } catch (error) {
+        console.error('Failed to switch account', error);
+        throw error;
+      } finally {
+        setIsSwitchingAccount(false);
+        setPendingAccountId(null);
+      }
     },
-    [userId, switchAccountMutation],
+    [userId, switchAccountMutation, queryClient],
   );
 
   return (
     <AccountContext.Provider
       value={{
         userData,
-        userDataLoading,
-        userDataError,
+        isUserDataLoading,
+        isUserDataError,
         userAccountsData,
         spotlightData,
-        spotlightError,
-        spotlightDataLoading: isSpotlightLoading,
+        isSpotlightError,
+        isSpotlightDataLoading: isSpotlightLoading,
+        isSwitchingAccount,
+        pendingAccountId,
         switchAccount,
       }}
     >
