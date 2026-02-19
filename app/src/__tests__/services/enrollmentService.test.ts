@@ -1,5 +1,16 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import { mockNetworkError } from '../__mocks__/services/common';
+import {
+  mockEnrollmentId1,
+  mockEnrollmentId2,
+  mockEnrollmentData,
+  expectedEnrollmentUrl1,
+  expectedEnrollmentUrl2,
+  mockEnrollmentResponse1,
+  mockEnrollmentResponse2,
+} from '../__mocks__/services/enrollment';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useEnrollmentApi } from '@/services/enrollmentService';
 import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
@@ -176,5 +187,58 @@ describe('useEnrollmentApi - getEnrollments', () => {
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getEnrollments()).rejects.toThrow('Network error');
+  });
+});
+
+describe('useEnrollmentApi - getEnrollmentData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getEnrollmentData with correct endpoint and returns data', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockEnrollmentData);
+
+    await act(async () => {
+      res = await api.getEnrollmentData(mockEnrollmentId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedEnrollmentUrl1);
+    expect(res).toEqual(mockEnrollmentData);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getEnrollmentData(mockEnrollmentId1)).rejects.toThrow('Network error');
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockEnrollmentResponse1);
+    mockGet.mockResolvedValueOnce(mockEnrollmentResponse2);
+
+    await act(async () => {
+      res1 = await api.getEnrollmentData(mockEnrollmentId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getEnrollmentData(mockEnrollmentId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedEnrollmentUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedEnrollmentUrl2);
+
+    expect(res1).toEqual(mockEnrollmentResponse1);
+    expect(res2).toEqual(mockEnrollmentResponse2);
   });
 });

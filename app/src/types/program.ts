@@ -24,3 +24,15 @@ export interface ProgramDetails extends Program {
   applicableTo: 'Buyer' | 'Licensee';
   website: string;
 }
+
+export interface EnrollmentDetails extends Enrollment {
+  program?: DetailsListItemValue;
+  certificate?: DetailsListItemValue;
+  buyer?: DetailsListItemValue;
+  assignee?: DetailsListItemValue;
+  eligibility: {
+    client: boolean;
+    partner: boolean;
+  };
+  applicableTo: 'Buyer' | 'Licensee';
+}
