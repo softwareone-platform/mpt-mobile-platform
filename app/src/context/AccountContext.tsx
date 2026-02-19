@@ -17,6 +17,7 @@ interface AccountContextValue {
   spotlightError: boolean;
   spotlightDataLoading: boolean;
   isSwitchingAccount: boolean;
+  pendingAccountId: string | null;
   switchAccount: (accountId: string) => Promise<void>;
 }
 
@@ -54,11 +55,13 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const switchAccountMutation = useSwitchAccount(userId);
   const queryClient = useQueryClient();
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
+  const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
 
   const switchAccount = useCallback(
     async (accountId: string) => {
       if (!userId) return;
       setIsSwitchingAccount(true);
+      setPendingAccountId(accountId);
       try {
         await switchAccountMutation.mutateAsync(accountId);
 
@@ -75,6 +78,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         console.error('Failed to switch account', error);
       } finally {
         setIsSwitchingAccount(false);
+        setPendingAccountId(null);
       }
     },
     [userId, switchAccountMutation, queryClient],
@@ -91,6 +95,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         spotlightError,
         spotlightDataLoading: isSpotlightLoading,
         isSwitchingAccount,
+        pendingAccountId,
         switchAccount,
       }}
     >

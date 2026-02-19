@@ -1,38 +1,50 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { ActivityIndicator, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
-import Avatar from '@/components/avatar/Avatar';
+import Avatar, { clearAvatarCache } from '@/components/avatar/Avatar';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
 import { useAccount } from '@/context/AccountContext';
-import { avatarStyle, Color } from '@/styles';
+import { avatarStyle } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileRoot'>;
 
+let cachedAccount: { id?: string; icon?: string } | null = null;
+
 const AccountToolbarButton: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-  const { userData, isSwitchingAccount } = useAccount();
+  const { userData, userAccountsData, pendingAccountId } = useAccount();
 
-  const handlePress = () => {
-    navigation.navigate('ProfileRoot');
-  };
+  const currentAccount = userData?.currentAccount;
+
+  const pendingAccount = pendingAccountId
+    ? userAccountsData.all.find((a) => a.id === pendingAccountId)
+    : null;
+
+  if (pendingAccount && pendingAccount.id !== cachedAccount?.id) {
+    clearAvatarCache();
+    cachedAccount = pendingAccount;
+  } else if (!pendingAccount && currentAccount && currentAccount.id !== cachedAccount?.id) {
+    clearAvatarCache();
+    cachedAccount = currentAccount;
+  }
+
+  const displayAccount = pendingAccount ?? currentAccount ?? cachedAccount;
 
   return (
     <TouchableOpacity
       testID={TestIDs.NAV_ACCOUNT_BUTTON}
       style={styles.container}
-      onPress={handlePress}
+      onPress={() => navigation.navigate('ProfileRoot')}
       activeOpacity={0.7}
     >
       <View style={styles.topBarIconWrapper}>
-        {isSwitchingAccount || !userData?.currentAccount?.id ? (
-          <ActivityIndicator size="small" color={Color.brand.primary} />
-        ) : (
+        {displayAccount && (
           <Avatar
-            id={userData?.currentAccount?.id || ''}
-            imagePath={userData?.currentAccount?.icon}
+            id={displayAccount.id || ''}
+            imagePath={displayAccount.icon}
             size={DEFAULT_AVATAR_SIZE}
             variant="small"
           />
