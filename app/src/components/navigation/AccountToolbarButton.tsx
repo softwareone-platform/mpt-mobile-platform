@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
 import Avatar, { clearAvatarCache } from '@/components/avatar/Avatar';
@@ -11,27 +12,27 @@ import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileRoot'>;
 
-let cachedAccount: { id?: string; icon?: string } | null = null;
-
 const AccountToolbarButton: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { userData, userAccountsData, pendingAccountId } = useAccount();
 
-  const currentAccount = userData?.currentAccount;
+  const cachedAccountRef = useRef<{ id?: string; icon?: string } | null>(null);
 
+  const currentAccount = userData?.currentAccount;
   const pendingAccount = pendingAccountId
     ? userAccountsData.all.find((a) => a.id === pendingAccountId)
     : null;
 
-  if (pendingAccount && pendingAccount.id !== cachedAccount?.id) {
-    clearAvatarCache();
-    cachedAccount = pendingAccount;
-  } else if (!pendingAccount && currentAccount && currentAccount.id !== cachedAccount?.id) {
-    clearAvatarCache();
-    cachedAccount = currentAccount;
-  }
+  const accountToCache = pendingAccount ?? currentAccount;
 
-  const displayAccount = pendingAccount ?? currentAccount ?? cachedAccount;
+  useEffect(() => {
+    if (accountToCache && accountToCache.id !== cachedAccountRef.current?.id) {
+      clearAvatarCache();
+      cachedAccountRef.current = accountToCache;
+    }
+  }, [accountToCache]);
+
+  const displayAccount = pendingAccount ?? currentAccount ?? cachedAccountRef.current;
 
   return (
     <TouchableOpacity
