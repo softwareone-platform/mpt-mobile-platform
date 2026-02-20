@@ -14,7 +14,7 @@ export function useUserApi() {
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<User>> => {
       const endpoint =
-        `/v1/accounts/accounts/${accountId}/users` +
+        `v1/accounts/accounts/${accountId}/users` +
         `?select=-*,id,name,status,icon` +
         `&order=name` +
         `&offset=${offset}` +
@@ -25,14 +25,17 @@ export function useUserApi() {
     [api],
   );
 
-  // TODO: Administration operations context: Get all users across accounts
   const getAllUsers = useCallback(
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<User>> => {
       const endpoint =
-        `/v1/accounts/users` + `?order=name` + `&offset=${offset}` + `&limit=${limit}`;
+        `/v1/accounts/users` +
+        `?select=-*,id,name,status,icon` +
+        `&order=name` +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
 
       return api.get<PaginatedResponse<User>>(endpoint);
     },

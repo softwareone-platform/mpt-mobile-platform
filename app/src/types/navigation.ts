@@ -22,12 +22,12 @@ export type SecondaryTabsParamList = {
   creditMemos: undefined;
   statements: undefined;
   users: undefined;
-  adminUsers: undefined;
+  allUsers: undefined;
   programs: undefined;
   enrollments: undefined;
   licensees: undefined;
   buyers: undefined;
-  adminBuyers: undefined;
+  allBuyers: undefined;
   products: undefined;
 };
 
