@@ -10,5 +10,13 @@
   "enrollmentsScreen": {
     "emptyStateTitle": "No enrollments",
     "emptyStateDescription": "No enrollments found."
+  },
+  "enrollmentDetailsScreen": {
+    "emptyStateTitle": "No enrollment details",
+    "emptyStateDescription": "No enrollment details found."
+  },
+  "certificateDetailsScreen": {
+    "emptyStateTitle": "No certificate details",
+    "emptyStateDescription": "No certificate details found."
   }
 }

@@ -26,6 +26,7 @@ import {
   ProductDetailsScreen,
   ProgramDetailsScreen,
   EnrollmentDetailsScreen,
+  CertificateDetailsScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -154,4 +155,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'productDetails', component: ProductDetailsScreen },
   { name: 'programDetails', component: ProgramDetailsScreen },
   { name: 'enrollmentDetails', component: EnrollmentDetailsScreen },
+  { name: 'certificateDetails', component: CertificateDetailsScreen },
 ];
