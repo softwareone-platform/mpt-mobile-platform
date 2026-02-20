@@ -29,7 +29,11 @@ jest.mock('@/hooks/useApi', () => ({
 
 const setup = () => renderHook(() => useProductApi()).result.current;
 
-const expectedUrlBase = `/v1/catalog/products` + `?ne(status,%22Draft%22)` + `&order=name`;
+const expectedUrlBase =
+  `/v1/catalog/products` +
+  `?select=-*,id,name,status,icon` +
+  `&ne(status,%22Draft%22)` +
+  `&order=name`;
 
 describe('useProductApi - getProducts', () => {
   beforeEach(() => {
@@ -94,7 +98,7 @@ describe('useProductApi - getProducts', () => {
 
     const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: {
-        pagination: { offset: 0, limit: 10, total: 20 },
+        pagination: { offset: 0, limit: 10, total: 2 },
       },
       data: [mockProductListItem1 as ListItemFull, mockProductListItem2 as ListItemFull],
     };
@@ -112,15 +116,20 @@ describe('useProductApi - getProducts', () => {
     mockGet.mockResolvedValueOnce(mockResponse2);
 
     await act(async () => {
-      res1 = await api.getProducts(0, 10);
+      res1 = await api.getProducts(0, 2);
     });
 
     await act(async () => {
-      res2 = await api.getProducts(10, 10);
+      res2 = await api.getProducts(2, 2);
     });
 
     expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(res1).toBeDefined();
+    expect(res1!.data.length).toBe(2);
     expect(res1).toEqual(mockResponse1);
+
+    expect(res2).toBeDefined();
+    expect(res2!.data.length).toBe(2);
     expect(res2).toEqual(mockResponse2);
   });
 

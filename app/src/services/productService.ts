@@ -15,7 +15,8 @@ export function useProductApi() {
     ): Promise<PaginatedResponse<ListItemFull>> => {
       const endpoint =
         `/v1/catalog/products` +
-        `?ne(status,%22Draft%22)` +
+        `?select=-*,id,name,status,icon` +
+        `&ne(status,%22Draft%22)` +
         `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;

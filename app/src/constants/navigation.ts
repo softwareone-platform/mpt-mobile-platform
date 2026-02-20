@@ -97,7 +97,7 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
     items: [
       {
         name: 'products',
-        icon: 'fact-check',
+        icon: 'inventory-2',
         component: ProductsScreen,
         modules: ['catalog-management'],
         roles: ['Client', 'Vendor', 'Operations'],
