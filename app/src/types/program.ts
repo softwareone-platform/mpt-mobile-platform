@@ -36,3 +36,15 @@ export interface EnrollmentDetails extends Enrollment {
   };
   applicableTo: 'Buyer' | 'Licensee';
 }
+
+export interface CertificateDetails extends DetailsListItemValue {
+  program?: DetailsListItemValue;
+  vendor?: DetailsListItemValue;
+  buyer?: DetailsListItemValue;
+  eligibility: {
+    client: boolean;
+    partner: boolean;
+  };
+  applicableTo: 'Buyer' | 'Licensee';
+  expirationDate: string;
+}
