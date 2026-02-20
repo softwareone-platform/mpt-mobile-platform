@@ -376,49 +376,25 @@ list_tests() {
         if [ -f "$file" ]; then
             ((total_files++))
             local filename=$(basename "$file")
-            echo "📄 $filename"
-            echo "────────────────────────────────────────────────────────────────"
-            
             # Process file line by line to extract describe and it blocks
             local line_num=0
             while IFS= read -r line || [ -n "$line" ]; do
                 ((line_num++))
-                
                 # Check for describe blocks
                 if echo "$line" | grep -qE "^\s*describe\s*\("; then
-                    # Extract the test name (handle both single and double quotes)
-                    local name=$(echo "$line" | sed -E "s/.*describe\s*\(\s*['\"]([^'\"]+)['\"].*/\1/")
-                    
-                    # Determine indentation level for visual hierarchy
-                    local leading_spaces="${line%%[![:space:]]*}"
-                    local indent_level=$((${#leading_spaces} / 4))
-                    local indent=""
-                    for ((i=0; i<indent_level; i++)); do
-                        indent="${indent}  "
-                    done
-                    
-                    echo "${indent}📦 $name (L$line_num)"
+                    # Extract the test name (handle single quotes, allow embedded ")
+                    local name=$(echo "$line" | sed -E "s/.*describe\s*\(\s*'([^']*)'.*/\1/")
+                    echo "$filename / $name"
                     ((total_describes++))
                 fi
-                
                 # Check for it blocks
                 if echo "$line" | grep -qE "^\s*it\s*\("; then
-                    # Extract the test name
-                    local name=$(echo "$line" | sed -E "s/.*it\s*\(\s*['\"]([^'\"]+)['\"].*/\1/")
-                    
-                    # Determine indentation level
-                    local leading_spaces="${line%%[![:space:]]*}"
-                    local indent_level=$((${#leading_spaces} / 4))
-                    local indent=""
-                    for ((i=0; i<indent_level; i++)); do
-                        indent="${indent}  "
-                    done
-                    
-                    echo "${indent}🧪 $name (L$line_num)"
+                    # Extract the test name (handle single quotes, allow embedded ")
+                    local name=$(echo "$line" | sed -E "s/.*it\s*\(\s*'([^']*)'.*/\1/")
+                    echo "$filename / $name"
                     ((total_tests++))
                 fi
             done < "$file"
-            
             echo ""
         else
             echo "⚠️  File not found: $file"

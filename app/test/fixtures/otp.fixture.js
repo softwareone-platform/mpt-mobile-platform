@@ -34,6 +34,9 @@ exports.mochaGlobalSetup = async function () {
 
   // Make the OTP function available globally
   global.getOTPFromAirtable = getOTPFromAirtable;
+  global.constants = {
+    dashForEmpty: '-',
+  }
 
   // Verify Airtable configuration
   const requiredEnvVars = [

@@ -99,7 +99,8 @@ class BasePage {
       });
     } else {
       // iOS: direction indicates where finger moves, content moves opposite
-      const iosDirection = direction === 'up' ? 'down' : direction === 'down' ? 'up' : direction;
+      const iosDirection = direction
+      // const iosDirection = direction === 'up' ? 'down' : direction === 'down' ? 'up' : direction;
       await browser.execute('mobile: swipe', {
         direction: iosDirection,
         velocity: GESTURE.IOS_VELOCITY,
