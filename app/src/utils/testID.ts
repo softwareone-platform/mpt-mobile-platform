@@ -214,6 +214,11 @@ export const TestIDs = {
   PRODUCT_DETAILS_LOADING_INDICATOR: 'product-details-loading-indicator',
   PRODUCT_DETAILS_ERROR_STATE: 'product-details-error-state',
   PRODUCT_DETAILS_EMPTY_STATE: 'product-details-empty-state',
+
+  // Products Screen
+  PRODUCTS_LOADING_INDICATOR: 'products-loading-indicator',
+  PRODUCTS_ERROR_STATE: 'products-error-state',
+  PRODUCTS_EMPTY_STATE: 'products-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;

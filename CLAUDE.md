@@ -728,7 +728,7 @@ React Navigation v7 with stack and tab-based navigation structure:
 
 **SecondaryTabs** (`app/src/components/navigation/SecondaryTabs.tsx`):
 - Nested tabs accessed via "More" tab
-- Tabs: Agreements, Credit Memos, Invoices, Statements, Users, Programs, Enrollments, Licensees, Buyers
+- Tabs: Agreements, Credit Memos, Invoices, Statements, Users, Programs, Enrollments, Licensees, Buyers, Products
 - Top tab bar with Material-style design
 
 **ProfileStack** (`app/src/components/navigation/ProfileStack.tsx`):
