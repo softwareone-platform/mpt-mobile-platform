@@ -20,18 +20,17 @@ const BuyerDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const {
-    data: buyerDetails,
-    isLoading,
-    isError,
-    isUnauthorised,
-  } = useBuyerDetailsData(id, userId, currentAccountId);
+  const { data, isLoading, isError, isUnauthorised } = useBuyerDetailsData(
+    id,
+    userId,
+    currentAccountId,
+  );
 
   return (
     <StatusMessage
       isLoading={isLoading}
       isError={!!isError}
-      isEmpty={!buyerDetails || Object.keys(buyerDetails).length === 0}
+      isEmpty={!data || Object.keys(data).length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.BUYER_DETAILS_LOADING_INDICATOR}
       errorTestId={TestIDs.BUYER_DETAILS_ERROR_STATE}
@@ -39,9 +38,14 @@ const BuyerDetailsScreen = () => {
       emptyTitle={t('buyerDetailsScreen.emptyStateTitle')}
       emptyDescription={t('buyerDetailsScreen.emptyStateDescription')}
     >
-      {buyerDetails && (
-        <DetailsView data={buyerDetails} config={listItemConfigFull}>
-          <BuyerDetailsContent data={buyerDetails} />
+      {data && (
+        <DetailsView
+          data={data}
+          config={listItemConfigFull}
+          headerTitleTestId={TestIDs.BUYER_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.BUYER_DETAILS_HEADER_STATUS}
+        >
+          <BuyerDetailsContent data={data} />
         </DetailsView>
       )}
     </StatusMessage>

@@ -39,7 +39,12 @@ const LicenseeDetailsScreen = () => {
       emptyDescription={t('licenseeDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigFull}>
+        <DetailsView
+          data={data}
+          config={listItemConfigFull}
+          headerTitleTestId={TestIDs.LICENSEE_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.LICENSEE_DETAILS_HEADER_STATUS}
+        >
           <LicenseeDetailsContent data={data} />
         </DetailsView>
       )}

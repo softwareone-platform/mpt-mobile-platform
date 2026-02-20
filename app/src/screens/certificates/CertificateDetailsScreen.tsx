@@ -12,7 +12,7 @@ import { TestIDs } from '@/utils/testID';
 
 type CertificateDetailsRouteProp = RouteProp<RootStackParamList, 'certificateDetails'>;
 
-const EnrollmentDetailsScreen = () => {
+const CertificateDetailsScreen = () => {
   const { t } = useTranslation();
   const { id } = useRoute<CertificateDetailsRouteProp>().params;
 
@@ -39,7 +39,12 @@ const EnrollmentDetailsScreen = () => {
       emptyDescription={t('certificateDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigNoImage}>
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImage}
+          headerTitleTestId={TestIDs.CERTIFICATE_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.CERTIFICATE_DETAILS_HEADER_STATUS}
+        >
           <CertificateDetailsContent data={data} />
         </DetailsView>
       )}
@@ -47,4 +52,4 @@ const EnrollmentDetailsScreen = () => {
   );
 };
 
-export default EnrollmentDetailsScreen;
+export default CertificateDetailsScreen;

@@ -39,7 +39,12 @@ const InvoiceDetailsScreen = () => {
       emptyDescription={t('invoiceDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigNoImageNoSubtitle}>
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImageNoSubtitle}
+          headerTitleTestId={TestIDs.INVOICE_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.INVOICE_DETAILS_HEADER_STATUS}
+        >
           <InvoiceDetailsContent data={data} />
         </DetailsView>
       )}

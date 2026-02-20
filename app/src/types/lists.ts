@@ -10,6 +10,8 @@ export type ListItemWithStatusProps = {
   isLast?: boolean;
   onPress?: () => void;
   testID?: string;
+  headerTitleTestId?: string;
+  headerStatusTestId?: string;
 };
 
 export type ListItemConfig = {

@@ -39,7 +39,12 @@ const EnrollmentDetailsScreen = () => {
       emptyDescription={t('enrollmentDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigNoImageNoSubtitle}>
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImageNoSubtitle}
+          headerTitleTestId={TestIDs.ENROLLMENT_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.ENROLLMENT_DETAILS_HEADER_STATUS}
+        >
           <EnrollmentDetailsContent data={data} />
         </DetailsView>
       )}
