@@ -8,7 +8,6 @@ import type { PaginatedResponse, ListItemFull } from '@/types/api';
 export function useBuyerApi() {
   const api = useApi();
 
-  //TODO Administration operations context: Get all buyers across accounts
   const getBuyers = useCallback(
     async (
       accountId: string,

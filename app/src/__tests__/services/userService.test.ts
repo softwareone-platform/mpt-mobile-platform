@@ -15,7 +15,7 @@ jest.mock('@/hooks/useApi', () => ({
 const setup = () => renderHook(() => useUserApi()).result.current;
 
 const expectedUrlBase = (accountId: string) =>
-  `/v1/accounts/accounts/${accountId}/users` + `?select=-*,id,name,status,icon` + `&order=name`;
+  `v1/accounts/accounts/${accountId}/users` + `?select=id,name,status,icon` + `&order=name`;
 
 describe('useUserApi', () => {
   beforeEach(() => {
@@ -202,18 +202,20 @@ describe('useUserApi', () => {
     await expect(api.getUsers('ACC-0000-0001')).rejects.toThrow('Network error');
   });
 
-  // TODO: Remove this test when getAllUsers is properly implemented in administration context
-  it('calls getAllUsers with default parameters (placeholder for future implementation)', async () => {
+  it('calls getAllUsers with default parameters', async () => {
     const api = setup();
-    const mockResponse: PaginatedResponse<User> = {
+    const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
         pagination: {
           offset: DEFAULT_OFFSET,
           limit: DEFAULT_PAGE_SIZE,
-          total: 0,
+          total: 2,
         },
       },
-      data: [],
+      data: [
+        { id: 'USR-1', name: 'John Doe', status: 'Active', icon: '/icon1.png' },
+        { id: 'USR-2', name: 'Jane Smith', status: 'Invited', icon: '/icon2.png' },
+      ],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse);
@@ -224,13 +226,54 @@ describe('useUserApi', () => {
     });
 
     const expectedUrl =
-      `/v1/accounts/users` +
-      `?order=name` +
+      `v1/accounts/users` +
+      `?select=-*,id,name,status,icon` +
+      `&order=name` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
+  });
+
+  it('calls getAllUsers with custom offset and limit', async () => {
+    const api = setup();
+    const mockResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: 100,
+          limit: 50,
+          total: 200,
+        },
+      },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getAllUsers(100, 50);
+    });
+
+    const expectedUrl =
+      `v1/accounts/users` +
+      `?select=-*,id,name,status,icon` +
+      `&order=name` +
+      `&offset=100` +
+      `&limit=50`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('handles API error in getAllUsers', async () => {
+    const api = setup();
+    const mockError = new Error('Failed to fetch all users');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getAllUsers()).rejects.toThrow('Failed to fetch all users');
   });
 
   it('calls getUserData with correct endpoint and returns user data', async () => {
