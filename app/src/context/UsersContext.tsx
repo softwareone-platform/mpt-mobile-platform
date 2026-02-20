@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
+import { useOpsUsersData } from '@/hooks/queries/useOpsUserData';
 import { useUsersData } from '@/hooks/queries/useUsersData';
 import type { ListItemFull } from '@/types/api';
 
@@ -16,11 +17,22 @@ interface UsersContextValue {
 
 const UsersContext = createContext<UsersContextValue | undefined>(undefined);
 
-export const UsersProvider = ({ children }: { children: ReactNode }) => {
+export const UsersProvider = ({
+  children,
+  showAllUsers = false,
+}: {
+  children: ReactNode;
+  showAllUsers?: boolean;
+}) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
+  const isOperations = userData?.currentAccount?.type === 'Operations';
+  const shouldUseAllUsers = showAllUsers && isOperations;
+
+  const accountUsersQuery = useUsersData(userId, currentAccountId, !shouldUseAllUsers);
+  const allUsersQuery = useOpsUsersData(userId, shouldUseAllUsers);
 
   const {
     data,
@@ -30,7 +42,7 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useUsersData(userId, currentAccountId);
+  } = shouldUseAllUsers ? allUsersQuery : accountUsersQuery;
 
   const users = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

@@ -40,6 +40,9 @@ export const navigationStyle = {
       fontSize: Typography.fontSize.font3,
       color: Color.alerts.info4,
     },
+    labelDisabled: {
+      color: Color.gray.gray3,
+    },
     labelContainer: {
       flexDirection: 'row',
       alignItems: 'center',
