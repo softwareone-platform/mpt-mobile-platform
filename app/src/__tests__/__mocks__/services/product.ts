@@ -38,3 +38,32 @@ export const mockProductResponse2 = {
   },
   status: 'Draft',
 };
+
+// List item mocks for getProducts
+export const mockProductListItem1 = {
+  id: mockProductId1,
+  name: 'SoftwareOne FinOps for Cloud',
+  icon: '/v1/catalog/products/PRD-7208-0459/icon',
+  status: 'Published',
+};
+
+export const mockProductListItem2 = {
+  id: mockProductId2,
+  name: 'Test Product',
+  icon: '/v1/catalog/products/PRD-1234-5678/icon',
+  status: 'Published',
+};
+
+export const mockProductListItem3 = {
+  id: 'PRD-1234-5673',
+  name: 'Amazon Web Services',
+  icon: '/v1/catalog/products/PRD-1234-5673/icon',
+  status: 'Unpublished',
+};
+
+export const mockProductListItem4 = {
+  id: 'PRD-1234-5674',
+  name: 'Microsoft Azure',
+  icon: '/v1/catalog/products/PRD-1234-5674/icon',
+  status: 'Pending',
+};
