@@ -116,6 +116,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get productsMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-products',
+        android: '//*[@resource-id="nav-menu-products"]',
+      }),
+    );
+  }
+
   // ========== Helper Methods ==========
 
   /**
@@ -223,6 +232,15 @@ class MorePage extends BasePage {
   async navigateToBuyers() {
     await this.ensureMorePage();
     await this.buyersMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Products page
+   */
+  async navigateToProducts() {
+    await this.ensureMorePage();
+    await this.productsMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 }
