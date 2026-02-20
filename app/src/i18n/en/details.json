@@ -43,6 +43,7 @@
     "postCode": "ZIP/Postal code",
     "country": "Country",
     "email": "Email",
+    "expiration": "Expiration",
     "singleSignOn": "Single sign on",
     "id": "ID",
     "firstName": "First name",

@@ -175,6 +175,11 @@ export const TestIDs = {
   ENROLLMENT_DETAILS_ERROR_STATE: 'enrollment-details-error-state',
   ENROLLMENT_DETAILS_EMPTY_STATE: 'enrollment-details-empty-state',
 
+  // Certificate Details Screen
+  CERTIFICATE_DETAILS_LOADING_INDICATOR: 'certificate-details-loading-indicator',
+  CERTIFICATE_DETAILS_ERROR_STATE: 'certificate-details-error-state',
+  CERTIFICATE_DETAILS_EMPTY_STATE: 'certificate-details-empty-state',
+
   // Licensees Screen
   LICENSEES_LOADING_INDICATOR: 'licensees-loading-indicator',
   LICENSEES_ERROR_STATE: 'licensees-error-state',
