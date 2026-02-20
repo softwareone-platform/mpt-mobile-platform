@@ -115,16 +115,14 @@ describe('useUsersData', () => {
     expect(mockGetUsers).toHaveBeenCalled();
   });
 
-  it('should use correct query key', async () => {
+  it('should call getUsers with correct parameters', () => {
     const userId = 'USR-789';
     const accountId = 'ACC-012';
 
-    const { result } = renderHook(() => useUsersData(userId, accountId, true), {
+    renderHook(() => useUsersData(userId, accountId, true), {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-    expect(result.current.data).toBeDefined();
+    expect(mockGetUsers).toHaveBeenCalledWith(accountId, 0, 50);
   });
 });
