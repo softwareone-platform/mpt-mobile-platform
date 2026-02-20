@@ -20,18 +20,17 @@ const OrderDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const {
-    data: orderDetails,
-    isLoading,
-    isError,
-    isUnauthorised,
-  } = useOrderDetailsData(id, userId, currentAccountId);
+  const { data, isLoading, isError, isUnauthorised } = useOrderDetailsData(
+    id,
+    userId,
+    currentAccountId,
+  );
 
   return (
     <StatusMessage
       isLoading={isLoading}
       isError={!!isError}
-      isEmpty={!orderDetails || Object.keys(orderDetails).length === 0}
+      isEmpty={!data || Object.keys(data).length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.ORDER_DETAILS_LOADING_INDICATOR}
       errorTestId={TestIDs.ORDER_DETAILS_ERROR_STATE}
@@ -39,9 +38,14 @@ const OrderDetailsScreen = () => {
       emptyTitle={t('orderDetailsScreen.emptyStateTitle')}
       emptyDescription={t('orderDetailsScreen.emptyStateDescription')}
     >
-      {orderDetails && (
-        <DetailsView data={orderDetails} config={listItemConfigNoImageNoSubtitle}>
-          <OrderDetailsContent data={orderDetails} />
+      {data && (
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImageNoSubtitle}
+          headerTitleTestId={TestIDs.ORDER_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.ORDER_DETAILS_HEADER_STATUS}
+        >
+          <OrderDetailsContent data={data} />
         </DetailsView>
       )}
     </StatusMessage>

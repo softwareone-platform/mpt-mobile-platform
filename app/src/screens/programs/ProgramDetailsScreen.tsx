@@ -39,7 +39,12 @@ const ProgramDetailsScreen = () => {
       emptyDescription={t('programDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigFull}>
+        <DetailsView
+          data={data}
+          config={listItemConfigFull}
+          headerTitleTestId={TestIDs.PROGRAM_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.PROGRAM_DETAILS_HEADER_STATUS}
+        >
           <ProgramDetailsContent data={data} />
         </DetailsView>
       )}

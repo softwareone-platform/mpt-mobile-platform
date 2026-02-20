@@ -25,12 +25,11 @@ const AccountDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const {
-    data: accountDetails,
-    isLoading,
-    isError,
-    isUnauthorised,
-  } = useAccountDetailsData(id, userId, currentAccountId);
+  const { data, isLoading, isError, isUnauthorised } = useAccountDetailsData(
+    id,
+    userId,
+    currentAccountId,
+  );
 
   useLayoutEffect(() => {
     if (type) {
@@ -42,7 +41,7 @@ const AccountDetailsScreen = () => {
     <StatusMessage
       isLoading={isLoading}
       isError={!!isError}
-      isEmpty={!accountDetails || Object.keys(accountDetails).length === 0}
+      isEmpty={!data || Object.keys(data).length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.ACCOUNT_DETAILS_LOADING_INDICATOR}
       errorTestId={TestIDs.ACCOUNT_DETAILS_ERROR_STATE}
@@ -50,9 +49,14 @@ const AccountDetailsScreen = () => {
       emptyTitle={t('accountDetailsScreen.emptyStateTitle')}
       emptyDescription={t('accountDetailsScreen.emptyStateDescription')}
     >
-      {accountDetails && (
-        <DetailsView data={accountDetails} config={listItemConfigFull}>
-          <AccountDetailsContent data={accountDetails} />
+      {data && (
+        <DetailsView
+          data={data}
+          config={listItemConfigFull}
+          headerTitleTestId={TestIDs.ACCOUNT_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.ACCOUNT_DETAILS_HEADER_STATUS}
+        >
+          <AccountDetailsContent data={data} />
         </DetailsView>
       )}
     </StatusMessage>

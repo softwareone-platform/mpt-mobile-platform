@@ -7,9 +7,10 @@ import type { Status } from '@/types/lists';
 type Props = {
   text: string;
   status: Status;
+  testId?: string;
 };
 
-const Chip = ({ text, status }: Props) => {
+const Chip = ({ text, status, testId }: Props) => {
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -21,7 +22,7 @@ const Chip = ({ text, status }: Props) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={testId}>
       <Text style={styles.text}>{text}</Text>
     </View>
   );

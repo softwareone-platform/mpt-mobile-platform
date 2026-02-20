@@ -30,7 +30,16 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   return (
     <CardWithHeader title={t(`details.title`)}>
       <ListItemWithLabelAndText title={t(`details.type`)} subtitle={data.type} />
-      <DetailsListItem label={t(`details.agreement`)} data={data.agreement} hideImage={true} />
+      <DetailsListItem
+        label={t(`details.agreement`)}
+        data={data.agreement}
+        hideImage={true}
+        onPress={() => {
+          navigation.navigate('agreementDetails', {
+            id: data.agreement?.id,
+          });
+        }}
+      />
       <DetailsListItem
         label={t(`details.product`)}
         data={data.product}

@@ -18,7 +18,7 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
     <>
       <CardWithHeader title={t(`details.title`)}>
         <DetailsListItem
-          label={t(`details.client`)}
+          label={t(`details.account`)}
           data={data.account}
           onPress={() => {
             navigation.navigate('accountDetails', {
