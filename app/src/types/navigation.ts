@@ -29,6 +29,7 @@ export type SecondaryTabsParamList = {
   buyers: undefined;
   allBuyers: undefined;
   products: undefined;
+  clientProducts: undefined;
 };
 
 export type AppScreensParamList = {
