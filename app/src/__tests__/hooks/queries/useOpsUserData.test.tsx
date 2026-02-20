@@ -1,5 +1,5 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
 import { useOpsUsersData } from '@/hooks/queries/useOpsUserData';

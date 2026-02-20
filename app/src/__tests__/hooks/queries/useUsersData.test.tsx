@@ -1,5 +1,5 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 import { useUsersData } from '@/hooks/queries/useUsersData';
@@ -44,12 +44,9 @@ describe('useUsersData', () => {
 
     mockGetUsers.mockResolvedValueOnce(mockResponse);
 
-    const { result } = renderHook(
-      () => useUsersData('USR-123', 'ACC-456', true),
-      {
-        wrapper: createWrapper(),
-      },
-    );
+    const { result } = renderHook(() => useUsersData('USR-123', 'ACC-456', true), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
