@@ -131,7 +131,7 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         icon: 'shopping-cart-checkout',
         component: BuyersScreen,
         modules: ['account-management'],
-        roles: ['Client', 'Operations'],
+        roles: ['Client'],
       },
       {
         name: 'users',

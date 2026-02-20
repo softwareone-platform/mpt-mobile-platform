@@ -32,7 +32,7 @@ export function useUserApi() {
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<User>> => {
       const endpoint =
-        `/v1/accounts/users` +
+        `v1/accounts/users` +
         `?select=-*,id,name,status,icon` +
         `&order=name` +
         `&offset=${offset}` +
