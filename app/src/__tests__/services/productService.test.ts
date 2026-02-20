@@ -98,13 +98,13 @@ describe('useProductApi - getProducts', () => {
 
     const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: {
-        pagination: { offset: 0, limit: 10, total: 2 },
+        pagination: { offset: 0, limit: 2, total: 4 },
       },
       data: [mockProductListItem1 as ListItemFull, mockProductListItem2 as ListItemFull],
     };
     const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: {
-        pagination: { offset: 10, limit: 10, total: 20 },
+        pagination: { offset: 2, limit: 2, total: 4 },
       },
       data: [mockProductListItem3 as ListItemFull, mockProductListItem4 as ListItemFull],
     };
@@ -133,10 +133,11 @@ describe('useProductApi - getProducts', () => {
     expect(res2).toEqual(mockResponse2);
   });
 
-  it('handles API errors correctly', async () => {
+  it('handles API errors correctly in getProducts', async () => {
     const api = setup();
+    const mockError = new Error('Network error');
 
-    mockGet.mockRejectedValueOnce(mockNetworkError);
+    mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getProducts()).rejects.toThrow('Network error');
   });
@@ -145,9 +146,9 @@ describe('useProductApi - getProducts', () => {
     const api = setup();
     const mockResponse: PaginatedResponse<ListItemFull> = {
       $meta: {
-        pagination: { offset: 0, limit: 10, total: 2 },
+        pagination: { offset: 0, limit: 10, total: 1 },
       },
-      data: [mockProductListItem1 as ListItemFull, mockProductListItem2 as ListItemFull],
+      data: [mockProductListItem3],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse);
@@ -157,10 +158,13 @@ describe('useProductApi - getProducts', () => {
       res = await api.getProducts();
     });
 
-    expect(res?.data).toHaveLength(2);
-    expect(res?.data[0]).toHaveProperty('id');
-    expect(res?.data[0]).toHaveProperty('name');
-    expect(res?.data[0]).toHaveProperty('status');
+    expect(res).toEqual(mockResponse);
+    expect(res!.data[0]).toMatchObject({
+      id: 'PRD-1234-5674',
+      name: 'Microsoft Azure',
+      icon: '/v1/catalog/products/PRD-1234-5674/icon',
+      status: 'Pending',
+    });
   });
 });
 
