@@ -31,7 +31,8 @@
     "statementDetails": "Statement",
     "productDetails": "Product",
     "programDetails": "Program",
-    "enrollmentDetails": "Enrollment"
+    "enrollmentDetails": "Enrollment",
+    "certificateDetails": "Certificate"
   },
   "tabGroups": {
     "administration": "Administration",

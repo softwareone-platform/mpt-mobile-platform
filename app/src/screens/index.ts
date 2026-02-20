@@ -25,6 +25,7 @@ export { default as StatementDetailsScreen } from './statements/StatementDetails
 export { default as ProductDetailsScreen } from './products/ProductDetailsScreen';
 export { default as ProgramDetailsScreen } from './programs/ProgramDetailsScreen';
 export { default as EnrollmentDetailsScreen } from './enrollments/EnrollmentDetailsScreen';
+export { default as CertificateDetailsScreen } from './certificates/CertificateDetailsScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';
