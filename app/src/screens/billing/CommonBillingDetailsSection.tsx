@@ -32,7 +32,15 @@ const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) =
           });
         }}
       />
-      <DetailsListItem label={t(`details.licensee`)} data={data.licensee} />
+      <DetailsListItem
+        label={t(`details.licensee`)}
+        data={data.licensee}
+        onPress={() => {
+          navigation.navigate('licenseeDetails', {
+            id: data.licensee?.id,
+          });
+        }}
+      />
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
@@ -52,7 +60,16 @@ const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) =
           });
         }}
       />
-      <DetailsListItem label={t(`details.agreement`)} data={data.agreement} hideImage={true} />
+      <DetailsListItem
+        label={t(`details.agreement`)}
+        data={data.agreement}
+        hideImage={true}
+        onPress={() => {
+          navigation.navigate('agreementDetails', {
+            id: data.agreement?.id,
+          });
+        }}
+      />
       <DetailsListItem
         label={t(`details.seller`)}
         data={data.seller}

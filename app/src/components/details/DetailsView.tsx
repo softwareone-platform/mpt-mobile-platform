@@ -9,9 +9,17 @@ interface DetailsViewProps<T extends object> {
   data: T;
   config: ListItemConfig;
   children: React.ReactNode;
+  headerTitleTestId?: string;
+  headerStatusTestId?: string;
 }
 
-const DetailsView = <T extends object>({ data, config, children }: DetailsViewProps<T>) => {
+const DetailsView = <T extends object>({
+  data,
+  config,
+  children,
+  headerTitleTestId,
+  headerStatusTestId,
+}: DetailsViewProps<T>) => {
   const header: ListItemWithStatusProps = mapToListItemProps(
     data as Record<string, unknown>,
     config,
@@ -25,6 +33,8 @@ const DetailsView = <T extends object>({ data, config, children }: DetailsViewPr
         subtitle={header.subtitle}
         imagePath={header.imagePath}
         statusText={header.statusText}
+        headerTitleTestId={headerTitleTestId}
+        headerStatusTestId={headerStatusTestId}
       />
 
       <ScrollView style={styles.container}>{children}</ScrollView>

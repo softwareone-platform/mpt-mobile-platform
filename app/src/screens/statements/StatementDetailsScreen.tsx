@@ -39,7 +39,12 @@ const StatementDetailsScreen = () => {
       emptyDescription={t('statementDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigNoImageNoSubtitle}>
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImageNoSubtitle}
+          headerTitleTestId={TestIDs.STATEMENT_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.STATEMENT_DETAILS_HEADER_STATUS}
+        >
           <StatementDetailsContent data={data} />
         </DetailsView>
       )}

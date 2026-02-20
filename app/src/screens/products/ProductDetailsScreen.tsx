@@ -20,28 +20,32 @@ const ProductDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const {
-    data: productDetails,
-    isLoading,
-    isError,
-    isUnauthorised,
-  } = useProductDetailsData(id, userId, currentAccountId);
+  const { data, isLoading, isError, isUnauthorised } = useProductDetailsData(
+    id,
+    userId,
+    currentAccountId,
+  );
 
   return (
     <StatusMessage
       isLoading={isLoading}
       isError={!!isError}
-      isEmpty={!productDetails || Object.keys(productDetails).length === 0}
+      isEmpty={!data || Object.keys(data).length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.PRODUCT_DETAILS_LOADING_INDICATOR}
       errorTestId={TestIDs.PRODUCT_DETAILS_ERROR_STATE}
       emptyTestId={TestIDs.PRODUCT_DETAILS_EMPTY_STATE}
-      emptyTitle={t('marketplace:productDetailsScreen.emptyStateTitle')}
-      emptyDescription={t('marketplace:productDetailsScreen.emptyStateDescription')}
+      emptyTitle={t('productDetailsScreen.emptyStateTitle')}
+      emptyDescription={t('productDetailsScreen.emptyStateDescription')}
     >
-      {productDetails && (
-        <DetailsView data={productDetails} config={listItemConfigFull}>
-          <ProductDetailsContent data={productDetails} />
+      {data && (
+        <DetailsView
+          data={data}
+          config={listItemConfigFull}
+          headerTitleTestId={TestIDs.PRODUCT_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.PRODUCT_DETAILS_HEADER_STATUS}
+        >
+          <ProductDetailsContent data={data} />
         </DetailsView>
       )}
     </StatusMessage>

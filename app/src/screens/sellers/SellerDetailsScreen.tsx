@@ -20,18 +20,17 @@ const SellerDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const {
-    data: sellerDetails,
-    isLoading,
-    isError,
-    isUnauthorised,
-  } = useSellerDetailsData(id, userId, currentAccountId);
+  const { data, isLoading, isError, isUnauthorised } = useSellerDetailsData(
+    id,
+    userId,
+    currentAccountId,
+  );
 
   return (
     <StatusMessage
       isLoading={isLoading}
       isError={!!isError}
-      isEmpty={!sellerDetails || Object.keys(sellerDetails).length === 0}
+      isEmpty={!data || Object.keys(data).length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.SELLER_DETAILS_LOADING_INDICATOR}
       errorTestId={TestIDs.SELLER_DETAILS_ERROR_STATE}
@@ -39,9 +38,14 @@ const SellerDetailsScreen = () => {
       emptyTitle={t('sellerDetailsScreen.emptyStateTitle')}
       emptyDescription={t('sellerDetailsScreen.emptyStateDescription')}
     >
-      {sellerDetails && (
-        <DetailsView data={sellerDetails} config={listItemConfigFull}>
-          <SellerDetailsContent data={sellerDetails} />
+      {data && (
+        <DetailsView
+          data={data}
+          config={listItemConfigFull}
+          headerTitleTestId={TestIDs.SELLER_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.SELLER_DETAILS_HEADER_STATUS}
+        >
+          <SellerDetailsContent data={data} />
         </DetailsView>
       )}
     </StatusMessage>

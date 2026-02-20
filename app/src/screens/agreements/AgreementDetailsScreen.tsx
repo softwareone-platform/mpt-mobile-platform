@@ -39,7 +39,12 @@ const AgreementDetailsScreen = () => {
       emptyDescription={t('agreementDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigNoImage}>
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImage}
+          headerTitleTestId={TestIDs.AGREEMENT_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.AGREEMENT_DETAILS_HEADER_STATUS}
+        >
           <AgreementDetailsContent data={data} />
         </DetailsView>
       )}

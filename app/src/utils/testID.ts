@@ -90,6 +90,8 @@ export const TestIDs = {
   AGREEMENT_DETAILS_LOADING_INDICATOR: 'agreement-details-loading-indicator',
   AGREEMENT_DETAILS_ERROR_STATE: 'agreement-details-error-state',
   AGREEMENT_DETAILS_EMPTY_STATE: 'agreement-details-empty-state',
+  AGREEMENT_DETAILS_HEADER_TITLE: 'agreement-details-header-title',
+  AGREEMENT_DETAILS_HEADER_STATUS: 'agreement-details-header-status',
 
   // Common
   HEADER_LOGO: 'header-logo-image',
@@ -104,6 +106,8 @@ export const TestIDs = {
   CREDIT_MEMO_DETAILS_LOADING_INDICATOR: 'credit-memo-details-loading-indicator',
   CREDIT_MEMO_DETAILS_ERROR_STATE: 'credit-memo-details-error-state',
   CREDIT_MEMO_DETAILS_EMPTY_STATE: 'credit-memo-details-empty-state',
+  CREDIT_MEMO_DETAILS_HEADER_TITLE: 'credit-memo-details-header-title',
+  CREDIT_MEMO_DETAILS_HEADER_STATUS: 'credit-memo-details-header-status',
 
   // Users Screen
   USERS_LOADING_INDICATOR: 'users-loading-indicator',
@@ -114,6 +118,8 @@ export const TestIDs = {
   USER_DETAILS_LOADING_INDICATOR: 'user-details-loading-indicator',
   USER_DETAILS_ERROR_STATE: 'user-details-error-state',
   USER_DETAILS_EMPTY_STATE: 'user-details-empty-state',
+  USER_DETAILS_HEADER_TITLE: 'user-details-header-title',
+  USER_DETAILS_HEADER_STATUS: 'user-details-header-status',
 
   // Orders Screen
   ORDERS_LOADING_INDICATOR: 'orders-loading-indicator',
@@ -124,6 +130,8 @@ export const TestIDs = {
   ORDER_DETAILS_LOADING_INDICATOR: 'order-details-loading-indicator',
   ORDER_DETAILS_ERROR_STATE: 'order-details-error-state',
   ORDER_DETAILS_EMPTY_STATE: 'order-details-empty-state',
+  ORDER_DETAILS_HEADER_TITLE: 'order-details-header-title',
+  ORDER_DETAILS_HEADER_STATUS: 'order-details-header-status',
 
   // Subscriptions Screen
   SUBSCRIPTIONS_LOADING_INDICATOR: 'subscriptions-loading-indicator',
@@ -134,6 +142,8 @@ export const TestIDs = {
   SUBSCRIPTION_DETAILS_LOADING_INDICATOR: 'subscription-details-loading-indicator',
   SUBSCRIPTION_DETAILS_ERROR_STATE: 'subscription-details-error-state',
   SUBSCRIPTION_DETAILS_EMPTY_STATE: 'subscription-details-empty-state',
+  SUBSCRIPTION_DETAILS_HEADER_TITLE: 'subscription-details-header-title',
+  SUBSCRIPTION_DETAILS_HEADER_STATUS: 'subscription-details-header-status',
 
   // Invoices Screen
   INVOICES_LOADING_INDICATOR: 'invoices-loading-indicator',
@@ -144,6 +154,8 @@ export const TestIDs = {
   INVOICE_DETAILS_LOADING_INDICATOR: 'invoice-details-loading-indicator',
   INVOICE_DETAILS_ERROR_STATE: 'invoice-details-error-state',
   INVOICE_DETAILS_EMPTY_STATE: 'invoice-details-empty-state',
+  INVOICE_DETAILS_HEADER_TITLE: 'invoice-details-header-title',
+  INVOICE_DETAILS_HEADER_STATUS: 'invoice-details-header-status',
 
   // Statements Screen
   STATEMENTS_LOADING_INDICATOR: 'statements-loading-indicator',
@@ -154,6 +166,8 @@ export const TestIDs = {
   STATEMENT_DETAILS_LOADING_INDICATOR: 'statement-details-loading-indicator',
   STATEMENT_DETAILS_ERROR_STATE: 'statement-details-error-state',
   STATEMENT_DETAILS_EMPTY_STATE: 'statement-details-empty-state',
+  STATEMENT_DETAILS_HEADER_TITLE: 'statement-details-header-title',
+  STATEMENT_DETAILS_HEADER_STATUS: 'statement-details-header-status',
 
   // Programs Screen
   PROGRAMS_LOADING_INDICATOR: 'programs-loading-indicator',
@@ -164,6 +178,8 @@ export const TestIDs = {
   PROGRAM_DETAILS_LOADING_INDICATOR: 'program-details-loading-indicator',
   PROGRAM_DETAILS_ERROR_STATE: 'program-details-error-state',
   PROGRAM_DETAILS_EMPTY_STATE: 'program-details-empty-state',
+  PROGRAM_DETAILS_HEADER_TITLE: 'program-details-header-title',
+  PROGRAM_DETAILS_HEADER_STATUS: 'program-details-header-status',
 
   // Enrollments Screen
   ENROLLMENTS_LOADING_INDICATOR: 'enrollments-loading-indicator',
@@ -174,11 +190,15 @@ export const TestIDs = {
   ENROLLMENT_DETAILS_LOADING_INDICATOR: 'enrollment-details-loading-indicator',
   ENROLLMENT_DETAILS_ERROR_STATE: 'enrollment-details-error-state',
   ENROLLMENT_DETAILS_EMPTY_STATE: 'enrollment-details-empty-state',
+  ENROLLMENT_DETAILS_HEADER_TITLE: 'enrollment-details-header-title',
+  ENROLLMENT_DETAILS_HEADER_STATUS: 'enrollment-details-header-status',
 
   // Certificate Details Screen
   CERTIFICATE_DETAILS_LOADING_INDICATOR: 'certificate-details-loading-indicator',
   CERTIFICATE_DETAILS_ERROR_STATE: 'certificate-details-error-state',
   CERTIFICATE_DETAILS_EMPTY_STATE: 'certificate-details-empty-state',
+  CERTIFICATE_DETAILS_HEADER_TITLE: 'certificate-details-header-title',
+  CERTIFICATE_DETAILS_HEADER_STATUS: 'certificate-details-header-status',
 
   // Licensees Screen
   LICENSEES_LOADING_INDICATOR: 'licensees-loading-indicator',
@@ -189,6 +209,8 @@ export const TestIDs = {
   LICENSEE_DETAILS_LOADING_INDICATOR: 'licensee-details-loading-indicator',
   LICENSEE_DETAILS_ERROR_STATE: 'licensee-details-error-state',
   LICENSEE_DETAILS_EMPTY_STATE: 'licensee-details-empty-state',
+  LICENSEE_DETAILS_HEADER_TITLE: 'licensee-details-header-title',
+  LICENSEE_DETAILS_HEADER_STATUS: 'licensee-details-header-status',
 
   // Buyers Screen
   BUYERS_LOADING_INDICATOR: 'buyers-loading-indicator',
@@ -199,21 +221,29 @@ export const TestIDs = {
   BUYER_DETAILS_LOADING_INDICATOR: 'buyer-details-loading-indicator',
   BUYER_DETAILS_ERROR_STATE: 'buyer-details-error-state',
   BUYER_DETAILS_EMPTY_STATE: 'buyer-details-empty-state',
+  BUYER_DETAILS_HEADER_TITLE: 'buyer-details-header-title',
+  BUYER_DETAILS_HEADER_STATUS: 'buyer-details-header-status',
 
   // Account Details Screen
   ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
   ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',
   ACCOUNT_DETAILS_EMPTY_STATE: 'account-details-empty-state',
+  ACCOUNT_DETAILS_HEADER_TITLE: 'account-details-header-title',
+  ACCOUNT_DETAILS_HEADER_STATUS: 'account-details-header-status',
 
   // Seller Details Screen
   SELLER_DETAILS_LOADING_INDICATOR: 'seller-details-loading-indicator',
   SELLER_DETAILS_ERROR_STATE: 'seller-details-error-state',
   SELLER_DETAILS_EMPTY_STATE: 'seller-details-empty-state',
+  SELLER_DETAILS_HEADER_TITLE: 'seller-details-header-title',
+  SELLER_DETAILS_HEADER_STATUS: 'seller-details-header-status',
 
   // Product Details Screen
   PRODUCT_DETAILS_LOADING_INDICATOR: 'product-details-loading-indicator',
   PRODUCT_DETAILS_ERROR_STATE: 'product-details-error-state',
   PRODUCT_DETAILS_EMPTY_STATE: 'product-details-empty-state',
+  PRODUCT_DETAILS_HEADER_TITLE: 'product-details-header-title',
+  PRODUCT_DETAILS_HEADER_STATUS: 'product-details-header-status',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;

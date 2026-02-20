@@ -47,7 +47,12 @@ const UserDetailsScreen = () => {
       emptyDescription={t('userDetailsScreen.emptyStateDescription')}
     >
       {userDetails && sso && (
-        <DetailsView data={userDetails} config={listItemConfigFull}>
+        <DetailsView
+          data={userDetails}
+          config={listItemConfigFull}
+          headerTitleTestId={TestIDs.USER_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.USER_DETAILS_HEADER_STATUS}
+        >
           <UserDetailsContent data={userDetails} sso={sso} />
         </DetailsView>
       )}
