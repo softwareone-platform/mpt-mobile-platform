@@ -148,7 +148,7 @@ describe('useProductApi - getProducts', () => {
       $meta: {
         pagination: { offset: 0, limit: 10, total: 1 },
       },
-      data: [mockProductListItem3],
+      data: [mockProductListItem4],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse);
