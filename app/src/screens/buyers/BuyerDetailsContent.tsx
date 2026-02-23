@@ -9,6 +9,7 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import { useAccount } from '@/context/AccountContext';
 import type { BuyerData } from '@/types/admin';
 import type { RootStackParamList } from '@/types/navigation';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
   const { t } = useTranslation();
@@ -24,7 +25,7 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
           label={t(`details.account`)}
           data={data.account}
           onPress={
-            accountType !== 'Vendor'
+            canNavigateTo('clientAccount', accountType)
               ? () => {
                   navigation.navigate('accountDetails', {
                     id: data.account?.id,

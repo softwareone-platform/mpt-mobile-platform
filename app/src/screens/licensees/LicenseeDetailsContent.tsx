@@ -9,6 +9,7 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import { useAccount } from '@/context/AccountContext';
 import type { LicenseeData } from '@/types/admin';
 import type { RootStackParamList } from '@/types/navigation';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const LicenseeDetailsContent = ({ data }: { data: LicenseeData }) => {
   const { t } = useTranslation();
@@ -36,7 +37,7 @@ const LicenseeDetailsContent = ({ data }: { data: LicenseeData }) => {
           label={t(`details.buyer`)}
           data={data.buyer}
           onPress={
-            accountType !== 'Vendor'
+            canNavigateTo('buyer', accountType)
               ? () => {
                   navigation.navigate('buyerDetails', {
                     id: data.buyer?.id,
@@ -49,7 +50,7 @@ const LicenseeDetailsContent = ({ data }: { data: LicenseeData }) => {
           label={t(`details.seller`)}
           data={data.seller}
           onPress={
-            accountType !== 'Vendor'
+            canNavigateTo('seller', accountType)
               ? () => {
                   navigation.navigate('sellerDetails', {
                     id: data.seller?.id,

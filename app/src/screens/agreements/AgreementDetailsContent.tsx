@@ -11,6 +11,7 @@ import type { AgreementData } from '@/types/agreement';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const { t, i18n } = useTranslation();
@@ -46,7 +47,7 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
         label={t(`details.vendor`)}
         data={data.vendor}
         onPress={
-          accountType === 'Operations'
+          canNavigateTo('vendorAccount', accountType)
             ? () => {
                 navigation.navigate('accountDetails', {
                   id: data.vendor?.id,
@@ -73,7 +74,7 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
         label={t(`details.client`)}
         data={data.client}
         onPress={
-          accountType !== 'Vendor'
+          canNavigateTo('clientAccount', accountType)
             ? () => {
                 navigation.navigate('accountDetails', {
                   id: data.client?.id,

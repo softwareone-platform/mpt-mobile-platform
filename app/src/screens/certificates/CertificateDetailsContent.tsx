@@ -9,6 +9,7 @@ import { useAccount } from '@/context/AccountContext';
 import type { RootStackParamList } from '@/types/navigation';
 import type { CertificateDetails } from '@/types/program';
 import { formatDateForLocale } from '@/utils/formatting';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
   const { t, i18n } = useTranslation();
@@ -40,7 +41,7 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
         label={t(`details.vendor`)}
         data={data.vendor}
         onPress={
-          accountType === 'Operations'
+          canNavigateTo('vendorAccount', accountType)
             ? () => {
                 navigation.navigate('accountDetails', {
                   id: data.vendor?.id,
@@ -55,7 +56,7 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
         label={t(`details.certificant`)}
         data={data.buyer}
         onPress={
-          accountType !== 'Vendor'
+          canNavigateTo('buyer', accountType)
             ? () => {
                 navigation.navigate('buyerDetails', {
                   id: data.buyer?.id,

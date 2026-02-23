@@ -12,6 +12,7 @@ import { useAccount } from '@/context/AccountContext';
 import type { StatementDetails } from '@/types/billing';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage, formatDateForLocale, getTime } from '@/utils/formatting';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
   const { t, i18n } = useTranslation();
@@ -36,7 +37,7 @@ const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
           label={t(`details.owner`)}
           data={data.ledger?.owner}
           onPress={
-            accountType !== 'Vendor'
+            canNavigateTo('seller', accountType)
               ? () => {
                   navigation.navigate('sellerDetails', {
                     id: data.ledger?.owner?.id,

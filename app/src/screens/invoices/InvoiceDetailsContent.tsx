@@ -12,6 +12,7 @@ import { useAccount } from '@/context/AccountContext';
 import type { InvoiceDetails } from '@/types/billing';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatDateForLocale, formatNumber } from '@/utils/formatting';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
   const { t, i18n } = useTranslation();
@@ -41,7 +42,7 @@ const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
         label={t(`details.owner`)}
         data={data.statement?.ledger?.owner}
         onPress={
-          accountType !== 'Vendor'
+          canNavigateTo('seller', accountType)
             ? () => {
                 navigation.navigate('sellerDetails', {
                   id: data.statement?.ledger?.owner?.id,

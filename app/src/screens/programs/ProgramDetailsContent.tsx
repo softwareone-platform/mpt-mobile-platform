@@ -8,6 +8,7 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import { useAccount } from '@/context/AccountContext';
 import type { RootStackParamList } from '@/types/navigation';
 import type { ProgramDetails } from '@/types/program';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const ProgramDetailsContent = ({ data }: { data: ProgramDetails }) => {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ const ProgramDetailsContent = ({ data }: { data: ProgramDetails }) => {
         label={t(`details.vendor`)}
         data={data.vendor}
         onPress={
-          accountType === 'Operations'
+          canNavigateTo('vendorAccount', accountType)
             ? () => {
                 navigation.navigate('accountDetails', {
                   id: data.vendor?.id,

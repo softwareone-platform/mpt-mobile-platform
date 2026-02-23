@@ -11,6 +11,7 @@ import type { RootStackParamList } from '@/types/navigation';
 import type { SubscriptionData } from '@/types/subscription';
 import { formatNumber, formatPercentage, formatDateForLocale } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
   const { t, i18n } = useTranslation();
@@ -64,7 +65,7 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
         label={t(`details.client`)}
         data={data.agreement?.client}
         onPress={
-          accountType !== 'Vendor'
+          canNavigateTo('clientAccount', accountType)
             ? () => {
                 navigation.navigate('accountDetails', {
                   id: data.agreement?.client?.id,
