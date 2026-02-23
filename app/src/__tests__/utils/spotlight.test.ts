@@ -34,7 +34,7 @@ describe('spotlightUtils', () => {
     it('should allow duplicate templates, using the last category definition', () => {
       const lookup = buildCategoryLookup(duplicateCategories);
 
-      expect(lookup.savedOrdersClient).toBe('cat2');
+      expect(lookup.savedOrdersClient).toBe('subscriptions');
     });
   });
 
@@ -98,14 +98,14 @@ describe('spotlightUtils', () => {
       const ordered = orderSpotlightData(groupedSpotlightData, categories);
 
       expect(Object.keys(ordered)).toEqual(['orders', 'subscriptions']);
-      expect(ordered.orders[0].id).toBe('1');
-      expect(ordered.subscriptions.map((item) => item.id)).toEqual(['2']);
+      expect(ordered.orders![0].id).toBe('1');
+      expect(ordered.subscriptions!.map((item) => item.id)).toEqual(['2']);
     });
 
     it('should correctly handle single item per category', () => {
       const ordered = orderSpotlightData(groupedSpotlightDataSingleItemPerCategory, categories);
       expect(Object.keys(ordered)).toEqual(['orders', 'subscriptions']);
-      expect(ordered.orders[0].id).toBe('1');
+      expect(ordered.orders![0].id).toBe('1');
       expect(ordered.subscriptions[0].id).toBe('2');
     });
   });

@@ -1,3 +1,5 @@
+import { AppScreensParamList } from './navigation';
+
 export type SpotlightTemplateName =
   | 'savedOrdersClient'
   | 'queryingOrders'
@@ -22,3 +24,27 @@ export type SpotlightTemplateName =
   | 'processingEnrollments'
   | 'longRunningEnrollmentsOfMyClients'
   | 'inProgressJournals';
+
+export type SpotlightCategoryName =
+  | 'orders'
+  | 'subscriptions'
+  | 'users'
+  | 'invoices'
+  | 'enrollments'
+  | 'journals'
+  | 'buyers';
+
+export type SpotlightDetailsScreen =
+  | 'orderDetails'
+  | 'subscriptionDetails'
+  | 'userDetails'
+  | 'invoiceDetails'
+  | 'enrollmentDetails'
+  | 'journalDetails'
+  | 'buyerDetails';
+
+export type SpotlightCategory = {
+  name: SpotlightCategoryName;
+  templates: SpotlightTemplateName[];
+  detailsScreenName: keyof AppScreensParamList;
+};

@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
@@ -8,19 +10,25 @@ import NavigationItemWithImage from '@/components/navigation-item/NavigationItem
 import { useAccount } from '@/context/AccountContext';
 import { screenStyle, cardStyle, Spacing } from '@/styles';
 import { Color } from '@/styles/tokens';
-import type { SpotlightItem } from '@/types/api';
+import type { SpotlightItemWithDetails } from '@/types/api';
+import type { RootStackParamList } from '@/types/navigation';
+import type { SpotlightCategoryName } from '@/types/spotlight';
 import { TestIDs } from '@/utils/testID';
 
 const DEFAULT_FILTER = 'all';
 
 const SpotlightScreen = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>(DEFAULT_FILTER);
-  const [filteredData, setFilteredData] = useState<Record<string, SpotlightItem[]>>({});
+  const [filteredData, setFilteredData] = useState<
+    Partial<Record<SpotlightCategoryName, SpotlightItemWithDetails[]>>
+  >({});
   const [filterKeys, setFilterKeys] = useState<string[]>([]);
 
   const { spotlightData, isSpotlightError, isSpotlightDataLoading, isSwitchingAccount } =
     useAccount();
   const { t } = useTranslation();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     if (!spotlightData || Object.keys(spotlightData).length === 0) {
@@ -103,7 +111,7 @@ const SpotlightScreen = () => {
       >
         {Object.entries(filteredData).map(([categoryName, sections]) => (
           <View key={categoryName}>
-            {(sections as SpotlightItem[]).map((section) => (
+            {(sections as SpotlightItemWithDetails[]).map((section) => (
               <View
                 key={section.id}
                 testID={`${TestIDs.SPOTLIGHT_CARD_PREFIX}-${categoryName}-${section.id}`}
@@ -134,8 +142,11 @@ const SpotlightScreen = () => {
                       title={itemName}
                       subtitle={itemId}
                       isLast={itemIndex === section.top.length - 1}
-                      // TODO: Implement navigation on press of each spotlight item
-                      onPress={() => {}}
+                      onPress={() => {
+                        navigation.navigate(section.detailsScreenName, {
+                          id: itemId,
+                        });
+                      }}
                     />
                   );
                 })}

@@ -1,4 +1,5 @@
 import type { Address } from './common';
+import { AppScreensParamList } from './navigation';
 
 export enum HttpMethod {
   GET = 'GET',
@@ -88,6 +89,10 @@ export interface SpotlightItem {
     template?: string;
   };
 }
+
+export type SpotlightItemWithDetails = SpotlightItem & {
+  detailsScreenName: keyof AppScreensParamList;
+};
 
 export interface SpotlightTopItem {
   id: string;

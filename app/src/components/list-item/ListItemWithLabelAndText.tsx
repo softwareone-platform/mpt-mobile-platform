@@ -6,7 +6,6 @@ type Props = {
   title: string;
   subtitle?: string;
   isLast?: boolean;
-  onPress?: () => void;
   testID?: string;
 };
 
