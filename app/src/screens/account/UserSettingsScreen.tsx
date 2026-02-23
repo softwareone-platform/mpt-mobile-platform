@@ -23,13 +23,6 @@ type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
 const userDetailsData: Array<UserSettingsItem> = [
   { name: 'personalInformation', icon: 'credit-card', isDisabled: false },
-  { name: 'regionalSettings', icon: 'language', isDisabled: true },
-  { name: 'security', icon: 'lock', isDisabled: true },
-];
-
-const communicationData: Array<UserSettingsItem> = [
-  { name: 'notificationSettings', icon: 'notifications', isDisabled: true },
-  { name: 'emailSettings', icon: 'mail', isDisabled: true },
 ];
 
 const UserSettingsScreen = () => {
@@ -59,21 +52,6 @@ const UserSettingsScreen = () => {
               title={t(`userSettingsScreen.${item.name}`)}
               icon={item.icon}
               isLast={index === userDetailsData.length - 1}
-              isDisabled={item.isDisabled}
-              onPress={item.isDisabled ? undefined : () => navigation.navigate(item.name)}
-            />
-          ))}
-        </View>
-      </View>
-      <View>
-        <Text style={styles.sectionHeader}>{t('userSettingsScreen.communication')}</Text>
-        <View style={styles.containerCard}>
-          {communicationData.map((item, index) => (
-            <NavigationItemWithIcon
-              key={item.name}
-              title={t(`userSettingsScreen.${item.name}`)}
-              icon={item.icon}
-              isLast={index === communicationData.length - 1}
               isDisabled={item.isDisabled}
               onPress={item.isDisabled ? undefined : () => navigation.navigate(item.name)}
             />
