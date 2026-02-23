@@ -29,7 +29,7 @@ const PersonalInformation = () => {
   const { t } = useTranslation();
   const { userData, isUserDataLoading, isUserDataError } = useAccount();
 
-  const phoneNubmer =
+  const phoneNumber =
     formatPhoneNumber(userData?.phone?.prefix, userData?.phone?.number) || EMPTY_VALUE;
 
   if (isUserDataLoading) {
@@ -77,7 +77,7 @@ const PersonalInformation = () => {
         <View style={styles.containerCard}>
           {personalInformationData.map((item, index) => {
             const value =
-              item.name === 'phone' ? phoneNubmer : (userData[item.name] ?? EMPTY_VALUE);
+              item.name === 'phone' ? phoneNumber : (userData[item.name] ?? EMPTY_VALUE);
             return (
               <NavigationItemWithText
                 key={item.name}
