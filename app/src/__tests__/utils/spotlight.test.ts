@@ -100,6 +100,13 @@ describe('spotlightUtils', () => {
       expect(Object.keys(ordered)).toEqual(['orders', 'subscriptions']);
       expect(ordered.orders![0].id).toBe('1');
       expect(ordered.subscriptions!.map((item) => item.id)).toEqual(['2']);
+
+      ordered.orders!.forEach((item) => {
+        expect(item.detailsScreenName).toBe('orderDetails');
+      });
+      ordered.subscriptions!.forEach((item) => {
+        expect(item.detailsScreenName).toBe('subscriptionDetails');
+      });
     });
 
     it('should correctly handle single item per category', () => {
@@ -107,6 +114,8 @@ describe('spotlightUtils', () => {
       expect(Object.keys(ordered)).toEqual(['orders', 'subscriptions']);
       expect(ordered.orders![0].id).toBe('1');
       expect(ordered.subscriptions[0].id).toBe('2');
+      expect(ordered.orders![0].detailsScreenName).toBe('orderDetails');
+      expect(ordered.subscriptions![0].detailsScreenName).toBe('subscriptionDetails');
     });
   });
 
@@ -119,6 +128,13 @@ describe('spotlightUtils', () => {
       expect(arrangedData.orders[0].id).toBe('1');
       expect(arrangedData.subscriptions).toHaveLength(1);
       expect(arrangedData.subscriptions.map((item) => item.id)).toEqual(['2']);
+
+      arrangedData.orders.forEach((item) => {
+        expect(item.detailsScreenName).toBe('orderDetails');
+      });
+      arrangedData.subscriptions.forEach((item) => {
+        expect(item.detailsScreenName).toBe('subscriptionDetails');
+      });
     });
 
     it('should return empty object when spotlightData is empty', () => {
