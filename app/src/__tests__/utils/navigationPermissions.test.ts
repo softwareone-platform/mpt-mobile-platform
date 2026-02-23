@@ -19,8 +19,8 @@ describe('navigationPermissions', () => {
     });
 
     it('should deny undefined accountType', () => {
-      expect(canNavigateTo('buyer', undefined as any)).toBe(false);
-      expect(canNavigateTo('clientAccount', undefined as any)).toBe(false);
+      expect(canNavigateTo('buyer', undefined)).toBe(false);
+      expect(canNavigateTo('clientAccount', undefined)).toBe(false);
     });
   });
 });
