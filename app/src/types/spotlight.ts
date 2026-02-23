@@ -1,4 +1,4 @@
-import { AppScreensParamList } from './navigation';
+import type { AppScreensParamList } from './navigation';
 
 export type SpotlightTemplateName =
   | 'savedOrdersClient'
@@ -33,15 +33,6 @@ export type SpotlightCategoryName =
   | 'enrollments'
   | 'journals'
   | 'buyers';
-
-export type SpotlightDetailsScreen =
-  | 'orderDetails'
-  | 'subscriptionDetails'
-  | 'userDetails'
-  | 'invoiceDetails'
-  | 'enrollmentDetails'
-  | 'journalDetails'
-  | 'buyerDetails';
 
 export type SpotlightCategory = {
   name: SpotlightCategoryName;

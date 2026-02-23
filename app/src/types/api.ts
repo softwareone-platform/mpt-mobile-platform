@@ -1,5 +1,5 @@
 import type { Address } from './common';
-import { AppScreensParamList } from './navigation';
+import type { AppScreensParamList } from './navigation';
 
 export enum HttpMethod {
   GET = 'GET',
