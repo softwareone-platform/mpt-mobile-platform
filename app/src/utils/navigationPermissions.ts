@@ -4,9 +4,9 @@ export type NavigationTarget = 'vendorAccount' | 'clientAccount' | 'buyer' | 'se
 
 const navigationPermissions: Record<NavigationTarget, (accountType: AccountType) => boolean> = {
   vendorAccount: (type) => type === 'Operations',
-  clientAccount: (type) => type !== 'Vendor',
-  buyer: (type) => type !== 'Vendor',
-  seller: (type) => type !== 'Vendor',
+  clientAccount: (type) => type === 'Operations' || type === 'Client',
+  buyer: (type) => type === 'Operations' || type === 'Client',
+  seller: (type) => type === 'Operations' || type === 'Client',
 };
 
 export const canNavigateTo = (target: NavigationTarget, accountType: AccountType): boolean => {
