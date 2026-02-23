@@ -4,6 +4,7 @@ import { View, ScrollView, Text, StyleSheet, ActivityIndicator } from 'react-nat
 import AccountSummary from '@/components/account-summary/AccountSummary';
 import EmptyState from '@/components/common/EmptyState';
 import NavigationItemWithText from '@/components/navigation-item/NavigationItemWithText';
+import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import { cardStyle, screenStyle, Spacing } from '@/styles';
 import { Color } from '@/styles/tokens';
@@ -27,6 +28,9 @@ const personalInformationData: Array<PersonalInformationItem> = [
 const PersonalInformation = () => {
   const { t } = useTranslation();
   const { userData, isUserDataLoading, isUserDataError } = useAccount();
+
+  const phoneNubmer =
+    formatPhoneNumber(userData?.phone?.prefix, userData?.phone?.number) || EMPTY_VALUE;
 
   if (isUserDataLoading) {
     return (
@@ -73,10 +77,7 @@ const PersonalInformation = () => {
         <View style={styles.containerCard}>
           {personalInformationData.map((item, index) => {
             const value =
-              item.name === 'phone'
-                ? formatPhoneNumber(userData.phone?.prefix, userData.phone?.number)
-                : (userData[item.name] ?? '');
-
+              item.name === 'phone' ? phoneNubmer : (userData[item.name] ?? EMPTY_VALUE);
             return (
               <NavigationItemWithText
                 key={item.name}
