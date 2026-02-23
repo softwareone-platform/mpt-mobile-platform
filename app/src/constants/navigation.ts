@@ -104,7 +104,7 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         roles: ['Vendor', 'Operations'],
       },
       {
-        name: 'clientProducts',
+        name: 'products',
         icon: 'inventory-2',
         component: ProductsScreen,
         modules: ['new-marketplace'],
@@ -181,7 +181,6 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'buyers', component: BuyersScreen },
   { name: 'allBuyers', component: BuyersScreen },
   { name: 'products', component: ProductsScreen },
-  { name: 'clientProducts', component: ProductsScreen },
   { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
   { name: 'orderDetails', component: OrderDetailsScreen },
   { name: 'accountDetails', component: AccountDetailsScreen },

@@ -21,6 +21,9 @@ import { Color, navigationStyle, screenStyle } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
+const getItemKey = (item: { name: string; modules: string[] }) => 
+  `${item.name}-${item.modules[0]}`;
+
 const SecondaryTabs = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
@@ -29,12 +32,12 @@ const SecondaryTabs = () => {
   const filteredItems = useFilteredNavigation(secondaryTabItems);
 
   const filteredSections = useMemo(() => {
-    const filteredItemNames = new Set(filteredItems.map((item) => item.name));
+    const filteredItemKeys = new Set(filteredItems.map(getItemKey));
 
     return secondaryTabsData
       .map((section) => ({
         ...section,
-        items: section.items.filter((item) => filteredItemNames.has(item.name)),
+        items: section.items.filter((item) => filteredItemKeys.has(getItemKey(item))),
       }))
       .filter((section) => section.items.length > 0);
   }, [filteredItems]);
@@ -52,7 +55,7 @@ const SecondaryTabs = () => {
 
             return (
               <TouchableOpacity
-                key={item.name}
+                key={getItemKey(item)}
                 testID={`${TestIDs.NAV_MENU_ITEM_PREFIX}-${item.name}`}
                 style={[styles.navigationItem, isLast && styles.lastItem]}
                 activeOpacity={0.7}
