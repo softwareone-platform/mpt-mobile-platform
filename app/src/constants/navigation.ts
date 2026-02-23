@@ -26,6 +26,7 @@ import {
   ProductDetailsScreen,
   ProgramDetailsScreen,
   EnrollmentDetailsScreen,
+  CertificateDetailsScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -48,21 +49,21 @@ export const mainTabsData: MainTabItem[] = [
 
 export const secondaryTabsData: SecondaryTabGroup[] = [
   {
-    title: 'settings',
+    title: 'administration',
     items: [
       {
-        name: 'buyers',
+        name: 'allBuyers',
         icon: 'shopping-cart-checkout',
         component: BuyersScreen,
-        modules: ['account-management'],
-        roles: ['Client', 'Operations'],
+        modules: ['platform-account-management'],
+        roles: ['Operations'],
       },
       {
-        name: 'users',
+        name: 'allUsers',
         icon: 'group',
         component: UsersScreen,
-        modules: ['access-management'],
-        roles: ['Client', 'Vendor', 'Operations'],
+        modules: ['platform-account-management'],
+        roles: ['Operations'],
       },
     ],
   },
@@ -89,6 +90,25 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         component: StatementsScreen,
         modules: ['billing'],
         roles: ['Client', 'Operations'],
+      },
+    ],
+  },
+  {
+    title: 'catalog',
+    items: [
+      {
+        name: 'products',
+        icon: 'inventory-2',
+        component: ProductsScreen,
+        modules: ['catalog-management'],
+        roles: ['Vendor', 'Operations'],
+      },
+      {
+        name: 'products',
+        icon: 'inventory-2',
+        component: ProductsScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client'],
       },
     ],
   },
@@ -123,6 +143,25 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
       },
     ],
   },
+  {
+    title: 'settings',
+    items: [
+      {
+        name: 'buyers',
+        icon: 'shopping-cart-checkout',
+        component: BuyersScreen,
+        modules: ['account-management'],
+        roles: ['Client'],
+      },
+      {
+        name: 'users',
+        icon: 'group',
+        component: UsersScreen,
+        modules: ['access-management'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
+    ],
+  },
 ];
 
 export const secondaryTabItems: SecondaryTabItem[] = secondaryTabsData.flatMap(
@@ -135,10 +174,12 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'invoices', component: InvoicesScreen },
   { name: 'statements', component: StatementsScreen },
   { name: 'users', component: UsersScreen },
+  { name: 'allUsers', component: UsersScreen },
   { name: 'programs', component: ProgramsScreen },
   { name: 'enrollments', component: EnrollmentsScreen },
   { name: 'licensees', component: LicenseesScreen },
   { name: 'buyers', component: BuyersScreen },
+  { name: 'allBuyers', component: BuyersScreen },
   { name: 'products', component: ProductsScreen },
   { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
   { name: 'orderDetails', component: OrderDetailsScreen },
@@ -154,4 +195,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'productDetails', component: ProductDetailsScreen },
   { name: 'programDetails', component: ProgramDetailsScreen },
   { name: 'enrollmentDetails', component: EnrollmentDetailsScreen },
+  { name: 'certificateDetails', component: CertificateDetailsScreen },
 ];

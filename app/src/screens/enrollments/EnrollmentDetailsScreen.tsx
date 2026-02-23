@@ -32,14 +32,19 @@ const EnrollmentDetailsScreen = () => {
       isError={!!isError}
       isEmpty={!data || Object.keys(data).length === 0}
       isUnauthorised={isUnauthorised}
-      loadingTestId={TestIDs.PROGRAM_DETAILS_LOADING_INDICATOR}
-      errorTestId={TestIDs.PROGRAM_DETAILS_ERROR_STATE}
-      emptyTestId={TestIDs.PROGRAM_DETAILS_EMPTY_STATE}
-      emptyTitle={t('programDetailsScreen.emptyStateTitle')}
-      emptyDescription={t('programDetailsScreen.emptyStateDescription')}
+      loadingTestId={TestIDs.ENROLLMENT_DETAILS_LOADING_INDICATOR}
+      errorTestId={TestIDs.ENROLLMENT_DETAILS_ERROR_STATE}
+      emptyTestId={TestIDs.ENROLLMENT_DETAILS_EMPTY_STATE}
+      emptyTitle={t('enrollmentDetailsScreen.emptyStateTitle')}
+      emptyDescription={t('enrollmentDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigNoImageNoSubtitle}>
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImageNoSubtitle}
+          headerTitleTestId={TestIDs.ENROLLMENT_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.ENROLLMENT_DETAILS_HEADER_STATUS}
+        >
           <EnrollmentDetailsContent data={data} />
         </DetailsView>
       )}

@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -52,10 +52,15 @@ const UsersScreenContent = () => {
   );
 };
 
-const UsersScreen = () => (
-  <UsersProvider>
-    <UsersScreenContent />
-  </UsersProvider>
-);
+const UsersScreen = () => {
+  const route = useRoute();
+  const showAllUsers = route.name === 'allUsers';
+
+  return (
+    <UsersProvider showAllUsers={showAllUsers}>
+      <UsersScreenContent />
+    </UsersProvider>
+  );
+};
 
 export default UsersScreen;

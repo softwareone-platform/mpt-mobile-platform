@@ -14,10 +14,12 @@
     "invoices": "Invoices",
     "statements": "Statements",
     "users": "Users",
+    "allUsers": "Users",
     "programs": "Programs",
     "enrollments": "Enrollments",
     "licensees": "Licensees",
     "buyers": "Buyers",
+    "allBuyers": "Buyers",
     "products": "Products",
     "orderDetails": "Order",
     "creditMemoDetails": "Credit Memo",
@@ -31,7 +33,8 @@
     "statementDetails": "Statement",
     "productDetails": "Product",
     "programDetails": "Program",
-    "enrollmentDetails": "Enrollment"
+    "enrollmentDetails": "Enrollment",
+    "certificateDetails": "Certificate"
   },
   "tabGroups": {
     "administration": "Administration",

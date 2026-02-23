@@ -20,18 +20,17 @@ const CreditMemoDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const {
-    data: creditMemoDetails,
-    isLoading,
-    isError,
-    isUnauthorised,
-  } = useCreditMemoDetailsData(id, userId, currentAccountId);
+  const { data, isLoading, isError, isUnauthorised } = useCreditMemoDetailsData(
+    id,
+    userId,
+    currentAccountId,
+  );
 
   return (
     <StatusMessage
       isLoading={isLoading}
       isError={!!isError}
-      isEmpty={!creditMemoDetails || Object.keys(creditMemoDetails).length === 0}
+      isEmpty={!data || Object.keys(data).length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.CREDIT_MEMO_DETAILS_LOADING_INDICATOR}
       errorTestId={TestIDs.CREDIT_MEMO_DETAILS_ERROR_STATE}
@@ -39,9 +38,14 @@ const CreditMemoDetailsScreen = () => {
       emptyTitle={t('creditMemoDetailsScreen.emptyStateTitle')}
       emptyDescription={t('creditMemoDetailsScreen.emptyStateDescription')}
     >
-      {creditMemoDetails && (
-        <DetailsView data={creditMemoDetails} config={listItemConfigNoImageNoSubtitle}>
-          <CreditMemoDetailsContent data={creditMemoDetails} />
+      {data && (
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImageNoSubtitle}
+          headerTitleTestId={TestIDs.CREDIT_MEMO_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.CREDIT_MEMO_DETAILS_HEADER_STATUS}
+        >
+          <CreditMemoDetailsContent data={data} />
         </DetailsView>
       )}
     </StatusMessage>

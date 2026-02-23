@@ -6,16 +6,21 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import type { RootStackParamList } from '@/types/navigation';
-import type { EnrollmentDetails } from '@/types/program';
+import type { CertificateDetails } from '@/types/program';
+import { formatDateForLocale } from '@/utils/formatting';
 
-const EnrollmentDetailsContent = ({ data }: { data: EnrollmentDetails }) => {
-  const { t } = useTranslation();
+const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
+  const { t, i18n } = useTranslation();
+
+  const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const eligibility = data.eligibility.partner
     ? t('details.eligibilityValue.partner')
     : t('details.eligibilityValue.client');
+
+  const expiration = formatDateForLocale(data?.expirationDate, language);
 
   return (
     <CardWithHeader title={t(`details.title`)}>
@@ -29,11 +34,12 @@ const EnrollmentDetailsContent = ({ data }: { data: EnrollmentDetails }) => {
         }}
       />
       <DetailsListItem
-        label={t(`details.certificate`)}
-        data={data.certificate}
+        label={t(`details.vendor`)}
+        data={data.vendor}
         onPress={() => {
-          navigation.navigate('certificateDetails', {
-            id: data.certificate?.id,
+          navigation.navigate('accountDetails', {
+            id: data.vendor?.id,
+            type: 'vendor',
           });
         }}
       />
@@ -51,18 +57,13 @@ const EnrollmentDetailsContent = ({ data }: { data: EnrollmentDetails }) => {
         title={t('details.applicableTo')}
         subtitle={t(`details.applicableToValue.${data.applicableTo.toLowerCase()}`)}
       />
-      <DetailsListItem
-        label={t(`details.assignee`)}
-        data={data.assignee}
-        onPress={() => {
-          navigation.navigate('userDetails', {
-            id: data.assignee?.id,
-          });
-        }}
+      <ListItemWithLabelAndText
+        title={t('details.expiration')}
+        subtitle={expiration}
         isLast={true}
       />
     </CardWithHeader>
   );
 };
 
-export default EnrollmentDetailsContent;
+export default CertificateDetailsContent;

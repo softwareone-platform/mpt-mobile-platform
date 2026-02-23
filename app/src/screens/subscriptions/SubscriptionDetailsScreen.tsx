@@ -39,7 +39,12 @@ const SubscriptionDetailsScreen = () => {
       emptyDescription={t('subscriptionDetailsScreen.emptyStateDescription')}
     >
       {data && (
-        <DetailsView data={data} config={listItemConfigNoImage}>
+        <DetailsView
+          data={data}
+          config={listItemConfigNoImage}
+          headerTitleTestId={TestIDs.SUBSCRIPTION_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.SUBSCRIPTION_DETAILS_HEADER_STATUS}
+        >
           <SubscriptionDetailsContent data={data} />
         </DetailsView>
       )}

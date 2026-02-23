@@ -22,10 +22,12 @@ export type SecondaryTabsParamList = {
   creditMemos: undefined;
   statements: undefined;
   users: undefined;
+  allUsers: undefined;
   programs: undefined;
   enrollments: undefined;
   licensees: undefined;
   buyers: undefined;
+  allBuyers: undefined;
   products: undefined;
 };
 
@@ -44,6 +46,7 @@ export type AppScreensParamList = {
   productDetails: { id: string | undefined };
   programDetails: { id: string | undefined };
   enrollmentDetails: { id: string | undefined };
+  certificateDetails: { id: string | undefined };
 };
 
 export type MainTabRouteName = keyof MainTabsParamList;

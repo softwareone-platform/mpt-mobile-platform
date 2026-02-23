@@ -8,7 +8,15 @@ import { listItemStyle } from '@/styles';
 import type { ListItemWithStatusProps } from '@/types/lists';
 import { getStatus } from '@/utils/list';
 
-const DetailsHeader = ({ id, imagePath, title, subtitle, statusText }: ListItemWithStatusProps) => {
+const DetailsHeader = ({
+  id,
+  imagePath,
+  title,
+  subtitle,
+  statusText,
+  headerTitleTestId,
+  headerStatusTestId,
+}: ListItemWithStatusProps) => {
   const { t } = useTranslation();
 
   const hasSubtitle = Boolean(subtitle);
@@ -25,7 +33,7 @@ const DetailsHeader = ({ id, imagePath, title, subtitle, statusText }: ListItemW
         )}
         <View style={styles.textWrapper}>
           {hasSubtitle && (
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={styles.title} numberOfLines={1} testID={headerTitleTestId}>
               {title.trim()}
             </Text>
           )}
@@ -34,7 +42,9 @@ const DetailsHeader = ({ id, imagePath, title, subtitle, statusText }: ListItemW
           </Text>
         </View>
       </View>
-      {status && <Chip status={status} text={t(`status.${statusText}`)} />}
+      {status && (
+        <Chip status={status} text={t(`status.${statusText}`)} testId={headerStatusTestId} />
+      )}
     </View>
   );
 };
