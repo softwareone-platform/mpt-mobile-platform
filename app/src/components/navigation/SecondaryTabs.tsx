@@ -21,8 +21,8 @@ import { Color, navigationStyle, screenStyle } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-const getItemKey = (item: { name: string; modules: string[] }) => 
-  `${item.name}-${item.modules[0]}`;
+const getItemKey = (item: { name: string; modules?: string[] }) =>
+  `${item.name}-${item.modules?.[0] ?? ''}`;
 
 const SecondaryTabs = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
