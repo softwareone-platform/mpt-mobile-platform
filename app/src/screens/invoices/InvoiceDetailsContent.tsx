@@ -8,6 +8,7 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
+import { useAccount } from '@/context/AccountContext';
 import type { InvoiceDetails } from '@/types/billing';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatDateForLocale, formatNumber } from '@/utils/formatting';
@@ -18,6 +19,8 @@ const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type;
 
   const totalSP = formatNumber(data.price.totalSP, 2, language) || EMPTY_VALUE;
   const totalGT = formatNumber(data.price.totalGT, 2, language) || EMPTY_VALUE;
@@ -37,11 +40,15 @@ const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
       <DetailsListItem
         label={t(`details.owner`)}
         data={data.statement?.ledger?.owner}
-        onPress={() => {
-          navigation.navigate('sellerDetails', {
-            id: data.statement?.ledger?.owner?.id,
-          });
-        }}
+        onPress={
+          accountType !== 'Vendor'
+            ? () => {
+                navigation.navigate('sellerDetails', {
+                  id: data.statement?.ledger?.owner?.id,
+                });
+              }
+            : undefined
+        }
       />
       <ListItemWithLabelAndText
         title={t(`details.sp`)}

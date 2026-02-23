@@ -6,6 +6,7 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
+import { useAccount } from '@/context/AccountContext';
 import type { AgreementData } from '@/types/agreement';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage } from '@/utils/formatting';
@@ -16,6 +17,8 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type;
 
   const hasBillingCurrencyData = data.price?.billingCurrency;
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
@@ -42,12 +45,16 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.vendor?.id,
-            type: 'vendor',
-          });
-        }}
+        onPress={
+          accountType === 'Operations'
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.vendor?.id,
+                  type: 'vendor',
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.product`)}
@@ -65,12 +72,16 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
       <DetailsListItem
         label={t(`details.client`)}
         data={data.client}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.client?.id,
-            type: 'client',
-          });
-        }}
+        onPress={
+          accountType !== 'Vendor'
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.client?.id,
+                  type: 'client',
+                });
+              }
+            : undefined
+        }
       />
       <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
       <ListItemWithLabelAndText

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import { useAccount } from '@/context/AccountContext';
 import type { RootStackParamList } from '@/types/navigation';
 import type { ProgramDetails } from '@/types/program';
 
@@ -12,6 +13,8 @@ const ProgramDetailsContent = ({ data }: { data: ProgramDetails }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type;
 
   const eligibility = data.eligibility.partner
     ? t('details.eligibilityValue.partner')
@@ -22,12 +25,16 @@ const ProgramDetailsContent = ({ data }: { data: ProgramDetails }) => {
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.vendor?.id,
-            type: 'vendor',
-          });
-        }}
+        onPress={
+          accountType === 'Operations'
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.vendor?.id,
+                  type: 'vendor',
+                });
+              }
+            : undefined
+        }
       />
       <ListItemWithLabelAndText title={t(`details.name`)} subtitle={data.name} />
 

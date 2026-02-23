@@ -6,6 +6,7 @@ import AddressCard from '@/components/address/AddressCard';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import { useAccount } from '@/context/AccountContext';
 import type { LicenseeData } from '@/types/admin';
 import type { RootStackParamList } from '@/types/navigation';
 
@@ -13,6 +14,8 @@ const LicenseeDetailsContent = ({ data }: { data: LicenseeData }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type;
 
   const labelResaleLicensee = data.eligibility?.partner ? t(`details.yes`) : t(`details.no`);
 
@@ -32,20 +35,28 @@ const LicenseeDetailsContent = ({ data }: { data: LicenseeData }) => {
         <DetailsListItem
           label={t(`details.buyer`)}
           data={data.buyer}
-          onPress={() => {
-            navigation.navigate('buyerDetails', {
-              id: data.buyer?.id,
-            });
-          }}
+          onPress={
+            accountType !== 'Vendor'
+              ? () => {
+                  navigation.navigate('buyerDetails', {
+                    id: data.buyer?.id,
+                  });
+                }
+              : undefined
+          }
         />
         <DetailsListItem
           label={t(`details.seller`)}
           data={data.seller}
-          onPress={() => {
-            navigation.navigate('sellerDetails', {
-              id: data.seller?.id,
-            });
-          }}
+          onPress={
+            accountType !== 'Vendor'
+              ? () => {
+                  navigation.navigate('sellerDetails', {
+                    id: data.seller?.id,
+                  });
+                }
+              : undefined
+          }
         />
         <ListItemWithLabelAndText
           title={t(`details.resaleLicensee`)}

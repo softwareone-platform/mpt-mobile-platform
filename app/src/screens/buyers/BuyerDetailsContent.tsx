@@ -6,6 +6,7 @@ import AddressCard from '@/components/address/AddressCard';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import { useAccount } from '@/context/AccountContext';
 import type { BuyerData } from '@/types/admin';
 import type { RootStackParamList } from '@/types/navigation';
 
@@ -13,6 +14,8 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type;
 
   return (
     <>
@@ -20,12 +23,16 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
         <DetailsListItem
           label={t(`details.account`)}
           data={data.account}
-          onPress={() => {
-            navigation.navigate('accountDetails', {
-              id: data.account?.id,
-              type: 'client',
-            });
-          }}
+          onPress={
+            accountType !== 'Vendor'
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.account?.id,
+                    type: 'client',
+                  });
+                }
+              : undefined
+          }
         />
 
         <ListItemWithLabelAndText
