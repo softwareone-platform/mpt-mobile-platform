@@ -8,6 +8,7 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import type { AgreementData } from '@/types/agreement';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
@@ -19,7 +20,7 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type;
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const hasBillingCurrencyData = data.price?.billingCurrency;
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;

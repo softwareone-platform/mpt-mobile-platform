@@ -7,6 +7,7 @@ import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { OrderDetails } from '@/types/order';
 import { formatPercentage } from '@/utils/formatting';
@@ -18,7 +19,7 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type;
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const labelUp = t('details.up');
   const labelDown = t('details.down');

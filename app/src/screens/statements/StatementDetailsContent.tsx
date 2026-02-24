@@ -10,6 +10,7 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import type { StatementDetails } from '@/types/billing';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage, formatDateForLocale, getTime } from '@/utils/formatting';
 import { canNavigateTo } from '@/utils/navigationPermissions';
@@ -21,7 +22,7 @@ const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type;
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const totalPP = formatNumber(data.price.totalPP, 2, language) || EMPTY_VALUE;
   const totalSP = formatNumber(data.price.totalSP, 2, language) || EMPTY_VALUE;
