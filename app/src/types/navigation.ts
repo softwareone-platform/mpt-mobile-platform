@@ -32,9 +32,9 @@ export type SecondaryTabsParamList = {
 };
 
 export type AppScreensParamList = {
-  creditMemoDetails: { id: string };
-  orderDetails: { id: string };
-  accountDetails: { id: string | undefined; type: 'client' | 'vendor' | 'operations' | 'account' };
+  creditMemoDetails: { id: string | undefined };
+  orderDetails: { id: string | undefined };
+  accountDetails: { id: string | undefined; type?: 'client' | 'vendor' | 'operations' | 'account' };
   userDetails: { id: string | undefined };
   buyerDetails: { id: string | undefined };
   sellerDetails: { id: string | undefined };
