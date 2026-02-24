@@ -4,6 +4,7 @@ import Auth0 from 'react-native-auth0';
 import { configService } from '@/config/env.config';
 import { AUTH0_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import { appInsightsService } from '@/services/appInsightsService';
+import { retryAuth0Operation } from '@/utils/retryAuth0';
 
 export interface AuthTokens {
   accessToken: string;
@@ -138,7 +139,16 @@ class AuthenticationService {
 
   async refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
     try {
-      const result = await this.auth0.auth.refreshToken({ refreshToken });
+      const result = await retryAuth0Operation(
+        async () => {
+          return await this.auth0.auth.refreshToken({ refreshToken });
+        },
+        'refreshAccessToken',
+        {
+          maxRetries: 4,
+          initialDelayMs: 2000,
+        },
+      );
       const expiresAt = this.getExpiryFromJWT(result.accessToken);
 
       return {
