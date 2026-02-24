@@ -6,16 +6,21 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
+import { useAccount } from '@/context/AccountContext';
 import type { AgreementData } from '@/types/agreement';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const hasBillingCurrencyData = data.price?.billingCurrency;
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
@@ -42,12 +47,16 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.vendor?.id,
-            type: 'vendor',
-          });
-        }}
+        onPress={
+          canNavigateTo('vendorAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.vendor?.id,
+                  type: 'vendor',
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.product`)}
@@ -65,12 +74,16 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
       <DetailsListItem
         label={t(`details.client`)}
         data={data.client}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.client?.id,
-            type: 'client',
-          });
-        }}
+        onPress={
+          canNavigateTo('clientAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.client?.id,
+                  type: 'client',
+                });
+              }
+            : undefined
+        }
       />
       <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
       <ListItemWithLabelAndText

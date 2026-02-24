@@ -3,15 +3,9 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import type { DetailsListItemProps } from '@/types/lists';
 
 const DetailsListItem = ({ label, data, hideImage, isLast, onPress }: DetailsListItemProps) => {
+  const disabled = !onPress;
   if (!data) {
-    return (
-      <ListItemWithLabelAndText
-        title={label}
-        subtitle={undefined}
-        isLast={isLast}
-        onPress={onPress}
-      />
-    );
+    return <ListItemWithLabelAndText title={label} subtitle={undefined} isLast={isLast} />;
   }
 
   return (
@@ -23,6 +17,7 @@ const DetailsListItem = ({ label, data, hideImage, isLast, onPress }: DetailsLis
       hideImage={hideImage}
       imagePath={data.icon}
       onPress={onPress}
+      disabled={disabled}
       isLast={isLast}
     />
   );

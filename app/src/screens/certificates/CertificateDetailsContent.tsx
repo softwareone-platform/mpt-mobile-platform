@@ -5,9 +5,12 @@ import { useTranslation } from 'react-i18next';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import { useAccount } from '@/context/AccountContext';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { CertificateDetails } from '@/types/program';
 import { formatDateForLocale } from '@/utils/formatting';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
   const { t, i18n } = useTranslation();
@@ -15,6 +18,8 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const eligibility = data.eligibility.partner
     ? t('details.eligibilityValue.partner')
@@ -36,21 +41,30 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.vendor?.id,
-            type: 'vendor',
-          });
-        }}
+        onPress={
+          canNavigateTo('vendorAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.vendor?.id,
+                  type: 'vendor',
+                });
+              }
+            : undefined
+        }
       />
+      {/* TODO: certificant can be also a Licensee */}
       <DetailsListItem
         label={t(`details.certificant`)}
         data={data.buyer}
-        onPress={() => {
-          navigation.navigate('buyerDetails', {
-            id: data.buyer?.id,
-          });
-        }}
+        onPress={
+          canNavigateTo('buyer', accountType)
+            ? () => {
+                navigation.navigate('buyerDetails', {
+                  id: data.buyer?.id,
+                });
+              }
+            : undefined
+        }
       />
       <ListItemWithLabelAndText title={t('details.eligibility')} subtitle={eligibility} />
       <ListItemWithLabelAndText
