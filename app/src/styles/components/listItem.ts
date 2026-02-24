@@ -128,4 +128,9 @@ export const listItemStyle = {
     marginTop: Spacing.spacing1,
     color: Color.gray.gray4,
   },
+  disabled: {
+    subtitle: {
+      color: Color.labels.secondary,
+    },
+  },
 } as const;
