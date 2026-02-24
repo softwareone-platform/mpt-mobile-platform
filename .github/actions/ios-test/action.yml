@@ -152,19 +152,37 @@ runs:
       run: npm ci
       working-directory: ./app
 
-    - name: Install Appium
+    - name: Ensure local Appium binary is available
       shell: bash
-      env:
-        APPIUM_VERSION: ${{ inputs.appium_version }}
       run: |
-        npm install -g "appium@${APPIUM_VERSION}"
-        appium --version
+        echo "Checking for project-local Appium binary..."
+        if [ ! -x ./app/node_modules/.bin/appium ]; then
+          echo "❌ Local appium binary not found at ./app/node_modules/.bin/appium"
+          echo "Make sure app/package.json declares appium and npm ci has run in previous step"
+          exit 1
+        fi
+        echo "Found local appium: ./app/node_modules/.bin/appium"
+        ./app/node_modules/.bin/appium --version
+    
+    - name: Verify local Appium version matches requested
+      shell: bash
+      run: |
+        REQUESTED="${{ inputs.appium_version }}"
+        REQUESTED_CLEAN=$(echo "$REQUESTED" | sed -E 's/^[^0-9]*//')
+        INSTALLED=$(./app/node_modules/.bin/appium --version 2>/dev/null | head -1 | tr -d '\r')
+        echo "Requested: $REQUESTED_CLEAN, Local installed: $INSTALLED"
+        if [ -n "$REQUESTED_CLEAN" ] && ! echo "$INSTALLED" | grep -q "^${REQUESTED_CLEAN}"; then
+          echo "❌ Local Appium ($INSTALLED) does not match requested ($REQUESTED_CLEAN)"
+          echo "Hint: ensure app/package.json devDependency for appium matches expected and run npm ci"
+          exit 1
+        fi
+        echo "✅ Local Appium version verification passed"
         
     - name: Install Appium XCUITest driver
       shell: bash
       run: |
-        appium driver install xcuitest || echo "Driver already installed"
-        appium driver list --installed
+        ./app/node_modules/.bin/appium driver install xcuitest || echo "Driver already installed"
+        ./app/node_modules/.bin/appium driver list --installed
         
     - name: Pre-build WebDriverAgent for CI
       shell: bash
@@ -296,8 +314,8 @@ runs:
         APPIUM_HOST: ${{ inputs.appium_host }}
         APPIUM_PORT: ${{ inputs.appium_port }}
       run: |
-        echo "Starting Appium server..."
-        appium --log-level info --log appium.log &
+        echo "Starting Appium server using project-local binary..."
+        ./app/node_modules/.bin/appium --log-level info --log appium.log &
         APPIUM_PID=$!
         echo ${APPIUM_PID} > appium.pid
         echo "Appium PID: ${APPIUM_PID}"

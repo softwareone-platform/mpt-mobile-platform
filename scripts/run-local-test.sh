@@ -19,6 +19,7 @@ PLATFORM="ios"  # Default platform
 ARTIFACT_URL=""  # URL to download pre-built artifact
 DRY_RUN=false  # List tests without running
 FEATURE_FLAGS=""  # Feature flag overrides (space-separated FLAG_NAME=value pairs)
+FORCE_GLOBAL=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -53,6 +54,10 @@ while [[ $# -gt 0 ]]; do
             VERBOSE=true
             shift
             ;;
+        --force-global)
+            FORCE_GLOBAL=true
+            shift
+            ;;
         --list|--dry-run)
             DRY_RUN=true
             shift
@@ -75,6 +80,7 @@ while [[ $# -gt 0 ]]; do
             echo "                                   Can be specified multiple times"
             echo "  --list, --dry-run                List all test cases without running them"
             echo "  --verbose, -v                    Enable verbose output"
+            echo "  --force-global                   Force using global 'appium' binary even when local or npx options exist"
             echo "  --help, -h                       Show this help message"
             echo ""
             echo "Examples:"
@@ -199,6 +205,107 @@ log() {
             echo "$message"
             ;;
     esac
+}
+
+# Start Appium while ensuring version matches package.json when possible
+start_appium_with_version_guard() {
+    local project_root
+    local app_dir
+    project_root="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)")"
+    app_dir="$project_root/app"
+
+    # Read requested appium version from app/package.json (devDependencies or dependencies)
+    local requested_version
+    requested_version=$(node -e "const p=require('${app_dir//\'/\\\'}/package.json'); console.log((p.devDependencies&&p.devDependencies.appium) || (p.dependencies&&p.dependencies.appium) || '');" 2>/dev/null || true)
+    # Normalize to simple numeric prefix (strip ^~ and ranges for comparison)
+    requested_version_clean=$(echo "$requested_version" | sed -E 's/^[^0-9]*//')
+
+    log "Desired Appium version from package.json: ${requested_version:-(none)}" "verbose"
+
+    # Helper to get version from an executable
+    get_version_from_exec() {
+        local exe="$1"
+        if [ -x "$exe" ]; then
+            "$exe" --version 2>/dev/null | head -1 | tr -d '\r' || true
+        else
+            echo ""
+        fi
+    }
+
+    # Check local node_modules binary first
+    local local_exec="$app_dir/node_modules/.bin/appium"
+    local local_version=""
+    if [ -x "$local_exec" ]; then
+        local_version=$(get_version_from_exec "$local_exec")
+        log "Found local appium at $local_exec (version: $local_version)" "verbose"
+    fi
+
+    # Check global appium
+    local global_exec
+    global_exec=$(command -v appium 2>/dev/null || true)
+    local global_version=""
+    if [ -n "$global_exec" ]; then
+        global_version=$(get_version_from_exec "$global_exec")
+        log "Found global appium at $global_exec (version: $global_version)" "verbose"
+    fi
+
+    # Decide which binary to use
+    local chosen_cmd=""
+    if [ "$FORCE_GLOBAL" = true ] && [ -n "$global_exec" ]; then
+        chosen_cmd="$global_exec"
+        log "Using global appium due to --force-global" "info"
+    elif [ -n "$local_version" ] && [ -n "$requested_version_clean" ] && echo "$local_version" | grep -q "^${requested_version_clean}"; then
+        chosen_cmd="$local_exec"
+        log "Using local node_modules appium (matches requested version)" "info"
+    elif [ -n "$requested_version_clean" ] && command -v npx >/dev/null 2>&1; then
+        # Use npx to run the requested version explicitly (ensures correct version)
+        chosen_cmd="npx appium@${requested_version_clean}"
+        log "Using npx to run appium@${requested_version_clean}" "info"
+    elif [ -n "$global_exec" ]; then
+        # Fall back to global appium but warn if versions differ
+        chosen_cmd="$global_exec"
+        if [ -n "$requested_version_clean" ] && ! echo "$global_version" | grep -q "^${requested_version_clean}"; then
+            log "⚠️  Global Appium version ($global_version) does not match requested (${requested_version})." "info"
+            log "⚠️  Prefer installing the requested version locally (npm install --save-dev appium@${requested_version_clean}) or ensure npx is available." "info"
+        else
+            log "Using global appium (version matches requested)" "info"
+        fi
+    else
+        log "❌ No Appium executable found (no local node_modules/.bin/appium, no npx, no global appium)" "info"
+        exit 1
+    fi
+
+    # Start Appium using chosen command
+    log "Starting Appium using: $chosen_cmd" "info"
+    if [ "$VERBOSE" = true ]; then
+        if [[ "$chosen_cmd" == npx* ]]; then
+            eval "$chosen_cmd --log-level debug > /tmp/appium.log 2>&1 &"
+        else
+            "$chosen_cmd" --log-level debug > /tmp/appium.log 2>&1 &
+        fi
+    else
+        if [[ "$chosen_cmd" == npx* ]]; then
+            eval "$chosen_cmd --log-level warn > /tmp/appium.log 2>&1 &"
+        else
+            "$chosen_cmd" --log-level warn > /tmp/appium.log 2>&1 &
+        fi
+    fi
+    APPIUM_PID=$!
+    log "📝 Appium PID: $APPIUM_PID" "info"
+
+    # Wait for Appium to become ready
+    log "⏳ Waiting for Appium to start..."
+    for i in {1..30}; do
+        if curl -s "http://$APPIUM_HOST:$APPIUM_PORT/status" > /dev/null 2>&1; then
+            log "✅ Appium server is ready!"
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            log "❌ Appium failed to start after 30 seconds"
+            exit 1
+        fi
+        sleep 1
+    done
 }
 
 # Feature flags can be used in two modes:
@@ -700,6 +807,16 @@ build_release_app() {
     # Install the app
     xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
     log "✅ App installed on simulator" "info"
+        # Attempt to launch the app so it's running before Appium session starts
+        if [ -n "${BUNDLE_ID:-$APP_BUNDLE_ID}" ]; then
+            LAUNCH_BUNDLE_ID="${BUNDLE_ID:-$APP_BUNDLE_ID}"
+            log "🚀 Launching app on simulator: $LAUNCH_BUNDLE_ID" "verbose"
+            if xcrun simctl launch "$DEVICE_UDID" "$LAUNCH_BUNDLE_ID" > /dev/null 2>&1; then
+                log "✅ App launched: $LAUNCH_BUNDLE_ID" "info"
+            else
+                log "⚠️  Could not launch app ($LAUNCH_BUNDLE_ID) after install" "info"
+            fi
+        fi
     
     # Note: Feature flags are restored AFTER tests complete to allow tests
     # to read the same flag values that were baked into the build
@@ -728,10 +845,41 @@ install_existing_app() {
     APP_PATH=$(find "$BUILD_DIR" -name "*.app" -type d 2>/dev/null | head -1)
     
     if [ -z "$APP_PATH" ]; then
-        log "❌ No existing app build found in $BUILD_DIR"
-        log "💡 Run with --build to build the app first, or use the deploy script:"
-        log "   ./scripts/deploy-ios.sh --client-id YOUR_CLIENT_ID"
-        exit 1
+        log "⚠️  No existing .app build found in $BUILD_DIR" "info"
+        # If we know the bundle id, try to launch the already-installed app on the simulator
+        if [ -n "$APP_BUNDLE_ID" ]; then
+            log "ℹ️  Attempting to launch installed app by bundle id: $APP_BUNDLE_ID" "info"
+
+            # Ensure simulator is booted
+            SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$DEVICE_UDID" | head -1 || echo "Not found")
+            if ! echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
+                log "🚀 Booting simulator..." "info"
+                xcrun simctl boot "$DEVICE_UDID"
+                log "⏳ Waiting for simulator to boot..." "verbose"
+                for i in {1..30}; do
+                    if xcrun simctl list devices | grep "$DEVICE_UDID" | grep -q "(Booted)"; then
+                        log "✅ Simulator booted" "verbose"
+                        break
+                    fi
+                    sleep 1
+                done
+            fi
+
+            # Try launching by bundle id
+            if xcrun simctl launch "$DEVICE_UDID" "$APP_BUNDLE_ID" > /dev/null 2>&1; then
+                log "✅ Launched app on simulator by bundle id: $APP_BUNDLE_ID" "info"
+                return 0
+            else
+                log "❌ Failed to launch app by bundle id: $APP_BUNDLE_ID" "info"
+                log "💡 Run with --build to build and install the app, or create a build using ./scripts/deploy-ios.sh" "info"
+                exit 1
+            fi
+        else
+            log "❌ No existing iOS app build found in $BUILD_DIR" "info"
+            log "💡 Run with --build to build the app first, or use the deploy script:" "info"
+            log "   ./scripts/deploy-ios.sh --client-id YOUR_CLIENT_ID" "info"
+            exit 1
+        fi
     fi
     
     log "📱 Found existing app: $APP_PATH" "verbose"
@@ -756,6 +904,15 @@ install_existing_app() {
     # Install the app
     xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
     log "✅ Existing app installed on simulator" "info"
+    # Try to launch installed app by bundle id so it's running before tests
+    if [ -n "$APP_BUNDLE_ID" ]; then
+        log "🚀 Launching installed app by bundle id: $APP_BUNDLE_ID" "verbose"
+        if xcrun simctl launch "$DEVICE_UDID" "$APP_BUNDLE_ID" > /dev/null 2>&1; then
+            log "✅ App launched: $APP_BUNDLE_ID" "info"
+        else
+            log "⚠️  Could not launch app ($APP_BUNDLE_ID) after install" "info"
+        fi
+    fi
 }
 
 # Handle dry run mode - list tests and exit
@@ -882,6 +1039,24 @@ elif [ "$SKIP_BUILD" = true ]; then
     fi
 fi
 
+# If the user didn't request a build or skip-build, attempt to install an existing app
+# This makes the default invocation (e.g. `./scripts/run-local-test.sh welcome`)
+# more user-friendly by installing the most recent local build if available.
+if [ -z "$ARTIFACT_URL" ] && [ "$BUILD_APP" = false ] && [ "$SKIP_BUILD" = false ]; then
+    if [ "$PLATFORM" = "android" ]; then
+        log "ℹ️  No build flags provided - assuming Android app already installed" "info"
+        log "💡 Use --build to build or --skip-build when app is already present" "info"
+    else
+        log "ℹ️  No build flags provided - attempting to install existing iOS build" "info"
+        # Try to install an existing app build; if none found, print guidance and exit
+        if ! install_existing_app; then
+            log "❌ No existing iOS app build found to install." "info"
+            log "👉 Run with --build to build and install the app, or create a build using ./scripts/deploy-ios.sh" "info"
+            exit 1
+        fi
+    fi
+fi
+
 # Debug output
 log "🔍 Environment variables for WebDriverIO:" "verbose"
 log "   PLATFORM_NAME: $PLATFORM_NAME" "verbose"
@@ -917,23 +1092,7 @@ log ""
 log "🚀 Checking Appium server status..."
 if ! curl -s "http://$APPIUM_HOST:$APPIUM_PORT/status" > /dev/null 2>&1; then
     log "⚠️  Appium server not running. Starting Appium..."
-    appium --log-level warn > /tmp/appium.log 2>&1 &
-    APPIUM_PID=$!
-    log "📝 Appium PID: $APPIUM_PID"
-    
-    # Wait for Appium to start
-    log "⏳ Waiting for Appium to start..."
-    for i in {1..30}; do
-        if curl -s "http://$APPIUM_HOST:$APPIUM_PORT/status" > /dev/null 2>&1; then
-            log "✅ Appium server is ready!"
-            break
-        fi
-        if [ $i -eq 30 ]; then
-            log "❌ Appium failed to start after 30 seconds"
-            exit 1
-        fi
-        sleep 1
-    done
+    start_appium_with_version_guard
 else
     log "✅ Appium server is already running"
 fi
