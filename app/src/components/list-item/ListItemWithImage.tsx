@@ -33,7 +33,13 @@ const ListItemWithImage = ({
   disabled,
   testID,
 }: Props) => (
-  <TouchableOpacity testID={testID} style={styles.container} onPress={onPress} activeOpacity={0.7}>
+  <TouchableOpacity
+    testID={testID}
+    style={styles.container}
+    onPress={onPress}
+    disabled={disabled || !onPress}
+    activeOpacity={0.7}
+  >
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
       {!hideImage && (
         <View style={styles.avatarWrapper}>

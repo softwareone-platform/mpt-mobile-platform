@@ -12,5 +12,5 @@ const navigationPermissions: Record<NavigationTarget, (accountType: AccountType)
 export const canNavigateTo = (target: NavigationTarget, accountType?: AccountType): boolean => {
   if (!accountType) return false;
   const permission = navigationPermissions[target];
-  return permission ? permission(accountType) : true;
+  return permission ? permission(accountType) : false;
 };
