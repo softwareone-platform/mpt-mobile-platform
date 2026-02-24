@@ -1,22 +1,43 @@
 import type { SpotlightItem } from '@/types/api';
-import type { SpotlightTemplateName } from '@/types/spotlight';
+import type { AppScreensParamList } from '@/types/navigation';
+import type { SpotlightTemplateName, SpotlightCategoryName } from '@/types/spotlight';
 
-export const categories: { name: string; templates: SpotlightTemplateName[] }[] = [
-  { name: 'orders', templates: ['savedOrdersClient', 'queryingOrders'] },
-  { name: 'subscriptions', templates: ['renewingSubscriptions', 'expiringSubscriptions'] },
+export const categories: {
+  name: SpotlightCategoryName;
+  templates: SpotlightTemplateName[];
+  detailsScreenName: keyof AppScreensParamList;
+}[] = [
+  {
+    name: 'orders',
+    templates: ['savedOrdersClient', 'queryingOrders'],
+    detailsScreenName: 'orderDetails',
+  },
+  {
+    name: 'subscriptions',
+    templates: ['renewingSubscriptions', 'expiringSubscriptions'],
+    detailsScreenName: 'subscriptionDetails',
+  },
 ];
 
-export const duplicateCategories: { name: string; templates: SpotlightTemplateName[] }[] = [
-  { name: 'cat1', templates: ['savedOrdersClient'] },
-  { name: 'cat2', templates: ['savedOrdersClient'] },
+export const duplicateCategories: {
+  name: SpotlightCategoryName;
+  templates: SpotlightTemplateName[];
+  detailsScreenName: keyof AppScreensParamList;
+}[] = [
+  { name: 'orders', templates: ['savedOrdersClient'], detailsScreenName: 'orderDetails' },
+  {
+    name: 'subscriptions',
+    templates: ['savedOrdersClient'],
+    detailsScreenName: 'subscriptionDetails',
+  },
 ];
 
-export const categoryLookup: Record<SpotlightTemplateName, string> = {
+export const categoryLookup: Record<SpotlightTemplateName, SpotlightCategoryName> = {
   savedOrdersClient: 'orders',
   queryingOrders: 'orders',
   renewingSubscriptions: 'subscriptions',
   expiringSubscriptions: 'subscriptions',
-} as Record<SpotlightTemplateName, string>;
+} as Record<SpotlightTemplateName, SpotlightCategoryName>;
 
 export const spotlightItem1: SpotlightItem = {
   id: '1',

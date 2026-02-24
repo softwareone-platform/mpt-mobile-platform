@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet } from 'react-native';
 
+import { EMPTY_VALUE } from '@/constants/common';
 import { listItemStyle } from '@/styles';
 
 type Props = {
   title: string;
   subtitle?: string;
   isLast?: boolean;
-  onPress?: () => void;
   testID?: string;
 };
 
@@ -18,7 +18,7 @@ const ListItemWithLabelAndText = ({ title, subtitle, isLast, testID }: Props) =>
           {title}
         </Text>
         <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
-          {subtitle ? subtitle : '-'}
+          {subtitle ? subtitle : EMPTY_VALUE}
         </Text>
       </View>
     </View>

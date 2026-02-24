@@ -1,6 +1,10 @@
-import type { SpotlightTemplateName } from '../types/spotlight';
+import type {
+  SpotlightCategory,
+  SpotlightCategoryName,
+  SpotlightTemplateName,
+} from '../types/spotlight';
 
-import type { SpotlightItem } from '@/types/api';
+import type { SpotlightItem, SpotlightItemWithDetails } from '@/types/api';
 
 /**
  * Build a lookup object, that maps spotlight template names to category names
@@ -8,9 +12,12 @@ import type { SpotlightItem } from '@/types/api';
  * @returns lookup object
  */
 export const buildCategoryLookup = (
-  categories: Array<{ name: string; templates: SpotlightTemplateName[] }>,
-): Record<SpotlightTemplateName, string> => {
-  const lookup: Record<SpotlightTemplateName, string> = {} as Record<SpotlightTemplateName, string>;
+  categories: Array<SpotlightCategory>,
+): Record<SpotlightTemplateName, SpotlightCategoryName> => {
+  const lookup: Record<SpotlightTemplateName, SpotlightCategoryName> = {} as Record<
+    SpotlightTemplateName,
+    SpotlightCategoryName
+  >;
 
   categories.forEach((category) => {
     category.templates.forEach((template) => {
@@ -29,9 +36,12 @@ export const buildCategoryLookup = (
  */
 export const groupSpotlightData = (
   spotlightData: SpotlightItem[],
-  templateLookup: Record<SpotlightTemplateName, string>,
-): Record<string, SpotlightItem[]> => {
-  const groupedData: Record<string, SpotlightItem[]> = {};
+  templateLookup: Record<SpotlightTemplateName, SpotlightCategoryName>,
+): Record<SpotlightCategoryName, SpotlightItem[]> => {
+  const groupedData: Record<SpotlightCategoryName, SpotlightItem[]> = {} as Record<
+    SpotlightCategoryName,
+    SpotlightItem[]
+  >;
 
   spotlightData.forEach((item) => {
     if (!item || item.total === 0) {
@@ -44,7 +54,8 @@ export const groupSpotlightData = (
       return;
     }
 
-    const categoryName: string | undefined = templateLookup[template as SpotlightTemplateName];
+    const categoryName: SpotlightCategoryName | undefined =
+      templateLookup[template as SpotlightTemplateName];
 
     if (categoryName === undefined || categoryName === null) {
       return;
@@ -67,16 +78,19 @@ export const groupSpotlightData = (
  * @returns spotlight data ordered same as categories object order
  */
 export const orderSpotlightData = (
-  groupedData: Record<string, SpotlightItem[]>,
-  categories: Array<{ name: string; templates: SpotlightTemplateName[] }>,
-): Record<string, SpotlightItem[]> => {
-  const orderedData: Record<string, SpotlightItem[]> = {};
+  groupedData: Record<SpotlightCategoryName, SpotlightItem[]>,
+  categories: Array<SpotlightCategory>,
+): Record<string, SpotlightItemWithDetails[]> => {
+  const orderedData: Record<string, SpotlightItemWithDetails[]> = {};
 
   categories.forEach((category) => {
     const items = groupedData[category.name];
 
-    if (items !== undefined && items !== null) {
-      orderedData[category.name] = items;
+    if (items && items.length > 0) {
+      orderedData[category.name] = items.map((item) => ({
+        ...item,
+        detailsScreenName: category.detailsScreenName,
+      }));
     }
   });
 
@@ -91,8 +105,8 @@ export const orderSpotlightData = (
  */
 export const arrangeSpotlightData = (
   spotlightData: SpotlightItem[],
-  categories: Array<{ name: string; templates: SpotlightTemplateName[] }>,
-): Record<string, SpotlightItem[]> => {
+  categories: Array<SpotlightCategory>,
+): Record<string, SpotlightItemWithDetails[]> => {
   const templateLookup = buildCategoryLookup(categories);
   const groupedData = groupSpotlightData(spotlightData, templateLookup);
   const orderedData = orderSpotlightData(groupedData, categories);

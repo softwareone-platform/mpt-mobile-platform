@@ -1,4 +1,4 @@
-import type { SpotlightTemplateName } from '../types/spotlight';
+import type { SpotlightTemplateName, SpotlightCategory } from '../types/spotlight';
 
 export const ORDERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'savedOrdersClient',
@@ -42,12 +42,21 @@ export const BUYERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'buyersWithBlockedSellerConnectionsOfMyClients',
 ];
 
-export const SPOTLIGHT_CATEGORY: Array<{ name: string; templates: SpotlightTemplateName[] }> = [
-  { name: 'orders', templates: ORDERS_SPOTLIGHTS },
-  { name: 'subscriptions', templates: SUBSCRIPTION_SPOTLIGHTS },
-  { name: 'users', templates: USERS_SPOTLIGHTS },
-  { name: 'invoices', templates: INVOICES_SPOTLIGHTS },
-  { name: 'enrollments', templates: ENROLLMENTS_SPOTLIGHTS },
-  { name: 'journals', templates: JOURNALS_SPOTLIGHTS },
-  { name: 'buyers', templates: BUYERS_SPOTLIGHTS },
+export const SPOTLIGHT_CATEGORY: Array<SpotlightCategory> = [
+  { name: 'orders', templates: ORDERS_SPOTLIGHTS, detailsScreenName: 'orderDetails' },
+  {
+    name: 'subscriptions',
+    templates: SUBSCRIPTION_SPOTLIGHTS,
+    detailsScreenName: 'subscriptionDetails',
+  },
+  { name: 'users', templates: USERS_SPOTLIGHTS, detailsScreenName: 'userDetails' },
+  { name: 'invoices', templates: INVOICES_SPOTLIGHTS, detailsScreenName: 'invoiceDetails' },
+  {
+    name: 'enrollments',
+    templates: ENROLLMENTS_SPOTLIGHTS,
+    detailsScreenName: 'enrollmentDetails',
+  },
+  // TODO: add Journals back when details screen is ready
+  // { name: 'journals', templates: JOURNALS_SPOTLIGHTS, detailsScreenName: 'journalDetails' },
+  { name: 'buyers', templates: BUYERS_SPOTLIGHTS, detailsScreenName: 'buyerDetails' },
 ];
