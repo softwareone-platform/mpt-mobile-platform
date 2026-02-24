@@ -146,7 +146,7 @@ class AuthenticationService {
         'refreshAccessToken',
         {
           maxRetries: 4,
-          initialDelayMs: 2000,
+          initialDelayMs: 1000,
         },
       );
       const expiresAt = this.getExpiryFromJWT(result.accessToken);
