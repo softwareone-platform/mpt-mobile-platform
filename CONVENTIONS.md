@@ -783,6 +783,39 @@ try {
 }
 ```
 
+### Security: Masking 401/403 with 404
+
+**Security Best Practice:** To prevent information disclosure, the backend typically returns `404 Not Found` instead of `401 Unauthorized` or `403 Forbidden` when a user lacks access to a resource.
+
+**Why?**
+- `401`/`403` reveals that the resource exists but you can't access it
+- Attackers can enumerate which resources exist by observing status codes
+- `404` is ambiguous - resource may not exist OR you lack permission
+
+**Implementation:**
+
+```typescript
+// ✅ Backend returns 404 for unauthorized access
+GET /api/accounts/secret-account-id
+→ 404 Not Found (even if account exists but user lacks access)
+
+// ✅ Frontend treats both as "not found" for UX
+if (error.status === 404) {
+  showMessage("Account not found");
+  // User cannot distinguish between "doesn't exist" and "no permission"
+}
+
+// ❌ Don't expose different messages for 401/403
+if (error.status === 403) {
+  showMessage("Access denied"); // Leaks that resource exists!
+}
+```
+
+**Exceptions:**
+- Authentication endpoints (login/logout) can use `401` appropriately
+- Admin dashboards where security is less critical
+- When explicitly documented as acceptable
+
 ---
 
 ## TestID Patterns
