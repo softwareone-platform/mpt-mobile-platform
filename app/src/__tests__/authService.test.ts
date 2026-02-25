@@ -10,6 +10,7 @@ let mockClearCredentials: jest.Mock;
 jest.mock('../services/appInsightsService', () => ({
   appInsightsService: {
     trackException: jest.fn(),
+    isReady: jest.fn(() => false),
   },
 }));
 
@@ -118,8 +119,11 @@ describe('authService', () => {
         'Failed to decode user from token',
       );
       expect(console.error).toHaveBeenCalledWith(
-        'Failed to decode user from token:',
-        'Invalid token format',
+        '[AUTH] [AuthenticationService] Failed to decode user from token: Invalid token format',
+        expect.objectContaining({
+          errorName: 'Error',
+          errorStack: expect.any(String),
+        }),
       );
     });
 
@@ -296,8 +300,8 @@ describe('authService', () => {
       await authService.reinitialize();
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'Failed to clear credentials during reinitialize:',
-        error,
+        '[AUTH] [AuthenticationService] Failed to clear credentials during reinitialize',
+        {},
       );
       consoleWarnSpy.mockRestore();
     });
