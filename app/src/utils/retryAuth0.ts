@@ -61,6 +61,84 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function shouldRetry(
+  attempt: number,
+  maxAttempts: number,
+  error: unknown,
+  retryableStatusCodes: number[],
+): boolean {
+  const hasRetriesLeft = attempt < maxAttempts;
+  const isRetryable = isRetryableError(error, retryableStatusCodes);
+  return hasRetriesLeft && isRetryable;
+}
+
+function logRetryAttempt(operationName: string, attempt: number, maxAttempts: number): void {
+  if (attempt > FIRST_ATTEMPT) {
+    console.info(`[Retry] Attempting ${operationName} (attempt ${attempt}/${maxAttempts})`);
+  }
+}
+
+function logRetrySuccess(operationName: string, attempt: number): void {
+  if (attempt > FIRST_ATTEMPT) {
+    console.info(`[Retry] ${operationName} succeeded on attempt ${attempt}`);
+    appInsightsService.trackEvent({
+      name: 'Auth0RetrySuccess',
+      properties: {
+        operation: operationName,
+        attempt: attempt.toString(),
+        totalRetries: (attempt - FIRST_ATTEMPT).toString(),
+      },
+    });
+  }
+}
+
+function logAndTrackFailure(
+  operationName: string,
+  attempt: number,
+  error: unknown,
+  isRetryable: boolean,
+): void {
+  if (!isRetryable) {
+    console.error(`[Retry] ${operationName} failed with non-retryable error`, error);
+  } else {
+    console.error(`[Retry] ${operationName} failed after ${attempt} attempts`, error);
+    appInsightsService.trackEvent({
+      name: 'Auth0RetryFailure',
+      properties: {
+        operation: operationName,
+        totalAttempts: attempt.toString(),
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      },
+    });
+  }
+}
+
+async function executeRetryDelay(
+  operationName: string,
+  attempt: number,
+  initialDelayMs: number,
+  maxDelayMs: number,
+  backoffMultiplier: number,
+  error: unknown,
+): Promise<void> {
+  const delayMs = calculateDelay(attempt, initialDelayMs, maxDelayMs, backoffMultiplier);
+  console.info(
+    `[Retry] ${operationName} failed on attempt ${attempt}, retrying in ${delayMs}ms...`,
+  );
+
+  appInsightsService.trackEvent({
+    name: 'Auth0RetryAttempt',
+    properties: {
+      operation: operationName,
+      attempt: attempt.toString(),
+      delayMs: delayMs.toString(),
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+    },
+  });
+
+  await delay(delayMs);
+}
+
 export async function retryAuth0Operation<T>(
   fn: () => Promise<T>,
   operationName: string,
@@ -71,72 +149,40 @@ export async function retryAuth0Operation<T>(
     ...config,
   };
 
-  let lastError: unknown;
-  let attempt = 0;
+  let attempt = FIRST_ATTEMPT;
+  const maxAttempts = maxRetries + FIRST_ATTEMPT;
 
-  while (attempt <= maxRetries) {
+  while (attempt <= maxAttempts) {
     try {
-      attempt++;
-
-      if (attempt > FIRST_ATTEMPT) {
-        console.info(`[Retry] Attempting ${operationName} (attempt ${attempt}/${maxRetries + 1})`);
-      }
+      logRetryAttempt(operationName, attempt, maxAttempts);
 
       const result = await fn();
 
-      // Log successful retry if it wasn't the first attempt
-      if (attempt > FIRST_ATTEMPT) {
-        console.info(`[Retry] ${operationName} succeeded on attempt ${attempt}`);
-        appInsightsService.trackEvent({
-          name: 'Auth0RetrySuccess',
-          properties: {
-            operation: operationName,
-            attempt: attempt.toString(),
-            totalRetries: (attempt - FIRST_ATTEMPT).toString(),
-          },
-        });
-      }
+      logRetrySuccess(operationName, attempt);
 
       return result;
     } catch (error) {
-      lastError = error;
+      const canRetry = shouldRetry(attempt, maxAttempts, error, retryableStatusCodes);
 
-      // If this is the last attempt or error is not retryable, throw
-      if (attempt > maxRetries || !isRetryableError(error, retryableStatusCodes)) {
-        if (!isRetryableError(error, retryableStatusCodes)) {
-          console.error(`[Retry] ${operationName} failed with non-retryable error`, error);
-        } else {
-          console.error(`[Retry] ${operationName} failed after ${attempt} attempts`, error);
-          appInsightsService.trackEvent({
-            name: 'Auth0RetryFailure',
-            properties: {
-              operation: operationName,
-              totalAttempts: attempt.toString(),
-              errorMessage: error instanceof Error ? error.message : 'Unknown error',
-            },
-          });
-        }
+      if (!canRetry) {
+        const isRetryable = isRetryableError(error, retryableStatusCodes);
+        logAndTrackFailure(operationName, attempt, error, isRetryable);
         throw error;
       }
 
-      // Calculate and apply backoff delay
-      const delayMs = calculateDelay(attempt, initialDelayMs, maxDelayMs, backoffMultiplier);
-      console.info(
-        `[Retry] ${operationName} failed on attempt ${attempt}, retrying in ${delayMs}ms...`,
+      await executeRetryDelay(
+        operationName,
+        attempt,
+        initialDelayMs,
+        maxDelayMs,
+        backoffMultiplier,
+        error,
       );
 
-      appInsightsService.trackEvent({
-        name: 'Auth0RetryAttempt',
-        properties: {
-          operation: operationName,
-          attempt: attempt.toString(),
-          delayMs: delayMs.toString(),
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
-        },
-      });
-
-      await delay(delayMs);
+      attempt++;
     }
   }
-  throw lastError;
+
+  // This should never be reached due to the logic above, but TypeScript needs it
+  throw new Error(`[Retry] ${operationName} exhausted all attempts without throwing`);
 }
