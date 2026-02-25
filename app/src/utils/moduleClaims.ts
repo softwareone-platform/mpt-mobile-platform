@@ -12,8 +12,6 @@ export function getModuleClaims(accessToken: string): ModuleClaims | null {
     return claims || null;
   } catch (error) {
     logger.error('Failed to extract module claims', error, {
-      category: 'auth',
-      component: 'moduleClaims',
       operation: 'getModuleClaims',
     });
     return null;
@@ -36,8 +34,6 @@ export function getAccountType(accessToken: string): AccountType | null {
     return (accountType as AccountType) || null;
   } catch (error) {
     logger.error('Failed to extract account type', error, {
-      category: 'auth',
-      component: 'moduleClaims',
       operation: 'getAccountType',
     });
     return null;

@@ -137,8 +137,6 @@ describe('compareVersions', () => {
     compareVersions('invalid', '1.0.0');
 
     expect(logger.warn).toHaveBeenCalledWith('Invalid version format in feature flag comparison', {
-      category: 'config',
-      component: 'FeatureFlagsService',
       operation: 'compareVersions',
       version1: 'invalid',
       version2: '1.0.0',

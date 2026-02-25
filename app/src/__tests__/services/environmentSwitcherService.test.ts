@@ -132,8 +132,6 @@ describe('EnvironmentSwitcherService', () => {
         'Failed to switch to review environment',
         error,
         {
-          category: 'config',
-          component: 'EnvironmentSwitcherService',
           operation: 'switchToReview',
         },
       );
@@ -179,8 +177,6 @@ describe('EnvironmentSwitcherService', () => {
         'Failed to switch to default environment',
         error,
         {
-          category: 'config',
-          component: 'EnvironmentSwitcherService',
           operation: 'switchToDefault',
         },
       );

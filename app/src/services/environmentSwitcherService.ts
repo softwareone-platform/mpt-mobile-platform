@@ -73,8 +73,6 @@ class EnvironmentSwitcherService {
       });
     } catch (error) {
       logger.error('Failed to switch to review environment', error, {
-        category: 'config',
-        component: 'EnvironmentSwitcherService',
         operation: 'switchToReview',
       });
       throw error instanceof Error ? error : new Error('Failed to switch to review environment');
@@ -84,8 +82,6 @@ class EnvironmentSwitcherService {
   private async switchToDefault(): Promise<void> {
     if (!this.originalConfig) {
       logger.warn('Original config not stored, cannot switch environment', {
-        category: 'config',
-        component: 'EnvironmentSwitcherService',
         operation: 'switchToDefault',
       });
       return;
@@ -105,8 +101,6 @@ class EnvironmentSwitcherService {
       this.currentEnvironment = 'default';
     } catch (error) {
       logger.error('Failed to switch to default environment', error, {
-        category: 'config',
-        component: 'EnvironmentSwitcherService',
         operation: 'switchToDefault',
       });
       throw error instanceof Error ? error : new Error('Failed to switch to default environment');

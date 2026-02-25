@@ -78,8 +78,7 @@ class AuthenticationService {
       }
     } catch (error) {
       logger.warn('Failed to clear credentials during reinitialize', {
-        category: 'auth',
-        component: 'AuthenticationService',
+        operation: 'reinitialize',
       });
     }
 
@@ -92,8 +91,6 @@ class AuthenticationService {
       return decoded.exp;
     } catch (error) {
       logger.error('Failed to decode JWT', error, {
-        category: 'auth',
-        component: 'AuthenticationService',
         operation: 'getExpiryFromJWT',
       });
       return undefined;
@@ -177,8 +174,6 @@ class AuthenticationService {
       return decoded;
     } catch (error) {
       logger.error('Failed to decode user from token', error, {
-        category: 'auth',
-        component: 'AuthenticationService',
         operation: 'getUserFromToken',
       });
       const err = new Error('Failed to decode user from token');

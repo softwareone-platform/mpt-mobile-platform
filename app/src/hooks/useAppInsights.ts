@@ -26,8 +26,6 @@ export const useAppInsights = (): AppInsightsService => {
 
   useEffect(() => {
     if (user) {
-      const accountId = user['https://claims.softwareone.com/accountId'] as string | undefined;
-      console.info('[AppInsights] User context updated:', { accountId });
       appInsightsService.trackTrace('User context updated', 'Information', {
         component: 'App',
         action: 'UserUpdated',

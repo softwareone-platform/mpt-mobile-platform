@@ -20,8 +20,6 @@ const compareVersions = (version1: string, version2: string): number | null => {
 
   if (!v1 || !v2) {
     logger.warn('Invalid version format in feature flag comparison', {
-      category: 'config',
-      component: 'FeatureFlagsService',
       operation: 'compareVersions',
       version1,
       version2,

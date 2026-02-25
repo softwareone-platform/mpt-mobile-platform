@@ -30,10 +30,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const userId = user?.['https://claims.softwareone.com/userId'] as string | undefined;
 
   if (user && (!userId || userId.trim() === '')) {
-    logger.error('User authentication token is missing required userId claim', undefined, {
-      category: 'auth',
-      component: 'AccountProvider',
-    });
+    logger.error('User authentication token is missing required userId claim');
   }
 
   const {
@@ -74,8 +71,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         queryClient.removeQueries({ queryKey: ['spotlightData', userId] });
       } catch (error) {
         logger.error('Failed to switch account', error, {
-          category: 'api',
-          component: 'AccountProvider',
+          operation: 'switchAccount',
           userId,
           accountId,
         });
