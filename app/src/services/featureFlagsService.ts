@@ -1,9 +1,9 @@
 import semver from 'semver';
 
-import { appInsightsService } from './appInsightsService';
 import { PortalVersionInfo } from './portalVersionService';
 
 import featureFlags from '@/config/feature-flags/featureFlags.json';
+import { logger } from '@/services/loggerService';
 
 export type FeatureFlags = typeof featureFlags;
 export type FeatureFlagKey = keyof FeatureFlags;
@@ -19,15 +19,13 @@ const compareVersions = (version1: string, version2: string): number | null => {
   const v2 = semver.coerce(version2);
 
   if (!v1 || !v2) {
-    appInsightsService.trackException(
-      new Error('Invalid version format in feature flag comparison'),
-      {
-        version1,
-        version2,
-        operation: 'compareVersions',
-      },
-      'Warning',
-    );
+    logger.warn('Invalid version format in feature flag comparison', {
+      category: 'config',
+      component: 'FeatureFlagsService',
+      operation: 'compareVersions',
+      version1,
+      version2,
+    });
     return null;
   }
 

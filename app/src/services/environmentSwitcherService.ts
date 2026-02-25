@@ -3,6 +3,7 @@ import { isReviewerEmail, REVIEW_ENVIRONMENT } from '@/config/reviewers.config';
 import { updateApiClientBaseURL } from '@/lib/apiClient';
 import { appInsightsService } from '@/services/appInsightsService';
 import authService from '@/services/authService';
+import { logger } from '@/services/loggerService';
 
 export type EnvironmentType = 'default' | 'review';
 
@@ -71,29 +72,22 @@ class EnvironmentSwitcherService {
         },
       });
     } catch (error) {
-      const err =
-        error instanceof Error ? error : new Error('Failed to switch to review environment');
-      appInsightsService.trackException(
-        err,
-        {
-          operation: 'switchToReview',
-        },
-        'Error',
-      );
-      throw err;
+      logger.error('Failed to switch to review environment', error, {
+        category: 'config',
+        component: 'EnvironmentSwitcherService',
+        operation: 'switchToReview',
+      });
+      throw error instanceof Error ? error : new Error('Failed to switch to review environment');
     }
   }
 
   private async switchToDefault(): Promise<void> {
     if (!this.originalConfig) {
-      const err = new Error('Original config not stored, cannot switch environment');
-      appInsightsService.trackException(
-        err,
-        {
-          operation: 'switchToDefault',
-        },
-        'Warning',
-      );
+      logger.warn('Original config not stored, cannot switch environment', {
+        category: 'config',
+        component: 'EnvironmentSwitcherService',
+        operation: 'switchToDefault',
+      });
       return;
     }
 
@@ -110,16 +104,12 @@ class EnvironmentSwitcherService {
 
       this.currentEnvironment = 'default';
     } catch (error) {
-      const err =
-        error instanceof Error ? error : new Error('Failed to switch to default environment');
-      appInsightsService.trackException(
-        err,
-        {
-          operation: 'switchToDefault',
-        },
-        'Error',
-      );
-      throw err;
+      logger.error('Failed to switch to default environment', error, {
+        category: 'config',
+        component: 'EnvironmentSwitcherService',
+        operation: 'switchToDefault',
+      });
+      throw error instanceof Error ? error : new Error('Failed to switch to default environment');
     }
   }
 

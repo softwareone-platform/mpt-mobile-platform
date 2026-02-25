@@ -94,12 +94,8 @@ class AuthenticationService {
       logger.error('Failed to decode JWT', error, {
         category: 'auth',
         component: 'AuthenticationService',
+        operation: 'getExpiryFromJWT',
       });
-      appInsightsService.trackException(
-        error instanceof Error ? error : new Error('Failed to decode JWT'),
-        { operation: 'getExpiryFromJWT' },
-        'Warning',
-      );
       return undefined;
     }
   }
@@ -183,9 +179,9 @@ class AuthenticationService {
       logger.error('Failed to decode user from token', error, {
         category: 'auth',
         component: 'AuthenticationService',
+        operation: 'getUserFromToken',
       });
       const err = new Error('Failed to decode user from token');
-      appInsightsService.trackException(err, { operation: 'getUserFromToken' }, 'Error');
       throw err;
     }
   }

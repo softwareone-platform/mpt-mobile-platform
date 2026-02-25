@@ -4,8 +4,15 @@ jest.mock('@/services/appInsightsService', () => ({
   },
 }));
 
-import { appInsightsService } from '@/services/appInsightsService';
+jest.mock('@/services/loggerService', () => ({
+  logger: {
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 import { FeatureFlagsService, compareVersions } from '@/services/featureFlagsService';
+import { logger } from '@/services/loggerService';
 import { PortalVersionInfo } from '@/services/portalVersionService';
 
 describe('FeatureFlagsService', () => {
@@ -129,14 +136,12 @@ describe('compareVersions', () => {
   it('logs to App Insights when version comparison fails', () => {
     compareVersions('invalid', '1.0.0');
 
-    expect(appInsightsService.trackException).toHaveBeenCalledWith(
-      expect.any(Error),
-      {
-        version1: 'invalid',
-        version2: '1.0.0',
-        operation: 'compareVersions',
-      },
-      'Warning',
-    );
+    expect(logger.warn).toHaveBeenCalledWith('Invalid version format in feature flag comparison', {
+      category: 'config',
+      component: 'FeatureFlagsService',
+      operation: 'compareVersions',
+      version1: 'invalid',
+      version2: '1.0.0',
+    });
   });
 });
