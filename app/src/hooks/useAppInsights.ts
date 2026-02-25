@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { appInsightsService, AppInsightsService } from '@/services/appInsightsService';
+import { logger } from '@/services/loggerService';
 
 export const useAppInsights = (): AppInsightsService => {
   const { user } = useAuth();
@@ -21,17 +22,16 @@ export const useAppInsights = (): AppInsightsService => {
       },
     });
 
-    console.info('[AppInsights] App mounted, telemetry event sent.');
+    logger.info('App mounted, telemetry event sent');
   }, []);
 
   useEffect(() => {
     if (user) {
-      appInsightsService.trackTrace('User context updated', 'Information', {
-        component: 'App',
+      logger.trace('User context updated', {
         action: 'UserUpdated',
       });
     } else {
-      console.info('[AppInsights] User logged out');
+      logger.trace('User logged out');
     }
   }, [user]);
 
