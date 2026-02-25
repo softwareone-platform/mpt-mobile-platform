@@ -18,15 +18,6 @@ export interface AppInsightsEvent {
   properties?: CustomProperties;
 }
 
-export interface AppInsightsMetric {
-  name: string;
-  average: number;
-  sampleCount?: number;
-  min?: number;
-  max?: number;
-  properties?: CustomProperties;
-}
-
 const APPLICATION_NAME = 'MarketplaceMobile';
 
 class AppInsightsService {
@@ -146,14 +137,6 @@ class AppInsightsService {
     return `|${operationId}.${requestId}`;
   }
 
-  public updateAuthenticatedUserContext(userId: string | null): void {
-    if (userId) {
-      this.setAuthenticatedUserContext(userId);
-    } else {
-      this.clearAuthenticatedUserContext();
-    }
-  }
-
   public trackEvent(event: AppInsightsEvent): void {
     if (!this.isInitialized || !this.appInsights) {
       console.warn('[AppInsights] Not initialized. Event not tracked:', event.name);
@@ -213,57 +196,6 @@ class AppInsightsService {
       properties,
     });
     console.info('[AppInsights] Trace tracked:', message.substring(0, 50) + '...');
-  }
-
-  public trackMetric(metric: AppInsightsMetric): void {
-    if (!this.isInitialized || !this.appInsights) {
-      console.warn('[AppInsights] Not initialized. Metric not tracked:', metric.name);
-      return;
-    }
-
-    this.appInsights.trackMetric(
-      {
-        name: metric.name,
-        average: metric.average,
-        sampleCount: metric.sampleCount,
-        min: metric.min,
-        max: metric.max,
-      },
-      metric.properties,
-    );
-  }
-
-  public trackPageView(name: string, properties?: CustomProperties): void {
-    if (!this.isInitialized || !this.appInsights) {
-      console.warn('[AppInsights] Not initialized. Page view not tracked:', name);
-      return;
-    }
-
-    this.appInsights.trackPageView({ name, properties });
-  }
-
-  public setAuthenticatedUserContext(userId: string, accountId?: string): void {
-    if (!this.isInitialized || !this.appInsights) {
-      console.warn('[AppInsights] Not initialized. User context not set.');
-      return;
-    }
-
-    this.appInsights.setAuthenticatedUserContext(userId, accountId);
-  }
-
-  public clearAuthenticatedUserContext(): void {
-    if (!this.isInitialized || !this.appInsights) {
-      return;
-    }
-
-    this.appInsights.clearAuthenticatedUserContext();
-  }
-
-  public async shutdown(): Promise<void> {
-    if (this.appInsights) {
-      await this.appInsights.flush();
-      console.info('[AppInsights] Flushed pending telemetry');
-    }
   }
 
   public isReady(): boolean {
