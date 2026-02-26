@@ -93,6 +93,10 @@ The `run-local-test.sh` script provides a complete testing solution:
 
 This is the **recommended approach** for local development as it handles the entire workflow automatically.
 
+## Appium version sync
+
+The test script includes a guard to prefer the `app/package.json` Appium version where possible and will choose between a local `node_modules/.bin/appium`, `npx appium@<version>`, or a global `appium` binary. If you have version mismatches or want more details, see [Appium Version & Binary Sync](APPIUM_VERSION_SYNC.md).
+
 #### Method 2: Using Deploy Script Only
 
 If you only want to build and deploy without running tests:

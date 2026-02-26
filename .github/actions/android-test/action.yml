@@ -149,19 +149,38 @@ runs:
       shell: bash
       run: |
         echo "📦 Installing Appium ${{ inputs.appium_version }}..."
-        npm install -g appium@${{ inputs.appium_version }}
-        
-        echo "Appium version:"
-        appium --version
+        echo "Ensuring local project Appium is installed via npm ci (working-directory: ./app)"
+        if [ ! -x ./app/node_modules/.bin/appium ]; then
+          echo "❌ Local appium binary not found at ./app/node_modules/.bin/appium"
+          echo "Make sure app/package.json declares appium as a devDependency and npm ci has run"
+          exit 1
+        fi
+        echo "Appium binary found: ./app/node_modules/.bin/appium"
+        echo "Appium version (local):"
+        ./app/node_modules/.bin/appium --version
+
+    - name: Verify local Appium version matches requested
+      shell: bash
+      run: |
+        REQUESTED="${{ inputs.appium_version }}"
+        REQUESTED_CLEAN=$(echo "$REQUESTED" | sed -E 's/^[^0-9]*//')
+        INSTALLED=$(./app/node_modules/.bin/appium --version 2>/dev/null | head -1 | tr -d '\r')
+        echo "Requested: $REQUESTED_CLEAN, Local installed: $INSTALLED"
+        if [ -n "$REQUESTED_CLEAN" ] && ! echo "$INSTALLED" | grep -q "^${REQUESTED_CLEAN}"; then
+          echo "❌ Local Appium ($INSTALLED) does not match requested ($REQUESTED_CLEAN)"
+          echo "Hint: ensure app/package.json devDependency for appium matches expected version and run npm ci"
+          exit 1
+        fi
+        echo "✅ Local Appium version verification passed"
 
     - name: Install UiAutomator2 Driver
       shell: bash
       run: |
         echo "📦 Installing UiAutomator2 driver..."
-        appium driver install uiautomator2 || echo "Driver may already be installed"
+        ./app/node_modules/.bin/appium driver install uiautomator2 || echo "Driver may already be installed"
         
         echo "Installed drivers:"
-        appium driver list --installed
+        ./app/node_modules/.bin/appium driver list --installed
 
     - name: Verify Emulator Still Running
       shell: bash
@@ -207,13 +226,13 @@ runs:
       run: |
         echo "🚀 Starting Appium server on port $APPIUM_PORT..."
         
-        # Start Appium server
-        appium --log-level info \
+        # Start Appium server using project-local binary
+        ./app/node_modules/.bin/appium --log-level info \
                --log appium.log \
                --port $APPIUM_PORT \
                --address 0.0.0.0 \
                --allow-cors &
-        
+
         APPIUM_PID=$!
         echo $APPIUM_PID > appium.pid
         echo "Appium PID: $APPIUM_PID"

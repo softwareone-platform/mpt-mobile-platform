@@ -444,13 +444,42 @@ exports.config = {
             './test/specs/orders.e2e.js',
             './test/specs/order-details.e2e.js',
         ],
-        subscriptions: ['./test/specs/subscriptions.e2e.js'],
-        agreements: ['./test/specs/agreements.e2e.js'],
-        programs: ['./test/specs/programs.e2e.js'],
-        enrollments: ['./test/specs/enrollments.e2e.js'],
-        licensees: ['./test/specs/licensees.e2e.js'],
-        buyers: ['./test/specs/buyers.e2e.js'],
-        logout: ['./test/specs/logout.e2e.js'],
+        subscriptions: [
+            './test/specs/subscriptions.e2e.js',
+            './test/specs/subscription-details.e2e.js',
+        ],
+        agreements: [
+            './test/specs/agreements.e2e.js',
+            './test/specs/agreement-details.e2e.js',
+        ],
+        programs: [
+            './test/specs/programs.e2e.js',,
+        ],
+        enrollments: [
+            './test/specs/enrollments.e2e.js',
+        ],
+        licensees: [
+            './test/specs/licensees.e2e.js',
+        ],
+        buyers: [
+            './test/specs/buyers.e2e.js',
+            './test/specs/buyer-details.e2e.js',
+        ],
+        invoices: [
+            './test/specs/invoices.e2e.js',
+            './test/specs/invoice-details.e2e.js',
+        ],
+        creditMemos: [
+            './test/specs/credit-memos.e2e.js',
+            './test/specs/credit-memo-details.e2e.js',
+        ],
+        users: [
+            './test/specs/users.e2e.js',
+            './test/specs/user-details.e2e.js',
+        ],
+        logout: [
+            './test/specs/logout.e2e.js',
+        ],
         // Feature flag validation tests
         featureFlags: ['./test/specs/feature-flags.e2e.js'],
     },
@@ -597,7 +626,7 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 600000, // 10 minutes - OTP retrieval can take 4+ minutes
-        require: ['./test/fixtures/otp.fixture.js']
+        require: ['./test/fixtures/constants.fixture.js', './test/fixtures/otp.fixture.js']
     },
 
     //

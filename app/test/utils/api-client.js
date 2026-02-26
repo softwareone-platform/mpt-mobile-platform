@@ -293,6 +293,57 @@ class ApiClient {
     return response.data || response;
   }
 
+  // ========== Invoices Methods ==========
+
+  /**
+   * Get invoices list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of invoices to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by invoice status (Issued, Paid, Cancelled, etc.)
+   * @returns {Promise<object>} - Invoices list response
+   *
+   * @example
+   * // Get all invoices
+   * const invoices = await apiClient.getInvoices();
+   *
+   * // Get invoices with pagination
+   * const invoices = await apiClient.getInvoices({ limit: 10, offset: 0 });
+   *
+   * // Get invoices by status
+   * const issuedInvoices = await apiClient.getInvoices({ status: 'Issued' });
+   */
+  async getInvoices(options = {}) {
+    let endpoint = '/public/v1/billing/invoices';
+
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific invoice by ID
+   * @param {string} invoiceId - Invoice ID in format INV-XXXX-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Invoice details
+   *
+   * @example
+   * const invoice = await apiClient.getInvoiceById('INV-3995-3781-4639-3898');
+   */
+  async getInvoiceById(invoiceId) {
+    // Validate invoiceId format
+    if (!invoiceId || !/^INV-\d{4}-\d{4}-\d{4}-\d{4}$/.test(invoiceId)) {
+      throw new Error(`Invalid invoiceId format: "${invoiceId}". Expected format: INV-XXXX-XXXX-XXXX-XXXX`);
+    }
+    return this.get(`/public/v1/billing/invoices/${invoiceId}`);
+  }
+
   // ========== Agreements Methods ==========
 
   /**

@@ -42,11 +42,14 @@ async function activateApp() {
 /**
  * Waits for the app to be fully loaded by checking for known UI elements
  * @param {number} timeout - Maximum time to wait in ms
- * @returns {Promise<void>}
+ * @param {'either'|'home'|'welcome'} expectedState - Expected app state
+ * @returns {Promise<'home'|'welcome'|'unknown'>}
  */
-async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY) {
+async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY, expectedState = 'either') {
   const waitStart = new Date();
-  console.info(`⏳ [${waitStart.toISOString()}] waitForAppReady() started (timeout: ${timeout}ms)`);
+  console.info(
+    `⏳ [${waitStart.toISOString()}] waitForAppReady() started (timeout: ${timeout}ms, expectedState: ${expectedState})`,
+  );
   
   const startTime = Date.now();
   const pollInterval = PAUSE.POLL_INTERVAL;
@@ -61,20 +64,20 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY) {
         .isDisplayed()
         .catch(() => false);
       
-      if (homeVisible) {
+      if (homeVisible && (expectedState === 'either' || expectedState === 'home')) {
         const found = new Date();
         console.info(`✅ [${found.toISOString()}] App ready - home page detected after ${iteration} iterations (${found - waitStart}ms)`);
-        return;
+        return 'home';
       }
       
       const welcomeVisible = await $('//*[@name="Welcome" or @text="Welcome"]')
         .isDisplayed()
         .catch(() => false);
       
-      if (welcomeVisible) {
+      if (welcomeVisible && (expectedState === 'either' || expectedState === 'welcome')) {
         const found = new Date();
         console.info(`✅ [${found.toISOString()}] App ready - welcome page detected after ${iteration} iterations (${found - waitStart}ms)`);
-        return;
+        return 'welcome';
       }
       
       const iterEnd = new Date();
@@ -88,25 +91,41 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY) {
   
   const timedOut = new Date();
   console.warn(`⚠️ [${timedOut.toISOString()}] App ready check timed out after ${timedOut - waitStart}ms, proceeding anyway`);
+  return 'unknown';
 }
 
 /**
  * Restarts the app by terminating and then activating it
  * Waits for the app to be fully loaded before returning
- * @returns {Promise<void>}
+ * @param {{ timeout?: number, expectedState?: 'either'|'home'|'welcome', settleBeforeTerminateMs?: number }} options
+ * @returns {Promise<'home'|'welcome'|'unknown'>}
  */
-async function restartApp() {
+async function restartApp(options = {}) {
+  const {
+    timeout = TIMEOUT.SCREEN_READY,
+    expectedState = 'either',
+    settleBeforeTerminateMs = 0,
+  } = options;
   const restartStart = new Date();
-  console.info(`🔄 [${restartStart.toISOString()}] restartApp() started`);
+  console.info(
+    `🔄 [${restartStart.toISOString()}] restartApp() started (timeout: ${timeout}ms, expectedState: ${expectedState}, settleBeforeTerminateMs: ${settleBeforeTerminateMs})`,
+  );
+  if (settleBeforeTerminateMs > 0) {
+    console.info(`⏳ Waiting ${settleBeforeTerminateMs}ms before terminate to allow state persistence...`);
+    await browser.pause(settleBeforeTerminateMs);
+  }
   await terminateApp();
   const afterTerminate = new Date();
   console.info(`   📍 [${afterTerminate.toISOString()}] After terminateApp: ${afterTerminate - restartStart}ms elapsed`);
   await activateApp();
   const afterActivate = new Date();
   console.info(`   📍 [${afterActivate.toISOString()}] After activateApp: ${afterActivate - restartStart}ms elapsed`);
-  await waitForAppReady();
+  const detectedState = await waitForAppReady(timeout, expectedState);
   const restartEnd = new Date();
-  console.info(`✅ [${restartEnd.toISOString()}] restartApp() completed. Total time: ${restartEnd - restartStart}ms`);
+  console.info(
+    `✅ [${restartEnd.toISOString()}] restartApp() completed. Total time: ${restartEnd - restartStart}ms. Detected state: ${detectedState}`,
+  );
+  return detectedState;
 }
 
 module.exports = {
