@@ -1,5 +1,6 @@
 import { configService } from '@/config/env.config';
 import apiClient from '@/lib/apiClient';
+import { logger } from '@/services/loggerService';
 
 type PortalManifest = {
   product: string;
@@ -37,7 +38,7 @@ const parseSemanticVersion = (version: string): { major: number; minor: number; 
 export async function fetchPortalVersion(): Promise<PortalVersionInfo> {
   const baseUrl = configService.get('AUTH0_API_URL');
   if (!baseUrl) {
-    console.warn('Portal version fetch skipped: Api url not configured, using fallback');
+    logger.warn('Portal version fetch skipped: API url not configured, using fallback');
     return {
       fullVersion: '',
       major: FALLBACK_MAJOR_VERSION,
@@ -59,7 +60,9 @@ export async function fetchPortalVersion(): Promise<PortalVersionInfo> {
 
     return { fullVersion, major, minor, patch };
   } catch (error) {
-    console.error('Failed to fetch portal manifest, using fallback version:', error);
+    logger.error('Failed to fetch portal manifest, using fallback version', error, {
+      operation: 'fetchPortalVersion',
+    });
     return {
       fullVersion: '',
       major: FALLBACK_MAJOR_VERSION,

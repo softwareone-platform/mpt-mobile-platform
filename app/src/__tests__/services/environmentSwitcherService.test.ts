@@ -4,6 +4,7 @@ jest.mock('@/services/authService');
 jest.mock('@/lib/apiClient');
 jest.mock('@/config/reviewers.config');
 jest.mock('@/services/appInsightsService');
+jest.mock('@/services/loggerService');
 
 // Import after mocks are defined
 import { configService } from '@/config/env.config';
@@ -12,6 +13,7 @@ import { updateApiClientBaseURL } from '@/lib/apiClient';
 import { appInsightsService } from '@/services/appInsightsService';
 import authService from '@/services/authService';
 import { environmentSwitcherService } from '@/services/environmentSwitcherService';
+import { logger } from '@/services/loggerService';
 
 // Get mock references
 const mockConfigServiceGet = configService.get as jest.Mock;
@@ -20,7 +22,8 @@ const mockAuthServiceReinitialize = authService.reinitialize as jest.Mock;
 const mockUpdateApiClientBaseURL = updateApiClientBaseURL as jest.Mock;
 const mockIsReviewerEmail = isReviewerEmail as jest.Mock;
 const mockTrackEvent = appInsightsService.trackEvent as jest.Mock;
-const mockTrackException = appInsightsService.trackException as jest.Mock;
+const mockLoggerError = logger.error as jest.Mock;
+const _mockLoggerWarn = logger.warn as jest.Mock;
 
 describe('EnvironmentSwitcherService', () => {
   beforeEach(async () => {
@@ -125,10 +128,12 @@ describe('EnvironmentSwitcherService', () => {
         environmentSwitcherService.switchEnvironmentForEmail('reviewer@apple.com'),
       ).rejects.toThrow('Auth reinit failed');
 
-      expect(mockTrackException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        'Failed to switch to review environment',
         error,
-        { operation: 'switchToReview' },
-        'Error',
+        {
+          operation: 'switchToReview',
+        },
       );
     });
   });
@@ -168,10 +173,12 @@ describe('EnvironmentSwitcherService', () => {
         expect(err).toEqual(error);
       }
 
-      expect(mockTrackException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        'Failed to switch to default environment',
         error,
-        { operation: 'switchToDefault' },
-        'Error',
+        {
+          operation: 'switchToDefault',
+        },
       );
     });
   });

@@ -10,6 +10,12 @@ jest.mock('@/services/appInsightsService', () => ({
     trackException: jest.fn(),
   },
 }));
+jest.mock('@/services/loggerService', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
 
 describe('Module Claims Utils', () => {
   const mockToken = 'mock.token';

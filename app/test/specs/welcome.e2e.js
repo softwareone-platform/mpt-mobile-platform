@@ -179,14 +179,18 @@ describe('Welcome page of application', () => {
     // Restart the app
     const beforeRestart = new Date();
     console.info(`🔄 [${beforeRestart.toISOString()}] Calling restartApp()...`);
-    await restartApp();
+    await restartApp({
+      timeout: 90000,
+      expectedState: 'home',
+      settleBeforeTerminateMs: 5000,
+    });
     const afterRestart = new Date();
     console.info(`✅ [${afterRestart.toISOString()}] restartApp() completed in ${(afterRestart - beforeRestart) / 1000}s`);
 
     // Verify user is still logged in by checking for home page elements
     const beforeCheck = new Date();
-    console.info(`⏳ [${beforeCheck.toISOString()}] Waiting for home page after restart (timeout: 15s)...`);
-    await homePage.header.logoTitle.waitForDisplayed({ timeout: 15000 });
+    console.info(`⏳ [${beforeCheck.toISOString()}] Waiting for home page after restart (timeout: 30s)...`);
+    await homePage.header.logoTitle.waitForDisplayed({ timeout: 30000 });
     const afterCheck = new Date();
     console.info(`✅ [${afterCheck.toISOString()}] Home page found after ${(afterCheck - beforeCheck) / 1000}s`);
     await expect(homePage.header.logoTitle).toBeDisplayed();

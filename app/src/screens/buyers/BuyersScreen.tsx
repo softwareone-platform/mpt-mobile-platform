@@ -5,11 +5,15 @@ import { useTranslation } from 'react-i18next';
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigFull } from '@/config/list';
+import { useAccount } from '@/context/AccountContext';
 import { useBuyers, BuyersProvider } from '@/context/BuyersContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const BuyersScreenContent = () => {
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type;
+
   const {
     buyers,
     isBuyersLoading,
@@ -23,6 +27,22 @@ const BuyersScreenContent = () => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
+  if (accountType === 'Vendor') {
+    return (
+      <StatusMessage
+        isLoading={false}
+        isError={false}
+        isEmpty={true}
+        isUnauthorised={false}
+        emptyTestId={TestIDs.BUYERS_EMPTY_STATE}
+        emptyTitle={t('buyersScreen.emptyStateTitle')}
+        emptyDescription={t('buyersScreen.emptyStateDescription')}
+      >
+        {null}
+      </StatusMessage>
+    );
+  }
 
   return (
     <StatusMessage

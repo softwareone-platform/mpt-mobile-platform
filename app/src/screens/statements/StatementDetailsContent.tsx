@@ -8,9 +8,12 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
+import { useAccount } from '@/context/AccountContext';
 import type { StatementDetails } from '@/types/billing';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage, formatDateForLocale, getTime } from '@/utils/formatting';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
   const { t, i18n } = useTranslation();
@@ -18,6 +21,8 @@ const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const totalPP = formatNumber(data.price.totalPP, 2, language) || EMPTY_VALUE;
   const totalSP = formatNumber(data.price.totalSP, 2, language) || EMPTY_VALUE;
@@ -32,11 +37,15 @@ const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
         <DetailsListItem
           label={t(`details.owner`)}
           data={data.ledger?.owner}
-          onPress={() => {
-            navigation.navigate('sellerDetails', {
-              id: data.ledger?.owner?.id,
-            });
-          }}
+          onPress={
+            canNavigateTo('seller', accountType)
+              ? () => {
+                  navigation.navigate('sellerDetails', {
+                    id: data.ledger?.owner?.id,
+                  });
+                }
+              : undefined
+          }
         />
         <ListItemWithLabelAndText title={t(`details.source`)} subtitle={data.ledger?.id} />
         <ListItemWithLabelAndText title={t(`details.statementType`)} subtitle={data.type} />

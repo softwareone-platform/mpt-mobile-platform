@@ -6,16 +6,21 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
+import { useAccount } from '@/context/AccountContext';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { SubscriptionData } from '@/types/subscription';
 import { formatNumber, formatPercentage, formatDateForLocale } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
   const labelYear = `${data.price?.currency}/${t('details.year')}`;
@@ -60,12 +65,16 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
       <DetailsListItem
         label={t(`details.client`)}
         data={data.agreement?.client}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.agreement?.client?.id,
-            type: 'client',
-          });
-        }}
+        onPress={
+          canNavigateTo('clientAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.agreement?.client?.id,
+                  type: 'client',
+                });
+              }
+            : undefined
+        }
       />
       <ListItemWithLabelAndText
         title={t(`details.terms`)}

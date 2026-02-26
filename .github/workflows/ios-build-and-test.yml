@@ -97,6 +97,7 @@ env:
   BUILD_MODE: ${{ inputs.build-mode || github.event.inputs.build-mode || 'Release' }}
   PLATFORM_VERSION: ${{ inputs.platform-version || github.event.inputs.platform-version || '26.0' }}
   DEVICE_NAME: ${{ inputs.device-name || github.event.inputs.device-name || 'iPhone 16' }}
+  DEFAULT_APPIUM_VERSION: '3.1.1'
 
 jobs:
   build-ios:
@@ -124,6 +125,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Read Appium version from package.json
+        id: appium-version
+        env:
+          DEFAULT_APPIUM_VERSION: ${{ env.DEFAULT_APPIUM_VERSION }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "Reading Appium version from app/package.json"
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v).replace(/^[^0-9]*/,''));")
+          echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
+          echo "Detected Appium version: $APP_VER"
 
       - name: Select Xcode version
         run: |
@@ -501,7 +513,7 @@ jobs:
           ios_version: ${{ inputs.platform-version || github.event.inputs.platform-version || '26.0' }}
           device_name: ${{ inputs.device-name || github.event.inputs.device-name || 'iPhone 16' }}
           node_version: '20'
-          appium_version: '3.1.1'
+          appium_version: ${{ steps.appium-version.outputs.appium_version }}
           app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
           airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
           airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}

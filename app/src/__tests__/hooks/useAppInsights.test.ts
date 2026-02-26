@@ -7,6 +7,13 @@ jest.mock('@/services/appInsightsService', () => ({
   },
 }));
 
+jest.mock('@/services/loggerService', () => ({
+  logger: {
+    info: jest.fn(),
+    trace: jest.fn(),
+  },
+}));
+
 const mockUser = {
   sub: 'auth0|123',
   'https://claims.softwareone.com/userId': 'USR-1234-5678',
@@ -23,6 +30,7 @@ import { renderHook } from '@testing-library/react-native';
 
 import { useAppInsights } from '@/hooks/useAppInsights';
 import { appInsightsService } from '@/services/appInsightsService';
+import { logger } from '@/services/loggerService';
 
 describe('useAppInsights', () => {
   beforeEach(() => {
@@ -47,15 +55,14 @@ describe('useAppInsights', () => {
         source: 'useAppInsights',
       }),
     });
+    expect(logger.info).toHaveBeenCalledWith('App mounted, telemetry event sent');
   });
 
   it('should track user context update when user exists', () => {
     renderHook(() => useAppInsights());
-    expect(appInsightsService.trackTrace).toHaveBeenCalledWith(
+    expect(logger.trace).toHaveBeenCalledWith(
       'User context updated',
-      'Information',
       expect.objectContaining({
-        component: 'App',
         action: 'UserUpdated',
       }),
     );

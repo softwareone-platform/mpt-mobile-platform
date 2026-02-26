@@ -1,7 +1,15 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+jest.mock('@/services/loggerService', () => ({
+  logger: {
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAccountApi } from '@/services/accountService';
+import { logger } from '@/services/loggerService';
 
 const mockGet = jest.fn();
 const mockPut = jest.fn();
@@ -200,7 +208,6 @@ describe('useAccountApi', () => {
 
   it('logs warning when refreshAuth fails after account switch', async () => {
     const api = setup();
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
     mockPut.mockResolvedValueOnce(undefined);
     mockRefreshAuth.mockRejectedValueOnce(new Error('Refresh failed'));
@@ -213,12 +220,9 @@ describe('useAccountApi', () => {
       currentAccount: { id: '200' },
     });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      'Failed to refresh token after account switch',
-      expect.any(Error),
-    );
-
-    consoleWarnSpy.mockRestore();
+    expect(logger.warn).toHaveBeenCalledWith('Failed to refresh token after account switch', {
+      operation: 'switchAccount',
+    });
   });
 
   it('calls getAccountData correctly', async () => {

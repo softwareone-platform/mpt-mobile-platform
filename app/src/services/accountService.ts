@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAuth } from '@/context/AuthContext';
 import { useApi } from '@/hooks/useApi';
+import { logger } from '@/services/loggerService';
 import type {
   UserAccount,
   UserData,
@@ -98,7 +99,9 @@ export function useAccountApi() {
       try {
         await refreshAuth();
       } catch (error) {
-        console.warn('Failed to refresh token after account switch', error);
+        logger.warn('Failed to refresh token after account switch', {
+          operation: 'switchAccount',
+        });
       }
     },
     [api, refreshAuth],

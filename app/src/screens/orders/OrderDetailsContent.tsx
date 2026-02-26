@@ -6,15 +6,21 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
+import { useAccount } from '@/context/AccountContext';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { OrderDetails } from '@/types/order';
 import { formatPercentage } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
+
   const labelUp = t('details.up');
   const labelDown = t('details.down');
   const labelResaleLicensee = data.licensee?.eligibility?.partner
@@ -52,22 +58,30 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.vendor?.id,
-            type: 'vendor',
-          });
-        }}
+        onPress={
+          canNavigateTo('vendorAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.vendor?.id,
+                  type: 'vendor',
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.client`)}
         data={data.client}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.client?.id,
-            type: 'client',
-          });
-        }}
+        onPress={
+          canNavigateTo('clientAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.client?.id,
+                  type: 'client',
+                });
+              }
+            : undefined
+        }
       />
       <ListItemWithLabelAndText
         title={t(`details.resaleLicensee`)}

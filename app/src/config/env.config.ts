@@ -1,4 +1,5 @@
 import {
+  LOG_LEVEL,
   AUTH0_DOMAIN,
   AUTH0_CLIENT_ID,
   AUTH0_AUDIENCE,
@@ -16,6 +17,7 @@ import {
 } from '@/utils/configValidation';
 
 type EnvironmentVariable =
+  | 'LOG_LEVEL'
   | 'AUTH0_DOMAIN'
   | 'AUTH0_CLIENT_ID'
   | 'AUTH0_AUDIENCE'
@@ -33,6 +35,7 @@ const REQUIRED_VARS: EnvironmentVariable[] = [
 ];
 
 interface EnvironmentConfig {
+  LOG_LEVEL?: string;
   AUTH0_DOMAIN?: string;
   AUTH0_CLIENT_ID?: string;
   AUTH0_AUDIENCE?: string;
@@ -53,6 +56,7 @@ class ConfigService {
 
   private loadConfig(): void {
     this.config = {
+      LOG_LEVEL,
       AUTH0_DOMAIN,
       AUTH0_CLIENT_ID,
       AUTH0_AUDIENCE,

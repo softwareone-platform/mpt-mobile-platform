@@ -62,7 +62,7 @@ describe('Order Details Page', () => {
       }
 
       await expect(orderDetailsPage.orderIdText).toBeDisplayed();
-      const orderId = await orderDetailsPage.getOrderId();
+      const orderId = await orderDetailsPage.getItemId();
       expect(orderId).toMatch(/^ORD-\d{4}-\d{4}-\d{4}$/);
     });
 
@@ -92,8 +92,9 @@ describe('Order Details Page', () => {
         return;
       }
 
-      await expect(orderDetailsPage.typeLabel).toBeDisplayed();
-      await expect(orderDetailsPage.typeValue).toBeDisplayed();
+      // Use getSimpleFieldValue for 'Type'
+      const typeValue = await orderDetailsPage.getSimpleFieldValue('Type', false);
+      expect(typeValue).toBeTruthy();
     });
 
     it('should display the Agreement field', async function () {
@@ -102,7 +103,8 @@ describe('Order Details Page', () => {
         return;
       }
 
-      await expect(orderDetailsPage.agreementField).toBeDisplayed();
+      const agreementValue = await orderDetailsPage.getCompositeFieldValueByLabel('Agreement', false);
+      expect(agreementValue).toBeTruthy();
     });
 
     it('should display the Product field', async function () {
@@ -111,7 +113,8 @@ describe('Order Details Page', () => {
         return;
       }
 
-      await expect(orderDetailsPage.productField).toBeDisplayed();
+      const productValue = await orderDetailsPage.getCompositeFieldValueByLabel('Product', false);
+      expect(productValue).toBeTruthy();
     });
 
     it('should display the Vendor field', async function () {
@@ -120,7 +123,8 @@ describe('Order Details Page', () => {
         return;
       }
 
-      await expect(orderDetailsPage.vendorField).toBeDisplayed();
+      const vendorValue = await orderDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+      expect(vendorValue).toBeTruthy();
     });
 
     it('should display the Client field', async function () {
@@ -129,7 +133,8 @@ describe('Order Details Page', () => {
         return;
       }
 
-      await expect(orderDetailsPage.clientField).toBeDisplayed();
+      const clientValue = await orderDetailsPage.getCompositeFieldValueByLabel('Client', false);
+      expect(clientValue).toBeTruthy();
     });
 
     it('should display the Currency field', async function () {
@@ -138,11 +143,7 @@ describe('Order Details Page', () => {
         return;
       }
 
-      // Use the same approach as the API validation test which works
-      // getSimpleFieldValue handles scrolling based on value visibility
-      const currencyValue = await orderDetailsPage.getCurrency();
-
-      // Verify we got a valid currency value
+      const currencyValue = await orderDetailsPage.getSimpleFieldValue('Currency', true);
       expect(currencyValue).toBeTruthy();
       console.info(`[Currency Field] Value: ${currencyValue}`);
     });
@@ -155,7 +156,7 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const uiOrderId = await orderDetailsPage.getOrderId();
+      const uiOrderId = await orderDetailsPage.getItemId();
       const apiOrderId = apiOrderData.id || apiOrderData.orderId;
 
       console.info(`[Order ID] UI: ${uiOrderId} | API: ${apiOrderId}`);
@@ -173,13 +174,10 @@ describe('Order Details Page', () => {
 
       console.info(`[Status] UI: ${uiStatus} | API: ${apiStatus}`);
 
-      // Note: Order status can change in real-time as orders are processed.
-      // If there's a mismatch, log a warning but only fail if both are empty.
       if (uiStatus !== apiStatus) {
         console.warn(`[Status Mismatch] Order status may have changed during test execution. UI: ${uiStatus}, API: ${apiStatus}`);
       }
 
-      // At minimum, both should have a valid status
       expect(uiStatus).toBeTruthy();
       expect(apiStatus).toBeTruthy();
     });
@@ -190,7 +188,7 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const uiType = await orderDetailsPage.getType();
+      const uiType = await orderDetailsPage.getSimpleFieldValue('Type', false);
       const apiType = apiOrderData.type;
 
       console.info(`[Type] UI: ${uiType} | API: ${apiType}`);
@@ -203,7 +201,7 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const uiCurrency = await orderDetailsPage.getCurrency();
+      const uiCurrency = await orderDetailsPage.getSimpleFieldValue('Currency', true);
       const apiCurrency = apiOrderData.price?.currency;
 
       console.info(`[Currency] UI: ${uiCurrency} | API: ${apiCurrency}`);
@@ -216,13 +214,11 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const uiAgreement = await orderDetailsPage.getAgreementName();
+      const uiAgreement = await orderDetailsPage.getCompositeFieldValueByLabel('Agreement', false);
       const apiAgreement = apiOrderData.agreement?.name || apiOrderData.agreementName || '';
 
       console.info(`[Agreement] UI: ${uiAgreement} | API: ${apiAgreement}`);
-      // Assert API value is present before comparison
       expect(apiAgreement).toBeTruthy();
-      // Use toContain for flexibility with truncation
       expect(uiAgreement).toContain(apiAgreement.substring(0, 20));
     });
 
@@ -232,11 +228,10 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const uiProduct = await orderDetailsPage.getProductName();
+      const uiProduct = await orderDetailsPage.getCompositeFieldValueByLabel('Product', false);
       const apiProduct = apiOrderData.product?.name || apiOrderData.productName || '';
 
       console.info(`[Product] UI: ${uiProduct} | API: ${apiProduct}`);
-      // Assert API value is present before comparison
       expect(apiProduct).toBeTruthy();
       expect(uiProduct).toContain(apiProduct.substring(0, 20));
     });
@@ -247,7 +242,7 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const uiVendor = await orderDetailsPage.getVendorName();
+      const uiVendor = await orderDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
       const apiVendor = apiOrderData.vendor?.name || apiOrderData.vendorName || '';
 
       console.info(`[Vendor] UI: ${uiVendor} | API: ${apiVendor}`);
@@ -260,11 +255,10 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const uiClient = await orderDetailsPage.getClientName();
+      const uiClient = await orderDetailsPage.getCompositeFieldValueByLabel('Client', false);
       const apiClientName = apiOrderData.client?.name || apiOrderData.buyer?.name || apiOrderData.clientName || '';
 
       console.info(`[Client] UI: ${uiClient} | API: ${apiClientName}`);
-      // Assert API value is present before comparison
       expect(apiClientName).toBeTruthy();
       expect(uiClient).toContain(apiClientName.substring(0, 20));
     });

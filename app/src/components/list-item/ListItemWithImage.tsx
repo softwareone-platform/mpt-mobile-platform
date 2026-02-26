@@ -15,6 +15,7 @@ type Props = {
   isSelected?: boolean;
   isUpdatingSelection?: boolean;
   onPress?: () => void;
+  disabled?: boolean;
   testID?: string;
 };
 
@@ -29,9 +30,16 @@ const ListItemWithImage = ({
   isSelected,
   isUpdatingSelection,
   onPress,
+  disabled,
   testID,
 }: Props) => (
-  <TouchableOpacity testID={testID} style={styles.container} onPress={onPress} activeOpacity={0.7}>
+  <TouchableOpacity
+    testID={testID}
+    style={styles.container}
+    onPress={onPress}
+    disabled={disabled || !onPress}
+    activeOpacity={0.7}
+  >
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
       {!hideImage && (
         <View style={styles.avatarWrapper}>
@@ -43,7 +51,10 @@ const ListItemWithImage = ({
           {title}
         </Text>
         <Text
-          style={subtitleLink ? styles.subtitleLink : styles.subtitle}
+          style={[
+            subtitleLink ? styles.subtitleLink : styles.subtitle,
+            disabled && styles.disabledSubtitle,
+          ]}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
@@ -71,6 +82,7 @@ const styles = StyleSheet.create({
   title: listItemStyle.title,
   subtitle: listItemStyle.textAndImage.subtitle,
   subtitleLink: linkStyle.listItemLinkRegular,
+  disabledSubtitle: listItemStyle.disabled.subtitle,
 });
 
 export default ListItemWithImage;
