@@ -1,4 +1,5 @@
 import { appInsightsService } from '@/services/appInsightsService';
+import { logger } from '@/services/loggerService';
 
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_INITIAL_DELAY_MS = 1000;
@@ -74,13 +75,17 @@ function shouldRetry(
 
 function logRetryAttempt(operationName: string, attempt: number, maxAttempts: number): void {
   if (attempt > FIRST_ATTEMPT) {
-    console.info(`[Retry] Attempting ${operationName} (attempt ${attempt}/${maxAttempts})`);
+    logger.info(`Attempting ${operationName} (attempt ${attempt}/${maxAttempts})`, {
+      operation: 'retryAttempt',
+    });
   }
 }
 
 function logRetrySuccess(operationName: string, attempt: number): void {
   if (attempt > FIRST_ATTEMPT) {
-    console.info(`[Retry] ${operationName} succeeded on attempt ${attempt}`);
+    logger.info(`${operationName} succeeded on attempt ${attempt}`, {
+      operation: 'retrySuccess',
+    });
     appInsightsService.trackEvent({
       name: 'Auth0RetrySuccess',
       properties: {
@@ -99,9 +104,13 @@ function logAndTrackFailure(
   isRetryable: boolean,
 ): void {
   if (!isRetryable) {
-    console.error(`[Retry] ${operationName} failed with non-retryable error`, error);
+    logger.error(`${operationName} failed with non-retryable error`, error, {
+      operation: 'retryFailureNonRetryable',
+    });
   } else {
-    console.error(`[Retry] ${operationName} failed after ${attempt} attempts`, error);
+    logger.error(`${operationName} failed after ${attempt} attempts`, error, {
+      operation: 'retryFailureExhausted',
+    });
     appInsightsService.trackEvent({
       name: 'Auth0RetryFailure',
       properties: {
@@ -122,9 +131,9 @@ async function executeRetryDelay(
   error: unknown,
 ): Promise<void> {
   const delayMs = calculateDelay(attempt, initialDelayMs, maxDelayMs, backoffMultiplier);
-  console.info(
-    `[Retry] ${operationName} failed on attempt ${attempt}, retrying in ${delayMs}ms...`,
-  );
+  logger.info(`${operationName} failed on attempt ${attempt}, retrying in ${delayMs}ms`, {
+    operation: 'retryDelay',
+  });
 
   appInsightsService.trackEvent({
     name: 'Auth0RetryAttempt',

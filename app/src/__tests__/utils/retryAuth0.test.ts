@@ -6,6 +6,13 @@ jest.mock('@/services/appInsightsService', () => ({
   },
 }));
 
+jest.mock('@/services/loggerService', () => ({
+  logger: {
+    info: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 describe('retryAuth0Operation', () => {
   beforeEach(() => {
     jest.clearAllMocks();

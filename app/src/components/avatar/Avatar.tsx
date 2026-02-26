@@ -6,6 +6,7 @@ import Jdenticon from '@/components/common/JdenticonIcon';
 import { configService } from '@/config/env.config';
 import { DEFAULT_AVATAR_SIZE, DEFAULT_AVATAR_VARIANT } from '@/constants';
 import { getAccessTokenAsync } from '@/lib/tokenProvider';
+import { logger } from '@/services/loggerService';
 import { avatarStyle } from '@/styles';
 import { HttpMethod } from '@/types/api';
 import type { AvatarProps } from '@/types/icons';
@@ -72,7 +73,9 @@ const Avatar: React.FC<AvatarProps> = ({
         imageSourceCache.set(imagePath, source);
         setImageSource(source);
       } catch (error) {
-        console.warn('Failed to get authenticated image URL:', error);
+        logger.warn('Failed to get authenticated image URL', {
+          operation: 'fetchImageSource',
+        });
         setImageSource(null);
       }
     };
@@ -81,7 +84,9 @@ const Avatar: React.FC<AvatarProps> = ({
   }, [imagePath, BASE_URL]);
 
   const handleImageLoadError = () => {
-    console.warn('Failed to load avatar image');
+    logger.warn('Failed to load avatar image', {
+      imagePath,
+    });
     setHasError(true);
     setImageSource(null);
   };
