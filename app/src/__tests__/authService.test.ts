@@ -10,6 +10,14 @@ let mockClearCredentials: jest.Mock;
 jest.mock('../services/appInsightsService', () => ({
   appInsightsService: {
     trackException: jest.fn(),
+    isReady: jest.fn(() => false),
+  },
+}));
+
+jest.mock('../services/loggerService', () => ({
+  logger: {
+    warn: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
@@ -50,6 +58,7 @@ jest.mock('../config/env.config', () => ({
 const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
 
 import authService, { User } from '../services/authService';
+import { logger } from '../services/loggerService';
 
 describe('authService', () => {
   beforeEach(() => {
@@ -117,9 +126,12 @@ describe('authService', () => {
       expect(() => authService.getUserFromToken('invalid-token')).toThrow(
         'Failed to decode user from token',
       );
-      expect(console.error).toHaveBeenCalledWith(
-        'Failed to decode user from token:',
-        'Invalid token format',
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to decode user from token',
+        expect.any(Error),
+        {
+          operation: 'getUserFromToken',
+        },
       );
     });
 
@@ -289,17 +301,14 @@ describe('authService', () => {
     });
 
     it('should handle error when clearing credentials fails', async () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       const error = new Error('Clear credentials failed');
       mockClearCredentials.mockRejectedValue(error);
 
       await authService.reinitialize();
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'Failed to clear credentials during reinitialize:',
-        error,
-      );
-      consoleWarnSpy.mockRestore();
+      expect(logger.warn).toHaveBeenCalledWith('Failed to clear credentials during reinitialize', {
+        operation: 'reinitialize',
+      });
     });
 
     it('should handle missing credentialsManager gracefully', async () => {

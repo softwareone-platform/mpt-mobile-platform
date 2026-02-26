@@ -13,6 +13,7 @@ import { tokenProvider } from '@/lib/tokenProvider';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
 import { environmentSwitcherService } from '@/services/environmentSwitcherService';
+import { logger } from '@/services/loggerService';
 import { PortalVersionInfo } from '@/services/portalVersionService';
 import { AccountType } from '@/types/common';
 import { ModuleClaims } from '@/types/modules';
@@ -126,7 +127,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       await credentialStorageService.storeTokens(newTokens);
       setAuthenticated(user, newTokens);
     } catch (error) {
-      console.error('Failed to load stored auth:', error instanceof Error ? error.message : error);
+      logger.error('Failed to load stored auth', error, {
+        operation: 'loadStoredAuth',
+      });
       await setUnauthenticated();
     }
   }, [setUnauthenticated, setAuthenticated]);
@@ -141,7 +144,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         await authService.logout(authState.tokens.refreshToken);
       }
     } catch (error) {
-      console.error('Logout API error:', error instanceof Error ? error.message : error);
+      logger.error('Logout API error', error, {
+        operation: 'logout',
+      });
     } finally {
       await credentialStorageService.clearAllCredentials();
       dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
@@ -164,7 +169,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
       return newTokens;
     } catch (error) {
-      console.error('Failed to refresh auth:', error instanceof Error ? error.message : error);
+      logger.error('Failed to refresh auth', error, {
+        operation: 'refreshAuth',
+      });
       await logout();
       return null;
     }
@@ -190,7 +197,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const timeUntilRefresh = calculateTimeUntilRefresh(authState.tokens.expiresAt);
     if (timeUntilRefresh <= 0) {
-      console.warn('Token is expiring soon, refreshing immediately');
+      logger.warn('Token is expiring soon, refreshing immediately');
       void refreshAuth();
       return;
     }
@@ -207,10 +214,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       await environmentSwitcherService.switchEnvironmentForEmail(email);
       await authService.sendPasswordlessEmail(email);
     } catch (error) {
-      console.error(
-        'Send passwordless email error:',
-        error instanceof Error ? error.message : error,
-      );
+      logger.error('Send passwordless email error', error, {
+        operation: 'sendPasswordlessEmail',
+      });
       throw error;
     }
   };
@@ -239,10 +245,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     try {
       await authService.resendPasswordlessEmail(email);
     } catch (error) {
-      console.error(
-        'Resend passwordless email error:',
-        error instanceof Error ? error.message : error,
-      );
+      logger.error('Resend passwordless email error', error, {
+        operation: 'resendPasswordlessEmail',
+      });
       throw error;
     }
   };
@@ -260,10 +265,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       const newTokens = await refreshAuth();
       return newTokens?.accessToken ?? authState.tokens?.accessToken ?? null;
     } catch (error) {
-      console.error(
-        'Failed to refresh token for API call:',
-        error instanceof Error ? error.message : error,
-      );
+      logger.error('Failed to refresh token for API call', error, {
+        operation: 'getAccessToken',
+      });
       return null;
     }
   }, [authState.status, authState.tokens, refreshAuth]);

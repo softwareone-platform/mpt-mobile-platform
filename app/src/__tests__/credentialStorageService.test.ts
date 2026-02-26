@@ -1,11 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
-import { AuthTokens, User } from '../services/authService';
-import { credentialStorageService } from '../services/credentialStorageService';
-
 jest.mock('expo-secure-store');
 jest.mock('@react-native-async-storage/async-storage');
+jest.mock('../services/loggerService', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
+
+import { AuthTokens, User } from '../services/authService';
+import { credentialStorageService } from '../services/credentialStorageService';
+import { logger } from '../services/loggerService';
 
 const mockSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
@@ -13,12 +20,6 @@ const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 describe('CredentialStorageService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(console, 'log').mockImplementation();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   describe('Core Security Requirements', () => {
@@ -116,7 +117,7 @@ describe('CredentialStorageService', () => {
       mockAsyncStorage.setItem.mockRejectedValue(new Error('AsyncStorage error'));
 
       await expect(credentialStorageService.storeTokens(mockTokens)).resolves.toBeUndefined();
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
 
     it('should handle retrieval errors gracefully', async () => {
@@ -131,7 +132,7 @@ describe('CredentialStorageService', () => {
       mockAsyncStorage.removeItem.mockRejectedValue(new Error('Clear error'));
 
       await expect(credentialStorageService.clearAllCredentials()).resolves.toBeUndefined();
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 
@@ -175,7 +176,7 @@ describe('CredentialStorageService', () => {
 
       expect(result.refreshToken).toBeNull();
       expect(result.metadata).toBeNull();
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 
@@ -199,7 +200,7 @@ describe('CredentialStorageService', () => {
       mockAsyncStorage.setItem.mockRejectedValue(new Error('Store failed'));
 
       await expect(credentialStorageService.storeUser(mockUser)).resolves.toBeUndefined();
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 
@@ -224,7 +225,7 @@ describe('CredentialStorageService', () => {
       const result = await credentialStorageService.loadUser();
 
       expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalledWith('No stored user data found');
+      expect(logger.error).toHaveBeenCalled();
     });
 
     it('should handle load error and return null', async () => {
@@ -233,7 +234,7 @@ describe('CredentialStorageService', () => {
       const result = await credentialStorageService.loadUser();
 
       expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 
@@ -262,7 +263,7 @@ describe('CredentialStorageService', () => {
       expect(result.refreshToken).toBeNull();
       expect(result.metadata).toBeNull();
       expect(result.user).toBeNull();
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 
@@ -299,7 +300,7 @@ describe('CredentialStorageService', () => {
       await expect(
         credentialStorageService.storeCredentials(mockTokens, mockUser),
       ).resolves.toBeUndefined();
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 

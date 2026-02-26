@@ -6,8 +6,16 @@ jest.mock('../services/appInsightsService', () => ({
   },
 }));
 
+jest.mock('../services/loggerService', () => ({
+  logger: {
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 import { configService } from '../config/env.config';
 import apiClient from '../lib/apiClient';
+import { logger } from '../services/loggerService';
 import { parseSemanticVersion, fetchPortalVersion } from '../services/portalVersionService';
 
 jest.mock('../config/env.config');
@@ -25,13 +33,6 @@ type PortalManifest = {
 describe('portalVersionService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'warn').mockImplementation();
-    jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(console, 'log').mockImplementation();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   describe('parseSemanticVersion', () => {
@@ -147,8 +148,8 @@ describe('portalVersionService', () => {
         minor: 0,
         patch: 0,
       });
-      expect(console.warn).toHaveBeenCalledWith(
-        'Portal version fetch skipped: Api url not configured, using fallback',
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Portal version fetch skipped: API url not configured, using fallback',
       );
       expect(mockApiClient.get).not.toHaveBeenCalled();
     });

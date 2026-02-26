@@ -8,6 +8,7 @@ import {
   AUTH0_REFRESH_TOKEN_INITIAL_DELAY_MS,
 } from '@/constants/api';
 import { appInsightsService } from '@/services/appInsightsService';
+import { logger } from '@/services/loggerService';
 import { retryAuth0Operation } from '@/utils/retryAuth0';
 
 export interface AuthTokens {
@@ -76,7 +77,9 @@ class AuthenticationService {
         await this.auth0.credentialsManager.clearCredentials();
       }
     } catch (error) {
-      console.warn('Failed to clear credentials during reinitialize:', error);
+      logger.warn('Failed to clear credentials during reinitialize', {
+        operation: 'reinitialize',
+      });
     }
 
     this.auth0 = this.createAuth0Instance();
@@ -87,12 +90,9 @@ class AuthenticationService {
       const decoded = jwtDecode<JWTPayload>(accessToken);
       return decoded.exp;
     } catch (error) {
-      console.error('Failed to decode JWT:', error instanceof Error ? error.message : error);
-      appInsightsService.trackException(
-        error instanceof Error ? error : new Error('Failed to decode JWT'),
-        { operation: 'getExpiryFromJWT' },
-        'Warning',
-      );
+      logger.error('Failed to decode JWT', error, {
+        operation: 'getExpiryFromJWT',
+      });
       return undefined;
     }
   }
@@ -173,12 +173,10 @@ class AuthenticationService {
       const decoded = jwtDecode<User>(accessToken);
       return decoded;
     } catch (error) {
-      console.error(
-        'Failed to decode user from token:',
-        error instanceof Error ? error.message : error,
-      );
+      logger.error('Failed to decode user from token', error, {
+        operation: 'getUserFromToken',
+      });
       const err = new Error('Failed to decode user from token');
-      appInsightsService.trackException(err, { operation: 'getUserFromToken' }, 'Error');
       throw err;
     }
   }

@@ -6,6 +6,7 @@ import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
 import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
 import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
 import { useUserData } from '@/hooks/queries/useUserData';
+import { logger } from '@/services/loggerService';
 import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
 
 interface AccountContextValue {
@@ -29,7 +30,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const userId = user?.['https://claims.softwareone.com/userId'] as string | undefined;
 
   if (user && (!userId || userId.trim() === '')) {
-    console.error('User authentication token is missing required userId claim.');
+    logger.error('User authentication token is missing required userId claim');
   }
 
   const {
@@ -69,7 +70,11 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         queryClient.removeQueries({ queryKey: ['userData', userId] });
         queryClient.removeQueries({ queryKey: ['spotlightData', userId] });
       } catch (error) {
-        console.error('Failed to switch account', error);
+        logger.error('Failed to switch account', error, {
+          operation: 'switchAccount',
+          userId,
+          accountId,
+        });
         throw error;
       } finally {
         setIsSwitchingAccount(false);
