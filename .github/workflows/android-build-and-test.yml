@@ -97,6 +97,7 @@ env:
   BUILD_MODE: ${{ inputs.build-mode || github.event.inputs.build-mode || 'Release' }}
   API_LEVEL: ${{ inputs.api-level || github.event.inputs.api-level || '34' }}
   DEVICE_PROFILE: ${{ inputs.device-profile || github.event.inputs.device-profile || 'pixel_6' }}
+  DEFAULT_APPIUM_VERSION: '3.1.1'
 
 jobs:
   build-android:
@@ -122,6 +123,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Read Appium version from package.json
+        id: appium-version
+        env:
+          DEFAULT_APPIUM_VERSION: ${{ env.DEFAULT_APPIUM_VERSION }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "Reading Appium version from app/package.json"
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v).replace(/^[^0-9]*/,''));")
+          echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
+          echo "Detected Appium version: $APP_VER"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -503,7 +515,7 @@ jobs:
           api_level: ${{ env.API_LEVEL }}
           device_name: ${{ env.DEVICE_PROFILE }}
           node_version: '20'
-          appium_version: '3.1.1'
+          appium_version: ${{ steps.appium-version.outputs.appium_version }}
           airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
           airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
           airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}

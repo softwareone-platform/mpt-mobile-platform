@@ -18,7 +18,47 @@ const { TIMEOUT, PAUSE, SCROLL } = require('../utils/constants');
  * - itemPrefix: string - e.g., 'ORD-', 'SUB-', 'AGR-'
  * - pageName: string - e.g., 'Order', 'Subscription', 'Agreement'
  *
+ * Example usage:
+ *
+ *   class OrderDetailsPage extends DetailsPage {
+ *     get itemPrefix() { return 'ORD-'; }
+ *     get pageName() { return 'Order'; }
+ *     // Add order-specific selectors or helpers here
+ *   }
+ *
+ *   module.exports = new OrderDetailsPage();
+ *
+ * Naming conventions:
+ * - Use getSimpleField(labelText) and getSimpleFieldValue(labelText, scrollIfNeeded) for label-value pairs
+ * - Use getCompositeField(labelPrefix) and getCompositeFieldValue(element, scrollIfNeeded) for composite fields
+ * - Use itemIdText for the main ID element, statusText for status
+ * - Subclasses may add aliases (e.g., orderIdText, subscriptionIdText) for clarity
+ *
  * @abstract
+ */
+/**
+ * Abstract base class for all details pages.
+ *
+ * To extend:
+ *   class MyDetailsPage extends DetailsPage {
+ *     get itemPrefix() { return 'XXX-'; }
+ *     get pageName() { return 'MyPage'; }
+ *     // Add page-specific selectors or helpers here
+ *   }
+ *
+ * Required overrides:
+ *   - itemPrefix: string (e.g., 'ORD-', 'SUB-')
+ *   - pageName: string (e.g., 'Order', 'Subscription')
+ *
+ * Provided helpers:
+ *   - getItemId(), getStatus(), getSimpleFieldValue(), getCompositeFieldValue(), scrollToTop(), isOnDetailsPage()
+ *   - getSimpleField(labelText), getCompositeField(labelPrefix)
+ *
+ * Naming conventions:
+ *   - Use getSimpleField/getSimpleFieldValue for label-value pairs
+ *   - Use getCompositeField/getCompositeFieldValue for composite fields
+ *   - Use itemIdText for the main ID element, statusText for status
+ *   - Subclasses may add aliases (e.g., orderIdText, subscriptionIdText) for clarity
  */
 class DetailsPage extends BasePage {
   constructor() {
@@ -45,7 +85,6 @@ class DetailsPage extends BasePage {
   }
 
   // ========== Common Header Elements ==========
-
   get goBackButton() {
     return $(
       getSelector({
@@ -108,6 +147,20 @@ class DetailsPage extends BasePage {
     );
   }
 
+  /**
+   * Get a status element by its string value (robust for standalone status fields)
+   * @param {string} statusValue - The status string (e.g., 'Paid', 'Issued', 'Overdue')
+   * @returns {WebdriverIO.Element}
+   */
+  getStatusByName(statusValue) {
+    return $(
+      getSelector({
+        ios: `//XCUIElementTypeStaticText[@name="${statusValue}"]`,
+        android: `//android.widget.TextView[@text="${statusValue}"]`,
+      })
+    );
+  }
+
   // ========== Scroll Methods ==========
   // scrollDown(), scrollUp(), and _performSwipe() are inherited from BasePage
 
@@ -115,9 +168,9 @@ class DetailsPage extends BasePage {
    * Scroll to the top of the details view
    * Useful before gathering all details to ensure we start from the top
    */
-  async scrollToTop() {
+  async scrollToTop(maxAttempts = 3) {
     // Scroll up multiple times to ensure we're at the top
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < maxAttempts; i++) {
       await this.scrollUp();
       await browser.pause(PAUSE.ANIMATION_SETTLE);
     }
@@ -224,6 +277,9 @@ class DetailsPage extends BasePage {
     }
     // Split on first ", " to get the value part
     const parts = label.split(', ');
+    console.log(`[getCompositeFieldValue] Raw label: "${label}"`);
+    console.log(`[getCompositeFieldValue] Extracted value: "${parts}"`);
+    console.log(`[getCompositeFieldValue] Returned value: "${parts.slice(1).join(', ').trim()}"`);
     return parts.slice(1).join(', ').trim();
   }
 

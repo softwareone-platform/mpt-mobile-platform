@@ -308,7 +308,7 @@ class ListPage extends BasePage {
   async getItemDetails(itemElement) {
     const label = (await itemElement.getAttribute('name')) || (await itemElement.getAttribute('content-desc'));
     // Basic parsing - subclasses should override for specific formats
-    const idMatch = label.match(new RegExp(`(${this.itemPrefix}\\d{4}-\\d{4}-\\d{4})`));
+    const idMatch = label.match(new RegExp(`(${this.itemPrefix}\\d{4}(?:-\\d{4})+)`));
     const id = idMatch ? idMatch[1] : '';
 
     // Try to extract status (assumes format ends with ", Status")

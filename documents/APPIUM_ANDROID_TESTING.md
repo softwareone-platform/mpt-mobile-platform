@@ -2,6 +2,10 @@
 
 This guide covers how to run Appium tests for Android on macOS and Linux. It provides cross-platform instructions for building, deploying, and testing the Android application.
 
+## Appium version sync
+
+The `run-local-test.sh` script contains logic to try and start an Appium server that matches the version declared in `app/package.json`. It prefers a local project binary, then `npx appium@<version>`, then a global `appium` binary. If you experience mismatched Appium versions when the script starts the server, see [Appium Version & Binary Sync](APPIUM_VERSION_SYNC.md) for diagnostics and remediation steps.
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
