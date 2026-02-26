@@ -116,8 +116,4 @@ Set log level via `LOG_LEVEL` environment variable:
 
 **Priority system:** Higher log levels include all higher-priority logs. `trace` is a wildcard that always logs regardless of `LOG_LEVEL`.
 
-- `error` - Errors only (least verbose)
-
-**Priority system:** Higher log levels include all higher-priority logs. `trace` is always included regardless of configured level.
-
 See [loggerService.ts](../app/src/services/loggerService.ts) for implementation.
