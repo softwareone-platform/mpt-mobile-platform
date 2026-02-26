@@ -40,7 +40,6 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - Write tests for all utilities and services
 - Use i18n translations instead of hardcoded strings
 - Use shared constants (e.g. `EMPTY_VALUE`) instead of hardcoded fallback literals
-- Use single quotes `'` in `t()` calls; only use backticks when interpolation is needed
 - Use `===` and `!==` for comparisons
 - Handle all promises with `await`, `.then()`, or explicit `void`
 - Use `logger.error()`, `logger.warn()`, `logger.info()`, or `logger.trace()` for logging (see [LOGGING.md](../documents/LOGGING.md))
@@ -948,24 +947,6 @@ Proper nouns, product names, and brand names retain their official capitalizatio
 - "Microsoft azure"
 - "Sign in with google"
 - "Softwareone marketplace"
-```
-
-### Quote Style in `t()` Calls
-
-Use **single quotes** `'...'` for static translation keys. Only use **backticks** `` `...` `` when you need string interpolation.
-
-```typescript
-// ✅ Good: single quotes for static keys
-t("details.eligibility");
-t("settings.title");
-
-// ✅ Good: backticks when interpolation is needed
-t(`details.${sectionKey}`);
-t(`errors.${errorCode}`);
-
-// ❌ Bad: backticks without interpolation (unnecessary)
-t(`details.website`);
-t(`settings.title`);
 ```
 
 ### Translation File Organization (i18n)
