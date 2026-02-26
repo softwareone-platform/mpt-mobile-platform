@@ -2,34 +2,40 @@ import { appInsightsService } from './appInsightsService';
 import type { SeverityLevel } from './appInsightsService';
 
 import { configService } from '@/config/env.config';
-import { DEFAULT_ENVIRONMENT, LOG_LEVELS_BY_ENVIRONMENT } from '@/constants/logger';
-import type { AppEnvironment, LogContext, LogLevel } from '@/types/logger';
+import { DEFAULT_LOG_LEVEL, LOG_LEVEL_PRIORITY } from '@/constants/logger';
+import type { LogContext, LogLevel } from '@/types/logger';
 
 class LoggerService {
-  private environment: AppEnvironment;
   private enabledLevels: LogLevel[];
+  private configuredLevel: LogLevel;
 
   constructor() {
-    this.environment = this.getEnvironment();
-    this.enabledLevels = LOG_LEVELS_BY_ENVIRONMENT[this.environment];
+    this.configuredLevel = this.getLogLevel();
+    this.enabledLevels = this.calculateEnabledLevels(this.configuredLevel);
   }
 
-  private getEnvironment(): AppEnvironment {
-    const env = configService.get('APP_ENV')?.toLowerCase();
+  private getLogLevel(): LogLevel {
+    const level = configService.get('LOG_LEVEL')?.toLowerCase();
 
-    if (env === 'prod') {
-      return 'prod';
+    const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error', 'trace'];
+    if (level && validLevels.includes(level as LogLevel)) {
+      return level as LogLevel;
     }
 
-    if (env === 'qa') {
-      return 'qa';
+    return DEFAULT_LOG_LEVEL;
+  }
+
+  private calculateEnabledLevels(configuredLevel: LogLevel): LogLevel[] {
+    const configuredPriority = LOG_LEVEL_PRIORITY[configuredLevel];
+    const enabled: LogLevel[] = [];
+
+    for (const [level, priority] of Object.entries(LOG_LEVEL_PRIORITY)) {
+      if (priority >= configuredPriority) {
+        enabled.push(level as LogLevel);
+      }
     }
 
-    if (env === 'dev') {
-      return 'dev';
-    }
-
-    return DEFAULT_ENVIRONMENT;
+    return enabled;
   }
 
   private isLevelEnabled(level: LogLevel): boolean {
@@ -138,7 +144,7 @@ class LoggerService {
 
   public getConfig() {
     return {
-      environment: this.environment,
+      configuredLevel: this.configuredLevel,
       enabledLevels: [...this.enabledLevels],
     };
   }

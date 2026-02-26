@@ -43,7 +43,7 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - Use single quotes `'` in `t()` calls; only use backticks when interpolation is needed
 - Use `===` and `!==` for comparisons
 - Handle all promises with `await`, `.then()`, or explicit `void`
-- Use `console.error()`, `console.warn()`, or `console.info()` for logging
+- Use `logger.error()`, `logger.warn()`, `logger.info()`, or `logger.trace()` for logging (see [LOGGING.md](../documents/LOGGING.md))
 
 ### Don'ts ❌
 
@@ -52,7 +52,7 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - Don't use `any` type
 - Don't create components without TypeScript props interface
 - Don't forget to handle loading and error states
-- Don't use `console.log()` - it's banned by ESLint
+- Don't use `console.log()` - it's banned by ESLint (use `logger.*` methods instead)
 - Don't use `==` or `!=` - always use strict equality
 - Don't leave promises unhandled (floating promises)
 - Don't use `var` - use `const` or `let`
@@ -637,7 +637,7 @@ type RootStackParamList = {
 // ✅ Good: handle optional property
 const ProfileScreen = ({ route }: ProfileScreenProps) => {
   const { userId, tab } = route.params;
-  const activeTab = tab ?? 'overview'; // default for optional param
+  const activeTab = tab ?? "overview"; // default for optional param
 };
 
 // ❌ Bad: assuming optional property exists
@@ -652,7 +652,7 @@ const ProfileScreen = ({ route }: ProfileScreenProps) => {
 | Param type definition          | `route.params` null-check needed? | Nullable properties need handling? |
 | ------------------------------ | --------------------------------- | ---------------------------------- |
 | `undefined`                    | **Yes** — always null-check       | N/A (no params)                    |
-| `{ id: string }`              | No — guaranteed by TypeScript     | No — all required                  |
+| `{ id: string }`               | No — guaranteed by TypeScript     | No — all required                  |
 | `{ id: string; tab?: string }` | No — guaranteed by TypeScript     | **Yes** — handle `tab`             |
 | `{ id: string \| undefined }`  | No — guaranteed by TypeScript     | **Yes** — handle `id`              |
 
@@ -765,13 +765,12 @@ export const isUnauthorisedError = (error: unknown): boolean => {
 ### Error Handling in Components
 
 ```typescript
+import { logger } from "@/services/loggerService";
+
 try {
   await login(email, otp);
 } catch (error) {
-  console.error(
-    "OTP verification error:",
-    error instanceof Error ? error.message : "Unknown error",
-  );
+  logger.error("OTP verification error", error, { operation: "login" });
 
   if (error instanceof Error) {
     const translationKey =
@@ -788,6 +787,7 @@ try {
 **Security Best Practice:** To prevent information disclosure, the backend typically returns `404 Not Found` instead of `401 Unauthorized` or `403 Forbidden` when a user lacks access to a resource.
 
 **Why?**
+
 - `401`/`403` reveals that the resource exists but you can't access it
 - Attackers can enumerate which resources exist by observing status codes
 - `404` is ambiguous - resource may not exist OR you lack permission
@@ -812,6 +812,7 @@ if (error.status === 403) {
 ```
 
 **Exceptions:**
+
 - Authentication endpoints (login/logout) can use `401` appropriately
 - Admin dashboards where security is less critical
 - When explicitly documented as acceptable
@@ -955,36 +956,36 @@ Use **single quotes** `'...'` for static translation keys. Only use **backticks*
 
 ```typescript
 // ✅ Good: single quotes for static keys
-t('details.eligibility')
-t('settings.title')
+t("details.eligibility");
+t("settings.title");
 
 // ✅ Good: backticks when interpolation is needed
-t(`details.${sectionKey}`)
-t(`errors.${errorCode}`)
+t(`details.${sectionKey}`);
+t(`errors.${errorCode}`);
 
 // ❌ Bad: backticks without interpolation (unnecessary)
-t(`details.website`)
-t(`settings.title`)
+t(`details.website`);
+t(`settings.title`);
 ```
 
 ### Translation File Organization (i18n)
 
 Translation keys must live in the JSON file that matches their **domain**, not in unrelated files. The existing files map to feature areas:
 
-| File               | Domain / Contents                                |
-| ------------------ | ------------------------------------------------ |
-| `auth.json`        | Authentication, login, OTP                       |
-| `billing.json`     | Invoices, credit memos, statements               |
-| `marketplace.json` | Catalog, products, sellers                       |
-| `program.json`     | Programs, enrollments                            |
-| `account.json`     | Account settings, profile                        |
-| `navigation.json`  | Tab labels, menu items                           |
-| `settings.json`    | App settings, preferences                        |
-| `shared.json`      | Truly cross-cutting keys (e.g. "Loading...")     |
-| `status.json`      | Status labels and badges                         |
-| `details.json`     | Detail screen labels                             |
-| `home.json`        | Home / spotlight                                 |
-| `admin.json`       | Admin-specific features                          |
+| File               | Domain / Contents                            |
+| ------------------ | -------------------------------------------- |
+| `auth.json`        | Authentication, login, OTP                   |
+| `billing.json`     | Invoices, credit memos, statements           |
+| `marketplace.json` | Catalog, products, sellers                   |
+| `program.json`     | Programs, enrollments                        |
+| `account.json`     | Account settings, profile                    |
+| `navigation.json`  | Tab labels, menu items                       |
+| `settings.json`    | App settings, preferences                    |
+| `shared.json`      | Truly cross-cutting keys (e.g. "Loading...") |
+| `status.json`      | Status labels and badges                     |
+| `details.json`     | Detail screen labels                         |
+| `home.json`        | Home / spotlight                             |
+| `admin.json`       | Admin-specific features                      |
 
 **Rules:**
 
@@ -1162,19 +1163,19 @@ Optionally include a scope:
 
 ### Allowed Types
 
-| Type       | Purpose                                                  |
-| ---------- | -------------------------------------------------------- |
-| `feat`     | New feature or user-facing change                        |
-| `fix`      | Bug fix                                                  |
-| `chore`    | Maintenance, dependency updates, config changes          |
-| `docs`     | Documentation only                                       |
-| `test`     | Adding or updating tests                                 |
-| `refactor` | Code change that neither fixes a bug nor adds a feature  |
-| `style`    | Formatting, whitespace — no logic changes                |
-| `ci`       | CI/CD workflow changes                                   |
-| `perf`     | Performance improvement                                  |
-| `build`    | Build system or external dependency changes              |
-| `revert`   | Reverts a previous commit                                |
+| Type       | Purpose                                                 |
+| ---------- | ------------------------------------------------------- |
+| `feat`     | New feature or user-facing change                       |
+| `fix`      | Bug fix                                                 |
+| `chore`    | Maintenance, dependency updates, config changes         |
+| `docs`     | Documentation only                                      |
+| `test`     | Adding or updating tests                                |
+| `refactor` | Code change that neither fixes a bug nor adds a feature |
+| `style`    | Formatting, whitespace — no logic changes               |
+| `ci`       | CI/CD workflow changes                                  |
+| `perf`     | Performance improvement                                 |
+| `build`    | Build system or external dependency changes             |
+| `revert`   | Reverts a previous commit                               |
 
 ### Examples
 
@@ -1204,17 +1205,17 @@ The project enforces these rules (from `app/eslint.config.js`):
 
 ### Error Level (Build Breaking)
 
-| Rule                                      | Description                                                                                |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `react-hooks/rules-of-hooks`              | Enforce React Hooks rules                                                                  |
-| `import/order`                            | Import ordering with groups and newlines                                                   |
-| `import/no-duplicates`                    | No duplicate imports                                                                       |
-| `unused-imports/no-unused-imports`        | Remove unused imports                                                                      |
-| `no-console`                              | **Only `console.warn`, `console.error`, `console.info` allowed** - `console.log` is banned |
-| `eqeqeq`                                  | Must use `===` and `!==` (no `==` or `!=`)                                                 |
-| `no-var`                                  | Use `const` or `let`, never `var`                                                          |
-| `@typescript-eslint/no-floating-promises` | Must handle all promises (await, .then(), or void)                                         |
-| `prettier/prettier`                       | Code formatting via Prettier                                                               |
+| Rule                                      | Description                                                                                               |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `react-hooks/rules-of-hooks`              | Enforce React Hooks rules                                                                                 |
+| `import/order`                            | Import ordering with groups and newlines                                                                  |
+| `import/no-duplicates`                    | No duplicate imports                                                                                      |
+| `unused-imports/no-unused-imports`        | Remove unused imports                                                                                     |
+| `no-console`                              | **Prefer `logger.*` methods** - `console.log` is banned; `console.warn/error/info` allowed for edge cases |
+| `eqeqeq`                                  | Must use `===` and `!==` (no `==` or `!=`)                                                                |
+| `no-var`                                  | Use `const` or `let`, never `var`                                                                         |
+| `@typescript-eslint/no-floating-promises` | Must handle all promises (await, .then(), or void)                                                        |
+| `prettier/prettier`                       | Code formatting via Prettier                                                                              |
 
 ### Warning Level
 
