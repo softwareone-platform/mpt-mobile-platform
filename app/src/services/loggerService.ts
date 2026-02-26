@@ -3,29 +3,29 @@ import type { SeverityLevel } from './appInsightsService';
 
 import { configService } from '@/config/env.config';
 import { DEFAULT_LOG_LEVEL, LOG_LEVEL_PRIORITY } from '@/constants/logger';
-import type { LogContext, LogLevel } from '@/types/logger';
+import type { ConfigurableLogLevel, LogContext, LogLevel } from '@/types/logger';
 
 class LoggerService {
   private enabledLevels: LogLevel[];
-  private configuredLevel: LogLevel;
+  private configuredLevel: ConfigurableLogLevel;
 
   constructor() {
     this.configuredLevel = this.getLogLevel();
     this.enabledLevels = this.calculateEnabledLevels(this.configuredLevel);
   }
 
-  private getLogLevel(): LogLevel {
+  private getLogLevel(): ConfigurableLogLevel {
     const level = configService.get('LOG_LEVEL')?.toLowerCase();
 
-    const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error', 'trace'];
-    if (level && validLevels.includes(level as LogLevel)) {
-      return level as LogLevel;
+    const validLevels: ConfigurableLogLevel[] = ['debug', 'info', 'warn', 'error'];
+    if (level && validLevels.includes(level as ConfigurableLogLevel)) {
+      return level as ConfigurableLogLevel;
     }
 
     return DEFAULT_LOG_LEVEL;
   }
 
-  private calculateEnabledLevels(configuredLevel: LogLevel): LogLevel[] {
+  private calculateEnabledLevels(configuredLevel: ConfigurableLogLevel): LogLevel[] {
     const configuredPriority = LOG_LEVEL_PRIORITY[configuredLevel];
     const enabled: LogLevel[] = [];
 
@@ -39,6 +39,10 @@ class LoggerService {
   }
 
   private isLevelEnabled(level: LogLevel): boolean {
+    // 'trace' is always enabled (wildcard for critical business events)
+    if (level === 'trace') {
+      return true;
+    }
     return this.enabledLevels.includes(level);
   }
 
@@ -138,6 +142,10 @@ class LoggerService {
     }
   }
 
+  /**
+   * Trace critical business events (always logged regardless of LOG_LEVEL)
+   * Use for: user login, account switch, critical user actions
+   */
   public trace(message: string, context?: LogContext): void {
     this.log('trace', message, context);
   }

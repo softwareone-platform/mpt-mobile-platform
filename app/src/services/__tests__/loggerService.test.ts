@@ -37,7 +37,7 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.configuredLevel).toBe('debug');
-      expect(config.enabledLevels).toEqual(['debug', 'info', 'warn', 'error', 'trace']);
+      expect(config.enabledLevels).toEqual(['debug', 'info', 'warn', 'error']);
     });
 
     it('returns correct config for info level (default)', () => {
@@ -47,7 +47,7 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.configuredLevel).toBe('info');
-      expect(config.enabledLevels).toEqual(['info', 'warn', 'error', 'trace']);
+      expect(config.enabledLevels).toEqual(['info', 'warn', 'error']);
     });
 
     it('returns correct config for warn level', () => {
@@ -57,7 +57,7 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.configuredLevel).toBe('warn');
-      expect(config.enabledLevels).toEqual(['warn', 'error', 'trace']);
+      expect(config.enabledLevels).toEqual(['warn', 'error']);
     });
 
     it('returns correct config for error level', () => {
@@ -67,7 +67,7 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.configuredLevel).toBe('error');
-      expect(config.enabledLevels).toEqual(['error', 'trace']);
+      expect(config.enabledLevels).toEqual(['error']);
     });
 
     it('defaults to info level when LOG_LEVEL is not set', () => {
@@ -77,7 +77,7 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.configuredLevel).toBe('info');
-      expect(config.enabledLevels).toEqual(['info', 'warn', 'error', 'trace']);
+      expect(config.enabledLevels).toEqual(['info', 'warn', 'error']);
     });
   });
 
@@ -377,7 +377,7 @@ describe('loggerService', () => {
       expect(logger.isEnabled('info')).toBe(true);
       expect(logger.isEnabled('warn')).toBe(true);
       expect(logger.isEnabled('error')).toBe(true);
-      expect(logger.isEnabled('trace')).toBe(true);
+      expect(logger.isEnabled('trace')).toBe(true); // always true
     });
 
     it('returns false for disabled levels with error level', () => {
@@ -388,7 +388,7 @@ describe('loggerService', () => {
       expect(logger.isEnabled('info')).toBe(false);
       expect(logger.isEnabled('warn')).toBe(false);
       expect(logger.isEnabled('error')).toBe(true);
-      expect(logger.isEnabled('trace')).toBe(true);
+      expect(logger.isEnabled('trace')).toBe(true); // always true
     });
   });
 });

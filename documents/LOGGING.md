@@ -18,19 +18,21 @@ logger.trace("Critical business event", { operation: "functionName" });
 
 ### When to Use Each Level
 
-| Level   | Use Case                        | Example                              |
-| ------- | ------------------------------- | ------------------------------------ |
-| `debug` | Detailed debugging, development | "Request payload: {...}"             |
-| `info`  | General information flow        | "User profile loaded"                |
-| `warn`  | Non-critical issues             | "API retry attempt 2/3"              |
-| `error` | Errors and exceptions           | "Failed to load user data"           |
-| `trace` | **Critical business events**    | "User logged in", "Account switched" |
+| Level   | Use Case                                               | Example                              |
+| ------- | ------------------------------------------------------ | ------------------------------------ |
+| `debug` | Detailed debugging, development                        | "Request payload: {...}"             |
+| `info`  | General information flow                               | "User profile loaded"                |
+| `warn`  | Non-critical issues                                    | "API retry attempt 2/3"              |
+| `error` | Errors and exceptions                                  | "Failed to load user data"           |
+| `trace` | **Critical business events (always logged, wildcard)** | "User logged in", "Account switched" |
 
 ### Environment Behavior
 
-All log levels have a priority. Setting `LOG_LEVEL` enables that level and all higher-priority levels. `trace` has the highest priority and is always included.
+Log levels have a priority system. Setting `LOG_LEVEL` enables that level and all higher-priority levels.
 
-| `LOG_LEVEL`        | `debug`                  | `info`                   | `warn`                   | `error`                  | `trace`                  |
+**Note:** `trace` is a wildcard that **always logs** regardless of `LOG_LEVEL` setting.
+
+| `LOG_LEVEL`        | `debug`                  | `info`                   | `warn`                   | `error`                  | `trace` (wildcard)       |
 | ------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------ |
 | **debug**          | ✅ Console + AppInsights | ✅ Console + AppInsights | ✅ Console + AppInsights | ✅ Console + AppInsights | ✅ Console + AppInsights |
 | **info** (default) | ❌                       | ✅ Console + AppInsights | ✅ Console + AppInsights | ✅ Console + AppInsights | ✅ Console + AppInsights |
@@ -75,6 +77,8 @@ logger.trace("User logged in", { operation: "login" });
 logger.trace("Account switched", { operation: "switchAccount" });
 ```
 
+**Note:** `trace` always logs to console and AppInsights, regardless of `LOG_LEVEL` configuration. Use it for events you always want to track in production.
+
 **Use `appInsightsService.trackEvent()` for metrics:**
 
 ```typescript
@@ -108,6 +112,10 @@ Set log level via `LOG_LEVEL` environment variable:
 - `debug` - All logs (most verbose)
 - `info` - Info and above (default)
 - `warn` - Warnings and above
+- `error` - Errors only (least verbose)
+
+**Priority system:** Higher log levels include all higher-priority logs. `trace` is a wildcard that always logs regardless of `LOG_LEVEL`.
+
 - `error` - Errors only (least verbose)
 
 **Priority system:** Higher log levels include all higher-priority logs. `trace` is always included regardless of configured level.

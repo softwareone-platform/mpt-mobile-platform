@@ -1,11 +1,10 @@
-import type { LogLevel } from '@/types/logger';
+import type { ConfigurableLogLevel } from '@/types/logger';
 
-export const DEFAULT_LOG_LEVEL: LogLevel = 'info';
+export const DEFAULT_LOG_LEVEL: ConfigurableLogLevel = 'info';
 
-export const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+export const LOG_LEVEL_PRIORITY: Record<ConfigurableLogLevel, number> = {
   debug: 0,
   info: 1,
   warn: 2,
   error: 3,
-  trace: 4,
 };

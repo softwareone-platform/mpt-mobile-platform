@@ -1,4 +1,5 @@
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'trace';
+export type ConfigurableLogLevel = Exclude<LogLevel, 'trace'>;
 
 export type LogCategory =
   | 'auth'
