@@ -37,7 +37,17 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.environment).toBe('test');
-      expect(config.enabledLevels).toEqual(['error', 'warn', 'info', 'debug']);
+      expect(config.enabledLevels).toEqual(['error', 'warn', 'info', 'debug', 'trace']);
+    });
+
+    it('returns correct config for dev environment', () => {
+      mockConfigService.get.mockReturnValue('dev');
+      logger = new LoggerService();
+
+      const config = logger.getConfig();
+
+      expect(config.environment).toBe('dev');
+      expect(config.enabledLevels).toEqual(['error', 'warn', 'info', 'debug', 'trace']);
     });
 
     it('returns correct config for qa environment', () => {
@@ -47,7 +57,7 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.environment).toBe('qa');
-      expect(config.enabledLevels).toEqual(['error', 'warn', 'info']);
+      expect(config.enabledLevels).toEqual(['error', 'warn', 'trace']);
     });
 
     it('returns correct config for prod environment', () => {
@@ -57,7 +67,7 @@ describe('loggerService', () => {
       const config = logger.getConfig();
 
       expect(config.environment).toBe('prod');
-      expect(config.enabledLevels).toEqual(['error']);
+      expect(config.enabledLevels).toEqual(['error', 'trace']);
     });
 
     it('defaults to test environment when APP_ENV is not set', () => {
@@ -85,7 +95,7 @@ describe('loggerService', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('filters debug logs in qa environment', () => {
+    it('filters debug and info logs in qa environment', () => {
       mockConfigService.get.mockReturnValue('qa');
       logger = new LoggerService();
 
@@ -94,7 +104,7 @@ describe('loggerService', () => {
       logger.warn('warn message');
       logger.error('error message');
 
-      expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+      expect(consoleInfoSpy).toHaveBeenCalledTimes(0);
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     });
@@ -195,14 +205,42 @@ describe('loggerService', () => {
       );
     });
 
-    it('does not send debug logs to AppInsights', () => {
+    it('sends debug logs to AppInsights on TEST environment', () => {
       logger.debug('debug message');
+
+      expect(mockAppInsightsService.trackTrace).toHaveBeenCalledWith(
+        'debug message',
+        'Verbose',
+        undefined,
+      );
+    });
+
+    it('sends info logs to AppInsights on TEST environment', () => {
+      logger.info('info message', { category: 'auth' });
+
+      expect(mockAppInsightsService.trackTrace).toHaveBeenCalledWith(
+        '[AUTH] info message',
+        'Information',
+        {},
+      );
+    });
+
+    it('does not send info logs to AppInsights on QA environment', () => {
+      mockConfigService.get.mockReturnValue('qa');
+      const qaLogger = new LoggerService();
+      mockAppInsightsService.isReady.mockReturnValue(true);
+
+      qaLogger.info('info message');
 
       expect(mockAppInsightsService.trackTrace).not.toHaveBeenCalled();
     });
 
-    it('does not send info logs to AppInsights', () => {
-      logger.info('info message');
+    it('does not send info logs to AppInsights on PROD environment', () => {
+      mockConfigService.get.mockReturnValue('prod');
+      const prodLogger = new LoggerService();
+      mockAppInsightsService.isReady.mockReturnValue(true);
+
+      prodLogger.info('info message');
 
       expect(mockAppInsightsService.trackTrace).not.toHaveBeenCalled();
     });
@@ -311,7 +349,7 @@ describe('loggerService', () => {
 
       logger.trace('Test event');
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith('Test event', {});
+      expect(consoleInfoSpy).toHaveBeenCalledWith('Test event', '');
     });
   });
 

@@ -1,4 +1,4 @@
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'trace';
 
 export type LogCategory =
   | 'auth'
@@ -10,7 +10,7 @@ export type LogCategory =
   | 'config'
   | 'general';
 
-export type AppEnvironment = 'test' | 'qa' | 'prod';
+export type AppEnvironment = 'dev' | 'test' | 'qa' | 'prod';
 
 export interface LogContext {
   category?: LogCategory;

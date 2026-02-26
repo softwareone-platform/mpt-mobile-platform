@@ -25,6 +25,10 @@ class LoggerService {
       return 'qa';
     }
 
+    if (env === 'dev') {
+      return 'dev';
+    }
+
     return DEFAULT_ENVIRONMENT;
   }
 
@@ -58,6 +62,7 @@ class LoggerService {
       info: 'Information',
       warn: 'Warning',
       error: 'Error',
+      trace: 'Information',
     };
 
     return severityMap[level];
@@ -81,6 +86,7 @@ class LoggerService {
     switch (level) {
       case 'debug':
       case 'info':
+      case 'trace':
         console.info(formattedMessage, logContext || '');
         break;
       case 'warn':
@@ -91,7 +97,8 @@ class LoggerService {
         break;
     }
 
-    if (appInsightsService.isReady() && (level === 'warn' || level === 'error')) {
+    // Send to AppInsights if level is enabled
+    if (appInsightsService.isReady()) {
       const severity = this.getAppInsightsSeverity(level);
       appInsightsService.trackTrace(formattedMessage, severity, logContext);
     }
@@ -125,32 +132,8 @@ class LoggerService {
     }
   }
 
-  /**
-   * Log critical business events (all environments, bypasses filtering)
-   * Use for important events that must be tracked in production:
-   * - Account switching
-   * - Login/logout events
-   * - Critical state changes
-   * - Important user actions
-   *
-   * Always logs to console and AppInsights regardless of environment.
-   */
   public trace(message: string, context?: LogContext): void {
-    const formattedMessage = this.formatMessage(message, context);
-    const logContext = context ? { ...context } : undefined;
-
-    // Remove formatting fields from AppInsights context
-    if (logContext) {
-      delete logContext.category;
-      delete logContext.component;
-      delete logContext.screen;
-    }
-
-    console.info(formattedMessage, logContext || {});
-
-    if (appInsightsService.isReady()) {
-      appInsightsService.trackTrace(formattedMessage, 'Information', logContext);
-    }
+    this.log('trace', message, context);
   }
 
   public getConfig() {
