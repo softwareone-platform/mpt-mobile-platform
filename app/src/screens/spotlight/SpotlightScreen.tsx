@@ -2,7 +2,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
@@ -13,6 +20,7 @@ import { Color } from '@/styles/tokens';
 import type { SpotlightItemWithDetails } from '@/types/api';
 import type { RootStackParamList } from '@/types/navigation';
 import type { SpotlightCategoryName } from '@/types/spotlight';
+import { formatSpotlightQuery } from '@/utils/spotlight';
 import { TestIDs } from '@/utils/testID';
 
 const DEFAULT_FILTER = 'all';
@@ -97,6 +105,26 @@ const SpotlightScreen = () => {
     );
   }
 
+  const handleNavigate = (section: SpotlightItemWithDetails) => {
+    const filter = formatSpotlightQuery(section.query?.filter || '');
+
+    // Nested stacks
+    if (section.listScreenName === 'orders') {
+      navigation.navigate(section.listScreenName, {
+        screen: 'ordersRoot',
+        params: { query: filter },
+      });
+    } else if (section.listScreenName === 'subscriptions') {
+      navigation.navigate(section.listScreenName, {
+        screen: 'subscriptionsRoot',
+        params: { query: filter },
+      });
+    } else {
+      // All other screens
+      navigation.navigate(section.listScreenName, { query: filter });
+    }
+  };
+
   return (
     <View style={styles.containerFillScreen}>
       <FiltersHorizontal
@@ -150,8 +178,13 @@ const SpotlightScreen = () => {
                     />
                   );
                 })}
-
-                <View style={styles.cardFooter}>
+                <TouchableOpacity
+                  style={styles.cardFooter}
+                  onPress={() => {
+                    handleNavigate(section);
+                  }}
+                  activeOpacity={0.7}
+                >
                   <Text
                     testID={`${TestIDs.SPOTLIGHT_CARD_FOOTER_PREFIX}-${section.id}`}
                     style={styles.cardFooterText}
@@ -161,7 +194,7 @@ const SpotlightScreen = () => {
                       total: section.total,
                     })}
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             ))}
           </View>

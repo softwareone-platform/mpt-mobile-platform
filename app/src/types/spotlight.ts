@@ -1,4 +1,4 @@
-import type { AppScreensParamList } from './navigation';
+import type { AppScreensParamList, MainTabRouteName, SecondaryTabRouteName } from './navigation';
 
 export type SpotlightTemplateName =
   | 'savedOrdersClient'
@@ -38,4 +38,5 @@ export type SpotlightCategory = {
   name: SpotlightCategoryName;
   templates: SpotlightTemplateName[];
   detailsScreenName: keyof AppScreensParamList;
+  listScreenName: MainTabRouteName | SecondaryTabRouteName;
 };

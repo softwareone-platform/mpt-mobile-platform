@@ -16,7 +16,12 @@ interface OrdersContextValue {
 
 const OrdersContext = createContext<OrdersContextValue | undefined>(undefined);
 
-export const OrdersProvider = ({ children }: { children: ReactNode }) => {
+interface OrderProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
+export const OrdersProvider = ({ children, query }: OrderProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useOrdersData(userId, currentAccountId);
+  } = useOrdersData(userId, currentAccountId, query);
 
   const orders = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

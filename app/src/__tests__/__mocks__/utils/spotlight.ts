@@ -1,34 +1,37 @@
 import type { SpotlightItem } from '@/types/api';
-import type { AppScreensParamList } from '@/types/navigation';
-import type { SpotlightTemplateName, SpotlightCategoryName } from '@/types/spotlight';
+import type {
+  SpotlightTemplateName,
+  SpotlightCategoryName,
+  SpotlightCategory,
+} from '@/types/spotlight';
 
-export const categories: {
-  name: SpotlightCategoryName;
-  templates: SpotlightTemplateName[];
-  detailsScreenName: keyof AppScreensParamList;
-}[] = [
+export const categories: Array<SpotlightCategory> = [
   {
     name: 'orders',
     templates: ['savedOrdersClient', 'queryingOrders'],
     detailsScreenName: 'orderDetails',
+    listScreenName: 'orders',
   },
   {
     name: 'subscriptions',
     templates: ['renewingSubscriptions', 'expiringSubscriptions'],
     detailsScreenName: 'subscriptionDetails',
+    listScreenName: 'subscriptions',
   },
 ];
 
-export const duplicateCategories: {
-  name: SpotlightCategoryName;
-  templates: SpotlightTemplateName[];
-  detailsScreenName: keyof AppScreensParamList;
-}[] = [
-  { name: 'orders', templates: ['savedOrdersClient'], detailsScreenName: 'orderDetails' },
+export const duplicateCategories: Array<SpotlightCategory> = [
+  {
+    name: 'orders',
+    templates: ['savedOrdersClient'],
+    detailsScreenName: 'orderDetails',
+    listScreenName: 'orders',
+  },
   {
     name: 'subscriptions',
     templates: ['savedOrdersClient'],
     detailsScreenName: 'subscriptionDetails',
+    listScreenName: 'subscriptions',
   },
 ];
 

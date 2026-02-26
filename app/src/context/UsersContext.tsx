@@ -20,9 +20,11 @@ const UsersContext = createContext<UsersContextValue | undefined>(undefined);
 export const UsersProvider = ({
   children,
   showAllUsers = false,
+  query,
 }: {
   children: ReactNode;
   showAllUsers?: boolean;
+  query?: string;
 }) => {
   const { userData } = useAccount();
 
@@ -32,7 +34,7 @@ export const UsersProvider = ({
   const shouldUseAllUsers = showAllUsers && isOperations;
 
   const accountUsersQuery = useUsersData(userId, currentAccountId, !shouldUseAllUsers);
-  const allUsersQuery = useOpsUsersData(userId, shouldUseAllUsers);
+  const allUsersQuery = useOpsUsersData(userId, shouldUseAllUsers, query);
 
   const {
     data,

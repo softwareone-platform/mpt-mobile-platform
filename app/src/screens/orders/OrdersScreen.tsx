@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -6,8 +6,10 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useOrders, OrdersProvider } from '@/context/OrdersContext';
-import type { RootStackParamList } from '@/types/navigation';
+import type { RootStackParamList, OrdersStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type OrdersScreenRouteProp = RouteProp<OrdersStackParamList, 'ordersRoot'>;
 
 const OrdersScreenContent = () => {
   const {
@@ -50,10 +52,15 @@ const OrdersScreenContent = () => {
   );
 };
 
-const OrdersScreen = () => (
-  <OrdersProvider>
-    <OrdersScreenContent />
-  </OrdersProvider>
-);
+const OrdersScreen = () => {
+  const route = useRoute<OrdersScreenRouteProp>();
+  const query = route.params?.query;
+
+  return (
+    <OrdersProvider query={query}>
+      <OrdersScreenContent />
+    </OrdersProvider>
+  );
+};
 
 export default OrdersScreen;

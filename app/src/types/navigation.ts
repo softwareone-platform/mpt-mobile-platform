@@ -1,5 +1,9 @@
+import { NavigatorScreenParams } from '@react-navigation/native';
+
 import { AccountType } from '@/types/common';
 import { ModuleName } from '@/types/modules';
+
+type ScreenParams = { query?: string } | undefined;
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -10,25 +14,25 @@ export type RootStackParamList = {
   AppScreensParamList;
 
 export type MainTabsParamList = {
-  spotlight: undefined;
-  orders: undefined;
-  subscriptions: undefined;
-  more: undefined;
+  spotlight: ScreenParams;
+  orders: NavigatorScreenParams<OrdersStackParamList>;
+  subscriptions: NavigatorScreenParams<SubscriptionsStackParamList>;
+  more: ScreenParams;
 };
 
 export type SecondaryTabsParamList = {
-  agreements: undefined;
-  invoices: undefined;
-  creditMemos: undefined;
-  statements: undefined;
-  users: undefined;
-  allUsers: undefined;
-  programs: undefined;
-  enrollments: undefined;
-  licensees: undefined;
-  buyers: undefined;
-  allBuyers: undefined;
-  products: undefined;
+  agreements: ScreenParams;
+  invoices: ScreenParams;
+  creditMemos: ScreenParams;
+  statements: ScreenParams;
+  users: ScreenParams;
+  allUsers: ScreenParams;
+  programs: ScreenParams;
+  enrollments: ScreenParams;
+  licensees: ScreenParams;
+  buyers: ScreenParams;
+  allBuyers: ScreenParams;
+  products: ScreenParams;
 };
 
 export type AppScreensParamList = {
@@ -49,6 +53,29 @@ export type AppScreensParamList = {
   certificateDetails: { id: string | undefined };
 };
 
+export type OrdersStackParamList = {
+  ordersRoot: { query?: string } | undefined;
+};
+
+export type SubscriptionsStackParamList = {
+  subscriptionsRoot: { query?: string } | undefined;
+};
+
+export type SpotlightStackParamList = {
+  spotlightRoot: { query?: string } | undefined;
+};
+
+export type MoreStackParamList = {
+  moreRoot: NavigatorScreenParams<SecondaryTabsParamList>;
+};
+
+export type MainTabStacks = {
+  orders: keyof OrdersStackParamList;
+  subscriptions: keyof SubscriptionsStackParamList;
+  spotlight: keyof SpotlightStackParamList;
+  more: keyof SecondaryTabsParamList;
+};
+
 export type MainTabRouteName = keyof MainTabsParamList;
 
 export type SecondaryTabRouteName = keyof SecondaryTabsParamList;
@@ -60,14 +87,11 @@ export type AuthStackParamList = {
 
 export type AppScreenRouteName = keyof RootStackParamList;
 
-export type StackRootName = 'spotlightRoot' | 'ordersRoot' | 'subscriptionsRoot' | 'moreRoot';
-
 export type MainTabItem = {
   name: MainTabRouteName;
   icon: string;
   /* eslint-disable @typescript-eslint/no-explicit-any */
   component?: React.ComponentType<any>;
-  stackRootName: StackRootName;
 };
 
 export type SecondaryTabItem = {

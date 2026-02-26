@@ -5,6 +5,11 @@ import {
   formatNumber,
   formatDateForLocale,
   getTime,
+  FUTURE,
+  PAST,
+  getUtcStartOfDay,
+  formatUtcDate,
+  calculateRelativeDate,
 } from '@/utils/formatting';
 
 const EMPTY_STRING = '';
@@ -228,6 +233,113 @@ describe('getTime', () => {
 
     it('returns EMPTY_STRING for undefined (runtime edge case)', () => {
       expect(getTime(undefined as unknown as string)).toBe(EMPTY_STRING);
+    });
+  });
+});
+
+describe('Date Utilities', () => {
+  describe('getUtcStartOfDay', () => {
+    it('should return UTC midnight for a given date', () => {
+      const date = new Date('2026-02-26T15:30:45Z'); // 3:30 PM UTC
+      const result = getUtcStartOfDay(date);
+
+      expect(result.getUTCHours()).toBe(0);
+      expect(result.getUTCMinutes()).toBe(0);
+      expect(result.getUTCSeconds()).toBe(0);
+      expect(result.getUTCMilliseconds()).toBe(0);
+      expect(result.getUTCDate()).toBe(26);
+      expect(result.getUTCMonth()).toBe(1); // Feb = 1
+      expect(result.getUTCFullYear()).toBe(2026);
+    });
+
+    it('should handle end of month correctly', () => {
+      const date = new Date('2026-02-28T23:59:59Z');
+      const result = getUtcStartOfDay(date);
+      expect(result.getUTCDate()).toBe(28);
+      expect(result.getUTCMonth()).toBe(1);
+      expect(result.getUTCFullYear()).toBe(2026);
+    });
+
+    it('should handle leap year February correctly', () => {
+      const date = new Date('2024-02-29T12:00:00Z');
+      const result = getUtcStartOfDay(date);
+      expect(result.getUTCDate()).toBe(29);
+      expect(result.getUTCMonth()).toBe(1);
+      expect(result.getUTCFullYear()).toBe(2024);
+    });
+  });
+
+  describe('formatUtcDate', () => {
+    it('should format date as YYYY-MM-DD', () => {
+      const date = new Date(Date.UTC(2026, 1, 26)); // Feb 26, 2026
+      expect(formatUtcDate(date)).toBe('2026-02-26');
+    });
+
+    it('should pad month and day with leading zeros', () => {
+      const date = new Date(Date.UTC(2026, 0, 5)); // Jan 5, 2026
+      expect(formatUtcDate(date)).toBe('2026-01-05');
+    });
+
+    it('should handle December correctly', () => {
+      const date = new Date(Date.UTC(2026, 11, 31)); // Dec 31, 2026
+      expect(formatUtcDate(date)).toBe('2026-12-31');
+    });
+  });
+
+  describe('calculateRelativeDate', () => {
+    const baseDate = new Date(Date.UTC(2026, 1, 26)); // Feb 26, 2026
+
+    it('should calculate past date correctly with 0 adjustment', () => {
+      const result = calculateRelativeDate('5', baseDate, PAST);
+      // past offset = -5 + 0 adjustment = -5 days → 2026-02-21
+      expect(result).toBe('2026-02-21');
+    });
+
+    it('should calculate future date correctly with +1 adjustment', () => {
+      const result = calculateRelativeDate('5', baseDate, FUTURE);
+      // future offset = 5 + 1 adjustment = 6 days → 2026-03-04
+      expect(result).toBe('2026-03-04');
+    });
+
+    it('should handle zero days for past', () => {
+      const result = calculateRelativeDate('0', baseDate, PAST);
+      expect(result).toBe('2026-02-26');
+    });
+
+    it('should handle zero days for future', () => {
+      const result = calculateRelativeDate('0', baseDate, FUTURE);
+      // future adjustment adds 1 day → 2026-02-27
+      expect(result).toBe('2026-02-27');
+    });
+
+    it('should handle negative day string for past', () => {
+      const result = calculateRelativeDate('-3', baseDate, PAST);
+      // parsedDays = -3, direction = -1 → -3 * -1 = 3, PAST_ADJUSTMENT=0 → +3 → 2026-03-01
+      expect(result).toBe('2026-03-01');
+    });
+
+    it('should handle negative day string for future', () => {
+      const result = calculateRelativeDate('-2', baseDate, FUTURE);
+      // parsedDays=-2, direction=1 → -2*1=-2, FUTURE_ADJUSTMENT=1 → -2+1=-1 → 2026-02-25
+      expect(result).toBe('2026-02-25');
+    });
+
+    it('should return empty string for invalid day string', () => {
+      const result = calculateRelativeDate('abc', baseDate, FUTURE);
+      expect(result).toBe('');
+    });
+
+    it('should handle large day offsets correctly', () => {
+      const result = calculateRelativeDate('100', baseDate, FUTURE);
+      // 100*1 + 1 = 101 days → baseDate + 101 days
+      expect(result).toBe('2026-06-07');
+    });
+
+    it('should handle leap year when adding days', () => {
+      const leapBase = new Date(Date.UTC(2024, 1, 28)); // Feb 28, 2024
+      const result = calculateRelativeDate('1', leapBase, FUTURE);
+      // 1*1 + 1 = 2 days → Feb 28 + 2 days = Mar 1, 2024
+      expect(result).toBe('2024-03-01');
     });
   });
 });
