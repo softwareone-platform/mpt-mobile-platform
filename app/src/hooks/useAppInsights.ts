@@ -23,7 +23,6 @@ export const useAppInsights = (): AppInsightsService => {
     });
 
     logger.info('App mounted, telemetry event sent');
-    logger.trace('App mounted, telemetry event sent trace test');
   }, []);
 
   useEffect(() => {
