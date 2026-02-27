@@ -126,7 +126,7 @@ describe('useAccountApi', () => {
     });
 
     expect(mockGet).toHaveBeenCalledWith(
-      `/v1/spotlight/objects?select=top&limit=${DEFAULT_SPOTLIGHT_LIMIT}`,
+      `/v1/spotlight/objects?select=query.filter,top&limit=${DEFAULT_SPOTLIGHT_LIMIT}`,
     );
     expect(res).toEqual({ top: [] });
   });
@@ -140,7 +140,7 @@ describe('useAccountApi', () => {
       res = await api.getSpotlightData(12);
     });
 
-    expect(mockGet).toHaveBeenCalledWith(`/v1/spotlight/objects?select=top&limit=12`);
+    expect(mockGet).toHaveBeenCalledWith(`/v1/spotlight/objects?select=query.filter,top&limit=12`);
     expect(res).toEqual({ top: [] });
   });
 

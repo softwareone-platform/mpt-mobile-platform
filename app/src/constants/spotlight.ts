@@ -43,20 +43,42 @@ export const BUYERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
 ];
 
 export const SPOTLIGHT_CATEGORY: Array<SpotlightCategory> = [
-  { name: 'orders', templates: ORDERS_SPOTLIGHTS, detailsScreenName: 'orderDetails' },
+  {
+    name: 'orders',
+    templates: ORDERS_SPOTLIGHTS,
+    detailsScreenName: 'orderDetails',
+    listScreenName: 'orders',
+  },
   {
     name: 'subscriptions',
     templates: SUBSCRIPTION_SPOTLIGHTS,
     detailsScreenName: 'subscriptionDetails',
+    listScreenName: 'subscriptions',
   },
-  { name: 'users', templates: USERS_SPOTLIGHTS, detailsScreenName: 'userDetails' },
-  { name: 'invoices', templates: INVOICES_SPOTLIGHTS, detailsScreenName: 'invoiceDetails' },
+  {
+    name: 'users',
+    templates: USERS_SPOTLIGHTS,
+    detailsScreenName: 'userDetails',
+    listScreenName: 'allUsers',
+  },
+  {
+    name: 'invoices',
+    templates: INVOICES_SPOTLIGHTS,
+    detailsScreenName: 'invoiceDetails',
+    listScreenName: 'invoices',
+  },
   {
     name: 'enrollments',
     templates: ENROLLMENTS_SPOTLIGHTS,
     detailsScreenName: 'enrollmentDetails',
+    listScreenName: 'enrollments',
   },
   // TODO: add Journals back when details screen is ready
-  // { name: 'journals', templates: JOURNALS_SPOTLIGHTS, detailsScreenName: 'journalDetails' },
-  { name: 'buyers', templates: BUYERS_SPOTLIGHTS, detailsScreenName: 'buyerDetails' },
+  // { name: 'journals', templates: JOURNALS_SPOTLIGHTS, detailsScreenName: 'journalDetails', listScreenName: 'journals', },
+  {
+    name: 'buyers',
+    templates: BUYERS_SPOTLIGHTS,
+    detailsScreenName: 'buyerDetails',
+    listScreenName: 'buyers',
+  },
 ];
