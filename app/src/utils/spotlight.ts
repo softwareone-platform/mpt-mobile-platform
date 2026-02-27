@@ -4,7 +4,13 @@ import type {
   SpotlightTemplateName,
 } from '../types/spotlight';
 
+import { PAST, FUTURE, calculateRelativeDate } from './formatting';
+
 import type { SpotlightItem, SpotlightItemWithDetails } from '@/types/api';
+
+const DAYS_AGO_REGEX = /\{(\d+) days ago\}/i;
+const DAYS_FROM_NOW_REGEX = /\{(\d+) days from now\}/i;
+const LIMIT_IN_QUERY_REGEX = /&limit=\d+$/;
 
 /**
  * Build a lookup object, that maps spotlight template names to category names
@@ -90,6 +96,8 @@ export const orderSpotlightData = (
       orderedData[category.name] = items.map((item) => ({
         ...item,
         detailsScreenName: category.detailsScreenName,
+        listScreenName: category.listScreenName,
+        // stackRootName: category.stackRootName,
       }));
     }
   });
@@ -112,4 +120,79 @@ export const arrangeSpotlightData = (
   const orderedData = orderSpotlightData(groupedData, categories);
 
   return orderedData;
+};
+
+/**
+ * function to get part of endpoint string containing query
+ * @param endpoint - endpoint string to view all items in Spotlight
+ * @returns query part of endpoint containing filter, order etc.
+ */
+export function getQueryFromEndpoint(endpoint: string): string {
+  if (!endpoint?.trim()) {
+    return '';
+  }
+
+  const firstAmpersandIndex = endpoint.indexOf('&');
+
+  if (firstAmpersandIndex < 0) {
+    return '';
+  }
+
+  return endpoint.slice(firstAmpersandIndex);
+}
+
+/**
+ * function to remove limit from query string
+ * @param query - query string to view all items in Spotlight
+ * @returns query with limit removed and all other parts of string unchanged
+ */
+export function removeLimitFromQuery(query: string): string {
+  if (!query?.trim()) {
+    return '';
+  }
+
+  return query.replace(LIMIT_IN_QUERY_REGEX, '');
+}
+
+/**
+ * function to replace rql date string with formatted date
+ * @param query - query string to view all items in Spotlight
+ * @returns query with formatted date that can be used in API call
+ */
+export const replaceSpotlightQueryDate = (query: string): string => {
+  if (!query?.trim()) {
+    return '';
+  }
+
+  const now = new Date();
+
+  const daysAgoMatch = DAYS_AGO_REGEX.exec(query);
+  const daysFromNowMatch = DAYS_FROM_NOW_REGEX.exec(query);
+
+  if (daysAgoMatch) {
+    const relativeDate = calculateRelativeDate(daysAgoMatch[1], now, PAST);
+
+    return query.replace(daysAgoMatch[0], relativeDate);
+  }
+
+  if (daysFromNowMatch) {
+    const relativeDate = calculateRelativeDate(daysFromNowMatch[1], now, FUTURE);
+
+    return query.replace(daysFromNowMatch[0], relativeDate);
+  }
+
+  return query;
+};
+
+/**
+ * Wrapper function to format endpoint, so it is suitable to use in API call
+ * @param query - endpoint string to view all items in Spotlight
+ * @returns query part of endpoint with limit removed and date formatted if applicable
+ */
+export const formatSpotlightQuery = (endpoint: string): string => {
+  const query = getQueryFromEndpoint(endpoint);
+  const queryNoLimit = removeLimitFromQuery(query);
+  const formattedQuery = replaceSpotlightQueryDate(queryNoLimit);
+
+  return formattedQuery;
 };

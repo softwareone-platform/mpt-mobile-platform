@@ -1,6 +1,15 @@
 const EMPTY_STRING = '';
 const DEFAULT_DECIMAL_SPACES = 2;
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export const FUTURE = 1 as const;
+export const PAST = -1 as const;
+const FUTURE_ADJUSTMENT = 1;
+const PAST_ADJUSTMENT = 0;
+
+type RelativeDirection = typeof FUTURE | typeof PAST;
+
 export const formatPhoneNumber = (prefix?: string, number?: string): string => {
   const parts = [prefix?.trim(), number?.trim()].filter(Boolean);
 
@@ -79,3 +88,45 @@ export function getTime(isoDate: string): string {
 
   return `${hours}:${minutes}`;
 }
+
+export const getUtcStartOfDay = (date: Date): Date =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+
+export const formatUtcDate = (date: Date): string => {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * function to calculate date realtive to base date, in direction of past or future
+ * @param days - number of days relative to base date
+ * @param baseDate - date as a base date to calculate relative date
+ * @param direction - either future or past
+ * @returns date relative to base date in number of days into past or future
+ */
+export const calculateRelativeDate = (
+  days: string,
+  baseDate: Date,
+  direction: RelativeDirection,
+): string => {
+  const parsedDays = parseInt(days, 10);
+
+  if (isNaN(parsedDays)) {
+    return '';
+  }
+
+  const baseOffset = parsedDays * direction;
+
+  // add one day for the future and zero for the past
+  const boundaryAdjustment = direction === FUTURE ? FUTURE_ADJUSTMENT : PAST_ADJUSTMENT;
+
+  const totalOffset = baseOffset + boundaryAdjustment;
+
+  const shifted = new Date(baseDate.getTime() + totalOffset * MS_PER_DAY);
+  const utcStartOfDay = getUtcStartOfDay(shifted);
+
+  return formatUtcDate(utcStartOfDay);
+};

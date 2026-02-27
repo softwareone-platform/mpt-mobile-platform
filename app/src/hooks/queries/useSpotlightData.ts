@@ -15,6 +15,7 @@ export const useSpotlightData = (userId: string | undefined) => {
     queryKey: ['spotlightData', userId, currentAccountId],
     queryFn: async () => {
       const { data } = await getSpotlightData();
+
       return arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
     },
     enabled: !!currentAccountId,

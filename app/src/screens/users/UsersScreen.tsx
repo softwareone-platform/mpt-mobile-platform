@@ -1,4 +1,4 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,8 @@ import { listItemConfigFull } from '@/config/list';
 import { useUsers, UsersProvider } from '@/context/UsersContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type UsersScreenRouteProp = RouteProp<RootStackParamList, 'allUsers'>;
 
 const UsersScreenContent = () => {
   const {
@@ -54,10 +56,13 @@ const UsersScreenContent = () => {
 
 const UsersScreen = () => {
   const route = useRoute();
+  const usersRoute = useRoute<UsersScreenRouteProp>();
   const showAllUsers = route.name === 'allUsers';
 
+  const query = usersRoute.params?.query;
+
   return (
-    <UsersProvider showAllUsers={showAllUsers}>
+    <UsersProvider showAllUsers={showAllUsers} query={query}>
       <UsersScreenContent />
     </UsersProvider>
   );

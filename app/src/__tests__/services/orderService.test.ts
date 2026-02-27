@@ -175,3 +175,82 @@ describe('useOrderApi', () => {
     await expect(api.getOrders()).rejects.toThrow('Network error');
   });
 });
+
+describe('useOrderApi - getOrders with optional query', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call getOrders with a valid custom query', async () => {
+    const api = setup();
+    const customQuery = '&order=status&filter=status=Completed';
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getOrders(undefined, undefined, customQuery);
+    });
+
+    const expectedUrl =
+      `/v1/commerce/orders` +
+      `?select=-*,id,status` +
+      `${customQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should call getOrders without query and fallback to default currentQuery', async () => {
+    const api = setup();
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getOrders();
+    });
+
+    const currentQuery = '&filter(group.buyers)&order=-audit.created.at';
+    const expectedUrl =
+      `/v1/commerce/orders` +
+      `?select=-*,id,status` +
+      `${currentQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should throw an error when API rejects due to malformed query', async () => {
+    const api = setup();
+    const invalidQuery = 'INVALID_QUERY_STRING';
+    const mockError = new Error('Invalid query');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getOrders(undefined, undefined, invalidQuery)).rejects.toThrow(
+      'Invalid query',
+    );
+
+    const expectedUrl =
+      `/v1/commerce/orders` +
+      `?select=-*,id,status` +
+      `${invalidQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+});

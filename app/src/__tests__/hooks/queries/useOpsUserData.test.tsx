@@ -50,7 +50,7 @@ describe('useOpsUsersData', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(mockGetAllUsers).toHaveBeenCalledWith(0, 50);
+    expect(mockGetAllUsers).toHaveBeenCalledWith(0, 50, undefined);
     expect(result.current.data?.pages[0].data).toHaveLength(2);
   });
 
@@ -92,6 +92,6 @@ describe('useOpsUsersData', () => {
       wrapper: createWrapper(),
     });
 
-    expect(mockGetAllUsers).toHaveBeenCalledWith(0, 50);
+    expect(mockGetAllUsers).toHaveBeenCalledWith(0, 50, undefined);
   });
 });

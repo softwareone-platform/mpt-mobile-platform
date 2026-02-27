@@ -64,7 +64,7 @@ export function useAccountApi() {
 
   const getSpotlightData = useCallback(
     async (limit: number = DEFAULT_SPOTLIGHT_LIMIT): Promise<SpotlightData> => {
-      const endpoint = `/v1/spotlight/objects?select=top&limit=${limit}`;
+      const endpoint = `/v1/spotlight/objects?select=query.filter,top&limit=${limit}`;
       return api.get<SpotlightData>(endpoint);
     },
     [api],
