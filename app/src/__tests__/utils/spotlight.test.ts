@@ -22,6 +22,7 @@ import {
   groupSpotlightData,
   orderSpotlightData,
   arrangeSpotlightData,
+  mergeCategories,
   getQueryFromEndpoint,
   removeLimitFromQuery,
   replaceSpotlightQueryDate,
@@ -170,6 +171,59 @@ describe('spotlightUtils', () => {
       expect(arrangedData.subscriptions.length).toBe(50);
       expect(arrangedData.orders[0].id).toBe('1');
       expect(arrangedData.subscriptions[0].id).toBe('2');
+    });
+  });
+
+  describe('mergeCategories', () => {
+    it('should merge allUsers items into users group', () => {
+      const input = {
+        users: [
+          { id: '1', detailsScreenName: 'userDetails', listScreenName: 'users' },
+        ],
+        allUsers: [
+          { id: '2', detailsScreenName: 'userDetails', listScreenName: 'allUsers' },
+        ],
+      };
+
+      const result = mergeCategories(input as Record<string, any>);
+
+      expect(Object.keys(result)).toEqual(['users']);
+      expect(result.users).toHaveLength(2);
+      expect(result.users[0].listScreenName).toBe('users');
+      expect(result.users[1].listScreenName).toBe('allUsers');
+    });
+
+    it('should keep allUsers items under users when users group does not exist', () => {
+      const input = {
+        allUsers: [
+          { id: '1', detailsScreenName: 'userDetails', listScreenName: 'allUsers' },
+        ],
+      };
+
+      const result = mergeCategories(input as Record<string, any>);
+
+      expect(Object.keys(result)).toEqual(['users']);
+      expect(result.users).toHaveLength(1);
+      expect(result.users[0].listScreenName).toBe('allUsers');
+    });
+
+    it('should not modify data when no mergeable categories exist', () => {
+      const input = {
+        orders: [{ id: '1' }],
+        subscriptions: [{ id: '2' }],
+      };
+
+      const result = mergeCategories(input as Record<string, any>);
+
+      expect(Object.keys(result)).toEqual(['orders', 'subscriptions']);
+      expect(result.orders).toHaveLength(1);
+      expect(result.subscriptions).toHaveLength(1);
+    });
+
+    it('should return empty object for empty input', () => {
+      const result = mergeCategories({});
+
+      expect(result).toEqual({});
     });
   });
 });

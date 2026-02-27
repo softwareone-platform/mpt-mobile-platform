@@ -8,6 +8,14 @@ import { PAST, FUTURE, calculateRelativeDate } from './formatting';
 
 import type { SpotlightItem, SpotlightItemWithDetails } from '@/types/api';
 
+/**
+ * Map of categories that should be merged into another category for display.
+ * Items retain their individual navigation properties (detailsScreenName, listScreenName).
+ */
+const CATEGORY_MERGE_MAP: Partial<Record<SpotlightCategoryName, string>> = {
+  allUsers: 'users',
+};
+
 const DAYS_AGO_REGEX = /\{(\d+) days ago\}/i;
 const DAYS_FROM_NOW_REGEX = /\{(\d+) days from now\}/i;
 const LIMIT_IN_QUERY_REGEX = /&limit=\d+$/;
@@ -106,6 +114,30 @@ export const orderSpotlightData = (
 };
 
 /**
+ * Merge categories that should be displayed together under a single filter chip.
+ * Items retain their individual navigation properties (detailsScreenName, listScreenName).
+ * @param orderedData - ordered spotlight data by category
+ * @returns merged spotlight data
+ */
+export const mergeCategories = (
+  orderedData: Record<string, SpotlightItemWithDetails[]>,
+): Record<string, SpotlightItemWithDetails[]> => {
+  const mergedData: Record<string, SpotlightItemWithDetails[]> = {};
+
+  Object.entries(orderedData).forEach(([key, items]) => {
+    const targetKey = CATEGORY_MERGE_MAP[key as SpotlightCategoryName] ?? key;
+
+    if (mergedData[targetKey]) {
+      mergedData[targetKey] = [...mergedData[targetKey], ...items];
+    } else {
+      mergedData[targetKey] = [...items];
+    }
+  });
+
+  return mergedData;
+};
+
+/**
  * Wrapper function to arrange spotlight data
  * @param spotlightData - array of Spotlight Items in order returned by API
  * @param categories - array of category objects
@@ -119,7 +151,7 @@ export const arrangeSpotlightData = (
   const groupedData = groupSpotlightData(spotlightData, templateLookup);
   const orderedData = orderSpotlightData(groupedData, categories);
 
-  return orderedData;
+  return mergeCategories(orderedData);
 };
 
 /**
