@@ -50,7 +50,7 @@ describe('useUsersData', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(mockGetUsers).toHaveBeenCalledWith('ACC-456', 0, 50);
+    expect(mockGetUsers).toHaveBeenCalledWith('ACC-456', 0, 50, undefined);
     expect(result.current.data?.pages[0].data).toHaveLength(2);
   });
 
@@ -123,6 +123,6 @@ describe('useUsersData', () => {
       wrapper: createWrapper(),
     });
 
-    expect(mockGetUsers).toHaveBeenCalledWith(accountId, 0, 50);
+    expect(mockGetUsers).toHaveBeenCalledWith(accountId, 0, 50, undefined);
   });
 });

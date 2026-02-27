@@ -398,167 +398,167 @@ describe('useUserApi', () => {
     expect(res1).toEqual(mockEnabled);
     expect(res2).toEqual(mockDisabled);
   });
+});
 
-  describe('useUserApi - getAllUsers with custom query', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should call getAllUsers with a valid custom query', async () => {
-      const api = setup();
-      const customQuery = '&order=status&filter=status=Active';
-      const mockResponse: PaginatedResponse<User> = {
-        $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
-        data: [],
-      };
-
-      mockGet.mockResolvedValueOnce(mockResponse);
-
-      let res;
-      await act(async () => {
-        res = await api.getAllUsers(undefined, undefined, customQuery);
-      });
-
-      const expectedUrl =
-        `v1/accounts/users` +
-        `?select=-*,id,name,status,icon` +
-        `${customQuery}` +
-        `&offset=${DEFAULT_OFFSET}` +
-        `&limit=${DEFAULT_PAGE_SIZE}`;
-
-      expect(mockGet).toHaveBeenCalledWith(expectedUrl);
-      expect(res).toEqual(mockResponse);
-    });
-
-    it('should call getAllUsers with empty string query and fallback to default order', async () => {
-      const api = setup();
-      const emptyQuery = '';
-      const mockResponse: PaginatedResponse<User> = {
-        $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
-        data: [],
-      };
-
-      mockGet.mockResolvedValueOnce(mockResponse);
-
-      let res;
-      await act(async () => {
-        res = await api.getAllUsers(undefined, undefined, emptyQuery);
-      });
-
-      const defaultQuery = '&order=name';
-      const expectedUrl =
-        `v1/accounts/users` +
-        `?select=-*,id,name,status,icon` +
-        `${defaultQuery}` +
-        `&offset=${DEFAULT_OFFSET}` +
-        `&limit=${DEFAULT_PAGE_SIZE}`;
-
-      expect(mockGet).toHaveBeenCalledWith(expectedUrl);
-      expect(res).toEqual(mockResponse);
-    });
-
-    it('should throw an error when API rejects due to malformed query', async () => {
-      const api = setup();
-      const invalidQuery = 'INVALID_QUERY_STRING';
-      const mockError = new Error('Invalid query');
-
-      mockGet.mockRejectedValueOnce(mockError);
-
-      await expect(api.getAllUsers(undefined, undefined, invalidQuery)).rejects.toThrow(
-        'Invalid query',
-      );
-
-      const expectedUrl =
-        `v1/accounts/users` +
-        `?select=-*,id,name,status,icon` +
-        `${invalidQuery}` +
-        `&offset=${DEFAULT_OFFSET}` +
-        `&limit=${DEFAULT_PAGE_SIZE}`;
-
-      expect(mockGet).toHaveBeenCalledWith(expectedUrl);
-    });
+describe('useUserApi - getAllUsers with custom query', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  describe('useUserApi - getUsers with custom query', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
+  it('should call getAllUsers with a valid custom query', async () => {
+    const api = setup();
+    const customQuery = '&order=status&filter=status=Active';
+    const mockResponse: PaginatedResponse<User> = {
+      $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getAllUsers(undefined, undefined, customQuery);
     });
 
-    it('should call getUsers with a valid custom query', async () => {
-      const api = setup();
-      const customQuery = '&order=status&filter=status=Active';
-      const mockResponse: PaginatedResponse<User> = {
-        $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
-        data: [],
-      };
-      const mockAccountId = 'ACC-123';
+    const expectedUrl =
+      `v1/accounts/users` +
+      `?select=-*,id,name,status,icon` +
+      `${customQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
 
-      mockGet.mockResolvedValueOnce(mockResponse);
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
 
-      let res;
-      await act(async () => {
-        res = await api.getUsers(mockAccountId, undefined, undefined, customQuery);
-      });
+  it('should call getAllUsers with empty string query and fallback to default order', async () => {
+    const api = setup();
+    const emptyQuery = '';
+    const mockResponse: PaginatedResponse<User> = {
+      $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
+      data: [],
+    };
 
-      const expectedUrl =
-        `v1/accounts/accounts/${mockAccountId}/users` +
-        `?select=id,name,status,icon` +
-        `${customQuery}` +
-        `&offset=${DEFAULT_OFFSET}` +
-        `&limit=${DEFAULT_PAGE_SIZE}`;
+    mockGet.mockResolvedValueOnce(mockResponse);
 
-      expect(mockGet).toHaveBeenCalledWith(expectedUrl);
-      expect(res).toEqual(mockResponse);
+    let res;
+    await act(async () => {
+      res = await api.getAllUsers(undefined, undefined, emptyQuery);
     });
 
-    it('should call getUsers with empty string query and fallback to default order', async () => {
-      const api = setup();
-      const emptyQuery = '';
-      const mockResponse: PaginatedResponse<User> = {
-        $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
-        data: [],
-      };
-      const mockAccountId = 'ACC-123';
+    const defaultQuery = '&order=name';
+    const expectedUrl =
+      `v1/accounts/users` +
+      `?select=-*,id,name,status,icon` +
+      `${defaultQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
 
-      mockGet.mockResolvedValueOnce(mockResponse);
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
 
-      let res;
-      await act(async () => {
-        res = await api.getUsers(mockAccountId, undefined, undefined, emptyQuery);
-      });
+  it('should throw an error when API rejects due to malformed query', async () => {
+    const api = setup();
+    const invalidQuery = 'INVALID_QUERY_STRING';
+    const mockError = new Error('Invalid query');
 
-      const defaultQuery = '&order=name';
-      const expectedUrl =
-        `v1/accounts/accounts/${mockAccountId}/users` +
-        `?select=id,name,status,icon` +
-        `${defaultQuery}` +
-        `&offset=${DEFAULT_OFFSET}` +
-        `&limit=${DEFAULT_PAGE_SIZE}`;
+    mockGet.mockRejectedValueOnce(mockError);
 
-      expect(mockGet).toHaveBeenCalledWith(expectedUrl);
-      expect(res).toEqual(mockResponse);
+    await expect(api.getAllUsers(undefined, undefined, invalidQuery)).rejects.toThrow(
+      'Invalid query',
+    );
+
+    const expectedUrl =
+      `v1/accounts/users` +
+      `?select=-*,id,name,status,icon` +
+      `${invalidQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+});
+
+describe('useUserApi - getUsers with custom query', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call getUsers with a valid custom query', async () => {
+    const api = setup();
+    const customQuery = '&order=status&filter=status=Active';
+    const mockResponse: PaginatedResponse<User> = {
+      $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
+      data: [],
+    };
+    const mockAccountId = 'ACC-123';
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getUsers(mockAccountId, undefined, undefined, customQuery);
     });
 
-    it('should throw an error when API rejects due to malformed query', async () => {
-      const api = setup();
-      const invalidQuery = 'INVALID_QUERY_STRING';
-      const mockError = new Error('Invalid query');
-      const mockAccountId = 'ACC-123';
+    const expectedUrl =
+      `v1/accounts/accounts/${mockAccountId}/users` +
+      `?select=id,name,status,icon` +
+      `${customQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
 
-      mockGet.mockRejectedValueOnce(mockError);
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
 
-      await expect(api.getUsers(mockAccountId, undefined, undefined, invalidQuery)).rejects.toThrow(
-        'Invalid query',
-      );
+  it('should call getUsers with empty string query and fallback to default order', async () => {
+    const api = setup();
+    const emptyQuery = '';
+    const mockResponse: PaginatedResponse<User> = {
+      $meta: { pagination: { offset: 0, limit: 50, total: 0 } },
+      data: [],
+    };
+    const mockAccountId = 'ACC-123';
 
-      const expectedUrl =
-        `v1/accounts/accounts/${mockAccountId}/users` +
-        `?select=id,name,status,icon` +
-        `${invalidQuery}` +
-        `&offset=${DEFAULT_OFFSET}` +
-        `&limit=${DEFAULT_PAGE_SIZE}`;
+    mockGet.mockResolvedValueOnce(mockResponse);
 
-      expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    let res;
+    await act(async () => {
+      res = await api.getUsers(mockAccountId, undefined, undefined, emptyQuery);
     });
+
+    const defaultQuery = '&order=name';
+    const expectedUrl =
+      `v1/accounts/accounts/${mockAccountId}/users` +
+      `?select=id,name,status,icon` +
+      `${defaultQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should throw an error when API rejects due to malformed query', async () => {
+    const api = setup();
+    const invalidQuery = 'INVALID_QUERY_STRING';
+    const mockError = new Error('Invalid query');
+    const mockAccountId = 'ACC-123';
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getUsers(mockAccountId, undefined, undefined, invalidQuery)).rejects.toThrow(
+      'Invalid query',
+    );
+
+    const expectedUrl =
+      `v1/accounts/accounts/${mockAccountId}/users` +
+      `?select=id,name,status,icon` +
+      `${invalidQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
   });
 });
