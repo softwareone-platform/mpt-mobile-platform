@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,8 @@ import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useEnrollments, EnrollmentProvider } from '@/context/EnrollmentContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type EnrollmentsScreenRouteProp = RouteProp<RootStackParamList, 'enrollments'>;
 
 const EnrollmentsScreenContent = () => {
   const {
@@ -50,10 +52,16 @@ const EnrollmentsScreenContent = () => {
   );
 };
 
-const EnrollmentsScreen = () => (
-  <EnrollmentProvider>
-    <EnrollmentsScreenContent />
-  </EnrollmentProvider>
-);
+const EnrollmentsScreen = () => {
+  const route = useRoute<EnrollmentsScreenRouteProp>();
+
+  const query = route.params?.query;
+
+  return (
+    <EnrollmentProvider query={query}>
+      <EnrollmentsScreenContent />
+    </EnrollmentProvider>
+  );
+};
 
 export default EnrollmentsScreen;

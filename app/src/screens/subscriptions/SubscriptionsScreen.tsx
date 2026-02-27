@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -6,8 +6,10 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImage } from '@/config/list';
 import { useSubscriptions, SubscriptionsProvider } from '@/context/SubscriptionsContext';
-import type { RootStackParamList } from '@/types/navigation';
+import type { RootStackParamList, SubscriptionsStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type SubscriptionsScreenRouteProp = RouteProp<SubscriptionsStackParamList, 'subscriptionsRoot'>;
 
 const SubscriptionsScreenContent = () => {
   const {
@@ -52,10 +54,15 @@ const SubscriptionsScreenContent = () => {
   );
 };
 
-const SubscriptionsScreen = () => (
-  <SubscriptionsProvider>
-    <SubscriptionsScreenContent />
-  </SubscriptionsProvider>
-);
+const SubscriptionsScreen = () => {
+  const route = useRoute<SubscriptionsScreenRouteProp>();
+  const query = route.params?.query;
+
+  return (
+    <SubscriptionsProvider query={query}>
+      <SubscriptionsScreenContent />
+    </SubscriptionsProvider>
+  );
+};
 
 export default SubscriptionsScreen;

@@ -12,11 +12,14 @@ export function useEnrollmentApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
+      const currentQuery = '&order=-id';
+
       const endpoint =
         `/v1/program/enrollments` +
         `?select=-*,id,status` +
-        `&order=-id` +
+        `${query ? query : currentQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

@@ -14,9 +14,14 @@ interface EnrollmentContextValue {
   fetchEnrollmentsNextPage: () => void;
 }
 
+interface EnrollmentProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
 const EnrollmentContext = createContext<EnrollmentContextValue | undefined>(undefined);
 
-export const EnrollmentProvider = ({ children }: { children: ReactNode }) => {
+export const EnrollmentProvider = ({ children, query }: EnrollmentProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const EnrollmentProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useEnrollmentsData(userId, currentAccountId);
+  } = useEnrollmentsData(userId, currentAccountId, query);
 
   const enrollments = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

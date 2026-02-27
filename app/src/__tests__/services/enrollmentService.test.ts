@@ -242,3 +242,82 @@ describe('useEnrollmentApi - getEnrollmentData', () => {
     expect(res2).toEqual(mockEnrollmentResponse2);
   });
 });
+
+describe('useEnrollmentApi - getEnrollments with optional query', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call getEnrollments with a valid custom query', async () => {
+    const api = setup();
+    const customQuery = `&eq(status,'Processing')&lt(audit.processing.at,2026-02-20)&order=-audit.created.at`;
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getEnrollments(undefined, undefined, customQuery);
+    });
+
+    const expectedUrl =
+      `/v1/program/enrollments` +
+      `?select=-*,id,status` +
+      `${customQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should call getEnrollments without query and fallback to default currentQuery', async () => {
+    const api = setup();
+    const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getEnrollments();
+    });
+
+    const currentQuery = '&order=-id';
+    const expectedUrl =
+      `/v1/program/enrollments` +
+      `?select=-*,id,status` +
+      `${currentQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should throw an error when API rejects due to malformed query', async () => {
+    const api = setup();
+    const invalidQuery = 'INVALID_QUERY_STRING';
+    const mockError = new Error('Invalid query');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getEnrollments(undefined, undefined, invalidQuery)).rejects.toThrow(
+      'Invalid query',
+    );
+
+    const expectedUrl =
+      `/v1/program/enrollments` +
+      `?select=-*,id,status` +
+      `${invalidQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+});

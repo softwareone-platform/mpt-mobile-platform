@@ -41,12 +41,14 @@ export function useBillingApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
+      const currentQuery = '&filter(group.buyers)&order=-audit.created.at';
+
       const endpoint =
         `/v1/billing/invoices` +
         `?select=-*,id,status` +
-        `&filter(group.buyers)` +
-        `&order=-audit.created.at` +
+        `${query ? query : currentQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
