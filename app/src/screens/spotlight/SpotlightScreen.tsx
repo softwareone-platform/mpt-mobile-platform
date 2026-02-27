@@ -107,8 +107,6 @@ const SpotlightScreen = () => {
 
   const handleNavigate = (section: SpotlightItemWithDetails) => {
     const filter = formatSpotlightQuery(section.query?.filter || '');
-    console.info('UNFORMATTED:', section.query?.filter);
-    console.info('FILTER IN SPOTLIGHT', filter);
 
     // Nested stacks
     if (section.listScreenName === 'orders') {
