@@ -12,12 +12,15 @@ export function useUserApi() {
       accountId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<User>> => {
+      const defaultQuery = '&order=name';
+
       const endpoint =
         `v1/accounts/accounts/${accountId}/users` +
         //TODO: once unselect param bug will be fixed, change select to `select=-*,id,name,status,icon`
         `?select=id,name,status,icon` +
-        `&order=name` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

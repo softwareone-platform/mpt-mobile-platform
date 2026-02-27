@@ -14,12 +14,12 @@ export const SUBSCRIPTION_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'expiringSubscriptionsOfMyClients',
 ];
 
-export const USERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
-  'pendingInvites',
+export const USERS_ALL_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'pendingInvitesOfMyClients',
-  'expiredInvites',
   'expiredInvitesOfMyClients',
 ];
+
+export const USERS_SPOTLIGHTS: Array<SpotlightTemplateName> = ['pendingInvites', 'expiredInvites'];
 
 export const INVOICES_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'unpaidInvoices',
@@ -56,10 +56,16 @@ export const SPOTLIGHT_CATEGORY: Array<SpotlightCategory> = [
     listScreenName: 'subscriptions',
   },
   {
+    name: 'allUsers',
+    templates: USERS_ALL_SPOTLIGHTS,
+    detailsScreenName: 'userDetails',
+    listScreenName: 'allUsers',
+  },
+  {
     name: 'users',
     templates: USERS_SPOTLIGHTS,
     detailsScreenName: 'userDetails',
-    listScreenName: 'allUsers',
+    listScreenName: 'users',
   },
   {
     name: 'invoices',
