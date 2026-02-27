@@ -14,9 +14,14 @@ interface InvoicesContextValue {
   fetchInvoices: () => void;
 }
 
+interface InvoiceProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
 const InvoicesContext = createContext<InvoicesContextValue | undefined>(undefined);
 
-export const InvoicesProvider = ({ children }: { children: ReactNode }) => {
+export const InvoicesProvider = ({ children, query }: InvoiceProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const InvoicesProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useInvoicesData(userId, currentAccountId);
+  } = useInvoicesData(userId, currentAccountId, query);
 
   const invoices = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

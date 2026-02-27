@@ -253,3 +253,82 @@ describe('useBuyerApi - getBuyerData', () => {
     expect(res2).toEqual(mockResponse2);
   });
 });
+
+describe('useBuyerApi - getBuyers with optional query', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call getBuyers with a valid custom query', async () => {
+    const api = setup();
+    const customQuery = `&any(sellers,and(eq(status,'Active'),eq(erpLink.status,'Blocked')))&order=-audit.updated.at`;
+    const mockResponse: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getBuyers('ACC-123', undefined, undefined, customQuery);
+    });
+
+    const expectedUrl =
+      `/v1/accounts/buyers` +
+      `?select=-*,id,name,status,icon` +
+      `${customQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should call getBuyers without query and fallback to default currentQuery', async () => {
+    const api = setup();
+    const mockResponse: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getBuyers('ACC-123');
+    });
+
+    const defaultQuery = '&ne(status,%22Deleted%22)&order=name';
+    const expectedUrl =
+      `/v1/accounts/buyers` +
+      `?select=-*,id,name,status,icon` +
+      `${defaultQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should throw an error when API rejects due to malformed query', async () => {
+    const api = setup();
+    const invalidQuery = 'INVALID_QUERY_STRING';
+    const mockError = new Error('Invalid query');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getBuyers('ACC-123', undefined, undefined, invalidQuery)).rejects.toThrow(
+      'Invalid query',
+    );
+
+    const expectedUrl =
+      `/v1/accounts/buyers` +
+      `?select=-*,id,name,status,icon` +
+      `${invalidQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+});

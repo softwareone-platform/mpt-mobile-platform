@@ -221,11 +221,11 @@ describe('useOrderApi - getOrders with optional query', () => {
       res = await api.getOrders();
     });
 
-    const currentQuery = '&filter(group.buyers)&order=-audit.created.at';
+    const defaultQuery = '&filter(group.buyers)&order=-audit.created.at';
     const expectedUrl =
       `/v1/commerce/orders` +
       `?select=-*,id,status` +
-      `${currentQuery}` +
+      `${defaultQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 

@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -9,6 +9,8 @@ import { useAccount } from '@/context/AccountContext';
 import { useBuyers, BuyersProvider } from '@/context/BuyersContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type BuyersScreenRouteProp = RouteProp<RootStackParamList, 'buyers'>;
 
 const BuyersScreenContent = () => {
   const { userData } = useAccount();
@@ -72,10 +74,16 @@ const BuyersScreenContent = () => {
   );
 };
 
-const BuyersScreen = () => (
-  <BuyersProvider>
-    <BuyersScreenContent />
-  </BuyersProvider>
-);
+const BuyersScreen = () => {
+  const route = useRoute<BuyersScreenRouteProp>();
+
+  const query = route.params?.query;
+
+  return (
+    <BuyersProvider query={query}>
+      <BuyersScreenContent />
+    </BuyersProvider>
+  );
+};
 
 export default BuyersScreen;

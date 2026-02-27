@@ -242,3 +242,82 @@ describe('useSubscriptionApi - getSubscriptionData', () => {
     expect(res2).toEqual(mockResponse2);
   });
 });
+
+describe('useSubscriptionApi - getSubscriptions with optional query', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call getSubscriptions with a valid custom query', async () => {
+    const api = setup();
+    const customQuery = `&filter(group.buyers)&lt(commitmentDate,2026-03-30)&ne(status,'Terminated')&eq(autoRenew,'false')&order=-commitmentDate`;
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSubscriptions(undefined, undefined, customQuery);
+    });
+
+    const expectedUrl =
+      `/v1/commerce/subscriptions` +
+      `?select=-*,id,name,status` +
+      `${customQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should call getSubscriptions without query and fallback to default currentQuery', async () => {
+    const api = setup();
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
+      $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSubscriptions();
+    });
+
+    const defaultQuery = '&filter(group.buyers)';
+    const expectedUrl =
+      `/v1/commerce/subscriptions` +
+      `?select=-*,id,name,status` +
+      `${defaultQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('should throw an error when API rejects due to malformed query', async () => {
+    const api = setup();
+    const invalidQuery = 'INVALID_QUERY_STRING';
+    const mockError = new Error('Invalid query');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getSubscriptions(undefined, undefined, invalidQuery)).rejects.toThrow(
+      'Invalid query',
+    );
+
+    const expectedUrl =
+      `/v1/commerce/subscriptions` +
+      `?select=-*,id,name,status` +
+      `${invalidQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+});

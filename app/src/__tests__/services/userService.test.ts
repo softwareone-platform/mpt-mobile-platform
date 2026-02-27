@@ -445,10 +445,11 @@ describe('useUserApi', () => {
         res = await api.getAllUsers(undefined, undefined, emptyQuery);
       });
 
+      const defaultQuery = '&order=name';
       const expectedUrl =
         `v1/accounts/users` +
         `?select=-*,id,name,status,icon` +
-        `&order=name` +
+        `${defaultQuery}` +
         `&offset=${DEFAULT_OFFSET}` +
         `&limit=${DEFAULT_PAGE_SIZE}`;
 
