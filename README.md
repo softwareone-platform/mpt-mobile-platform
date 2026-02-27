@@ -1,361 +1,148 @@
-# React Native Expo App - Cross-Platform Development
+# SoftwareONE Marketplace Mobile
 
-## Project Overview
+The mobile companion for [SoftwareONE Marketplace](https://portal.platform.softwareone.com/home) — manage your cloud subscriptions, orders, invoices, and agreements on the go. Built with React Native and Expo for iOS and Android.
 
-A comprehensive React Native mobile application built with Expo, featuring Auth0 authentication, multi-platform navigation, and modern development patterns. Includes a Swift reference implementation for iOS developers.
+## 🌟 Highlights
 
-## Project Structure
+- **Passwordless sign-in** — Email + OTP, no passwords to remember
+- **Your whole Marketplace in your pocket** — Orders, subscriptions, agreements, invoices, credit memos, statements, programs, and more
+- **Spotlight dashboard** — See what matters at a glance
+- **Multi-account switching** — Jump between accounts without signing out
+- **Cross-platform** — One codebase, native experience on both iOS and Android
 
-### React Native App
-- **Platform**: iOS & Android (React Native 0.81 + Expo SDK 54)
-- **Authentication**: Auth0 integration with secure token storage
-- **Navigation**: React Navigation v7 with tab and stack navigation
-- **State Management**: React Context + TypeScript
+## ⬇️ Getting Started
 
-## Platform Compatibility
-
-**iOS 17 & iOS 18**: Fully supported  
-**Android 14 & Android 15**: Fully supported
-
-## Key Features
-
-- **Auth0 Authentication**: OAuth2/OIDC with OTP verification
-- **Multi-Account Support**: Account switching and profile management  
-- **Cross-Platform UI**: Tab navigation with 5 main sections (Spotlight, Search, Chat, Service Desk, Analytics)
-- **Secure Storage**: Keychain/Keystore integration with fallbacks
-- **Real-time Data**: API integration with search, filtering, and state sync
-
-## Quick Setup
-
-### Prerequisites
-- **Node.js**: LTS version (20.19.4 or later)
-- **Expo CLI**: `npm install -g @expo/cli`
-- **Development Tools**:
-  - iOS: Xcode and iOS Simulator
-  - Android: Android Studio and Android Emulator
-- **Android Emulator**:
-   - Start the emulator so it is available for expo
-
-### Installation Steps
-
-1. **Clone and Navigate**
-   ```bash
-   git clone <repository-url>
-   cd mpt-mobile-platform
-   ```
-
-2. **Configure Environment**
-   - Copy `.env.example` to `.env`
-   - Download `.env` file for this project from [Keeper Vault](https://keepersecurity.eu/vault/)
-   - Add all necessary variables from downloaded file to your local `.env` file
-   - Add your Auth0 configuration (see [Auth0 Setup](#auth0-configuration))
-
-3. **Start Development**
-   ```bash
-   npx expo run:ios
-   npx expo run:android
-   ```
-
-### Android Emulator Setup (if needed)
-
-If Android option doesn't work:
+You'll need **Node.js 20+** and either **Xcode** (iOS) or **Android Studio** (Android).
 
 ```bash
-# Navigate to Android SDK emulator directory
-cd ~/Library/Android/sdk/emulator
-# for Windows
-cd %LOCALAPPDATA%\Android\Sdk\emulator
+git clone <repository-url>
+cd mpt-mobile-platform
 
-# List available emulators
-./emulator -list-avds
+# Set up environment
+cp app/.env.example app/.env
+# Fill in Auth0 credentials — grab them from Keeper Vault or ask a teammate
 
-# Start specific emulator (replace with your emulator name)
-./emulator -avd Pixel_5_API_34
-```
-
-### NPM Registry Setup for @swo packages
-
-```bash
-# Create .npmrc in project directory
-cat > .npmrc << EOF
-registry=https://registry.npmjs.org/
-@swo:registry=https://softwareone-pc.pkgs.visualstudio.com/_packaging/PyraCloud/npm/registry/
-always-auth=true
-EOF
-
-# Install and run authentication tool
-npm install -g vsts-npm-auth
-vsts-npm-auth -config .npmrc
-
-# Install packages
+# Install and run
+cd app
 npm install
+npm run ios       # or: npm run android
 ```
 
-## Auth0 Configuration
+That's it. The app should launch in your simulator.
 
-### Required Environment Variables
-```env
-AUTH0_DOMAIN=your-domain.auth0.com
-AUTH0_CLIENT_ID=your-client-id
-AUTH0_AUDIENCE=your-api-audience
-AUTH0_SCOPE=openid profile email offline_access
-AUTH0_API_URL=your-api-url
-AUTH0_OTP_DIGITS=6
-AUTH0_SCHEME=your-app-scheme
+> **Using private `@swo` packages?** Run `npm install -g vsts-npm-auth && vsts-npm-auth -config .npmrc` first.
+
+> **Changed `.env` values?** Clear the Metro cache with `npx expo start --clear`, then rebuild.
+
+## 🚀 Usage
+
+Once running, sign in with your SoftwareONE email. You'll receive a one-time code — enter it and you're in.
+
+From there you can browse your Spotlight dashboard, view and search orders, subscriptions, agreements, invoices, and more — everything you'd find on the [web portal](https://portal.platform.softwareone.com/home), optimized for mobile.
+
+## 🏗️ Project Structure
+
+All source code lives under `app/src/`:
+
+```
+app/src/
+├── components/       # Reusable UI components
+├── screens/          # Screen components (one per route)
+├── services/         # API and business logic
+├── hooks/            # Custom hooks and query hooks
+├── context/          # React Context providers
+├── styles/           # Design tokens and component styles
+├── i18n/             # Internationalization
+├── types/            # TypeScript definitions
+├── config/           # App configuration and feature flags
+├── lib/              # Core libraries (API client, token provider)
+├── constants/        # App-wide constants
+└── utils/            # Utility functions
 ```
 
-Please ask team members to share specifics
+## 🛠️ Tech Stack
 
-### Auth0 Dashboard Settings
+| | |
+|---|---|
+| **Framework** | React Native 0.81 · Expo SDK 54 · React 19 (New Architecture) |
+| **Language** | TypeScript 5.9 (strict mode) |
+| **Navigation** | React Navigation v7 |
+| **State** | React Context + TanStack React Query |
+| **Auth** | Auth0 (passwordless OTP) |
+| **API** | Axios |
+| **i18n** | i18next |
+| **Testing** | Jest · Appium (E2E) |
 
-**Bundle Configuration:**
-- **iOS Bundle ID**: `com.softwareone.marketplaceMobile`
-- **Android Package**: `com.softwareone.marketplaceMobile`
+## 📋 Development Scripts
 
-**Callback URLs:**
-```
-# Production
-softwareone.playground-platform-navigation://login-dev.pyracloud.com/ios/com.softwareone.marketplaceMobile/callback
-softwareone.playground-platform-navigation://login-dev.pyracloud.com/android/com.softwareone.marketplaceMobile/callback
-```
-
-> **Note**: Leave `TEMPORARY_AUTH0_TOKEN` empty unless debugging.
-
-## Zscaler Configuration
-
-If you're working in a corporate environment with Zscaler, please make sure that your Zscaller policies are up to date.
-
-## Development Workflow
-
-### Environment Variables
-
-> **⚠️ Important:** After changing values in the `.env` file, you must clear Metro's cache and restart:
-> ```bash
-> # Stop any running Metro process
-> npx expo start --clear #(shut it down after ready Ctrl+C)
-> # Then rebuild your app
-> npx expo run:ios   
-> npx expo run:android
-> ```
-> This is required because environment variables are injected at bundle time by Babel, not at runtime.
-
-### iOS Simulator Deployment (Recommended)
-
-We provide automated scripts for building and deploying to the iOS Simulator. These scripts handle the complete build cycle: cleaning, building, and deploying.
-
-#### Quick Deploy to iOS Simulator
-```bash
-# Deploy with verbose output
-./scripts/deploy-ios.sh --verbose
-
-# Deploy with specific simulator
-./scripts/deploy-ios.sh --simulator "iPhone 15 Pro"
-
-# Deploy with logs
-./scripts/deploy-ios.sh --logs
-
-# Deploy in release mode
-./scripts/deploy-ios.sh --release
-```
-
-**Prerequisites:** .env file must exist in app/ directory with Auth0 configuration
-
-**Script Options:**
-- `-r, --release`: Build in release mode (default: debug)
-- `-s, --simulator NAME`: Specify simulator (default: iPhone 16 Pro)
-- `-f, --force-boot`: Force boot simulator
-- `-l, --logs`: Show app logs after launch
-- `-v, --verbose`: Show detailed output
-- `-h, --help`: Show help message
-
-#### Hot Reload Development (Fastest Iteration)
-
-For rapid development with hot reload:
+Run from the **repository root**. npm commands run from `app/`.
 
 ```bash
-# Start development server with hot reload
-./scripts/hot-reload.sh
+# Quick start
+./scripts/hot-reload.sh              # Dev server with hot reload (press i/a/r)
+./scripts/deploy-ios.sh --verbose    # Full iOS Simulator build + deploy
 
-# Clear cache and start
-./scripts/hot-reload.sh --clear
+# Build
+npm run ios                          # iOS Simulator
+npm run android                      # Android emulator
 
-# Auto-open iOS Simulator
-./scripts/hot-reload.sh --ios
+# Quality
+npm test                             # Unit tests
+npm run lint                         # Lint check
+npm run lint:fix                     # Auto-fix lint errors
 
-# Auto-open Android Emulator
-./scripts/hot-reload.sh --android
+# Cleanup
+./scripts/cleanup.sh                 # Clean build artifacts
+./scripts/cleanup.sh --deep          # Nuclear option (removes node_modules)
+
+# E2E
+./scripts/run-local-test.sh --platform ios welcome
+./scripts/run-local-test.sh --platform android --build all
 ```
 
-Once the server starts:
-- Press `i` for iOS Simulator
-- Press `a` for Android Emulator
-- Press `r` to reload
-- Press `Ctrl+C` to stop
+## 🔄 CI/CD
 
-#### Cleanup Build Artifacts
+GitHub Actions handle validation and builds automatically.
 
-```bash
-# Standard cleanup
-./scripts/cleanup.sh
+| Workflow | Trigger | Duration |
+|----------|---------|----------|
+| **PR Build** | Pull request to `main` | ~2–5 min |
+| **Main CI** | Push to `main` | ~25–35 min |
+| **iOS / Android Build** | Auto on `main` + manual | ~15–30 min |
+| **TestFlight** | Manual only | ~30–45 min |
 
-# Deep clean (removes node_modules, reinstalls)
-./scripts/cleanup.sh --deep
-```
+Every push to `main` runs lint + tests, then builds iOS and Android artifacts in parallel. TestFlight deployment is manual — see [TestFlight Setup](.github/TESTFLIGHT_SETUP.md) for details.
 
-### Manual Development Build (Alternative)
+## 💬 Contributing
 
-If you prefer to use Expo commands directly:
+We welcome contributions! Here's the quick version:
 
-```bash
-# iOS
-npx expo run:ios
+1. Branch off `main`: `feature/MPT-XXXX/short-description`
+2. Read [CONVENTIONS.md](CONVENTIONS.md) — it's enforced on every PR
+3. Write tests for new code
+4. Open a PR with a [Conventional Commits](https://www.conventionalcommits.org/) title (e.g., `feat: add biometric login`)
+5. Wait for CI to go green (lint, tests, [SonarCloud](https://sonarcloud.io/project/overview?id=softwareone-pc_mpt-mobile-platform) quality gate)
 
-# Android
-npx expo run:android
-```
+Found a bug or have an idea? [Open an issue](../../issues) — we'd love to hear from you.
 
-## Local Build - iOS
-For detailed setup and configuration, please refer to [Local Build - iOS](documents/LOCAL_BUILD_IOS.md)
+## 📖 Documentation
 
-## CI/CD Workflows
+| Topic | Link |
+|-------|------|
+| Coding conventions | [CONVENTIONS.md](CONVENTIONS.md) |
+| Design system | [app/src/styles/README.md](app/src/styles/README.md) |
+| iOS local build | [documents/LOCAL_BUILD_IOS.md](documents/LOCAL_BUILD_IOS.md) |
+| Android local build | [documents/LOCAL_BUILD_ANDROID.md](documents/LOCAL_BUILD_ANDROID.md) |
+| Logging | [documents/LOGGING.md](documents/LOGGING.md) |
+| E2E testing (iOS) | [documents/APPIUM_IOS_TESTING.md](documents/APPIUM_IOS_TESTING.md) |
+| E2E testing (Android) | [documents/APPIUM_ANDROID_TESTING.md](documents/APPIUM_ANDROID_TESTING.md) |
+| Writing E2E tests | [documents/EXTENDING_TEST_FRAMEWORK.md](documents/EXTENDING_TEST_FRAMEWORK.md) |
+| TestFlight deployment | [.github/TESTFLIGHT_SETUP.md](.github/TESTFLIGHT_SETUP.md) |
 
-This project uses GitHub Actions for continuous integration and deployment.
+## ⚖️ License
 
-### Automated Workflows
+Licensed under the [Apache License 2.0](LICENSE).
 
-#### PR Build Workflow
-- **Triggers:** Pull requests to `main` branch
-- **What it does:**
-  - Installs dependencies (with caching)
-  - Runs ESLint (`npm run lint:check`)
-  - Runs Jest tests (`npm test`)
-- **Runner:** Ubuntu (cost-effective)
-- **Duration:** ~2-5 minutes
-- **Purpose:** Fast validation without expensive iOS builds
+---
 
-#### Main Branch CI Workflow
-- **Triggers:** Push to `main` branch
-- **What it does:**
-  - Runs validation (lint + tests) on Ubuntu runners
-  - **Automatically builds iOS app** after validation succeeds
-  - Creates iOS .app artifact (7-day retention)
-- **Runners:** Ubuntu (validation) + macOS-14 (iOS build)
-- **Duration:** ~25-35 minutes total
-- **Purpose:** Ensures main branch always passes tests AND has working iOS build
-
-#### iOS Build Workflow (Auto on Main + Manual)
-- **Triggers:**
-  - **Automatic:** Runs on every push to `main` branch (after validation)
-  - **Manual:** Can be triggered manually via GitHub Actions UI
-- **What it does:**
-  - Runs tests
-  - Generates native iOS project with Expo prebuild
-  - Builds iOS app (Debug or Release, unsigned)
-  - Uploads .app artifact (7-day retention)
-  - **Does NOT** deploy to TestFlight
-  - **Does NOT** increment version numbers
-- **Runner:** macOS-14 (~$0.08/min)
-- **Duration:** ~20-30 minutes
-- **Purpose:** Build verification, ensures main branch always has working iOS build
-
-#### iOS TestFlight Workflow (Manual - Full Deployment)
-- **Triggers:** Manual dispatch only (via GitHub Actions UI)
-- **What it does:**
-  - Runs tests
-  - Auto-increments version/build number
-  - Generates native iOS project with Expo prebuild
-  - Builds and signs iOS app for App Store
-  - Uploads to TestFlight
-  - Commits version bump and creates git tag
-  - Uploads IPA and dSYMs as artifacts (30-day retention)
-- **Runner:** macOS-14 (~$0.08/min)
-- **Duration:** ~30-45 minutes
-- **Purpose:** Complete deployment to TestFlight for internal/external testing
-- **Requires:** TestFlight environment secrets configured
-
-### When to Use Which Workflow
-
-**iOS Build (Automatic on Main):**
-- **Runs automatically** on every push to `main` branch
-- Verifies iOS build succeeds after merging PRs
-- Creates .app artifact from main branch
-- Can also be triggered manually for testing
-
-**iOS Build (Manual Trigger):**
-- Testing build configuration changes
-- Verifying builds before creating PR
-- Testing on feature branches
-
-**iOS TestFlight (Always Manual):**
-- Deploying to internal/external testers
-- Creating release candidates
-- Publishing builds for testing
-- Only trigger when ready to distribute
-
-### Caching
-
-All workflows use dependency caching to speed up builds:
-- **npm dependencies:** Cached based on `package-lock.json`
-- **CocoaPods:** Cached based on `Podfile.lock` (iOS builds only)
-
-### TestFlight Deployment
-
-#### Automated TestFlight Workflow
-
-The project includes a complete TestFlight deployment workflow (`.github/workflows/ios-testflight.yml`).
-
-**To deploy to TestFlight:**
-
-1. Navigate to **Actions** tab in GitHub
-2. Select **iOS TestFlight Deployment** workflow
-3. Click **Run workflow**
-4. Configure options:
-   - **Version bump type:** Choose build (increment build number) or patch/minor/major (increment version)
-   - **Environment:** Choose test or production (affects Auth0 configuration)
-5. Click **Run workflow**
-6. Wait ~30-45 minutes for complete deployment
-7. Check App Store Connect for the new build in TestFlight
-
-**What the workflow does:**
-
-1. Runs all tests to ensure code quality
-2. Increments version/build number in `app.config.js` based on selection
-3. Generates native iOS project with Expo prebuild
-4. Configures code signing with distribution certificate
-5. Archives iOS app in Release mode
-6. Exports signed IPA for App Store distribution
-7. Uploads to TestFlight via App Store Connect API
-8. Creates a PR with the version bump (for merging back to main)
-9. Creates a git tag for the release (e.g., `v1.3.0-build3`)
-10. Uploads IPA and dSYMs as artifacts (30-day retention)
-
-**Build artifacts available:**
-- Signed IPA file for App Store distribution
-- dSYM files for crash symbolication
-- Available for 30 days after deployment
-
-#### Required Secrets
-
-All secrets must be configured in the `TestFlight` GitHub environment:
-
-**To configure secrets:**
-1. Go to Settings → Environments → TestFlight
-2. Add environment secrets
-
-**Required secrets in TestFlight environment:**
-- App Store Connect API: `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_CONTENT`
-- Code Signing: `IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64`, `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD`, `IOS_PROVISIONING_PROFILE_BASE64`
-
-**Required secrets/variables in target environment (test/prod):**
-- Secret: `AUTH0_CLIENT_ID`
-- Variables: `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, `AUTH0_API_URL`, `AUTH0_SCOPE`, `AUTH0_OTP_DIGITS`, `AUTH0_SCHEME`
-
-**Important Note on Secrets:**
-- GitHub secrets are read-only and cannot be copied between repositories
-- All secrets must be manually recreated in the TestFlight environment
-- Contact team member who has the original secret values locally
-- Reference PoC repository for secret names: https://github.com/softwareone-platform/mpt-mobile-reactnative-poc/settings/secrets/actions
-
-For detailed documentation on secrets and deployment process, see:
-- [CLAUDE.md - TestFlight Deployment](CLAUDE.md#testflight-deployment)
-- [TestFlight Setup Checklist](.github/TESTFLIGHT_SETUP.md)
+Built with ❤️ by the [SoftwareONE](https://www.softwareone.com/) Marketplace team.
