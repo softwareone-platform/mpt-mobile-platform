@@ -19,12 +19,13 @@ export const useProgramsData = (
 export const useEnrollmentsData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
+  query?: string,
 ) => {
   const { getEnrollments } = useEnrollmentApi();
 
   return usePaginatedQuery<ListItemNoImageNoSubtitle>({
-    queryKey: ['enrollments', userId, currentAccountId],
-    queryFn: getEnrollments,
+    queryKey: ['enrollments', userId, currentAccountId, query],
+    queryFn: (offset, limit) => getEnrollments(offset, limit, query),
     enabled: !!userId && !!currentAccountId,
   });
 };

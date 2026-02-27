@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,8 @@ import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useInvoices, InvoicesProvider } from '@/context/InvoicesContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type InvoicesScreenRouteProp = RouteProp<RootStackParamList, 'invoices'>;
 
 const InvoicesScreenContent = () => {
   const {
@@ -52,10 +54,16 @@ const InvoicesScreenContent = () => {
   );
 };
 
-const InvoicesScreen = () => (
-  <InvoicesProvider>
-    <InvoicesScreenContent />
-  </InvoicesProvider>
-);
+const InvoicesScreen = () => {
+  const route = useRoute<InvoicesScreenRouteProp>();
+
+  const query = route.params?.query;
+
+  return (
+    <InvoicesProvider query={query}>
+      <InvoicesScreenContent />
+    </InvoicesProvider>
+  );
+};
 
 export default InvoicesScreen;

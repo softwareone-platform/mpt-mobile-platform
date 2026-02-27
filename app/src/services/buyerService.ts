@@ -13,12 +13,14 @@ export function useBuyerApi() {
       accountId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<ListItemFull>> => {
+      const defaultQuery = '&ne(status,%22Deleted%22)&order=name';
+
       const endpoint =
         `/v1/accounts/buyers` +
         `?select=-*,id,name,status,icon` +
-        `&ne(status,%22Deleted%22)` +
-        `&order=name` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

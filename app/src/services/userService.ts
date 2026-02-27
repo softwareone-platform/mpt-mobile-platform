@@ -32,12 +32,12 @@ export function useUserApi() {
       limit: number = DEFAULT_PAGE_SIZE,
       query?: string,
     ): Promise<PaginatedResponse<User>> => {
-      const currentQuery = `&order=name`;
+      const defaultQuery = '&order=name';
 
       const endpoint =
         `v1/accounts/users` +
         `?select=-*,id,name,status,icon` +
-        `${query ? query : currentQuery}` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

@@ -14,9 +14,14 @@ interface SubscriptionsContextValue {
   fetchSubscriptions: () => void;
 }
 
+interface SubscriptionProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
 const SubscriptionsContext = createContext<SubscriptionsContextValue | undefined>(undefined);
 
-export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => {
+export const SubscriptionsProvider = ({ children, query }: SubscriptionProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useSubscriptionsData(userId, currentAccountId);
+  } = useSubscriptionsData(userId, currentAccountId, query);
 
   const subscriptions = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

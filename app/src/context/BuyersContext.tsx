@@ -14,9 +14,14 @@ interface BuyersContextValue {
   fetchBuyersNextPage: () => void;
 }
 
+interface BuyerProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
 const BuyersContext = createContext<BuyersContextValue | undefined>(undefined);
 
-export const BuyersProvider = ({ children }: { children: ReactNode }) => {
+export const BuyersProvider = ({ children, query }: BuyerProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const BuyersProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useBuyersData(userId, currentAccountId);
+  } = useBuyersData(userId, currentAccountId, query);
 
   const buyers = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
