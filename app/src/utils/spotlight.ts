@@ -150,8 +150,9 @@ export const arrangeSpotlightData = (
   const templateLookup = buildCategoryLookup(categories);
   const groupedData = groupSpotlightData(spotlightData, templateLookup);
   const orderedData = orderSpotlightData(groupedData, categories);
+  const mergedData = mergeCategories(orderedData);
 
-  return mergeCategories(orderedData);
+  return mergedData;
 };
 
 /**
