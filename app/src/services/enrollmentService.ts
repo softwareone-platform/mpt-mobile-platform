@@ -14,12 +14,12 @@ export function useEnrollmentApi() {
       limit: number = DEFAULT_PAGE_SIZE,
       query?: string,
     ): Promise<PaginatedResponse<ListItemNoImageNoSubtitle>> => {
-      const currentQuery = '&order=-id';
+      const defaultQuery = '&order=-id';
 
       const endpoint =
         `/v1/program/enrollments` +
         `?select=-*,id,status` +
-        `${query ? query : currentQuery}` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

@@ -288,11 +288,11 @@ describe('useEnrollmentApi - getEnrollments with optional query', () => {
       res = await api.getEnrollments();
     });
 
-    const currentQuery = '&order=-id';
+    const defaultQuery = '&order=-id';
     const expectedUrl =
       `/v1/program/enrollments` +
       `?select=-*,id,status` +
-      `${currentQuery}` +
+      `${defaultQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 

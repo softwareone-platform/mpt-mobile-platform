@@ -288,11 +288,11 @@ describe('useSubscriptionApi - getSubscriptions with optional query', () => {
       res = await api.getSubscriptions();
     });
 
-    const currentQuery = '&filter(group.buyers)';
+    const defaultQuery = '&filter(group.buyers)';
     const expectedUrl =
       `/v1/commerce/subscriptions` +
       `?select=-*,id,name,status` +
-      `${currentQuery}` +
+      `${defaultQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 

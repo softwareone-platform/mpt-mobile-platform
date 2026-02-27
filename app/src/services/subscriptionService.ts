@@ -14,12 +14,12 @@ export function useSubscriptionApi() {
       limit: number = DEFAULT_PAGE_SIZE,
       query?: string,
     ): Promise<PaginatedResponse<ListItemNoImage>> => {
-      const currentQuery = `&filter(group.buyers)`;
+      const defaultQuery = '&filter(group.buyers)';
 
       const endpoint =
         `/v1/commerce/subscriptions` +
         `?select=-*,id,name,status` +
-        `${query ? query : currentQuery}` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

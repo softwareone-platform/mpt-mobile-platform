@@ -196,7 +196,7 @@ describe('useInvoiceApi - getInvoices with optional query', () => {
     expect(res).toEqual(mockResponse);
   });
 
-  it('should call getBuyers without query and fallback to default currentQuery', async () => {
+  it('should call getInvoices without query and fallback to default currentQuery', async () => {
     const api = setup();
     const mockResponse: PaginatedResponse<ListItemNoImageNoSubtitle> = {
       $meta: { pagination: { offset: 0, limit: DEFAULT_PAGE_SIZE, total: 0 } },
@@ -210,11 +210,11 @@ describe('useInvoiceApi - getInvoices with optional query', () => {
       res = await api.getInvoices();
     });
 
-    const currentQuery = '&filter(group.buyers)&order=-audit.created.at';
+    const defaultQuery = '&filter(group.buyers)&order=-audit.created.at';
     const expectedUrl =
       `/v1/billing/invoices` +
       `?select=-*,id,status` +
-      `${currentQuery}` +
+      `${defaultQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 

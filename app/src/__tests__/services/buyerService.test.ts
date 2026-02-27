@@ -299,11 +299,11 @@ describe('useBuyerApi - getBuyers with optional query', () => {
       res = await api.getBuyers('ACC-123');
     });
 
-    const currentQuery = '&ne(status,%22Deleted%22)&order=name';
+    const defaultQuery = '&ne(status,%22Deleted%22)&order=name';
     const expectedUrl =
       `/v1/accounts/buyers` +
       `?select=-*,id,name,status,icon` +
-      `${currentQuery}` +
+      `${defaultQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
 
