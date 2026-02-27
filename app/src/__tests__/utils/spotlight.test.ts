@@ -16,12 +16,14 @@ import {
   largeSpotlightData,
 } from '../__mocks__/utils/spotlight';
 
+import type { SpotlightItemWithDetails } from '@/types/api';
 import { calculateRelativeDate, FUTURE, PAST } from '@/utils/formatting';
 import {
   buildCategoryLookup,
   groupSpotlightData,
   orderSpotlightData,
   arrangeSpotlightData,
+  mergeCategories,
   getQueryFromEndpoint,
   removeLimitFromQuery,
   replaceSpotlightQueryDate,
@@ -170,6 +172,93 @@ describe('spotlightUtils', () => {
       expect(arrangedData.subscriptions.length).toBe(50);
       expect(arrangedData.orders[0].id).toBe('1');
       expect(arrangedData.subscriptions[0].id).toBe('2');
+    });
+  });
+
+  describe('mergeCategories', () => {
+    it('should merge allUsers items into users group', () => {
+      const input: Record<string, SpotlightItemWithDetails[]> = {
+        users: [
+          {
+            id: '1',
+            total: 1,
+            top: [],
+            detailsScreenName: 'userDetails',
+            listScreenName: 'users',
+          },
+        ],
+        allUsers: [
+          {
+            id: '2',
+            total: 2,
+            top: [],
+            detailsScreenName: 'userDetails',
+            listScreenName: 'allUsers',
+          },
+        ],
+      };
+
+      const result = mergeCategories(input);
+
+      expect(Object.keys(result)).toEqual(['users']);
+      expect(result.users).toHaveLength(2);
+      expect(result.users[0].listScreenName).toBe('users');
+      expect(result.users[1].listScreenName).toBe('allUsers');
+    });
+
+    it('should keep allUsers items under users when users group does not exist', () => {
+      const input: Record<string, SpotlightItemWithDetails[]> = {
+        allUsers: [
+          {
+            id: '1',
+            total: 1,
+            top: [],
+            detailsScreenName: 'userDetails',
+            listScreenName: 'allUsers',
+          },
+        ],
+      };
+
+      const result = mergeCategories(input);
+
+      expect(Object.keys(result)).toEqual(['users']);
+      expect(result.users).toHaveLength(1);
+      expect(result.users[0].listScreenName).toBe('allUsers');
+    });
+
+    it('should not modify data when no mergeable categories exist', () => {
+      const input: Record<string, SpotlightItemWithDetails[]> = {
+        orders: [
+          {
+            id: '1',
+            total: 1,
+            top: [],
+            detailsScreenName: 'orderDetails',
+            listScreenName: 'orders',
+          },
+        ],
+        subscriptions: [
+          {
+            id: '2',
+            total: 1,
+            top: [],
+            detailsScreenName: 'subscriptionDetails',
+            listScreenName: 'subscriptions',
+          },
+        ],
+      };
+
+      const result = mergeCategories(input);
+
+      expect(Object.keys(result)).toEqual(['orders', 'subscriptions']);
+      expect(result.orders).toHaveLength(1);
+      expect(result.subscriptions).toHaveLength(1);
+    });
+
+    it('should return empty object for empty input', () => {
+      const result = mergeCategories({});
+
+      expect(result).toEqual({});
     });
   });
 });
