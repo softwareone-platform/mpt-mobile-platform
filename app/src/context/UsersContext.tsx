@@ -33,7 +33,7 @@ export const UsersProvider = ({
   const isOperations = userData?.currentAccount?.type === 'Operations';
   const shouldUseAllUsers = showAllUsers && isOperations;
 
-  const accountUsersQuery = useUsersData(userId, currentAccountId, !shouldUseAllUsers);
+  const accountUsersQuery = useUsersData(userId, currentAccountId, !shouldUseAllUsers, query);
   const allUsersQuery = useOpsUsersData(userId, shouldUseAllUsers, query);
 
   const {

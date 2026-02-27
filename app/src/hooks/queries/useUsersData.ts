@@ -6,12 +6,13 @@ export const useUsersData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
   shouldFetch: boolean = true,
+  query?: string,
 ) => {
   const { getUsers } = useUserApi();
 
   return usePaginatedQuery<ListItemFull>({
-    queryKey: ['users', userId, currentAccountId],
-    queryFn: (offset, limit) => getUsers(currentAccountId!, offset, limit),
+    queryKey: ['users', userId, currentAccountId, query],
+    queryFn: (offset, limit) => getUsers(currentAccountId!, offset, limit, query),
     enabled: !!userId && !!currentAccountId && shouldFetch,
   });
 };

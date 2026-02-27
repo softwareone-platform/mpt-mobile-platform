@@ -9,7 +9,9 @@ import { useUsers, UsersProvider } from '@/context/UsersContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type UsersScreenRouteProp = RouteProp<RootStackParamList, 'allUsers'>;
+type UsersScreenRouteProp =
+  | RouteProp<RootStackParamList, 'users'>
+  | RouteProp<RootStackParamList, 'allUsers'>;
 
 const UsersScreenContent = () => {
   const {
@@ -55,11 +57,10 @@ const UsersScreenContent = () => {
 };
 
 const UsersScreen = () => {
-  const route = useRoute();
-  const usersRoute = useRoute<UsersScreenRouteProp>();
+  const route = useRoute<UsersScreenRouteProp>();
   const showAllUsers = route.name === 'allUsers';
 
-  const query = usersRoute.params?.query;
+  const query = route.params?.query;
 
   return (
     <UsersProvider showAllUsers={showAllUsers} query={query}>

@@ -29,6 +29,7 @@ export type SpotlightCategoryName =
   | 'orders'
   | 'subscriptions'
   | 'users'
+  | 'allUsers'
   | 'invoices'
   | 'enrollments'
   | 'journals'
