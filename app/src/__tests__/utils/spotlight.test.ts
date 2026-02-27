@@ -16,6 +16,7 @@ import {
   largeSpotlightData,
 } from '../__mocks__/utils/spotlight';
 
+import type { SpotlightItemWithDetails } from '@/types/api';
 import { calculateRelativeDate, FUTURE, PAST } from '@/utils/formatting';
 import {
   buildCategoryLookup,
@@ -176,16 +177,28 @@ describe('spotlightUtils', () => {
 
   describe('mergeCategories', () => {
     it('should merge allUsers items into users group', () => {
-      const input = {
+      const input: Record<string, SpotlightItemWithDetails[]> = {
         users: [
-          { id: '1', detailsScreenName: 'userDetails', listScreenName: 'users' },
+          {
+            id: '1',
+            total: 1,
+            top: [],
+            detailsScreenName: 'userDetails',
+            listScreenName: 'users',
+          },
         ],
         allUsers: [
-          { id: '2', detailsScreenName: 'userDetails', listScreenName: 'allUsers' },
+          {
+            id: '2',
+            total: 2,
+            top: [],
+            detailsScreenName: 'userDetails',
+            listScreenName: 'allUsers',
+          },
         ],
       };
 
-      const result = mergeCategories(input as Record<string, any>);
+      const result = mergeCategories(input);
 
       expect(Object.keys(result)).toEqual(['users']);
       expect(result.users).toHaveLength(2);
@@ -194,13 +207,19 @@ describe('spotlightUtils', () => {
     });
 
     it('should keep allUsers items under users when users group does not exist', () => {
-      const input = {
+      const input: Record<string, SpotlightItemWithDetails[]> = {
         allUsers: [
-          { id: '1', detailsScreenName: 'userDetails', listScreenName: 'allUsers' },
+          {
+            id: '1',
+            total: 1,
+            top: [],
+            detailsScreenName: 'userDetails',
+            listScreenName: 'allUsers',
+          },
         ],
       };
 
-      const result = mergeCategories(input as Record<string, any>);
+      const result = mergeCategories(input);
 
       expect(Object.keys(result)).toEqual(['users']);
       expect(result.users).toHaveLength(1);
@@ -208,12 +227,28 @@ describe('spotlightUtils', () => {
     });
 
     it('should not modify data when no mergeable categories exist', () => {
-      const input = {
-        orders: [{ id: '1' }],
-        subscriptions: [{ id: '2' }],
+      const input: Record<string, SpotlightItemWithDetails[]> = {
+        orders: [
+          {
+            id: '1',
+            total: 1,
+            top: [],
+            detailsScreenName: 'orderDetails',
+            listScreenName: 'orders',
+          },
+        ],
+        subscriptions: [
+          {
+            id: '2',
+            total: 1,
+            top: [],
+            detailsScreenName: 'subscriptionDetails',
+            listScreenName: 'subscriptions',
+          },
+        ],
       };
 
-      const result = mergeCategories(input as Record<string, any>);
+      const result = mergeCategories(input);
 
       expect(Object.keys(result)).toEqual(['orders', 'subscriptions']);
       expect(result.orders).toHaveLength(1);
