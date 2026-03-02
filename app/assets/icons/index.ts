@@ -14,6 +14,7 @@ import ChecklistRtlOutlined from './checklist-rtl';
 import ContactsOutlined from './contacts';
 import CreditCardOutlined from './credit-card';
 import DocumentScannerOutlined from './document-scanner';
+import EditSquareOutlined from './edit-square';
 import FactCheckOutlined from './fact-check';
 import FlareOutlined from './flare';
 import FormatListNumberedRtlOutlined from './format-list-numbered-rtl';
@@ -45,7 +46,6 @@ import ShoppingCartCheckoutOutlined from './shopping-cart-checkout';
 import StorefrontOutlined from './storefront';
 import SubscriptionsOutlined from './subscriptions';
 import WorkspacePremiumOutlined from './workspace-premium';
-import { group } from 'console';
 
 // Export all outlined icons with keys matching the names of filled Material Icons
 export const OutlinedIcons = {
@@ -65,6 +65,7 @@ export const OutlinedIcons = {
   contacts: ContactsOutlined,
   'credit-card': CreditCardOutlined,
   'document-scanner': DocumentScannerOutlined,
+  'edit-square': EditSquareOutlined,
   'fact-check': FactCheckOutlined,
   flare: FlareOutlined,
   'format-list-numbered-rtl': FormatListNumberedRtlOutlined,

@@ -109,12 +109,7 @@ const SpotlightScreen = () => {
     const filter = formatSpotlightQuery(section.query?.filter || '');
 
     // Nested stacks
-    if (section.listScreenName === 'orders') {
-      navigation.navigate(section.listScreenName, {
-        screen: 'ordersRoot',
-        params: { query: filter },
-      });
-    } else if (section.listScreenName === 'subscriptions') {
+    if (section.listScreenName === 'subscriptions') {
       navigation.navigate(section.listScreenName, {
         screen: 'subscriptionsRoot',
         params: { query: filter },

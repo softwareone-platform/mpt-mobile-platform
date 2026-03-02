@@ -5,7 +5,7 @@ export { buttonStyle } from './button';
 export { inputStyle } from './input';
 export { authLayoutStyle } from './authLayout';
 export { cardStyle } from './card';
-export { screenStyle, spacingStyle } from './common';
+export { screenStyle, spacingStyle, commonStyle } from './common';
 export { separatorStyle } from './separator';
 export { navigationStyle } from './navigation';
 export { avatarStyle } from './avatar';

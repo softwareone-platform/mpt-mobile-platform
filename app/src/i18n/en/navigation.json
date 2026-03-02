@@ -6,6 +6,7 @@
   "personalInformation": "Personal Information",
   "tabs": {
     "spotlight": "Spotlight",
+    "chat": "Chat",
     "orders": "Orders",
     "subscriptions": "Subscriptions",
     "more": "More",
@@ -34,7 +35,8 @@
     "productDetails": "Product",
     "programDetails": "Program",
     "enrollmentDetails": "Enrollment",
-    "certificateDetails": "Certificate"
+    "certificateDetails": "Certificate",
+    "chatConversation": "Chat"
   },
   "tabGroups": {
     "administration": "Administration",
