@@ -5,7 +5,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Avatar, { clearAvatarCache } from '@/components/avatar/Avatar';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
 import { useAccount } from '@/context/AccountContext';
-import { avatarStyle } from '@/styles';
+import { avatarStyle, navigationStyle } from '@/styles';
 import { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
@@ -54,7 +54,7 @@ const AccountToolbarButton: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: avatarStyle.container,
-  topBarIconWrapper: avatarStyle.topBarIconWrapper,
+  topBarIconWrapper: navigationStyle.header.rightIconWrapper,
 });
 
 export default AccountToolbarButton;

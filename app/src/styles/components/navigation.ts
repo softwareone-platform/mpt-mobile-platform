@@ -14,6 +14,8 @@ export const navigationStyle = {
       fontSize: 12,
       marginTop: 6,
     },
+    activeTintColor: Color.brand.primary,
+    inactiveTintColor: Color.gray.gray4,
   },
   secondary: {
     container: {
@@ -64,5 +66,10 @@ export const navigationStyle = {
       color: Color.brand.primary,
       marginLeft: 6,
     },
+    rightIconWrapper: {
+      marginRight: Spacing.spacing2,
+    },
+    rightIconColorPrimary: Color.brand.primary,
+    rightIconColorSecondary: Color.gray.gray4,
   },
 } as const;
