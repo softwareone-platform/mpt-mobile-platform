@@ -111,7 +111,7 @@ GitHub Actions handle validation and builds automatically.
 | **iOS / Android Build** | Auto on `main` + manual | ~15–30 min |
 | **TestFlight** | Manual only | ~30–45 min |
 
-Every push to `main` runs lint + tests, then builds iOS and Android artifacts in parallel. TestFlight deployment is manual — see [TestFlight Setup](.github/TESTFLIGHT_SETUP.md) for details.
+Every push to `main` runs lint + tests, then builds iOS and Android artifacts in parallel. TestFlight deployment is manual — see the [Deployment Guide](.github/DEPLOYMENT_GUIDE.md) for the full test → QA → prod promotion flow, and [TestFlight Setup](.github/TESTFLIGHT_SETUP.md) for secrets and first-time configuration.
 
 ## 💬 Contributing
 
@@ -137,7 +137,8 @@ Found a bug or have an idea? [Open an issue](../../issues) — we'd love to hear
 | E2E testing (iOS) | [documents/APPIUM_IOS_TESTING.md](documents/APPIUM_IOS_TESTING.md) |
 | E2E testing (Android) | [documents/APPIUM_ANDROID_TESTING.md](documents/APPIUM_ANDROID_TESTING.md) |
 | Writing E2E tests | [documents/EXTENDING_TEST_FRAMEWORK.md](documents/EXTENDING_TEST_FRAMEWORK.md) |
-| TestFlight deployment | [.github/TESTFLIGHT_SETUP.md](.github/TESTFLIGHT_SETUP.md) |
+| Deployment guide (test/QA/prod) | [.github/DEPLOYMENT_GUIDE.md](.github/DEPLOYMENT_GUIDE.md) |
+| TestFlight setup | [.github/TESTFLIGHT_SETUP.md](.github/TESTFLIGHT_SETUP.md) |
 
 ## ⚖️ License
 

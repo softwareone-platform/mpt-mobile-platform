@@ -9,6 +9,7 @@ The role of this file is to describe common mistakes and confusion points that a
 - Dependencies → read `app/package.json`
 - Existing patterns → read a similar file in the same directory
 - CI/CD details → read `.github/workflows/` files
+- Deployment to test/QA/prod → read `.github/DEPLOYMENT_GUIDE.md`
 - TestFlight setup → read `.github/TESTFLIGHT_SETUP.md`
 - E2E testing → read `documents/APPIUM_*.md` and `documents/EXTENDING_TEST_FRAMEWORK.md`
 - Design system details → read `app/src/styles/README.md`
@@ -165,7 +166,8 @@ npm install -g vsts-npm-auth && vsts-npm-auth -config .npmrc
 | API services & types                | `app/src/services/` and `app/src/types/`         |
 | Feature flag definitions            | `app/src/config/feature-flags/featureFlags.json` |
 | CI/CD workflows                     | `.github/workflows/`                             |
-| TestFlight deployment               | `.github/TESTFLIGHT_SETUP.md`                    |
+| Deployment guide (test/QA/prod)     | `.github/DEPLOYMENT_GUIDE.md`                    |
+| TestFlight setup & secrets          | `.github/TESTFLIGHT_SETUP.md`                    |
 | iOS local build                     | `documents/LOCAL_BUILD_IOS.md`                   |
 | Android local build                 | `documents/LOCAL_BUILD_ANDROID.md`               |
 | E2E test setup                      | `documents/APPIUM_*.md`                          |

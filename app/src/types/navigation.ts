@@ -15,7 +15,7 @@ export type RootStackParamList = {
 
 export type MainTabsParamList = {
   spotlight: ScreenParams;
-  orders: NavigatorScreenParams<OrdersStackParamList>;
+  chat: ScreenParams;
   subscriptions: NavigatorScreenParams<SubscriptionsStackParamList>;
   more: ScreenParams;
 };
@@ -33,6 +33,7 @@ export type SecondaryTabsParamList = {
   buyers: ScreenParams;
   allBuyers: ScreenParams;
   products: ScreenParams;
+  orders: ScreenParams;
 };
 
 export type AppScreensParamList = {
@@ -51,10 +52,7 @@ export type AppScreensParamList = {
   programDetails: { id: string | undefined };
   enrollmentDetails: { id: string | undefined };
   certificateDetails: { id: string | undefined };
-};
-
-export type OrdersStackParamList = {
-  ordersRoot: { query?: string } | undefined;
+  chatConversation: { id: string | undefined };
 };
 
 export type SubscriptionsStackParamList = {
@@ -70,7 +68,7 @@ export type MoreStackParamList = {
 };
 
 export type MainTabStacks = {
-  orders: keyof OrdersStackParamList;
+  chat: undefined;
   subscriptions: keyof SubscriptionsStackParamList;
   spotlight: keyof SpotlightStackParamList;
   more: keyof SecondaryTabsParamList;
@@ -87,7 +85,7 @@ export type AuthStackParamList = {
 
 export type AppScreenRouteName = keyof RootStackParamList;
 
-export type StackRootName = 'spotlightRoot' | 'ordersRoot' | 'subscriptionsRoot' | 'moreRoot';
+export type StackRootName = 'spotlightRoot' | 'chatRoot' | 'subscriptionsRoot' | 'moreRoot';
 
 export type MainTabItem = {
   name: MainTabRouteName;
