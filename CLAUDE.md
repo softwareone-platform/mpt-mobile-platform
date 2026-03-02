@@ -58,6 +58,19 @@ All user-facing text must use `t()` from `react-i18next`. Translation files are 
 ### Route Params: Null-Check When Type Is `undefined`
 When a screen's param type is `undefined`, always null-check `route.params` before accessing. See CONVENTIONS.md for the full table.
 
+### Route Params: `id: string | undefined` Does NOT Need a Null-Check
+A required property with a union type (`id: string | undefined`) is **not** the same as an optional property (`id?: string`). The property is always present in the params object — only its value may be `undefined`. This provides full type safety and does **not** require a null-check before destructuring.
+```typescript
+// Given: chatConversation: { id: string | undefined }
+
+// ✅ Correct — property is always present, destructuring is safe
+const { id } = route.params;
+
+// ❌ WRONG — unnecessary, this is not an optional property
+if (route.params?.id) { ... }
+```
+Only null-check when the property is truly optional (`id?: string` or `id?: string | undefined`).
+
 ### Backend Returns 404 for Unauthorized Access
 The backend masks 401/403 as 404 to prevent resource enumeration. Don't add special handling for 401/403 on resource endpoints — treat 404 as "not found or no permission."
 
