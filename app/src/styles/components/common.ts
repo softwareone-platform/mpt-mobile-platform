@@ -59,3 +59,9 @@ export const spacingStyle = {
     paddingVertical: Spacing.spacing4,
   },
 } as const;
+
+export const commonStyle = {
+  noDisplay: {
+    display: 'none',
+  },
+} as const;

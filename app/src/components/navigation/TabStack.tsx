@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 
 import AccountToolbarButton from './AccountToolbarButton';
+import ChatMoreButton from './ChatMoreButton';
+import CreateChatButton from './CreateChatButton';
 import SecondaryTabs from './SecondaryTabs';
 
 import { appScreensData } from '@/constants/navigation';
@@ -15,6 +17,7 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
   const { t } = useTranslation();
 
   const tabComponent = tab.name === 'more' ? SecondaryTabs : tab.component!;
+  const isChatTab = tab.name === 'chat';
 
   return (
     <Stack.Navigator
@@ -39,6 +42,7 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
           title: t(`navigation.tabs.${tab.name}`),
           // never show back button on tab root
           headerLeft: () => null,
+          headerRight: isChatTab ? () => <CreateChatButton /> : undefined,
         }}
       />
 
@@ -49,7 +53,10 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
               key={item.name}
               name={item.name}
               component={item.component}
-              options={{ title: t(`navigation.tabs.${item.name}`) }}
+              options={{
+                title: t(`navigation.tabs.${item.name}`),
+                headerRight: isChatTab ? () => <ChatMoreButton /> : undefined,
+              }}
             />
           ),
       )}

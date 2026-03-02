@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 
@@ -8,7 +8,7 @@ import TabStack from './TabStack';
 import DynamicIcon from '@/components/common/DynamicIcon';
 import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
 import { mainTabsData } from '@/constants/navigation';
-import { Color, navigationStyle } from '@/styles';
+import { navigationStyle, commonStyle } from '@/styles';
 import { TestIDs } from '@/utils/testID';
 
 const Tab = createBottomTabNavigator();
@@ -18,27 +18,35 @@ const MainTabs = () => {
 
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          const item = mainTabsData.find((tab) => tab.name === route.name);
-          if (!item) return null;
+      screenOptions={({ route }) => {
+        const currentTab = mainTabsData.find((tab) => tab.name === route.name);
 
-          return (
-            <DynamicIcon
-              name={item.icon}
-              size={size}
-              color={color}
-              variant={focused ? 'filled' : 'outlined'}
-            />
-          );
-        },
-        tabBarActiveTintColor: Color.brand.primary,
-        tabBarInactiveTintColor: Color.gray.gray4,
-        tabBarStyle: styles.container,
-        tabBarLabelStyle: styles.label,
-        tabBarBackground: () => <LinearGradientHorisontal height={3} />,
-        headerShown: false,
-      })}
+        const routeName = getFocusedRouteNameFromRoute(route);
+
+        const isRootScreen = !routeName || routeName === currentTab?.stackRootName;
+
+        return {
+          tabBarIcon: ({ focused, color, size }) => {
+            const item = mainTabsData.find((tab) => tab.name === route.name);
+            if (!item) return null;
+
+            return (
+              <DynamicIcon
+                name={item.icon}
+                size={size}
+                color={color}
+                variant={focused ? 'filled' : 'outlined'}
+              />
+            );
+          },
+          tabBarActiveTintColor: navigationStyle.primary.activeTintColor,
+          tabBarInactiveTintColor: navigationStyle.primary.inactiveTintColor,
+          tabBarStyle: isRootScreen ? styles.container : styles.noDisplay,
+          tabBarLabelStyle: styles.label,
+          tabBarBackground: () => <LinearGradientHorisontal height={3} />,
+          headerShown: false,
+        };
+      }}
     >
       {mainTabsData.map((tab) => {
         return (
@@ -73,6 +81,7 @@ const MainTabs = () => {
 const styles = StyleSheet.create({
   container: navigationStyle.primary.container,
   label: navigationStyle.primary.label,
+  noDisplay: commonStyle.noDisplay,
 });
 
 export default MainTabs;

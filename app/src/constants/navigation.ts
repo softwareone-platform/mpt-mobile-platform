@@ -27,6 +27,8 @@ import {
   ProgramDetailsScreen,
   EnrollmentDetailsScreen,
   CertificateDetailsScreen,
+  ChatRootScreen,
+  ChatConversationScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -37,7 +39,12 @@ import type {
 
 export const mainTabsData: MainTabItem[] = [
   { name: 'spotlight', icon: 'flare', component: SpotlightScreen, stackRootName: 'spotlightRoot' },
-  { name: 'orders', icon: 'shopping-cart', component: OrdersScreen, stackRootName: 'ordersRoot' },
+  {
+    name: 'chat',
+    icon: 'chat-bubble',
+    component: ChatRootScreen,
+    stackRootName: 'chatRoot',
+  },
   {
     name: 'subscriptions',
     icon: 'subscriptions',
@@ -122,6 +129,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         modules: ['new-marketplace'],
         roles: ['Client', 'Vendor', 'Operations'],
       },
+      {
+        name: 'orders',
+        icon: 'shopping-cart',
+        component: OrdersScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
     ],
   },
   {
@@ -181,6 +195,7 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'buyers', component: BuyersScreen },
   { name: 'allBuyers', component: BuyersScreen },
   { name: 'products', component: ProductsScreen },
+  { name: 'orders', component: OrdersScreen },
   { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
   { name: 'orderDetails', component: OrderDetailsScreen },
   { name: 'accountDetails', component: AccountDetailsScreen },
@@ -196,4 +211,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'programDetails', component: ProgramDetailsScreen },
   { name: 'enrollmentDetails', component: EnrollmentDetailsScreen },
   { name: 'certificateDetails', component: CertificateDetailsScreen },
+  { name: 'chatConversation', component: ChatConversationScreen },
 ];
