@@ -193,9 +193,9 @@ Once secrets are configured:
 
 ## 📚 Documentation
 
-- Full deployment process: [README.md](../README.md#testflight-deployment)
-- Detailed secrets documentation: [CLAUDE.md](../CLAUDE.md#testflight-deployment)
+- Deployment guide (test → QA → prod): [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 - Workflow file: [ios-testflight.yml](workflows/ios-testflight.yml)
+- README: [README.md](../README.md#-cicd)
 
 ## ✨ Next Steps After Setup
 
