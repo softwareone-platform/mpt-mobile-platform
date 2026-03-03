@@ -18,7 +18,7 @@ export const Color = {
   },
   gray: {
     gray1: '#f4f6f8',
-    gray2: '#F0EEED',
+    gray2: '#E0E5E8',
     gray3: '#aeb1b9',
     gray4: '#6b7180',
     gray5: '#434952',

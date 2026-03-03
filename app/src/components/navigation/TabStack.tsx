@@ -42,7 +42,9 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
           title: t(`navigation.tabs.${tab.name}`),
           // never show back button on tab root
           headerLeft: () => null,
-          headerRight: isChatTab ? () => <CreateChatButton /> : undefined,
+          ...(isChatTab && {
+            headerRight: () => <CreateChatButton />,
+          }),
         }}
       />
 
@@ -55,7 +57,9 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
               component={item.component}
               options={{
                 title: t(`navigation.tabs.${item.name}`),
-                headerRight: isChatTab ? () => <ChatMoreButton /> : undefined,
+                ...(isChatTab && {
+                  headerRight: () => <ChatMoreButton />,
+                }),
               }}
             />
           ),
