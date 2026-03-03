@@ -6,6 +6,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 const ChatRootScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   return (
     <TouchableOpacity
       onPress={() => {

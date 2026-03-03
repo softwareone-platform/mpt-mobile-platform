@@ -8,7 +8,7 @@ export { cardStyle } from './card';
 export { screenStyle, spacingStyle, commonStyle } from './common';
 export { separatorStyle } from './separator';
 export { navigationStyle } from './navigation';
-export { avatarStyle } from './avatar';
+export { avatarStyle, groupAvatarStyle } from './avatar';
 export { otpInputStyle } from './otpInput';
 export { listItemStyle } from './listItem';
 export { accountSummaryStyle } from './accountSummary';
