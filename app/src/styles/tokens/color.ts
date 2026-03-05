@@ -25,7 +25,7 @@ export const Color = {
     gray6: '#25282d',
   },
   alerts: {
-    info1: '#eaecff',
+    info1: '#EBF0FF',
     info2: '#959bff',
     info3: '#3520bf',
     info4: '#1A3380',

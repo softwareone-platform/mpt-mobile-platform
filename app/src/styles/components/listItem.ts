@@ -1,5 +1,6 @@
 import { Color, Spacing, Typography, BorderRadius } from '../tokens';
 
+import { badgeStyle } from './badge';
 import { separatorStyle } from './separator';
 
 export const listItemStyle = {
@@ -13,8 +14,8 @@ export const listItemStyle = {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: separatorStyle.nonOpaque.borderColor,
+    borderBottomWidth: separatorStyle.bottomBorder1.borderBottomWidth,
+    borderBottomColor: separatorStyle.bottomBorder1.borderBottomColor,
   },
   textContainer: {
     flex: 1,
@@ -51,7 +52,7 @@ export const listItemStyle = {
     subtitle: {
       fontSize: Typography.fontSize.font3,
       marginTop: Spacing.spacingSmall2,
-      color: Color.labels.secondary,
+      color: Color.gray.gray4,
     },
   },
   textInline: {
@@ -132,5 +133,78 @@ export const listItemStyle = {
     subtitle: {
       color: Color.labels.secondary,
     },
+  },
+} as const;
+
+export const listItemChatStyle = {
+  contentWrapper: {
+    ...listItemStyle.contentWrapper,
+    paddingVertical: Spacing.spacing1,
+  },
+  subtitle: {
+    ...listItemStyle.textAndImage.subtitle,
+    fontSize: Typography.fontSize.font2,
+    flexShrink: 1,
+  },
+  textContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginLeft: Spacing.spacing2,
+  },
+  textColumn: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    minWidth: 0,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  titleWrapper: {
+    flexGrow: 1,
+    flexShrink: 1,
+    maxWidth: '60%',
+    minWidth: 0,
+  },
+  separator: {
+    paddingHorizontal: 4,
+    fontSize: Typography.fontSize.font2,
+    color: Color.gray.gray4,
+  },
+  companyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexGrow: 1,
+    flexShrink: 1,
+    maxWidth: '40%',
+  },
+  companyText: {
+    flexShrink: 1,
+    fontSize: Typography.fontSize.font2,
+    color: Color.gray.gray4,
+  },
+  iconWrapper: {
+    marginLeft: Spacing.spacingSmall4,
+    flexShrink: 0,
+  },
+  statusColumn: {
+    marginLeft: Spacing.spacing2,
+    flexShrink: 0,
+    alignItems: 'flex-end',
+  },
+  messageCounter: {
+    ...badgeStyle.info.container,
+    ...badgeStyle.info.text,
+    alignSelf: 'flex-end',
+    marginTop: Spacing.spacingSmall4,
+  },
+  dateText: {
+    marginVertical: Spacing.spacingSmall2,
+    fontSize: Typography.fontSize.font1,
+    color: Color.gray.gray4,
   },
 } as const;
