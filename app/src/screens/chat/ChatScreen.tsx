@@ -4,7 +4,7 @@ import { TouchableOpacity, Text } from 'react-native';
 
 import type { RootStackParamList } from '@/types/navigation';
 
-const ChatRootScreen = () => {
+const ChatScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
@@ -16,9 +16,9 @@ const ChatRootScreen = () => {
       }}
       activeOpacity={0.7}
     >
-      <Text>USER - 123</Text>
+      <Text>USR: 123</Text>
     </TouchableOpacity>
   );
 };
 
-export default ChatRootScreen;
+export default ChatScreen;

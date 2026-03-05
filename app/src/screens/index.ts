@@ -26,7 +26,7 @@ export { default as ProductDetailsScreen } from './products/ProductDetailsScreen
 export { default as ProgramDetailsScreen } from './programs/ProgramDetailsScreen';
 export { default as EnrollmentDetailsScreen } from './enrollments/EnrollmentDetailsScreen';
 export { default as CertificateDetailsScreen } from './certificates/CertificateDetailsScreen';
-export { default as ChatRootScreen } from './chat/ChatRootScreen';
+export { default as ChatScreen } from './chat/ChatScreen';
 export { default as ChatConversationScreen } from './chat/ChatConversationScreen';
 
 export { WelcomeScreen } from './auth';
