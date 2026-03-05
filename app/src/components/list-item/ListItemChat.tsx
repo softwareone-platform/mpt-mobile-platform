@@ -47,11 +47,11 @@ const ListItemChat = ({
                 <Text style={styles.companyText} numberOfLines={1} ellipsizeMode="tail">
                   {companyName.trim()}
                 </Text>
-                <View style={styles.iconWrapper}>
-                  {isVerified && (
+                {isVerified && (
+                  <View style={styles.iconWrapper}>
                     <MaterialIcons name="verified" size={12} color={Color.brand.success} />
-                  )}
-                </View>
+                  </View>
+                )}
               </View>
             </View>
             <Text style={styles.subtitle} numberOfLines={1}>
