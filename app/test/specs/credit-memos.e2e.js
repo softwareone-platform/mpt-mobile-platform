@@ -1,6 +1,6 @@
 const { expect } = require('@wdio/globals');
 
-const creditMemosPage = require('../pageobjects/enrollments.page');
+const creditMemosPage = require('../pageobjects/credit-memos.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
@@ -91,9 +91,9 @@ describe('Credit Memos Page', () => {
       // Verify we're back on More page by checking for Credit Memos menu item
       await expect(morePage.creditMemosMenuItem).toBeDisplayed();
       
-      // Navigate back to Enrollments for subsequent tests
-      await morePage.enrollmentsMenuItem.click();
-      await enrollmentsPage.waitForScreenReady();
+      // Navigate back to Credit Memos for subsequent tests
+      await morePage.creditMemosMenuItem.click();
+      await creditMemosPage.waitForScreenReady();
     });
   });
 
@@ -235,36 +235,34 @@ describe('Credit Memos Page', () => {
         return;
       }
 
-      const draftCreditMemos = await creditMemosPage.getCreditMemosByStatus('Draft');
-      const completedCreditMemos = await creditMemosPage.getCreditMemosByStatus('Completed');
-      const processingCreditMemos = await creditMemosPage.getCreditMemosByStatus('Processing');
+      const issuedCreditMemos = await creditMemosPage.getCreditMemosByStatus('Issued');
 
       // At least one status should have credit memos
-      const totalStatusCreditMemos = draftCreditMemos.length + completedCreditMemos.length + processingCreditMemos.length;
+      const totalStatusCreditMemos = issuedCreditMemos.length;
       expect(totalStatusCreditMemos).toBeGreaterThanOrEqual(0);
       
-      console.info(`Credit Memos by status - Draft: ${draftCreditMemos.length}, Completed: ${completedCreditMemos.length}, Processing: ${processingCreditMemos.length}`);
+      console.info(`Credit Memos by status - Issued: ${issuedCreditMemos.length}`);
     });
   });
 
   describe('API Integration', () => {
-    it('should match API enrollments count with visible enrollments', async function () {
-      // Skip if API token not configured or no enrollments in UI
-      if (!apiEnrollmentsAvailable || !hasEnrollmentsData) {
+    it('should match API credit-memos count with visible credit memos', async function () {
+      // Skip if API token not configured or no credit memos in UI
+      if (!apiCreditMemosAvailable || !hasCreditMemosData) {
         this.skip();
         return;
       }
 
       try {
-        const apiEnrollments = await apiClient.getEnrollments({ limit: 100 });
-        const apiEnrollmentsList = apiEnrollments.data || apiEnrollments;
-        const apiCount = apiEnrollmentsList.length;
+        const apiCreditMemos = await apiClient.getCreditMemos({ limit: 100 });
+        const apiCreditMemosList = apiCreditMemos.data || apiCreditMemos;
+        const apiCount = apiCreditMemosList.length;
         
-        const uiCount = await enrollmentsPage.getVisibleEnrollmentsCount();
+        const uiCount = await creditMemosPage.getVisibleCreditMemosCount();
         
-        console.info(`[Count Compare] API enrollments: ${apiCount}, UI visible enrollments: ${uiCount}`);
+        console.info(`[Count Compare] API credit memos: ${apiCount}, UI visible credit memos: ${uiCount}`);
         
-        // UI should show at least some enrollments if API has enrollments
+        // UI should show at least some credit memos if API has credit memos
         if (apiCount > 0) {
           expect(uiCount).toBeGreaterThan(0);
         }
@@ -274,42 +272,42 @@ describe('Credit Memos Page', () => {
       }
     });
 
-    it('should verify first 10 enrollment IDs and statuses match API data', async function () {
-      if (!apiEnrollmentsAvailable || !hasEnrollmentsData) {
+    it('should verify first 10 credit memos IDs and statuses match API data', async function () {
+      if (!apiCreditMemosAvailable || !hasCreditMemosData) {
         this.skip();
         return;
       }
 
       try {
-        const apiEnrollments = await apiClient.getEnrollments({ limit: 10 });
-        const apiEnrollmentsList = apiEnrollments.data || apiEnrollments;
-        const uiEnrollmentIds = await enrollmentsPage.getVisibleEnrollmentIds();
-        const uiEnrollmentsWithStatus = await enrollmentsPage.getVisibleEnrollmentsWithStatus();
+        const apiCreditMemos = await apiClient.getCreditMemos({ limit: 10 });
+        const apiCreditMemosList = apiCreditMemos.data || apiCreditMemos;
+        const uiCreditMemoIds = await creditMemosPage.getVisibleCreditMemoIds();
+        const uiCreditMemosWithStatus = await creditMemosPage.getVisibleCreditMemosWithStatus();
         
-        // Compare each API enrollment with UI and log results
+        // Compare each API credit memo with UI and log results
         const comparisons = [];
-        for (let i = 0; i < Math.min(apiEnrollmentsList.length, 10); i++) {
-          const apiEnrollment = apiEnrollmentsList[i];
-          const apiEnrollmentId = apiEnrollment.enrollmentId || apiEnrollment.id;
-          const apiStatus = apiEnrollment.status;
-          const uiEnrollment = uiEnrollmentsWithStatus[i] || {};
-          const uiEnrollmentId = uiEnrollment.enrollmentId;
-          const uiStatus = uiEnrollment.status;
+        for (let i = 0; i < Math.min(apiCreditMemosList.length, 10); i++) {
+          const apiCreditMemo = apiCreditMemosList[i];
+          const apiCreditMemoId = apiCreditMemo.creditMemoId || apiCreditMemo.id;
+          const apiStatus = apiCreditMemo.status;
+          const uiCreditMemo = uiCreditMemosWithStatus[i] || {};
+          const uiCreditMemoId = uiCreditMemo.creditMemoId;
+          const uiStatus = uiCreditMemo.status;
           
-          const idMatches = apiEnrollmentId === uiEnrollmentId;
+          const idMatches = apiCreditMemoId === uiCreditMemoId;
           const statusMatches = apiStatus === uiStatus;
           
-          console.info(`[${i + 1}] ID: ${apiEnrollmentId} vs ${uiEnrollmentId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
-          comparisons.push({ apiEnrollmentId, uiEnrollmentId, idMatches, apiStatus, uiStatus, statusMatches });
+          console.info(`[${i + 1}] ID: ${apiCreditMemoId} vs ${uiCreditMemoId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
+          comparisons.push({ apiCreditMemoId, uiCreditMemoId, idMatches, apiStatus, uiStatus, statusMatches });
         }
         
         const idMatchCount = comparisons.filter(c => c.idMatches).length;
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
         console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         
-        // Verify all visible UI enrollments have valid format (4-group)
-        for (const uiEnrollmentId of uiEnrollmentIds.slice(0, 10)) {
-          expect(uiEnrollmentId).toMatch(/^ENR-\d{4}-\d{4}-\d{4}$/);
+        // Verify all visible UI credit memos have valid format (4-group)
+        for (const uiCreditMemoId of uiCreditMemoIds.slice(0, 10)) {
+          expect(uiCreditMemoId).toMatch(/^CRD-\d{4}-\d{4}-\d{4}$/);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

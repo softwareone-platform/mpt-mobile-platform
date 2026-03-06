@@ -8,7 +8,7 @@ const ListPage = require('./base/list.page');
  * 
  * Variant: Minimal (Title ID only, no picture, no subtitle)
  * ID Format: CRD-XXXX-XXXX-XXXX (4 groups)
- * Status Values: Draft, Completed, Processing
+ * Status Values: Issued - only one possible Status value for credit memos
  * 
  * Note: Credit Memos use a different list config (listItemConfigNoImageNoSubtitle)
  * The title IS the ID, so accessibility label format is: "CRD-XXXX-XXXX-XXXX, Status"
