@@ -7,11 +7,11 @@ const ListPage = require('./base/list.page');
  * Provides credit memo-specific methods and backward-compatible aliases
  * 
  * Variant: Minimal (Title ID only, no picture, no subtitle)
- * ID Format: CRD-XXXX-XXXX-XXXX (4 groups)
+ * ID Format: CRD-XXXX-XXXX-XXXX-XXXX (4 groups)
  * Status Values: Issued - only one possible Status value for credit memos
  * 
  * Note: Credit Memos use a different list config (listItemConfigNoImageNoSubtitle)
- * The title IS the ID, so accessibility label format is: "CRD-XXXX-XXXX-XXXX, Status"
+ * The title IS the ID, so accessibility label format is: "CRD-XXXX-XXXX-XXXX-XXXX, Status"
  */
 class CreditMemosPage extends ListPage {
   // ========== Abstract Property Implementations ==========
@@ -47,7 +47,7 @@ class CreditMemosPage extends ListPage {
   }
 
   // ========== ID Pattern Override ==========
-  // Credit Memos use 4-group IDs: CRD-XXXX-XXXX-XXXX
+  // Credit Memos use 4-group IDs: CRD-XXXX-XXXX-XXXX-XXXX
   // The title IS the ID (no separate name field)
 
   /**
@@ -66,15 +66,15 @@ class CreditMemosPage extends ListPage {
 
   /**
    * Get item details from an item's accessibility label
-   * Override for CRD- minimal variant: "CRD-XXXX-XXXX-XXXX, Status" (title IS the ID)
+   * Override for CRD- minimal variant: "CRD-XXXX-XXXX-XXXX-XXXX, Status" (title IS the ID)
    * @param {WebdriverIO.Element} itemElement - List item element
    * @returns {Promise<{creditMemoId: string, id: string, status: string, label: string}>}
    */
   async getItemDetails(itemElement) {
     const label = (await itemElement.getAttribute('name')) || (await itemElement.getAttribute('content-desc'));
     
-    // CRD- uses 4-group format: CRD-XXXX-XXXX-XXXX
-    const idMatch = label.match(/(CRD-\d{4}-\d{4}-\d{4})/);
+    // CRD- uses 4-group format: CRD-XXXX-XXXX-XXXX-XXXX
+    const idMatch = label.match(/(CRD-\d{4}-\d{4}-\d{4}-\d{4})/);
     const id = idMatch ? idMatch[1] : '';
 
     // Extract status (everything after the last comma)
@@ -113,7 +113,7 @@ class CreditMemosPage extends ListPage {
 
   /**
    * @alias for getItemsByStatus
-   * @param {string} status - Credit Memo status (Issued, ...)
+   * @param {string} status - Credit Memo status (Issued)
    */
   getCreditMemosByStatus(status) {
     return this.getItemsByStatus(status);
