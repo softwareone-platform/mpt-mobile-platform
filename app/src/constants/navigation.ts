@@ -27,7 +27,7 @@ import {
   ProgramDetailsScreen,
   EnrollmentDetailsScreen,
   CertificateDetailsScreen,
-  ChatRootScreen,
+  ChatScreen,
   ChatConversationScreen,
 } from '@/screens';
 import type {
@@ -42,7 +42,7 @@ export const mainTabsData: MainTabItem[] = [
   {
     name: 'chat',
     icon: 'chat-bubble',
-    component: ChatRootScreen,
+    component: ChatScreen,
     stackRootName: 'chatRoot',
   },
   {

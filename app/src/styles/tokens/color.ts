@@ -18,14 +18,14 @@ export const Color = {
   },
   gray: {
     gray1: '#f4f6f8',
-    gray2: '#F0EEED',
+    gray2: '#E0E5E8',
     gray3: '#aeb1b9',
     gray4: '#6b7180',
     gray5: '#434952',
     gray6: '#25282d',
   },
   alerts: {
-    info1: '#eaecff',
+    info1: '#EBF0FF',
     info2: '#959bff',
     info3: '#3520bf',
     info4: '#1A3380',

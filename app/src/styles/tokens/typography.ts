@@ -29,5 +29,6 @@ export const Typography = {
     height4: 24,
     height5: 26,
     height6: 28,
+    heightSmall12: 12,
   },
 } as const;

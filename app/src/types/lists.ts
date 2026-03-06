@@ -1,17 +1,20 @@
 export type Status = 'default' | 'info' | 'warning' | 'danger' | 'success';
 
-export type ListItemWithStatusProps = {
-  id: string;
-  imagePath?: string;
-  title: string;
-  subtitle?: string;
-  statusText: string;
+export type ListItemCommonProps = {
   isFirst?: boolean;
   isLast?: boolean;
   onPress?: () => void;
   testID?: string;
   headerTitleTestId?: string;
   headerStatusTestId?: string;
+};
+
+export type ListItemWithStatusProps = ListItemCommonProps & {
+  id: string;
+  imagePath?: string;
+  title: string;
+  subtitle?: string;
+  statusText: string;
 };
 
 export type ListItemConfig = {
@@ -36,3 +39,14 @@ export interface DetailsListItemProps {
   isLast?: boolean;
   onPress?: () => void;
 }
+
+export type ListItemChatProps = ListItemCommonProps & {
+  id: string;
+  imagePath?: string;
+  title: string;
+  companyName: string;
+  isVerified: boolean;
+  messageLatest: string;
+  newMessageCounter: number | undefined;
+  dateOfLastMessage: string;
+};

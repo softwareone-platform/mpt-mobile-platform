@@ -1,4 +1,11 @@
+import type { ViewStyle } from 'react-native';
+
 import { BorderRadius, Color } from '../tokens';
+
+const regionCommon: ViewStyle = {
+  position: 'absolute',
+  borderColor: Color.brand.white,
+};
 
 export const avatarStyle = {
   container: {
@@ -38,5 +45,73 @@ export const avatarStyle = {
   imageStyle: {
     width: '100%',
     height: '100%',
+  },
+} as const;
+
+export const groupAvatarStyle = {
+  container: {
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: Color.gray.gray2,
+    borderRadius: '50%',
+  },
+  avatarInner: {
+    flex: 1,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  regionFull: {
+    ...regionCommon,
+    width: '100%',
+    height: '100%',
+  },
+
+  regionLeft: {
+    ...regionCommon,
+    width: '50%',
+    height: '100%',
+    top: 0,
+    left: 0,
+  },
+  regionRight: {
+    ...regionCommon,
+    width: '50%',
+    height: '100%',
+    top: 0,
+    left: '50%',
+    borderLeftWidth: 1,
+  },
+  regionTopRight: {
+    ...regionCommon,
+    width: '50%',
+    height: '50%',
+    top: 0,
+    left: '50%',
+    borderBottomWidth: 1,
+    borderLeftWidth: 1,
+  },
+  regionBottomRight: {
+    ...regionCommon,
+    width: '50%',
+    height: '50%',
+    top: '50%',
+    left: '50%',
+    borderLeftWidth: 1,
+  },
+  regionTopLeft: {
+    ...regionCommon,
+    width: '50%',
+    height: '50%',
+    top: 0,
+    left: 0,
+    borderBottomWidth: 1,
+  },
+  regionBottomLeft: {
+    ...regionCommon,
+    width: '50%',
+    height: '50%',
+    top: '50%',
+    left: 0,
   },
 } as const;

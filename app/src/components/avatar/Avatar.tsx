@@ -84,9 +84,6 @@ const Avatar: React.FC<AvatarProps> = ({
   }, [imagePath, BASE_URL]);
 
   const handleImageLoadError = () => {
-    logger.warn('Failed to load avatar image', {
-      imagePath,
-    });
     setHasError(true);
     setImageSource(null);
   };
