@@ -5,6 +5,7 @@ const orderDetailsPage = require('../pageobjects/order-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Order Details Page', () => {
   let hasOrdersData = false;
@@ -13,7 +14,7 @@ describe('Order Details Page', () => {
   let apiOrderData = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     await ordersPage.ensureOrdersPage();
@@ -63,7 +64,7 @@ describe('Order Details Page', () => {
 
       await expect(orderDetailsPage.orderIdText).toBeDisplayed();
       const orderId = await orderDetailsPage.getItemId();
-      expect(orderId).toMatch(/^ORD-\d{4}-\d{4}-\d{4}$/);
+      expect(orderId).toMatch(REGEX.ORDER_ID);
     });
 
     it('should display the status badge', async function () {

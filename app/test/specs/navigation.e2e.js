@@ -9,11 +9,12 @@ const subscriptionsPage = require('../pageobjects/subscriptions.page');
 const userSettingsPage = require('../pageobjects/user-settings.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
+const { TIMEOUT } = require('../pageobjects/utils/constants');
 
 describe('Navigation via footer', () => {
   before(async function () {
     // Set timeout for login flow
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
   });
 

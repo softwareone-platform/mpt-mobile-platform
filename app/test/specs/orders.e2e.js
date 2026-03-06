@@ -5,6 +5,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Orders Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -13,7 +14,7 @@ describe('Orders Page', () => {
   let apiOrdersAvailable = false;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
@@ -129,7 +130,7 @@ describe('Orders Page', () => {
       await expect(firstOrder).toBeDisplayed();
       
       const details = await ordersPage.getOrderDetails(firstOrder);
-      expect(details.orderId).toMatch(/^ORD-\d{4}-\d{4}-\d{4}$/);
+      expect(details.orderId).toMatch(REGEX.ORDER_ID);
       expect(['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed', 'Processing', 'Querying']).toContain(details.status);
     });
 
@@ -153,7 +154,7 @@ describe('Orders Page', () => {
       
       // Verify all order IDs have valid format
       for (const orderId of orderIds) {
-        expect(orderId).toMatch(/^ORD-\d{4}-\d{4}-\d{4}$/);
+        expect(orderId).toMatch(REGEX.ORDER_ID);
       }
     });
 
@@ -257,7 +258,7 @@ describe('Orders Page', () => {
         
         // Verify all visible UI orders have valid format
         for (const uiOrderId of uiOrderIds.slice(0, 10)) {
-          expect(uiOrderId).toMatch(/^ORD-\d{4}-\d{4}-\d{4}$/);
+          expect(uiOrderId).toMatch(REGEX.ORDER_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

@@ -4,7 +4,7 @@ const spotlightsPage = require('../pageobjects/spotlights.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureHomePage } = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 
 /**
  * Spotlight Filter Tests - Optimized Structure
@@ -24,7 +24,7 @@ describe('Spotlight Filter Chips', () => {
   let apiDataAvailable = false;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await ensureHomePage();
 
@@ -106,9 +106,9 @@ describe('Spotlight Filter Chips', () => {
       await spotlightsPage.resetFilterScrollPosition().catch(() => {});
       // Use filter toggle to reset page scroll position - selecting a filter then All resets to top
       await spotlightsPage.selectFilter('orders').catch(() => {});
-      await browser.pause(200);
+      await browser.pause(PAUSE.TEXT_ENTRY);
       await spotlightsPage.selectFilter('all').catch(() => {});
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
     it('should select Orders filter and show order sections', async function () {
@@ -118,7 +118,7 @@ describe('Spotlight Filter Chips', () => {
         return;
       }
       await spotlightsPage.selectFilter('orders');
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
 
       // Verify filter works by checking other sections are hidden
       // (Orders section visibility depends on user having long-running orders data)
@@ -136,7 +136,7 @@ describe('Spotlight Filter Chips', () => {
         return;
       }
       await spotlightsPage.selectFilter('subscriptions');
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
 
       const subsVisible = await spotlightsPage.isSubscriptionsSectionVisible();
       expect(subsVisible).toBe(true);
@@ -153,7 +153,7 @@ describe('Spotlight Filter Chips', () => {
       }
       // Already on subscriptions from previous test, but let's be explicit
       await spotlightsPage.selectFilter('subscriptions');
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
 
       const subsVisible = await spotlightsPage.isSubscriptionsSectionVisible();
       expect(subsVisible).toBe(true);
@@ -173,7 +173,7 @@ describe('Spotlight Filter Chips', () => {
       await spotlightsPage.resetFilterScrollPosition().catch(() => {});
       // Scroll once to reveal middle filters
       await spotlightsPage.scrollToFilter('users');
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
     it('should display Users filter after scrolling', async function () {
@@ -194,7 +194,7 @@ describe('Spotlight Filter Chips', () => {
       // Ensure filter is visible before selecting
       await spotlightsPage.scrollToFilter('users');
       await spotlightsPage.selectFilter('users');
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
 
       // Verify filter works by checking subscriptions sections are hidden
       // Users filter should hide subscription-related content
@@ -228,7 +228,7 @@ describe('Spotlight Filter Chips', () => {
       }
       await spotlightsPage.scrollToFilter('invoices');
       await spotlightsPage.selectFilter('invoices');
-      await browser.pause(1000); // Longer pause for Android filter transition
+      await browser.pause(PAUSE.POLL_INTERVAL); // Longer pause for Android filter transition
 
       // Scroll content to top to ensure we check from correct position
       await spotlightsPage.scrollToTop().catch(() => {});
@@ -253,7 +253,7 @@ describe('Spotlight Filter Chips', () => {
       await spotlightsPage.resetFilterScrollPosition().catch(() => {});
       // Scroll to reveal right-side filters
       await spotlightsPage.scrollToFilter('journals');
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
     it('should display Journals filter after scrolling', async function () {
@@ -272,7 +272,7 @@ describe('Spotlight Filter Chips', () => {
         return;
       }
       await spotlightsPage.selectFilter('journals');
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
 
       const journalsVisible = await spotlightsPage.isJournalsSectionVisible();
       expect(journalsVisible).toBe(true);
@@ -298,7 +298,7 @@ describe('Spotlight Filter Chips', () => {
         return;
       }
       await spotlightsPage.selectFilter('buyers');
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
 
       const buyersVisible = await spotlightsPage.isBuyersSectionVisible();
       expect(buyersVisible).toBe(true);
@@ -316,7 +316,7 @@ describe('Spotlight Filter Chips', () => {
       // Enrollments might need a small scroll back
       await spotlightsPage.scrollToFilter('enrollments');
       await spotlightsPage.selectFilter('enrollments');
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
 
       const enrollmentsVisible = await spotlightsPage.isEnrollmentsSectionVisible();
       expect(enrollmentsVisible).toBe(true);
@@ -344,7 +344,7 @@ describe('Spotlight Filter Chips', () => {
       // First filter to orders (hides other sections)
       await spotlightsPage.resetFilterScrollPosition();
       await spotlightsPage.selectFilter('orders');
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
 
       // Verify filter is applied - subscriptions should be hidden
       const subsAfterOrdersFilter = await spotlightsPage.isSubscriptionsSectionVisible();
@@ -353,7 +353,7 @@ describe('Spotlight Filter Chips', () => {
       // Reset to all
       await spotlightsPage.resetFilterScrollPosition();
       await spotlightsPage.selectFilter('all');
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
 
       // Verify All filter is visible and selected
       await expect(spotlightsPage.filterAll).toBeDisplayed();
@@ -367,14 +367,14 @@ describe('Spotlight Filter Chips', () => {
       }
       await spotlightsPage.resetFilterScrollPosition();
       await spotlightsPage.selectFilter('all');
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
 
       // Scroll content vertically (use subscriptions section which is more reliably available)
       await spotlightsPage.scrollToSection('expiring subscriptions').catch(async () => {
         // Fallback: just scroll down if section not found
         await spotlightsPage.scrollDown();
       });
-      await browser.pause(300);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
 
       // All filter should still be visible after resetting horizontal scroll
       await spotlightsPage.resetFilterScrollPosition();

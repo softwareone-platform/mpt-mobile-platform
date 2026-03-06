@@ -5,13 +5,14 @@ const orderDetailsPage = require('../pageobjects/order-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { TIMEOUT } = require('../pageobjects/utils/constants');
 
 describe('Order Details Navigation', () => {
   let hasOrdersData = false;
   let firstOrderId = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     await ordersPage.ensureOrdersPage();

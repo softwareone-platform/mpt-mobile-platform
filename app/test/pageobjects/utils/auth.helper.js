@@ -5,12 +5,12 @@ const headingPage = require('../base/heading.page');
 const profilePage = require('../profile.page');
 const userSettingsPage = require('../user-settings.page');
 const { isAndroid } = require('./selectors');
-const { TIMEOUT, PAUSE } = require('./constants');
+const { TIMEOUT, PAUSE, REGEX } = require('./constants');
 const { restartApp } = require('./app.helper');
 
 const AIRTABLE_EMAIL = process.env.AIRTABLE_EMAIL || 'not-set';
-const OTP_TIMEOUT_MS = 120000;
-const POLL_INTERVAL_MS = 10000;
+const OTP_TIMEOUT_MS = TIMEOUT.OTP_WAIT_MAX;
+const POLL_INTERVAL_MS = PAUSE.OTP_POLL_INTERVAL;
 
 /**
  * Checks if the user is already logged in by checking for home page elements
@@ -124,7 +124,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
     );
 
     // Verify we got a valid 6-digit OTP
-    if (!/^\d{6}$/.test(result.otp)) {
+    if (!REGEX.OTP_6_DIGITS.test(result.otp)) {
       throw new Error(`Invalid OTP format: ${result.otp}`);
     }
     console.info('✓ OTP verification completed successfully');
@@ -155,7 +155,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
 async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY) {
   console.info('⏳ Waiting for app to reach ready state...');
   const startTime = Date.now();
-  const pollInterval = 500;
+  const pollInterval = PAUSE.NAVIGATION;
 
   while (Date.now() - startTime < timeout) {
     // Check for home page elements
@@ -274,7 +274,7 @@ async function ensureLoggedOut() {
     await userSettingsPage.signOut();
 
     // Wait for welcome page to confirm logout
-    await welcomePage.welcomeTitle.waitForDisplayed({ timeout: 15000 });
+    await welcomePage.welcomeTitle.waitForDisplayed({ timeout: TIMEOUT.POST_LOGOUT_REDIRECT });
     console.info('✅ User successfully logged out');
   } catch (error) {
     console.error('❌ Logout failed:', error.message);
