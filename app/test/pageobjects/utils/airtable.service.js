@@ -11,6 +11,7 @@
  */
 
 const https = require('https');
+const { TIMEOUT, PAUSE, REGEX } = require('./constants');
 
 // Configuration - use getter functions to read env vars lazily (after wdio.conf.js loads .env)
 const getAirtableConfig = () => {
@@ -122,7 +123,7 @@ async function markAsProcessed(recordId) {
  * @returns {string|null} - The 6-digit OTP code or null if not found
  */
 function extractOTPFromBody(bodyText) {
-  const match = bodyText.match(/verification code is:\s*(\d{6})/i);
+  const match = bodyText.match(REGEX.OTP_FROM_EMAIL_BODY);
   return match ? match[1] : null;
 }
 
@@ -185,7 +186,12 @@ async function fetchOTPByEmail(email) {
  * @returns {Promise<{otp: string, record: object}>} - OTP and record
  * @throws {Error} - If timeout is reached without finding OTP
  */
-async function waitForOTP(email, timeoutMs = 60000, pollIntervalMs = 5000, afterTime = new Date()) {
+async function waitForOTP(
+  email,
+  timeoutMs = TIMEOUT.OTP_WAIT_MAX,
+  pollIntervalMs = PAUSE.OTP_POLL_INTERVAL,
+  afterTime = new Date(),
+) {
     const config = getAirtableConfig();
     console.info(`\n=== Waiting for OTP for: ${email} ===`);
     console.info(`  From Email filter: ${config.fromEmail}`);

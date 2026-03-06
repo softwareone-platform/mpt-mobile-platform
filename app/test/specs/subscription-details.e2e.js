@@ -5,6 +5,7 @@ const subscriptionDetailsPage = require('../pageobjects/subscription-details.pag
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Subscription Details Page', () => {
   let hasSubscriptionsData = false;
@@ -13,7 +14,7 @@ describe('Subscription Details Page', () => {
   let apiSubscriptionData = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     await subscriptionsPage.ensureSubscriptionsPage();
@@ -66,7 +67,7 @@ describe('Subscription Details Page', () => {
       }
       await expect(subscriptionDetailsPage.subscriptionIdText).toBeDisplayed();
       const subscriptionId = await subscriptionDetailsPage.getItemId();
-      expect(subscriptionId).toMatch(/^SUB-\d{4}-\d{4}-\d{4}$/);
+      expect(subscriptionId).toMatch(REGEX.SUBSCRIPTION_ID);
     });
 
     it('should display the status badge', async function () {

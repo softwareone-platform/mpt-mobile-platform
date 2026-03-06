@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Licensees Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -28,7 +28,7 @@ describe('Licensees Page', () => {
   }
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
@@ -192,7 +192,7 @@ describe('Licensees Page', () => {
       
       const details = await licenseesPage.getLicenseeDetails(firstLicensee);
       // Licensees use 4-group IDs: LCE-XXXX-XXXX-XXXX
-      expect(details.licenseeId).toMatch(/^LCE-\d{4}-\d{4}-\d{4}$/);
+      expect(details.licenseeId).toMatch(REGEX.LICENSEE_ID);
       expect(['Enabled', 'Disabled']).toContain(details.status);
     });
 
@@ -213,7 +213,7 @@ describe('Licensees Page', () => {
       
       // Verify all licensee IDs have valid format (4-group)
       for (const licenseeId of licenseeIds) {
-        expect(licenseeId).toMatch(/^LCE-\d{4}-\d{4}-\d{4}$/);
+        expect(licenseeId).toMatch(REGEX.LICENSEE_ID);
       }
     });
 
@@ -310,7 +310,7 @@ describe('Licensees Page', () => {
         
         // Verify all visible UI licensees have valid format (4-group)
         for (const uiLicenseeId of uiLicenseeIds.slice(0, 10)) {
-          expect(uiLicenseeId).toMatch(/^LCE-\d{4}-\d{4}-\d{4}$/);
+          expect(uiLicenseeId).toMatch(REGEX.LICENSEE_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

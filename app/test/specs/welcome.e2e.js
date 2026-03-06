@@ -6,10 +6,10 @@ const { AIRTABLE_EMAIL, ensureLoggedOut } = require('../pageobjects/utils/auth.h
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const verifyPage = require('../pageobjects/verify.page');
 const welcomePage = require('../pageobjects/welcome.page');
-const { TIMEOUT } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
-const otpTimeoutMs = 260000;
-const pollIntervalMs = 13000;
+const otpTimeoutMs = TIMEOUT.OTP_E2E_MAX;
+const pollIntervalMs = PAUSE.OTP_E2E_POLL;
 
 describe('Welcome page of application', () => {
   before(async function () {
@@ -48,7 +48,7 @@ describe('Welcome page of application', () => {
 
   it('to complete OTP flow with valid email and retrieve OTP from Airtable', async function () {
     // Set timeout for this specific test (OTP retrieval can take up to 260s + 90s for auth flow)
-    this.timeout(otpTimeoutMs + 120000);
+    this.timeout(otpTimeoutMs + TIMEOUT.OTP_E2E_BUFFER);
 
     // Clear any previous input
     await welcomePage.clearText(welcomePage.emailInput);
@@ -95,7 +95,7 @@ describe('Welcome page of application', () => {
       );
 
       // Verify we got a valid 6-digit OTP
-      expect(result.otp).toMatch(/^\d{6}$/);
+      expect(result.otp).toMatch(REGEX.OTP_6_DIGITS);
       console.info('✓ OTP verification completed successfully');
     } catch (error) {
       console.error('OTP retrieval or verification failed:', error.message);
@@ -125,8 +125,8 @@ describe('Welcome page of application', () => {
     console.info(`⏳ [${beforeHomeWait.toISOString()}] Starting to wait for home page (timeout: 90s)...`);
     
     // Add periodic logging while waiting
-    const waitTimeout = 90000;
-    const pollInterval = 10000;
+    const waitTimeout = TIMEOUT.AUTH_FLOW_WAIT;
+    const pollInterval = PAUSE.AUTH_FLOW_POLL;
     let elapsed = 0;
     let homePageFound = false;
     
@@ -180,9 +180,9 @@ describe('Welcome page of application', () => {
     const beforeRestart = new Date();
     console.info(`🔄 [${beforeRestart.toISOString()}] Calling restartApp()...`);
     await restartApp({
-      timeout: 90000,
+      timeout: TIMEOUT.AUTH_FLOW_WAIT,
       expectedState: 'home',
-      settleBeforeTerminateMs: 5000,
+      settleBeforeTerminateMs: PAUSE.OTP_POLL_INTERVAL,
     });
     const afterRestart = new Date();
     console.info(`✅ [${afterRestart.toISOString()}] restartApp() completed in ${(afterRestart - beforeRestart) / 1000}s`);
@@ -190,7 +190,7 @@ describe('Welcome page of application', () => {
     // Verify user is still logged in by checking for home page elements
     const beforeCheck = new Date();
     console.info(`⏳ [${beforeCheck.toISOString()}] Waiting for home page after restart (timeout: 30s)...`);
-    await homePage.header.logoTitle.waitForDisplayed({ timeout: 30000 });
+    await homePage.header.logoTitle.waitForDisplayed({ timeout: TIMEOUT.SCREEN_READY });
     const afterCheck = new Date();
     console.info(`✅ [${afterCheck.toISOString()}] Home page found after ${(afterCheck - beforeCheck) / 1000}s`);
     await expect(homePage.header.logoTitle).toBeDisplayed();
