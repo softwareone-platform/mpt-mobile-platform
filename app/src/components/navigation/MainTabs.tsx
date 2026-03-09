@@ -23,7 +23,9 @@ const MainTabs = () => {
 
         const routeName = getFocusedRouteNameFromRoute(route);
 
-        const isRootScreen = !routeName || routeName === currentTab?.stackRootName;
+        const isChatTab = route.name === 'chat';
+        const isChatRoot = !routeName || routeName === currentTab?.stackRootName;
+        const shouldHideTabBar = isChatTab && !isChatRoot;
 
         return {
           tabBarIcon: ({ focused, color, size }) => {
@@ -41,7 +43,7 @@ const MainTabs = () => {
           },
           tabBarActiveTintColor: navigationStyle.primary.activeTintColor,
           tabBarInactiveTintColor: navigationStyle.primary.inactiveTintColor,
-          tabBarStyle: isRootScreen ? styles.container : styles.noDisplay,
+          tabBarStyle: shouldHideTabBar ? styles.noDisplay : styles.container,
           tabBarLabelStyle: styles.label,
           tabBarBackground: () => <LinearGradientHorisontal height={3} />,
           headerShown: false,
