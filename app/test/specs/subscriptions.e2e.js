@@ -5,6 +5,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Subscriptions Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -13,7 +14,7 @@ describe('Subscriptions Page', () => {
   let apiSubscriptionsAvailable = false;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
@@ -122,7 +123,7 @@ describe('Subscriptions Page', () => {
       await expect(firstSubscription).toBeDisplayed();
       
       const details = await subscriptionsPage.getSubscriptionDetails(firstSubscription);
-      expect(details.subscriptionId).toMatch(/^SUB-\d{4}-\d{4}-\d{4}$/);
+      expect(details.subscriptionId).toMatch(REGEX.SUBSCRIPTION_ID);
       expect(['Active', 'Terminated', 'Updating', 'Terminating', 'Suspended']).toContain(details.status);
     });
 
@@ -143,7 +144,7 @@ describe('Subscriptions Page', () => {
       
       // Verify all subscription IDs have valid format
       for (const subscriptionId of subscriptionIds) {
-        expect(subscriptionId).toMatch(/^SUB-\d{4}-\d{4}-\d{4}$/);
+        expect(subscriptionId).toMatch(REGEX.SUBSCRIPTION_ID);
       }
     });
 
@@ -241,7 +242,7 @@ describe('Subscriptions Page', () => {
         
         // Verify all visible UI subscriptions have valid format
         for (const uiSubscriptionId of uiSubscriptionIds.slice(0, 10)) {
-          expect(uiSubscriptionId).toMatch(/^SUB-\d{4}-\d{4}-\d{4}$/);
+          expect(uiSubscriptionId).toMatch(REGEX.SUBSCRIPTION_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

@@ -6,6 +6,7 @@ const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 // E2E tests for Credit Memo Details Page, modeled after agreement-details.e2e.js
 // API call: apiClient.getCreditMemoById(creditMemoId)
@@ -17,12 +18,12 @@ describe('Credit Memo Details Page', () => {
   let apiCreditMemoData = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Credit Memos page via More menu
     await creditMemosPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     await morePage.creditMemosMenuItem.click();
     await creditMemosPage.waitForScreenReady();
 
@@ -73,7 +74,7 @@ describe('Credit Memo Details Page', () => {
       }
       await expect(creditMemoDetailsPage.creditMemoIdText).toBeDisplayed();
       const creditMemoId = await creditMemoDetailsPage.getItemId();
-      expect(creditMemoId).toMatch(/^CRD-(\d{4}-)+\d{4}$/);
+      expect(creditMemoId).toMatch(REGEX.CREDIT_MEMO_ID);
     });
 
     it('should display the status field', async function () {
