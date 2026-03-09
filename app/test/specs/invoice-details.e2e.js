@@ -6,6 +6,7 @@ const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 // E2E tests for Invoice Details Page, modeled after agreement-details.e2e.js
 // API call: apiClient.getInvoiceById(invoiceId)
@@ -17,12 +18,12 @@ describe('Invoice Details Page', () => {
   let apiInvoiceData = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Invoices page via More menu
     await invoicesPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     await morePage.invoicesMenuItem.click();
     await invoicesPage.waitForScreenReady();
 
@@ -75,7 +76,7 @@ describe('Invoice Details Page', () => {
       }
       await expect(invoiceDetailsPage.invoiceIdText).toBeDisplayed();
       const invoiceId = await invoiceDetailsPage.getItemId();
-      expect(invoiceId).toMatch(/^INV-(\d{4}-)+\d{4}$/);
+      expect(invoiceId).toMatch(REGEX.INVOICE_ID);
     });
 
     it('should display the status field', async function () {

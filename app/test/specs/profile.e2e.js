@@ -5,7 +5,7 @@ const profilePage = require('../pageobjects/profile.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Profile Page', () => {
   let userId;
@@ -17,7 +17,7 @@ describe('Profile Page', () => {
 
   before(async function () {
     // Set timeout for login flow
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
 
     // Navigate to Profile page
@@ -78,7 +78,7 @@ describe('Profile Page', () => {
 
     it('should display current user ID in USR-XXXX-XXXX format', async () => {
       await expect(profilePage.currentUserId).toBeDisplayed();
-      expect(userId).toMatch(/^USR-\d{4}-\d{4}$/);
+      expect(userId).toMatch(REGEX.USER_ID);
     });
   });
 

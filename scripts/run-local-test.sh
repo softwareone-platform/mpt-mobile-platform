@@ -181,9 +181,46 @@ else
     export PLATFORM_NAME="iOS"
     export AUTOMATION_NAME="XCUITest"
     export APP_BUNDLE_ID="com.softwareone.marketplaceMobile"
-    export DEVICE_UDID="${DEVICE_UDID:-963A992A-A208-4EF4-B7F9-7B2A569EC133}"
-    export DEVICE_NAME="${DEVICE_NAME:-iPhone 16}"
-    export PLATFORM_VERSION="${PLATFORM_VERSION:-26.0}"
+
+    # Prefer the currently booted simulator when DEVICE_* values are not explicitly provided
+    booted_simulator_details=""
+    if [ -z "${DEVICE_UDID:-}" ] || [ -z "${DEVICE_NAME:-}" ] || [ -z "${PLATFORM_VERSION:-}" ]; then
+        booted_simulator_json=$(xcrun simctl list devices booted -j 2>/dev/null || echo "")
+        if [ -n "$booted_simulator_json" ]; then
+            booted_simulator_details=$(printf "%s" "$booted_simulator_json" | node -e "
+const fs = require('fs');
+const input = fs.readFileSync(0, 'utf8').trim();
+if (!input) process.exit(0);
+
+const data = JSON.parse(input);
+const devicesByRuntime = data.devices || {};
+
+for (const [runtimeKey, devices] of Object.entries(devicesByRuntime)) {
+    const bootedDevice = (devices || []).find((device) => device && device.state === 'Booted' && device.isAvailable !== false);
+    if (!bootedDevice) continue;
+
+    const versionMatch = runtimeKey.match(/iOS-(\\d+(?:-\\d+)+)/);
+    const platformVersion = versionMatch ? versionMatch[1].split('-').join('.') : '';
+    const udid = bootedDevice.udid || '';
+    const name = bootedDevice.name || '';
+
+    process.stdout.write(udid + '|' + name + '|' + platformVersion);
+    process.exit(0);
+}
+")
+        fi
+    fi
+
+    BOOTED_SIM_UDID=""
+    BOOTED_SIM_NAME=""
+    BOOTED_SIM_VERSION=""
+    if [ -n "$booted_simulator_details" ]; then
+        IFS='|' read -r BOOTED_SIM_UDID BOOTED_SIM_NAME BOOTED_SIM_VERSION <<< "$booted_simulator_details"
+    fi
+
+    export DEVICE_UDID="${DEVICE_UDID:-${BOOTED_SIM_UDID:-963A992A-A208-4EF4-B7F9-7B2A569EC133}}"
+    export DEVICE_NAME="${DEVICE_NAME:-${BOOTED_SIM_NAME:-iPhone 16}}"
+    export PLATFORM_VERSION="${PLATFORM_VERSION:-${BOOTED_SIM_VERSION:-26.0}}"
 fi
 
 # Common Appium configuration
@@ -1085,6 +1122,13 @@ else
     log ""
     log "📱 Available simulators:"
     xcrun simctl list devices | grep iPhone | grep Booted || log "No booted simulators found"
+
+    # Clean stale WDA derived data to avoid intermittent xcodebuild code 65 failures
+    # (e.g., missing explicit precompiled Foundation module artifacts)
+    if [ -d "/tmp/wda-derived-data" ]; then
+        log "🧹 Cleaning stale WebDriverAgent derived data..." "verbose"
+        rm -rf /tmp/wda-derived-data
+    fi
 fi
 
 # Check if Appium is running

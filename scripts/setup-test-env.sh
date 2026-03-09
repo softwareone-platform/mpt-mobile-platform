@@ -76,6 +76,87 @@ list_emulators() {
     echo ""
 }
 
+# Function to resolve iOS simulator details by exact name from available simulators
+resolve_ios_simulator_by_name() {
+        local simulator_name="$1"
+
+        if ! command -v xcrun &> /dev/null; then
+                return 1
+        fi
+
+        local devices_json
+        devices_json=$(xcrun simctl list devices available -j 2>/dev/null || echo "")
+        if [ -z "$devices_json" ]; then
+                return 1
+        fi
+
+        printf "%s" "$devices_json" | node -e "
+const fs = require('fs');
+const input = fs.readFileSync(0, 'utf8').trim();
+if (!input) process.exit(1);
+
+const targetName = process.argv[1];
+const data = JSON.parse(input);
+const devicesByRuntime = data.devices || {};
+
+for (const [runtimeKey, devices] of Object.entries(devicesByRuntime)) {
+    const match = (devices || []).find((device) =>
+        device &&
+        device.isAvailable !== false &&
+        device.name === targetName
+    );
+
+    if (!match) continue;
+
+    const versionMatch = runtimeKey.match(/iOS-(\\d+(?:-\\d+)+)/);
+    const platformVersion = versionMatch ? versionMatch[1].split('-').join('.') : '';
+    process.stdout.write((match.udid || '') + '|' + (match.name || '') + '|' + platformVersion);
+    process.exit(0);
+}
+
+process.exit(1);
+" "$simulator_name" 2>/dev/null
+}
+
+# Function to resolve currently booted iOS simulator details
+resolve_booted_ios_simulator() {
+        if ! command -v xcrun &> /dev/null; then
+                return 1
+        fi
+
+        local booted_json
+        booted_json=$(xcrun simctl list devices booted -j 2>/dev/null || echo "")
+        if [ -z "$booted_json" ]; then
+                return 1
+        fi
+
+        printf "%s" "$booted_json" | node -e "
+const fs = require('fs');
+const input = fs.readFileSync(0, 'utf8').trim();
+if (!input) process.exit(1);
+
+const data = JSON.parse(input);
+const devicesByRuntime = data.devices || {};
+
+for (const [runtimeKey, devices] of Object.entries(devicesByRuntime)) {
+    const booted = (devices || []).find((device) =>
+        device &&
+        device.isAvailable !== false &&
+        device.state === 'Booted'
+    );
+
+    if (!booted) continue;
+
+    const versionMatch = runtimeKey.match(/iOS-(\\d+(?:-\\d+)+)/);
+    const platformVersion = versionMatch ? versionMatch[1].split('-').join('.') : '';
+    process.stdout.write((booted.udid || '') + '|' + (booted.name || '') + '|' + platformVersion);
+    process.exit(0);
+}
+
+process.exit(1);
+" 2>/dev/null
+}
+
 # Function to start iOS simulator by name
 start_ios_simulator() {
     local simulator_name="$1"
@@ -86,8 +167,16 @@ start_ios_simulator() {
         return 1
     fi
     
-    # Find simulator UDID by name
-    local udid=$(xcrun simctl list devices available | grep "$simulator_name" | grep -oE "[A-F0-9-]{36}" | head -1)
+    # Find simulator details by exact name
+    local simulator_details
+    simulator_details=$(resolve_ios_simulator_by_name "$simulator_name" || true)
+
+    local udid=""
+    local resolved_name=""
+    local resolved_version=""
+    if [ -n "$simulator_details" ]; then
+        IFS='|' read -r udid resolved_name resolved_version <<< "$simulator_details"
+    fi
     
     if [ -z "$udid" ]; then
         echo -e "${RED}❌ Error: Simulator '$simulator_name' not found.${NC}"
@@ -131,7 +220,10 @@ start_ios_simulator() {
     
     # Export the UDID for use in tests
     export DEVICE_UDID="$udid"
-    export DEVICE_NAME="$simulator_name"
+    export DEVICE_NAME="${resolved_name:-$simulator_name}"
+    if [ -n "$resolved_version" ]; then
+        export PLATFORM_VERSION="$resolved_version"
+    fi
 }
 
 # Function to start Android emulator by name
@@ -435,9 +527,21 @@ else
     echo -e "  ${GREEN}✓${NC} Automation: XCUITest"
     echo -e "  ${GREEN}✓${NC} Bundle ID: $APP_BUNDLE_ID"
     
-    export DEVICE_UDID="${DEVICE_UDID:-963A992A-A208-4EF4-B7F9-7B2A569EC133}"
-    export DEVICE_NAME="${DEVICE_NAME:-iPhone 16}"
-    export PLATFORM_VERSION="${PLATFORM_VERSION:-26.0}"
+    BOOTED_SIMULATOR_DETAILS=""
+    if [ -z "${DEVICE_UDID:-}" ] || [ -z "${DEVICE_NAME:-}" ] || [ -z "${PLATFORM_VERSION:-}" ]; then
+        BOOTED_SIMULATOR_DETAILS=$(resolve_booted_ios_simulator || true)
+    fi
+
+    BOOTED_SIM_UDID=""
+    BOOTED_SIM_NAME=""
+    BOOTED_SIM_VERSION=""
+    if [ -n "$BOOTED_SIMULATOR_DETAILS" ]; then
+        IFS='|' read -r BOOTED_SIM_UDID BOOTED_SIM_NAME BOOTED_SIM_VERSION <<< "$BOOTED_SIMULATOR_DETAILS"
+    fi
+
+    export DEVICE_UDID="${DEVICE_UDID:-${BOOTED_SIM_UDID:-963A992A-A208-4EF4-B7F9-7B2A569EC133}}"
+    export DEVICE_NAME="${DEVICE_NAME:-${BOOTED_SIM_NAME:-iPhone 16}}"
+    export PLATFORM_VERSION="${PLATFORM_VERSION:-${BOOTED_SIM_VERSION:-26.0}}"
 fi
 
 echo -e "  ${GREEN}✓${NC} Device: $DEVICE_NAME"

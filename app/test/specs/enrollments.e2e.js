@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Enrollments Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -28,7 +28,7 @@ describe('Enrollments Page', () => {
   }
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
@@ -192,7 +192,7 @@ describe('Enrollments Page', () => {
       
       const details = await enrollmentsPage.getEnrollmentDetails(firstEnrollment);
       // Enrollments use 4-group IDs: ENR-XXXX-XXXX-XXXX
-      expect(details.enrollmentId).toMatch(/^ENR-\d{4}-\d{4}-\d{4}$/);
+      expect(details.enrollmentId).toMatch(REGEX.ENROLLMENT_ID);
       expect(['Draft', 'Completed', 'Processing']).toContain(details.status);
     });
 
@@ -213,7 +213,7 @@ describe('Enrollments Page', () => {
       
       // Verify all enrollment IDs have valid format (4-group)
       for (const enrollmentId of enrollmentIds) {
-        expect(enrollmentId).toMatch(/^ENR-\d{4}-\d{4}-\d{4}$/);
+        expect(enrollmentId).toMatch(REGEX.ENROLLMENT_ID);
       }
     });
 
@@ -309,7 +309,7 @@ describe('Enrollments Page', () => {
         
         // Verify all visible UI enrollments have valid format (4-group)
         for (const uiEnrollmentId of uiEnrollmentIds.slice(0, 10)) {
-          expect(uiEnrollmentId).toMatch(/^ENR-\d{4}-\d{4}-\d{4}$/);
+          expect(uiEnrollmentId).toMatch(REGEX.ENROLLMENT_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

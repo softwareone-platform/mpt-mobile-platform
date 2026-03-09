@@ -1,12 +1,12 @@
 const { expect } = require('@wdio/globals');
 
-const agreementsPage = require('../pageobjects/agreements.page');
 const agreementDetailsPage = require('../pageobjects/agreement-details.page');
+const agreementsPage = require('../pageobjects/agreements.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const subscriptionDetailsPage = require('../pageobjects/subscription-details.page');
 
 // E2E tests for Agreement Details Page, modeled after user-details.e2e.js
 
@@ -17,12 +17,12 @@ describe('Agreement Details Page', () => {
   let apiAgreementData = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Agreements page via More menu
     await agreementsPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     await morePage.agreementsMenuItem.click();
     await agreementsPage.waitForScreenReady();
 
@@ -37,7 +37,7 @@ describe('Agreement Details Page', () => {
       if (apiAvailable && testAgreementId) {
         try {
           apiAgreementData = await apiClient.getAgreementById(testAgreementId);
-          console.log(JSON.stringify(apiAgreementData, null, 2));
+          console.info(JSON.stringify(apiAgreementData, null, 2));
           console.info(`📊 Pre-fetched API data for agreement: ${testAgreementId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);
@@ -45,7 +45,9 @@ describe('Agreement Details Page', () => {
       }
     }
 
-    console.info(`📊 Agreement Details test setup: hasAgreements=${hasAgreementsData}, apiAvailable=${apiAvailable}, testAgreementId=${testAgreementId}`);
+    console.info(
+      `📊 Agreement Details test setup: hasAgreements=${hasAgreementsData}, apiAvailable=${apiAvailable}, testAgreementId=${testAgreementId}`,
+    );
 
     // Navigate to agreement details page once at the start
     if (hasAgreementsData && testAgreementId) {
@@ -74,7 +76,7 @@ describe('Agreement Details Page', () => {
       }
       await expect(agreementDetailsPage.agreementIdText).toBeDisplayed();
       const agreementId = await agreementDetailsPage.getItemId();
-      expect(agreementId).toMatch(/^AGR-(\d{4}-)+\d{4}$/);
+      expect(agreementId).toMatch(REGEX.AGREEMENT_ID_FLEX);
     });
 
     it('should display the status field', async function () {
@@ -127,7 +129,10 @@ describe('Agreement Details Page', () => {
         this.skip();
         return;
       }
-      const billingCurrency = await agreementDetailsPage.getSimpleFieldValue('Billing currency', true);
+      const billingCurrency = await agreementDetailsPage.getSimpleFieldValue(
+        'Billing currency',
+        true,
+      );
       expect(billingCurrency).toBeTruthy();
     });
   });
@@ -204,7 +209,10 @@ describe('Agreement Details Page', () => {
         this.skip();
         return;
       }
-      const uiBillingCurrency = await agreementDetailsPage.getSimpleFieldValue('Billing currency', true);
+      const uiBillingCurrency = await agreementDetailsPage.getSimpleFieldValue(
+        'Billing currency',
+        true,
+      );
       const apiBillingCurrency = apiAgreementData.price?.billingCurrency;
       console.info(`[Billing Currency] UI: ${uiBillingCurrency} | API: ${apiBillingCurrency}`);
       expect(uiBillingCurrency).toBe(apiBillingCurrency);
@@ -221,11 +229,21 @@ describe('Agreement Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.info(`Agreement ID: UI="${uiDetails.agreementId}" | API="${apiAgreementData.id}"`);
       console.info(`Status:       UI="${uiDetails.status}" | API="${apiAgreementData.status}"`);
-      console.info(`Vendor:       UI="${uiDetails.vendor}" | API="${apiAgreementData.vendor?.name}"`);
-      console.info(`Product:      UI="${uiDetails.product}" | API="${apiAgreementData.product?.name}"`);
-      console.info(`Client:       UI="${uiDetails.client}" | API="${apiAgreementData.client?.name}"`);
-      console.info(`BaseCurrency: UI="${uiDetails.baseCurrency}" | API="${apiAgreementData.price?.currency}"`);
-      console.info(`BillingCurr:  UI="${uiDetails.billingCurrency}" | API="${apiAgreementData.price?.billingCurrency}"`);
+      console.info(
+        `Vendor:       UI="${uiDetails.vendor}" | API="${apiAgreementData.vendor?.name}"`,
+      );
+      console.info(
+        `Product:      UI="${uiDetails.product}" | API="${apiAgreementData.product?.name}"`,
+      );
+      console.info(
+        `Client:       UI="${uiDetails.client}" | API="${apiAgreementData.client?.name}"`,
+      );
+      console.info(
+        `BaseCurrency: UI="${uiDetails.baseCurrency}" | API="${apiAgreementData.price?.currency}"`,
+      );
+      console.info(
+        `BillingCurr:  UI="${uiDetails.billingCurrency}" | API="${apiAgreementData.price?.billingCurrency}"`,
+      );
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.agreementId).toBe(apiAgreementData.id);
     });

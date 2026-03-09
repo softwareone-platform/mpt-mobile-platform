@@ -1,4 +1,5 @@
 const { waitForOTP } = require('../pageobjects/utils/airtable.service');
+const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 
 /**
  * Global OTP fixture for Mocha tests
@@ -13,7 +14,12 @@ const { waitForOTP } = require('../pageobjects/utils/airtable.service');
  * @param {number} pollIntervalMs - Time between polls in milliseconds (default: 5000)
  * @returns {Promise<{otp: string, record: object}>} - OTP and record data
  */
-async function getOTPFromAirtable(email, afterTime, timeoutMs = 60000, pollIntervalMs = 5000) {
+async function getOTPFromAirtable(
+  email,
+  afterTime,
+  timeoutMs = TIMEOUT.OTP_WAIT_MAX,
+  pollIntervalMs = PAUSE.OTP_POLL_INTERVAL,
+) {
   console.info(`\n=== OTP Fixture: Getting OTP for ${email} ===`);
 
   try {
@@ -34,9 +40,6 @@ exports.mochaGlobalSetup = async function () {
 
   // Make the OTP function available globally
   global.getOTPFromAirtable = getOTPFromAirtable;
-  global.constants = {
-    dashForEmpty: '-',
-  }
 
   // Verify Airtable configuration
   const requiredEnvVars = [

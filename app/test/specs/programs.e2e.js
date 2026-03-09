@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Programs Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -27,7 +27,7 @@ describe('Programs Page', () => {
   }
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
@@ -54,7 +54,7 @@ describe('Programs Page', () => {
     it('should be accessible from More menu', async () => {
       // Navigate away first
       await programsPage.goBack();
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
       
       // Navigate back to Programs
       await morePage.programsMenuItem.click();
@@ -174,7 +174,7 @@ describe('Programs Page', () => {
       
       const details = await programsPage.getProgramDetails(firstProgram);
       // Programs use 3-group IDs: PRG-XXXX-XXXX
-      expect(details.programId).toMatch(/^PRG-\d{4}-\d{4}$/);
+      expect(details.programId).toMatch(REGEX.PROGRAM_ID);
       expect(['Unpublished', 'Draft', 'Published']).toContain(details.status);
     });
 
@@ -195,7 +195,7 @@ describe('Programs Page', () => {
       
       // Verify all program IDs have valid format (3-group)
       for (const programId of programIds) {
-        expect(programId).toMatch(/^PRG-\d{4}-\d{4}$/);
+        expect(programId).toMatch(REGEX.PROGRAM_ID);
       }
     });
 
@@ -291,7 +291,7 @@ describe('Programs Page', () => {
         
         // Verify all visible UI programs have valid format (3-group)
         for (const uiProgramId of uiProgramIds.slice(0, 10)) {
-          expect(uiProgramId).toMatch(/^PRG-\d{4}-\d{4}$/);
+          expect(uiProgramId).toMatch(REGEX.PROGRAM_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

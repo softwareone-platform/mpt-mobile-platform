@@ -6,6 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Agreements Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -19,14 +20,14 @@ describe('Agreements Page', () => {
   async function navigateToAgreements() {
     // First ensure we're on a page with footer visible
     await agreementsPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     // Click Agreements menu item
     await morePage.agreementsMenuItem.click();
     await agreementsPage.waitForScreenReady();
   }
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
@@ -53,7 +54,7 @@ describe('Agreements Page', () => {
     it('should be accessible from More menu', async () => {
       // Navigate away first
       await agreementsPage.goBack();
-      await browser.pause(500);
+      await browser.pause(PAUSE.NAVIGATION);
       
       // Navigate back to Agreements
       await morePage.agreementsMenuItem.click();
@@ -172,7 +173,7 @@ describe('Agreements Page', () => {
       await expect(firstAgreement).toBeDisplayed();
       
       const details = await agreementsPage.getAgreementDetails(firstAgreement);
-      expect(details.agreementId).toMatch(/^AGR-\d{4}-\d{4}-\d{4}$/);
+      expect(details.agreementId).toMatch(REGEX.AGREEMENT_ID);
       expect(['Active', 'Terminated', 'Deleted', 'Provisioning', 'Updating']).toContain(details.status);
     });
 
@@ -193,7 +194,7 @@ describe('Agreements Page', () => {
       
       // Verify all agreement IDs have valid format
       for (const agreementId of agreementIds) {
-        expect(agreementId).toMatch(/^AGR-\d{4}-\d{4}-\d{4}$/);
+        expect(agreementId).toMatch(REGEX.AGREEMENT_ID);
       }
     });
 
@@ -291,7 +292,7 @@ describe('Agreements Page', () => {
         
         // Verify all visible UI agreements have valid format
         for (const uiAgreementId of uiAgreementIds.slice(0, 10)) {
-          expect(uiAgreementId).toMatch(/^AGR-\d{4}-\d{4}-\d{4}$/);
+          expect(uiAgreementId).toMatch(REGEX.AGREEMENT_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

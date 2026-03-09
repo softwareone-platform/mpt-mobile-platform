@@ -6,6 +6,7 @@ const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { TIMEOUT, PAUSE, REGEX, DEFAULTS } = require('../pageobjects/utils/constants');
 
 // E2E tests for Buyer Details Page, modeled after user-details/agreement-details e2e.js
 
@@ -16,12 +17,12 @@ describe('Buyer Details Page', () => {
   let apiBuyerData = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Buyers page via More menu
     await buyersPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     await morePage.buyersMenuItem.click();
     await buyersPage.waitForScreenReady();
 
@@ -77,7 +78,7 @@ describe('Buyer Details Page', () => {
       }
       await expect(buyerDetailsPage.buyerIdText).toBeDisplayed();
       const buyerId = await buyerDetailsPage.getItemId();
-      expect(buyerId).toMatch(/^BUY-(\d{4}-?)+\d{4}$/);
+      expect(buyerId).toMatch(REGEX.BUYER_ID_FLEX);
     });
 
     it('should display the status field', async function () {
@@ -177,13 +178,13 @@ describe('Buyer Details Page', () => {
       }
       const address = apiBuyerData.address || {};
       const uiAddress1 = await buyerDetailsPage.getSimpleFieldValue('Address line 1', true);
-      expect(uiAddress1).toBe(address.addressLine1 || '-');
+      expect(uiAddress1).toBe(address.addressLine1 || DEFAULTS.DASH_FOR_EMPTY);
       const uiCity = await buyerDetailsPage.getSimpleFieldValue('City', true);
-      expect(uiCity).toBe(address.city || '-');
+      expect(uiCity).toBe(address.city || DEFAULTS.DASH_FOR_EMPTY);
       const uiState = await buyerDetailsPage.getSimpleFieldValue('State', true);
-      expect(uiState).toBe(address.state || '-');
+      expect(uiState).toBe(address.state || DEFAULTS.DASH_FOR_EMPTY);
       const uiZip = await buyerDetailsPage.getSimpleFieldValue('ZIP/Postal code', true);
-      expect(uiZip).toBe(address.postCode || '-');
+      expect(uiZip).toBe(address.postCode || DEFAULTS.DASH_FOR_EMPTY);
       // Country is shown as name, not code
       const uiCountry = await buyerDetailsPage.getSimpleFieldValue('Country', true);
       // For SG, expect 'Singapore'
@@ -206,11 +207,11 @@ describe('Buyer Details Page', () => {
       console.info(`Status:     UI="${uiDetails.status}" | API="${apiBuyerData.status}"`);
       console.info(`Name:       UI="${uiDetails.name}" | API="${(apiBuyerData.name || '').trim()}"`);
       console.info(`SCU:        UI="${uiDetails.scuIdentifier}" | API="${apiBuyerData.externalIds?.erpCustomer}"`);
-      console.info(`Address1:   UI="${uiDetails.addressLine1}" | API="${address.addressLine1 || '-'}"`);
-      console.info(`City:       UI="${uiDetails.city}" | API="${address.city || '-'}"`);
-      console.info(`State:      UI="${uiDetails.state}" | API="${address.state || '-'}"`);
-      console.info(`ZIP:        UI="${uiDetails.zip}" | API="${address.postCode || '-'}"`);
-      console.info(`Country:    UI="${uiDetails.country}" | API="${address.country || '-'}"`);
+      console.info(`Address1:   UI="${uiDetails.addressLine1}" | API="${address.addressLine1 || DEFAULTS.DASH_FOR_EMPTY}"`);
+      console.info(`City:       UI="${uiDetails.city}" | API="${address.city || DEFAULTS.DASH_FOR_EMPTY}"`);
+      console.info(`State:      UI="${uiDetails.state}" | API="${address.state || DEFAULTS.DASH_FOR_EMPTY}"`);
+      console.info(`ZIP:        UI="${uiDetails.zip}" | API="${address.postCode || DEFAULTS.DASH_FOR_EMPTY}"`);
+      console.info(`Country:    UI="${uiDetails.country}" | API="${address.country || DEFAULTS.DASH_FOR_EMPTY}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.buyerId).toBe(apiBuyerData.id);
     });
