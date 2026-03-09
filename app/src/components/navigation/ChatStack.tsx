@@ -1,6 +1,6 @@
 import { createStackNavigator } from '@react-navigation/stack';
 
-import { ChatRootScreen, ChatConversationScreen } from '@/screens';
+import { ChatScreen, ChatConversationScreen } from '@/screens';
 
 const Stack = createStackNavigator();
 
@@ -9,7 +9,7 @@ const ChatStack = () => {
     <Stack.Navigator>
       <Stack.Screen
         name="ChatRoot"
-        component={ChatRootScreen}
+        component={ChatScreen}
         options={{
           headerLeft: () => null, // no back button
         }}
