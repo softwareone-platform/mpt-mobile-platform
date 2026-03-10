@@ -209,7 +209,7 @@ export const formatDateForChat = (isoDate: string | undefined, locale: string): 
   }
 
   // within current year - DD Mon
-  if (date.getFullYear() === now.getFullYear()) {
+  if (date.getUTCFullYear() === now.getUTCFullYear()) {
     return `${day} ${month}`;
   }
 

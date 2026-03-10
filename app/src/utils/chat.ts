@@ -1,5 +1,11 @@
 import { MIN_NUMBER_OF_CHAT_AVATARS, MAX_NUMBER_OF_CHAT_AVATARS, EMPTY_STRING } from '@/constants';
-import { ChatParticipant, AvatarItem, ChatItem, ChatType, ListItemChatProps } from '@/types/chat';
+import type {
+  ChatParticipant,
+  AvatarItem,
+  ChatItem,
+  ChatType,
+  ListItemChatProps,
+} from '@/types/chat';
 import { formatDateForChat } from '@/utils/formatting';
 
 export const getAvatarList = (
