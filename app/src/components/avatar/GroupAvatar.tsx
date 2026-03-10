@@ -9,14 +9,10 @@ import {
   DEFAULT_AVATAR_IMAGE_SHIFT,
 } from '@/constants';
 import { groupAvatarStyle } from '@/styles';
-
-interface GroupAvatarItem {
-  id: string;
-  imagePath?: string;
-}
+import type { AvatarItem } from '@/types/chat';
 
 interface GroupAvatarProps {
-  avatars: GroupAvatarItem[];
+  avatars: AvatarItem[];
   size?: number;
 }
 
@@ -32,7 +28,7 @@ const GroupAvatar: React.FC<GroupAvatarProps> = ({ avatars, size = DEFAULT_CHAT_
   const shift = Math.floor(size / 4);
 
   const renderGroupAvatar = (
-    user: GroupAvatarItem,
+    user: AvatarItem,
     avatarSize: number,
     regionStyle: StyleProp<ViewStyle>,
     shiftX = DEFAULT_AVATAR_IMAGE_SHIFT,
@@ -68,14 +64,6 @@ const GroupAvatar: React.FC<GroupAvatarProps> = ({ avatars, size = DEFAULT_CHAT_
           {renderGroupAvatar(displayedAvatars[2], half, styles.regionBottomRight)}
         </>
       )}
-      {avatarCount === 4 && (
-        <>
-          {renderGroupAvatar(displayedAvatars[0], half, styles.regionTopLeft)}
-          {renderGroupAvatar(displayedAvatars[1], half, styles.regionTopRight)}
-          {renderGroupAvatar(displayedAvatars[2], half, styles.regionBottomLeft)}
-          {renderGroupAvatar(displayedAvatars[3], half, styles.regionBottomRight)}
-        </>
-      )}
     </View>
   );
 };
@@ -88,8 +76,6 @@ const styles = StyleSheet.create({
   regionRight: groupAvatarStyle.regionRight,
   regionTopRight: groupAvatarStyle.regionTopRight,
   regionBottomRight: groupAvatarStyle.regionBottomRight,
-  regionTopLeft: groupAvatarStyle.regionTopLeft,
-  regionBottomLeft: groupAvatarStyle.regionBottomLeft,
 });
 
 export default GroupAvatar;

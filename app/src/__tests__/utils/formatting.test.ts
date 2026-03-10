@@ -10,6 +10,7 @@ import {
   getUtcStartOfDay,
   formatUtcDate,
   calculateRelativeDate,
+  getDatePartsForLocale,
 } from '@/utils/formatting';
 
 const EMPTY_STRING = '';
@@ -341,5 +342,62 @@ describe('Date Utilities', () => {
       // 1*1 + 1 = 2 days → Feb 28 + 2 days = Mar 1, 2024
       expect(result).toBe('2024-03-01');
     });
+  });
+});
+
+describe('getDatePartsForLocale', () => {
+  const enLocale = 'en-GB';
+  const frLocale = 'fr-FR';
+  const isoDate = '2026-03-10T15:45:30Z';
+
+  it('returns null for undefined input', () => {
+    expect(getDatePartsForLocale(undefined, enLocale)).toBeNull();
+  });
+
+  it('returns null for invalid date string', () => {
+    expect(getDatePartsForLocale('invalid-date', enLocale)).toBeNull();
+  });
+
+  it('returns correct date and time parts for English locale', () => {
+    const result = getDatePartsForLocale(isoDate, enLocale);
+
+    expect(result).not.toBeNull();
+    if (!result) return;
+
+    expect(result.hour).toBe('15');
+    expect(result.minute).toBe('45');
+    expect(result.weekday).toBe('Tue');
+    expect(result.day).toBe('10');
+    expect(result.month).toBe('Mar');
+    expect(result.year).toBe('2026');
+  });
+
+  it('returns correct date and time parts for French locale', () => {
+    const result = getDatePartsForLocale(isoDate, frLocale);
+
+    expect(result).not.toBeNull();
+    if (!result) return;
+
+    expect(result.hour).toBe('15');
+    expect(result.minute).toBe('45');
+    expect(result.weekday).toBe('mar.');
+    expect(result.day).toBe('10');
+    expect(result.month).toBe('mars');
+    expect(result.year).toBe('2026');
+  });
+
+  it('works for another valid date', () => {
+    const iso = '2026-12-25T08:05:00Z';
+    const result = getDatePartsForLocale(iso, enLocale);
+
+    expect(result).not.toBeNull();
+    if (!result) return;
+
+    expect(result.hour).toBe('08');
+    expect(result.minute).toBe('05');
+    expect(result.weekday).toBe('Fri');
+    expect(result.day).toBe('25');
+    expect(result.month).toBe('Dec');
+    expect(result.year).toBe('2026');
   });
 });

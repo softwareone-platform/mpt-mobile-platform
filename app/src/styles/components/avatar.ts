@@ -99,19 +99,4 @@ export const groupAvatarStyle = {
     left: '50%',
     borderLeftWidth: 1,
   },
-  regionTopLeft: {
-    ...regionCommon,
-    width: '50%',
-    height: '50%',
-    top: 0,
-    left: 0,
-    borderBottomWidth: 1,
-  },
-  regionBottomLeft: {
-    ...regionCommon,
-    width: '50%',
-    height: '50%',
-    top: '50%',
-    left: 0,
-  },
 } as const;

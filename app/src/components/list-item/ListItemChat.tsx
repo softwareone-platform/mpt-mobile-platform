@@ -1,24 +1,26 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
 import GroupAvatar from '@/components/avatar/GroupAvatar';
 import { listItemStyle, listItemChatStyle, linkStyle, Color } from '@/styles';
-import type { ListItemChatProps } from '@/types/lists';
+import type { ListItemChatProps } from '@/types/chat';
 
 const ListItemChat = ({
   id,
-  imagePath,
   title,
   companyName,
   messageLatest,
   newMessageCounter,
   dateOfLastMessage,
   isVerified,
+  avatars,
   isFirst,
   isLast,
   onPress,
   testID,
 }: ListItemChatProps) => {
+  const { t } = useTranslation();
   const hasMessage = Boolean(messageLatest);
 
   return (
@@ -33,7 +35,7 @@ const ListItemChat = ({
       activeOpacity={0.7}
     >
       <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
-        <GroupAvatar avatars={[{ id: id, imagePath: imagePath }]} />
+        <GroupAvatar avatars={avatars || []} />
         <View style={styles.textContainer}>
           <View style={styles.textColumn}>
             <View style={styles.topRow}>
@@ -42,25 +44,29 @@ const ListItemChat = ({
                   {title.trim()}
                 </Text>
               </View>
-              <Text style={styles.separator}>|</Text>
-              <View style={styles.companyRow}>
-                <Text style={styles.companyText} numberOfLines={1} ellipsizeMode="tail">
-                  {companyName.trim()}
-                </Text>
-                {isVerified && (
-                  <View style={styles.iconWrapper}>
-                    <MaterialIcons name="verified" size={12} color={Color.brand.success} />
-                  </View>
-                )}
-              </View>
+              {companyName !== '' && (
+                <View style={styles.companyRow}>
+                  <Text style={styles.separator}>|</Text>
+                  <Text style={styles.companyText} numberOfLines={1} ellipsizeMode="tail">
+                    {companyName?.trim()}
+                  </Text>
+                  {isVerified && (
+                    <View style={styles.iconWrapper}>
+                      <MaterialIcons name="verified" size={12} color={Color.brand.success} />
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
             <Text style={styles.subtitle} numberOfLines={1}>
-              {hasMessage ? messageLatest?.trim() : 'No messages'}
+              {hasMessage ? messageLatest?.trim() : t('common.message.noMessages')}
             </Text>
           </View>
           <View style={styles.statusColumn}>
             <Text style={styles.dateText}>{dateOfLastMessage}</Text>
-            {newMessageCounter && <Text style={styles.messageCounter}>{newMessageCounter}</Text>}
+            {newMessageCounter > 0 && (
+              <Text style={styles.messageCounter}>{newMessageCounter}</Text>
+            )}
           </View>
         </View>
       </View>
