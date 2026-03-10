@@ -39,14 +39,3 @@ export interface DetailsListItemProps {
   isLast?: boolean;
   onPress?: () => void;
 }
-
-export type ListItemChatProps = ListItemCommonProps & {
-  id: string;
-  imagePath?: string;
-  title: string;
-  companyName: string;
-  isVerified: boolean;
-  messageLatest: string;
-  newMessageCounter: number | undefined;
-  dateOfLastMessage: string;
-};

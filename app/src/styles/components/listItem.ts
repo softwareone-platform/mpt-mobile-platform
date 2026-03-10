@@ -165,9 +165,7 @@ export const listItemChatStyle = {
     marginBottom: 4,
   },
   titleWrapper: {
-    flexGrow: 1,
     flexShrink: 1,
-    maxWidth: '60%',
     minWidth: 0,
   },
   separator: {
@@ -180,7 +178,6 @@ export const listItemChatStyle = {
     alignItems: 'center',
     flexGrow: 1,
     flexShrink: 1,
-    maxWidth: '40%',
   },
   companyText: {
     flexShrink: 1,
