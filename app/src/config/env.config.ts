@@ -7,6 +7,7 @@ import {
   AUTH0_API_URL,
   AUTH0_OTP_DIGITS,
   AUTH0_SCHEME,
+  SIGNALR_HUB_URL,
   APPLICATION_INSIGHTS_CONNECTION_STRING,
 } from '@env';
 
@@ -25,6 +26,7 @@ type EnvironmentVariable =
   | 'AUTH0_API_URL'
   | 'AUTH0_OTP_DIGITS'
   | 'AUTH0_SCHEME'
+  | 'SIGNALR_HUB_URL'
   | 'APPLICATION_INSIGHTS_CONNECTION_STRING';
 
 const REQUIRED_VARS: EnvironmentVariable[] = [
@@ -43,6 +45,7 @@ interface EnvironmentConfig {
   AUTH0_API_URL?: string;
   AUTH0_OTP_DIGITS?: string;
   AUTH0_SCHEME?: string;
+  SIGNALR_HUB_URL?: string;
   APPLICATION_INSIGHTS_CONNECTION_STRING?: string;
   [key: string]: string | undefined;
 }
@@ -64,6 +67,7 @@ class ConfigService {
       AUTH0_API_URL,
       AUTH0_OTP_DIGITS,
       AUTH0_SCHEME,
+      SIGNALR_HUB_URL,
       APPLICATION_INSIGHTS_CONNECTION_STRING,
     };
 
