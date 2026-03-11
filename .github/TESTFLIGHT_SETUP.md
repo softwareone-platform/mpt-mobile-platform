@@ -112,15 +112,17 @@ LOG_LEVEL                    # debug, info, warn, or error
 
 | Environment | `LOG_LEVEL` | Rationale |
 |-------------|-------------|-----------|
-| `test`      | `debug`     | Maximum visibility for development and testing |
-| `qa`        | `info`      | Standard logging for QA validation |
-| `prod`      | `warn`      | Minimal logging for production |
+| `test`      | `info`      | Standard logging |
+| `qa`        | `info`      | Standard logging |
+| `prod`      | `info`      | Standard logging |
+
+> **Note:** Can be changed per environment to `debug`, `warn`, or `error` as needed. See `app/.env.example` for all options.
 
 **Keeper Vault reference:**
 Store these values in the shared Keeper Vault under the mobile app's environment config:
-- `Keeper > Mobile App > test > LOG_LEVEL` → `debug`
+- `Keeper > Mobile App > test > LOG_LEVEL` → `info`
 - `Keeper > Mobile App > qa > LOG_LEVEL` → `info`
-- `Keeper > Mobile App > prod > LOG_LEVEL` → `warn`
+- `Keeper > Mobile App > prod > LOG_LEVEL` → `info`
 
 **Total: 21 secrets/variables required**
 
