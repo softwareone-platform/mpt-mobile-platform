@@ -101,7 +101,28 @@ REVIEWER_EMAILS              # comma-separated list of reviewer email addresses
 REVIEW_ENV_AUTH0_CLIENT_ID
 ```
 
-**Total: 20 secrets/variables required**
+#### Logging Configuration (1 variable per environment)
+
+**Variables (public):**
+```
+LOG_LEVEL                    # debug, info, warn, or error
+```
+
+**Recommended values per environment:**
+
+| Environment | `LOG_LEVEL` | Rationale |
+|-------------|-------------|-----------|
+| `test`      | `debug`     | Maximum visibility for development and testing |
+| `qa`        | `info`      | Standard logging for QA validation |
+| `prod`      | `warn`      | Minimal logging for production |
+
+**Keeper Vault reference:**
+Store these values in the shared Keeper Vault under the mobile app's environment config:
+- `Keeper > Mobile App > test > LOG_LEVEL` → `debug`
+- `Keeper > Mobile App > qa > LOG_LEVEL` → `info`
+- `Keeper > Mobile App > prod > LOG_LEVEL` → `warn`
+
+**Total: 21 secrets/variables required**
 
 ### 2. (Optional) Configure Environment Protection Rules
 
