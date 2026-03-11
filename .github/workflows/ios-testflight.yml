@@ -120,6 +120,7 @@ jobs:
           REVIEW_ENV_AUTH0_AUDIENCE=${{ vars.REVIEW_ENV_AUTH0_AUDIENCE }}
           REVIEW_ENV_AUTH0_API_URL=${{ vars.REVIEW_ENV_AUTH0_API_URL }}
           REVIEWER_EMAILS=${{ vars.REVIEWER_EMAILS }}
+          LOG_LEVEL=${{ vars.LOG_LEVEL }}
           TEMPORARY_AUTH0_TOKEN=
           EOF
           echo "Environment variables configured for ${{ inputs.environment }} environment"
