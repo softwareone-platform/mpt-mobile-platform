@@ -32,8 +32,8 @@ import type {
 const SignalRContext = createContext<SignalRContextType | undefined>(undefined);
 
 const MAX_RETRY_ATTEMPTS = 10;
-const INITIAL_RETRY_DELAY = 1000; // 1 second
-const MAX_RETRY_DELAY = 30000; // 30 seconds
+const INITIAL_RETRY_DELAY_MS = 1000;
+const MAX_RETRY_DELAY_MS = 30000;
 
 export const SignalRProvider = ({ children }: PropsWithChildren) => {
   const { status: authStatus } = useAuth();
@@ -77,29 +77,64 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   const getRetryDelay = useCallback((attempt: number): number => {
-    const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt), MAX_RETRY_DELAY);
+    const delay = Math.min(INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt), MAX_RETRY_DELAY_MS);
     return delay;
   }, []);
 
-  const subscriptionsToGroupStrings = useCallback((subs: EntitySubscription[]): string[] => {
-    return subs.map((sub) =>
+  const toGroupString = useCallback(
+    (sub: EntitySubscription): string =>
       sub.entityName ? `${sub.moduleName}:${sub.entityName}` : sub.moduleName,
-    );
+    [],
+  );
+
+  const toEntitySubscription = useCallback((group: string): EntitySubscription => {
+    const [moduleName, entityName] = group.split(':');
+    return entityName ? { moduleName, entityName } : { moduleName };
   }, []);
 
-  const groupStringsToSubscriptions = useCallback((groups: string[]): EntitySubscription[] => {
-    return groups.map((group) => {
-      const [moduleName, entityName] = group.split(':');
-      return entityName ? { moduleName, entityName } : { moduleName };
-    });
-  }, []);
+  const handleReconnecting = useCallback(() => {
+    updateConnectionState('Reconnecting');
+  }, [updateConnectionState]);
+
+  const handleReconnected = useCallback(
+    async (conn: signalR.HubConnection) => {
+      updateConnectionState('Connected');
+      retryCountRef.current = 0;
+
+      if (subscriptionsRef.current.size > 0) {
+        try {
+          const groups = Array.from(subscriptionsRef.current);
+          await conn.invoke('JoinGroups', {
+            connectionId: conn.connectionId || '',
+            moduleEntityPairs: groups.map(toEntitySubscription),
+          });
+          logger.info('Re-subscribed to groups after reconnection', {
+            groupCount: groups.length,
+          });
+        } catch (error) {
+          logger.error('Failed to re-subscribe after reconnection', error, {
+            operation: 'signalr.resubscribe',
+          });
+        }
+      }
+    },
+    [updateConnectionState, toEntitySubscription],
+  );
+
+  const handleClose = useCallback(
+    (error?: Error) => {
+      updateConnectionState('Disconnected');
+      if (error) {
+        logger.error('SignalR connection closed with error', error, {
+          operation: 'signalr.onclose',
+        });
+      }
+    },
+    [updateConnectionState],
+  );
 
   useEffect(() => {
-    if (!isEnabled('FEATURE_SIGNALR')) {
-      return;
-    }
-
-    if (authStatus !== 'authenticated') {
+    if (!isEnabled('FEATURE_SIGNALR') || authStatus !== 'authenticated') {
       return;
     }
 
@@ -124,40 +159,9 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
       .withKeepAliveInterval(SIGNALR_KEEP_ALIVE_INTERVAL_MS)
       .build();
 
-    newConnection.onreconnecting(() => {
-      updateConnectionState('Reconnecting');
-    });
-
-    newConnection.onreconnected(async () => {
-      updateConnectionState('Connected');
-      retryCountRef.current = 0;
-
-      if (subscriptionsRef.current.size > 0) {
-        try {
-          const groups = Array.from(subscriptionsRef.current);
-          await newConnection.invoke('JoinGroups', {
-            connectionId: newConnection.connectionId || '',
-            moduleEntityPairs: groupStringsToSubscriptions(groups),
-          });
-          logger.info('Re-subscribed to groups after reconnection', {
-            groupCount: groups.length,
-          });
-        } catch (error) {
-          logger.error('Failed to re-subscribe after reconnection', error, {
-            operation: 'signalr.resubscribe',
-          });
-        }
-      }
-    });
-
-    newConnection.onclose((error) => {
-      updateConnectionState('Disconnected');
-      if (error) {
-        logger.error('SignalR connection closed with error', error, {
-          operation: 'signalr.onclose',
-        });
-      }
-    });
+    newConnection.onreconnecting(handleReconnecting);
+    newConnection.onreconnected(() => void handleReconnected(newConnection));
+    newConnection.onclose(handleClose);
 
     setConnection(newConnection);
 
@@ -170,9 +174,10 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
   }, [
     authStatus,
     getSignalRUrl,
-    updateConnectionState,
     clearRetryTimeout,
-    groupStringsToSubscriptions,
+    handleReconnecting,
+    handleReconnected,
+    handleClose,
     isEnabled,
   ]);
 
@@ -253,80 +258,61 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
     };
   }, [connection, isConnected]);
 
-  const subscribe = useCallback(
-    async (subscriptions: EntitySubscription[]) => {
+  const manageGroups = useCallback(
+    async (subscriptions: EntitySubscription[], action: 'join' | 'leave'): Promise<void> => {
       if (!connection || !isConnectedRef.current) {
-        logger.warn('Cannot join groups: SignalR not connected');
+        logger.warn(`Cannot ${action} groups: SignalR not connected`);
         return;
       }
 
-      const groupStrings = subscriptionsToGroupStrings(subscriptions);
+      const groupStrings = subscriptions.map(toGroupString);
+      const relevantGroups =
+        action === 'join'
+          ? groupStrings.filter((g) => !subscriptionsRef.current.has(g))
+          : groupStrings.filter((g) => subscriptionsRef.current.has(g));
 
-      const newGroups = groupStrings.filter((group) => !subscriptionsRef.current.has(group));
-
-      if (newGroups.length === 0) {
-        logger.info('All requested groups already subscribed');
+      if (relevantGroups.length === 0) {
+        logger.info(
+          action === 'join'
+            ? 'All requested groups already subscribed'
+            : 'No subscribed groups to leave',
+        );
         return;
       }
+
+      const method = action === 'join' ? 'JoinGroups' : 'LeaveGroups';
+      const updateSet = action === 'join' ? 'add' : 'delete';
 
       try {
-        await connection.invoke('JoinGroups', {
+        await connection.invoke(method, {
           connectionId: connection.connectionId || '',
-          moduleEntityPairs: groupStringsToSubscriptions(newGroups),
+          moduleEntityPairs: relevantGroups.map(toEntitySubscription),
         });
 
-        newGroups.forEach((group) => subscriptionsRef.current.add(group));
+        relevantGroups.forEach((group) => subscriptionsRef.current[updateSet](group));
 
-        logger.info('Joined SignalR groups', {
-          newGroupCount: newGroups.length,
+        logger.info(`${action === 'join' ? 'Joined' : 'Left'} SignalR groups`, {
+          groupCount: relevantGroups.length,
           totalGroupCount: subscriptionsRef.current.size,
         });
       } catch (error) {
-        logger.error('Failed to join SignalR groups', error, {
-          operation: 'signalr.joinGroups',
-          groupCount: newGroups.length,
+        logger.error(`Failed to ${action} SignalR groups`, error, {
+          operation: `signalr.${action}Groups`,
+          groupCount: relevantGroups.length,
         });
       }
     },
-    [connection, subscriptionsToGroupStrings, groupStringsToSubscriptions],
+    [connection, toGroupString, toEntitySubscription],
+  );
+
+  const subscribe = useCallback(
+    (subscriptions: EntitySubscription[]) => manageGroups(subscriptions, 'join'),
+    [manageGroups],
   );
 
   const unsubscribe = useCallback(
-    async (subscriptions: EntitySubscription[]) => {
-      if (!connection || !isConnectedRef.current) {
-        logger.warn('Cannot leave groups: SignalR not connected');
-        return;
-      }
-
-      const groupStrings = subscriptionsToGroupStrings(subscriptions);
-
-      const groupsToLeave = groupStrings.filter((group) => subscriptionsRef.current.has(group));
-
-      if (groupsToLeave.length === 0) {
-        logger.info('No subscribed groups to leave');
-        return;
-      }
-
-      try {
-        await connection.invoke('LeaveGroups', {
-          connectionId: connection.connectionId || '',
-          moduleEntityPairs: groupStringsToSubscriptions(groupsToLeave),
-        });
-
-        groupsToLeave.forEach((group) => subscriptionsRef.current.delete(group));
-
-        logger.info('Left SignalR groups', {
-          leftGroupCount: groupsToLeave.length,
-          remainingGroupCount: subscriptionsRef.current.size,
-        });
-      } catch (error) {
-        logger.error('Failed to leave SignalR groups', error, {
-          operation: 'signalr.leaveGroups',
-          groupCount: groupsToLeave.length,
-        });
-      }
-    },
-    [connection, subscriptionsToGroupStrings, groupStringsToSubscriptions],
+    (subscriptions: EntitySubscription[]) => manageGroups(subscriptions, 'leave'),
+    [manageGroups],
   );
 
   const addMessageListener = useCallback((listener: MessageListener): (() => void) => {
