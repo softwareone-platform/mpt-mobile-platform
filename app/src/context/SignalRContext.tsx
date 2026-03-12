@@ -15,8 +15,10 @@ import {
   SIGNALR_RECONNECT_DELAY_MS,
   SIGNALR_SERVER_TIMEOUT_MS,
   SIGNALR_KEEP_ALIVE_INTERVAL_MS,
+  SIGNALR_HUB_PATH,
 } from '@/constants/api';
 import { useAuth } from '@/context/AuthContext';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { getAccessTokenAsync } from '@/lib/tokenProvider';
 import { logger } from '@/services/loggerService';
 import type {
@@ -29,33 +31,86 @@ import type {
 
 const SignalRContext = createContext<SignalRContextType | undefined>(undefined);
 
+const MAX_RETRY_ATTEMPTS = 10;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+const MAX_RETRY_DELAY = 30000; // 30 seconds
+
 export const SignalRProvider = ({ children }: PropsWithChildren) => {
   const { status: authStatus } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionState, setConnectionState] = useState<SignalRConnectionState>('Disconnected');
-  const listenersRef = useRef<Set<MessageListener>>(new Set());
-  const subscriptionsRef = useRef<EntitySubscription[]>([]);
 
-  const getHubUrl = useCallback((): string => {
-    return configService.get('SIGNALR_HUB_URL');
+  const listenersRef = useRef<Set<MessageListener>>(new Set());
+  const subscriptionsRef = useRef<Set<string>>(new Set()); // Store as Set for deduplication
+  const isConnectedRef = useRef(false);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryCountRef = useRef(0);
+
+  const getSignalRUrl = useCallback((): string | null => {
+    const baseUrl = configService.get('AUTH0_API_URL');
+
+    if (!baseUrl) {
+      logger.warn('SignalR configuration incomplete: AUTH0_API_URL not set');
+      return null;
+    }
+
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+
+    return `${cleanBaseUrl}${SIGNALR_HUB_PATH}`;
   }, []);
 
   const updateConnectionState = useCallback((state: SignalRConnectionState) => {
     setConnectionState(state);
-    setIsConnected(state === 'Connected');
+    const connected = state === 'Connected';
+    setIsConnected(connected);
+    isConnectedRef.current = connected;
     logger.info(`SignalR connection state: ${state}`);
   }, []);
 
+  const clearRetryTimeout = useCallback(() => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+  }, []);
+
+  const getRetryDelay = useCallback((attempt: number): number => {
+    const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt), MAX_RETRY_DELAY);
+    return delay;
+  }, []);
+
+  const subscriptionsToGroupStrings = useCallback((subs: EntitySubscription[]): string[] => {
+    return subs.map((sub) =>
+      sub.entityName ? `${sub.moduleName}:${sub.entityName}` : sub.moduleName,
+    );
+  }, []);
+
+  const groupStringsToSubscriptions = useCallback((groups: string[]): EntitySubscription[] => {
+    return groups.map((group) => {
+      const [moduleName, entityName] = group.split(':');
+      return entityName ? { moduleName, entityName } : { moduleName };
+    });
+  }, []);
+
   useEffect(() => {
+    if (!isEnabled('FEATURE_SIGNALR')) {
+      return;
+    }
+
     if (authStatus !== 'authenticated') {
       return;
     }
 
-    const hubUrl = getHubUrl();
+    const signalRUrl = getSignalRUrl();
+    if (!signalRUrl) {
+      logger.error('Cannot initialize SignalR: URL configuration missing');
+      return;
+    }
 
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl, {
+      .withUrl(signalRUrl, {
         accessTokenFactory: async () => {
           const token = await getAccessTokenAsync();
           return token || '';
@@ -75,15 +130,17 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
 
     newConnection.onreconnected(async () => {
       updateConnectionState('Connected');
+      retryCountRef.current = 0;
 
-      if (subscriptionsRef.current.length > 0) {
+      if (subscriptionsRef.current.size > 0) {
         try {
+          const groups = Array.from(subscriptionsRef.current);
           await newConnection.invoke('JoinGroups', {
             connectionId: newConnection.connectionId || '',
-            moduleEntityPairs: subscriptionsRef.current,
+            moduleEntityPairs: groupStringsToSubscriptions(groups),
           });
           logger.info('Re-subscribed to groups after reconnection', {
-            subscriptionCount: subscriptionsRef.current.length,
+            groupCount: groups.length,
           });
         } catch (error) {
           logger.error('Failed to re-subscribe after reconnection', error, {
@@ -105,14 +162,22 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
     setConnection(newConnection);
 
     return () => {
+      clearRetryTimeout();
       if (newConnection.state !== signalR.HubConnectionState.Disconnected) {
         void newConnection.stop();
       }
     };
-  }, [authStatus, getHubUrl, updateConnectionState]);
+  }, [
+    authStatus,
+    getSignalRUrl,
+    updateConnectionState,
+    clearRetryTimeout,
+    groupStringsToSubscriptions,
+    isEnabled,
+  ]);
 
   useEffect(() => {
-    if (!connection || authStatus !== 'authenticated') {
+    if (!connection || authStatus !== 'authenticated' || !isEnabled('FEATURE_SIGNALR')) {
       return;
     }
 
@@ -121,21 +186,41 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
         updateConnectionState('Connecting');
         await connection.start();
         updateConnectionState('Connected');
+        retryCountRef.current = 0;
         logger.info('SignalR connected successfully');
       } catch (error) {
         logger.error('SignalR connection error', error, {
           operation: 'signalr.start',
+          retryAttempt: retryCountRef.current,
         });
         updateConnectionState('Disconnected');
 
-        setTimeout(() => {
-          void startConnection();
-        }, SIGNALR_RECONNECT_DELAY_MS);
+        if (retryCountRef.current < MAX_RETRY_ATTEMPTS) {
+          const delay = getRetryDelay(retryCountRef.current);
+          retryCountRef.current += 1;
+
+          logger.info('Scheduling SignalR reconnection', {
+            attempt: retryCountRef.current,
+            delayMs: delay,
+          });
+
+          retryTimeoutRef.current = setTimeout(() => {
+            void startConnection();
+          }, delay);
+        } else {
+          logger.error('Max SignalR retry attempts reached', {
+            maxAttempts: MAX_RETRY_ATTEMPTS,
+          });
+        }
       }
     };
 
     void startConnection();
-  }, [connection, authStatus, updateConnectionState]);
+
+    return () => {
+      clearRetryTimeout();
+    };
+  }, [connection, authStatus, updateConnectionState, clearRetryTimeout, getRetryDelay, isEnabled]);
 
   useEffect(() => {
     if (!connection || !isConnected) {
@@ -170,26 +255,78 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
 
   const subscribe = useCallback(
     async (subscriptions: EntitySubscription[]) => {
-      if (!connection || !isConnected) {
+      if (!connection || !isConnectedRef.current) {
         logger.warn('Cannot join groups: SignalR not connected');
+        return;
+      }
+
+      const groupStrings = subscriptionsToGroupStrings(subscriptions);
+
+      const newGroups = groupStrings.filter((group) => !subscriptionsRef.current.has(group));
+
+      if (newGroups.length === 0) {
+        logger.info('All requested groups already subscribed');
         return;
       }
 
       try {
         await connection.invoke('JoinGroups', {
           connectionId: connection.connectionId || '',
-          moduleEntityPairs: subscriptions,
+          moduleEntityPairs: groupStringsToSubscriptions(newGroups),
         });
-        subscriptionsRef.current = subscriptions;
-        logger.info('Joined SignalR groups', { groupCount: subscriptions.length });
+
+        newGroups.forEach((group) => subscriptionsRef.current.add(group));
+
+        logger.info('Joined SignalR groups', {
+          newGroupCount: newGroups.length,
+          totalGroupCount: subscriptionsRef.current.size,
+        });
       } catch (error) {
         logger.error('Failed to join SignalR groups', error, {
           operation: 'signalr.joinGroups',
-          groupCount: subscriptions.length,
+          groupCount: newGroups.length,
         });
       }
     },
-    [connection, isConnected],
+    [connection, subscriptionsToGroupStrings, groupStringsToSubscriptions],
+  );
+
+  const unsubscribe = useCallback(
+    async (subscriptions: EntitySubscription[]) => {
+      if (!connection || !isConnectedRef.current) {
+        logger.warn('Cannot leave groups: SignalR not connected');
+        return;
+      }
+
+      const groupStrings = subscriptionsToGroupStrings(subscriptions);
+
+      const groupsToLeave = groupStrings.filter((group) => subscriptionsRef.current.has(group));
+
+      if (groupsToLeave.length === 0) {
+        logger.info('No subscribed groups to leave');
+        return;
+      }
+
+      try {
+        await connection.invoke('LeaveGroups', {
+          connectionId: connection.connectionId || '',
+          moduleEntityPairs: groupStringsToSubscriptions(groupsToLeave),
+        });
+
+        groupsToLeave.forEach((group) => subscriptionsRef.current.delete(group));
+
+        logger.info('Left SignalR groups', {
+          leftGroupCount: groupsToLeave.length,
+          remainingGroupCount: subscriptionsRef.current.size,
+        });
+      } catch (error) {
+        logger.error('Failed to leave SignalR groups', error, {
+          operation: 'signalr.leaveGroups',
+          groupCount: groupsToLeave.length,
+        });
+      }
+    },
+    [connection, subscriptionsToGroupStrings, groupStringsToSubscriptions],
   );
 
   const addMessageListener = useCallback((listener: MessageListener): (() => void) => {
@@ -203,11 +340,12 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
   const value = useMemo<SignalRContextType>(
     () => ({
       subscribe,
+      unsubscribe,
       addMessageListener,
       isConnected,
       connectionState,
     }),
-    [subscribe, addMessageListener, isConnected, connectionState],
+    [subscribe, unsubscribe, addMessageListener, isConnected, connectionState],
   );
 
   return <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>;

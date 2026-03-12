@@ -14,3 +14,4 @@ export const AUTH0_REFRESH_TOKEN_INITIAL_DELAY_MS = 1000;
 export const SIGNALR_RECONNECT_DELAY_MS = 5000;
 export const SIGNALR_SERVER_TIMEOUT_MS = 30000;
 export const SIGNALR_KEEP_ALIVE_INTERVAL_MS = 15000;
+export const SIGNALR_HUB_PATH = '/v1/notifications/signalrNotificationHub';

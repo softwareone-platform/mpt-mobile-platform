@@ -4,7 +4,7 @@ export type EntityName = 'Chat' | 'ChatMessage' | 'ChatParticipant' | 'SupportCa
 
 export interface EntitySubscription {
   moduleName: string;
-  entityName: string;
+  entityName?: string;
 }
 
 export interface ServerNotification<T = unknown> {
@@ -17,6 +17,7 @@ export type MessageListener = (message: ServerNotification) => void;
 
 export interface SignalRContextType {
   subscribe: (subscriptions: EntitySubscription[]) => Promise<void>;
+  unsubscribe: (subscriptions: EntitySubscription[]) => Promise<void>;
   addMessageListener: (listener: MessageListener) => () => void;
   isConnected: boolean;
   connectionState: SignalRConnectionState;

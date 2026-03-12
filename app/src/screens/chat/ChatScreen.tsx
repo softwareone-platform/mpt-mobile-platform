@@ -8,7 +8,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 const ChatScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { subscribe, addMessageListener, isConnected } = useSignalR();
+  const { subscribe, unsubscribe, addMessageListener, isConnected } = useSignalR();
 
   // TODO Subscribe to chat entities when connected here just for testing purposes, to be removed
   useEffect(() => {
@@ -16,20 +16,25 @@ const ChatScreen = () => {
       return;
     }
 
-    void subscribe([
+    const subscriptions = [
       { moduleName: 'Helpdesk', entityName: 'Chat' },
       { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
       { moduleName: 'Helpdesk', entityName: 'ChatParticipant' },
-    ]);
-  }, [isConnected, subscribe]);
+    ];
+
+    void subscribe(subscriptions);
+
+    return () => {
+      void unsubscribe(subscriptions);
+    };
+  }, [isConnected, subscribe, unsubscribe]);
 
   useEffect(() => {
-    const unsubscribe = addMessageListener((message) => {
-      // Handle incoming messages logic here, for now just logging to console
-      console.info('Received a new SignalR message', message.data);
+    const removeListener = addMessageListener(() => {
+      // Handle incoming messages logic here, to be implemented
     });
 
-    return unsubscribe;
+    return removeListener;
   }, [addMessageListener]);
 
   return (
