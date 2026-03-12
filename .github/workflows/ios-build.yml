@@ -96,6 +96,7 @@ jobs:
           AUTH0_API_URL=https://api.s1.show/public/
           AUTH0_OTP_DIGITS=6
           AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          LOG_LEVEL=info
           TEMPORARY_AUTH0_TOKEN=
           EOF
 
