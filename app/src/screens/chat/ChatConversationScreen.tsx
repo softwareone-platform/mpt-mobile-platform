@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 
-import { messages } from './messageData';
+import messageData from './messageData.json';
 
 import ChatConversationFooter from '@/components/chat/ChatConversationFooter';
 import ChatMessage from '@/components/chat/ChatMessage';
 import DetailsHeader from '@/components/details/DetailsHeader';
 import { screenStyle } from '@/styles';
+import type { Message } from '@/types/chat';
 
 const ChatConversationScreen = () => {
   const [inputText, setInputText] = useState('');
@@ -15,6 +16,7 @@ const ChatConversationScreen = () => {
   // TODO: replace when API is ready
   const currentUserId = 'USR-2267-7838';
   const { i18n } = useTranslation();
+  const messages: Message[] = messageData as Message[];
 
   const sendMessage = () => {
     if (!inputText.trim()) return;

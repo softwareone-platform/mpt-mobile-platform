@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useEffect } from 'react';
 
-import { data } from './chatData';
+import chatData from './chatData.json';
 
 import ListViewChat from '@/components/list/ListViewChat';
 import { useSignalR } from '@/context/SignalRContext';
@@ -11,6 +11,7 @@ import type { RootStackParamList } from '@/types/navigation';
 
 const ChatScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const data: ChatItem[] = chatData as ChatItem[];
 
   const { subscribe, unsubscribe, addMessageListener, isConnected } = useSignalR();
 
@@ -44,7 +45,7 @@ const ChatScreen = () => {
   // TODO: warp into loading / error handling component when API is ready
   return (
     <ListViewChat
-      data={data as ChatItem[]}
+      data={data}
       userId="USR-2267-7838"
       // isFetchingNext={chatsIsFetchingNext}
       // hasMore={hasMoreChats}
