@@ -66,3 +66,14 @@ export type ListItemChatProps = ListItemCommonProps & {
   avatars: AvatarItem[];
   isVerified: boolean;
 };
+
+export type ChatsListResponse = {
+  $meta: {
+    pagination: {
+      offset: number;
+      limit: number;
+      total: number;
+    };
+  };
+  data: ChatItem[];
+};
