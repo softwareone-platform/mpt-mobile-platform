@@ -1,4 +1,6 @@
-export const messages: any = [
+import type { Message } from '@/types/chat';
+
+export const messages: Message[] = [
   {
     id: 'CMG-4912-0427-1898',
     revision: 1,

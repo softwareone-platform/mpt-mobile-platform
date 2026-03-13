@@ -7,7 +7,12 @@ export type MessageType = 'own' | 'other';
 export type Audit = {
   created?: {
     at: string;
+    by: unknown;
   };
+  updated?: unknown;
+  deleted?: unknown;
+  madePublic?: unknown;
+  madePrivate?: unknown;
 };
 
 export type Chat = {
