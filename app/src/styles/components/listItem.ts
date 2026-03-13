@@ -23,8 +23,8 @@ const detailsHeaderContainerCommon: ViewStyle = {
 const detailsHeaderTopRowCommon: ViewStyle = {
   flexDirection: 'row',
   alignItems: 'center',
-  paddingBottom: 16,
-  paddingTop: 4,
+  paddingBottom: Spacing.spacing2,
+  paddingTop: Spacing.spacingSmall4,
 };
 
 export const listItemStyle = {
@@ -148,7 +148,7 @@ export const listItemStyle = {
     },
     chat: {
       ...detailsHeaderTopRowCommon,
-      paddingBottom: 8,
+      paddingBottom: Spacing.spacing1,
     },
   },
   detailsHeaderAvatarWrapper: {
@@ -204,14 +204,14 @@ export const listItemChatStyle = {
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: Spacing.spacingSmall4,
   },
   titleWrapper: {
     flexShrink: 1,
     minWidth: 0,
   },
   separator: {
-    paddingHorizontal: 4,
+    paddingHorizontal: Spacing.spacingSmall4,
     fontSize: Typography.fontSize.font2,
     color: Color.gray.gray4,
   },

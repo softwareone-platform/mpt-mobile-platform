@@ -1,4 +1,5 @@
 import { OutlinedIcons } from '@assets/icons';
+import { useTranslation } from 'react-i18next';
 import { View, TextInput, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
@@ -11,6 +12,8 @@ type Props = {
 };
 
 const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.inputContainer}>
       <View style={styles.iconContainer}>
@@ -23,7 +26,7 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
 
       <View style={styles.textInputWrapper}>
         <TextInput
-          placeholder="Type a message"
+          placeholder={t('chat.messageInputPlaceholder')}
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
