@@ -1,8 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { useEffect } from 'react';
 
 import { data } from './chatData';
 
+import { useSignalR } from '@/context/SignalRContext';
 import ListViewChat from '@/components/list/ListViewChat';
 import { ChatItem } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';

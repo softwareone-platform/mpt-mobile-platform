@@ -2,5 +2,9 @@
   "FEATURE_ACCOUNT_TABS": {
     "enabled": true,
     "minVersion": "5.0.0"
+  },
+  "FEATURE_SIGNALR": {
+    "enabled": true,
+    "minVersion": "5.0.0"
   }
 }
