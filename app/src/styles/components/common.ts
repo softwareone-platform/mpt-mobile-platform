@@ -29,6 +29,9 @@ export const screenStyle = {
   contentFillContainer: {
     flexGrow: 1,
   },
+  containerFlex: {
+    flex: 1,
+  },
   sectionHeader: {
     fontSize: Typography.fontSize.font2,
     textTransform: 'uppercase',

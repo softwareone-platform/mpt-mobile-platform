@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
   },
   sectionHeader: screenStyle.sectionHeader,
   buttonPrimary: {
-    ...buttonStyle.common,
     ...buttonStyle.primaryLight,
     ...buttonStyle.fullWidth,
   },
