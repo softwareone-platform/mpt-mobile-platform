@@ -186,6 +186,7 @@ jobs:
           AUTH0_API_URL=https://api.s1.show/public/
           AUTH0_OTP_DIGITS=6
           AUTH0_SCHEME=com.softwareone.marketplaceMobile
+          LOG_LEVEL=info
           TEMPORARY_AUTH0_TOKEN=
           EOF
 
@@ -495,6 +496,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Read Appium version from package.json
+        id: appium-version
+        env:
+          DEFAULT_APPIUM_VERSION: ${{ env.DEFAULT_APPIUM_VERSION }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "Reading Appium version from app/package.json"
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v).replace(/^[^0-9]*/,''));")
+          echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
+          echo "Detected Appium version: $APP_VER"
 
       # Install phase using composite action
       - name: Install Android App

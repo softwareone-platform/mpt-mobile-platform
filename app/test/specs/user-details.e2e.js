@@ -1,10 +1,10 @@
 const { expect } = require('@wdio/globals');
 
-
-const usersPage = require('../pageobjects/users.page');
-const userDetailsPage = require('../pageobjects/user-details.page');
 const morePage = require('../pageobjects/more.page');
+const userDetailsPage = require('../pageobjects/user-details.page');
+const usersPage = require('../pageobjects/users.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 
@@ -15,12 +15,12 @@ describe('User Details Page', () => {
   let apiUserData = null;
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Users page via More menu (same as users.e2e.js)
     await usersPage.footer.moreTab.click();
-    await browser.pause(500);
+    await browser.pause(PAUSE.NAVIGATION);
     await morePage.usersMenuItem.click();
     await usersPage.waitForScreenReady();
 
@@ -42,7 +42,9 @@ describe('User Details Page', () => {
       }
     }
 
-    console.info(`📊 User Details test setup: hasUsers=${hasUsersData}, apiAvailable=${apiAvailable}, testUserId=${testUserId}`);
+    console.info(
+      `📊 User Details test setup: hasUsers=${hasUsersData}, apiAvailable=${apiAvailable}, testUserId=${testUserId}`,
+    );
 
     // Navigate to user details page once at the start
     if (hasUsersData && testUserId) {
@@ -67,7 +69,7 @@ describe('User Details Page', () => {
       }
       await expect(userDetailsPage.userIdText).toBeDisplayed();
       const userId = await userDetailsPage.getItemId();
-      expect(userId).toMatch(/^USR-(\d{4}-)+\d{4}$/);
+      expect(userId).toMatch(REGEX.USER_ID_FLEX);
     });
 
     it('should display the status field', async function () {
@@ -190,7 +192,9 @@ describe('User Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.info('📋 User Details Comparison');
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.info(`User ID:   UI="${uiDetails.userId}" | API="${apiUserData.id || apiUserData.userId}"`);
+      console.info(
+        `User ID:   UI="${uiDetails.userId}" | API="${apiUserData.id || apiUserData.userId}"`,
+      );
       console.info(`Status:    UI="${uiDetails.status}" | API="${apiUserData.status}"`);
       console.info(`Email:     UI="${uiDetails.email}" | API="${apiUserData.email}"`);
       console.info(`FirstName: UI="${uiDetails.firstName}" | API="${apiUserData.firstName}"`);

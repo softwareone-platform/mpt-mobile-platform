@@ -6,18 +6,21 @@ import { Navigation } from '@/components/navigation';
 import { queryClient } from '@/config/queryClient';
 import { AccountProvider } from '@/context/AccountContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { SignalRProvider } from '@/context/SignalRContext';
 import './src/i18n';
 
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppInsightsProvider>
-          <AccountProvider>
-            <Navigation />
-            <StatusBar style="auto" />
-          </AccountProvider>
-        </AppInsightsProvider>
+        <SignalRProvider>
+          <AppInsightsProvider>
+            <AccountProvider>
+              <Navigation />
+              <StatusBar style="auto" />
+            </AccountProvider>
+          </AppInsightsProvider>
+        </SignalRProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

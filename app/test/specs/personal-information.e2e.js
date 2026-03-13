@@ -7,7 +7,7 @@ const userSettingsPage = require('../pageobjects/user-settings.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Personal Information Page', () => {
   let userId;
@@ -15,7 +15,7 @@ describe('Personal Information Page', () => {
 
   before(async function () {
     // Set timeout for login flow
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
 
     // Navigate to Profile page and get user ID
@@ -61,7 +61,7 @@ describe('Personal Information Page', () => {
 
     it('should display user ID in USR-XXXX-XXXX format', async () => {
       const userId = await personalInformationPage.getUserId();
-      expect(userId).toMatch(/^USR-\d{4}-\d{4}$/);
+      expect(userId).toMatch(REGEX.USER_ID);
     });
   });
 
@@ -85,7 +85,7 @@ describe('Personal Information Page', () => {
     it('should display E-mail field with valid email', async () => {
       await expect(personalInformationPage.emailField).toBeDisplayed();
       const email = await personalInformationPage.getEmail();
-      expect(email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+      expect(email).toMatch(REGEX.EMAIL_BASIC);
     });
 
     it('should display Phone number field', async () => {

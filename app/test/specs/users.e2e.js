@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Users Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -26,7 +26,7 @@ describe('Users Page', () => {
   }
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
 
@@ -166,7 +166,7 @@ describe('Users Page', () => {
       const firstUser = usersPage.firstUserItem;
       await expect(firstUser).toBeDisplayed();
       const details = await usersPage.getUserDetails(firstUser);
-      expect(details.userId).toMatch(/^USR-\d{4}-\d{4}$/);
+      expect(details.userId).toMatch(REGEX.USER_ID);
       expect(['Active', 'Blocked', 'Invitation Expired']).toContain(details.status);
     });
 
@@ -182,7 +182,7 @@ describe('Users Page', () => {
       console.info(`Last 5 user IDs: ${userIds.slice(-5).join(', ')}`);
       expect(usersCount).toBeGreaterThan(0);
       for (const userId of userIds) {
-        expect(userId).toMatch(/^USR-\d{4}-\d{4}$/);
+        expect(userId).toMatch(REGEX.USER_ID);
       }
     });
 
@@ -259,7 +259,7 @@ describe('Users Page', () => {
         const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
         console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
         for (const uiUserId of uiUserIds.slice(0, 10)) {
-          expect(uiUserId).toMatch(/^USR-\d{4}-\d{4}$/);
+          expect(uiUserId).toMatch(REGEX.USER_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

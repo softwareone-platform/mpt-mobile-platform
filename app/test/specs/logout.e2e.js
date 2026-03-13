@@ -12,7 +12,7 @@ const { TIMEOUT } = require('../pageobjects/utils/constants');
 describe('Logout Functionality', () => {
   before(async function () {
     // Set timeout for login flow
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
   });
@@ -39,20 +39,20 @@ describe('Logout Functionality', () => {
       await userSettingsPage.signOut();
 
       // Wait for and verify we're redirected to the welcome/login page
-      await welcomePage.welcomeTitle.waitForDisplayed({ timeout: 15000 });
+      await welcomePage.welcomeTitle.waitForDisplayed({ timeout: TIMEOUT.POST_LOGOUT_REDIRECT });
       await expect(welcomePage.welcomeTitle).toBeDisplayed();
       console.info('✅ User successfully logged out');
     });
 
     it('should prompt user to log in after app restart following logout', async () => {
       // Verify we're on the welcome page after logout from previous test
-      await welcomePage.welcomeTitle.waitForDisplayed({ timeout: 15000 });
+      await welcomePage.welcomeTitle.waitForDisplayed({ timeout: TIMEOUT.POST_LOGOUT_REDIRECT });
 
       // Restart the app
       await restartApp();
 
       // Verify welcome page elements are displayed (login prompt persists after restart)
-      await welcomePage.welcomeTitle.waitForDisplayed({ timeout: 15000 });
+      await welcomePage.welcomeTitle.waitForDisplayed({ timeout: TIMEOUT.POST_LOGOUT_REDIRECT });
       await expect(welcomePage.welcomeTitle).toBeDisplayed();
       await expect(welcomePage.enterEmailSubTitle).toBeDisplayed();
       await expect(welcomePage.emailInput).toBeDisplayed();

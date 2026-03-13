@@ -1,7 +1,9 @@
-const EMPTY_STRING = '';
+import { EMPTY_STRING } from '@/constants/common';
+
 const DEFAULT_DECIMAL_SPACES = 2;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DAYS_PER_WEEK = 7;
 
 export const FUTURE = 1 as const;
 export const PAST = -1 as const;
@@ -9,6 +11,15 @@ const FUTURE_ADJUSTMENT = 1;
 const PAST_ADJUSTMENT = 0;
 
 type RelativeDirection = typeof FUTURE | typeof PAST;
+
+type DateParts = {
+  hour?: string;
+  minute?: string;
+  weekday?: string;
+  day?: string;
+  month?: string;
+  year?: string;
+};
 
 export const formatPhoneNumber = (prefix?: string, number?: string): string => {
   const parts = [prefix?.trim(), number?.trim()].filter(Boolean);
@@ -47,26 +58,51 @@ export const formatNumber = (
   return formattedNumber;
 };
 
-export const formatDateForLocale = (isoDate: string | undefined, locale: string) => {
+export const getDatePartsForLocale = (
+  isoDate: string | undefined,
+  locale: string,
+): DateParts | null => {
   if (!isoDate) {
-    return EMPTY_STRING;
+    return null;
   }
   const date = new Date(isoDate);
 
   if (Number.isNaN(date.getTime())) {
-    return EMPTY_STRING;
+    return null;
   }
 
-  const parts = new Intl.DateTimeFormat(locale, {
+  const dateParts = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
   }).formatToParts(date);
 
-  const day = parts.find((p) => p.type === 'day')?.value;
-  const month = parts.find((p) => p.type === 'month')?.value;
-  const year = parts.find((p) => p.type === 'year')?.value;
+  const timeParts = new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'UTC',
+  }).formatToParts(date);
+
+  return {
+    hour: timeParts.find((p) => p.type === 'hour')?.value,
+    minute: timeParts.find((p) => p.type === 'minute')?.value,
+    weekday: dateParts.find((p) => p.type === 'weekday')?.value,
+    day: dateParts.find((p) => p.type === 'day')?.value,
+    month: dateParts.find((p) => p.type === 'month')?.value,
+    year: dateParts.find((p) => p.type === 'year')?.value,
+  };
+};
+
+export const formatDateForLocale = (isoDate: string | undefined, locale: string) => {
+  const parts = getDatePartsForLocale(isoDate, locale);
+
+  if (!parts) {
+    return EMPTY_STRING;
+  }
+
+  const { day, month, year } = parts;
 
   if (!day || !month || !year) return EMPTY_STRING;
 
@@ -129,4 +165,54 @@ export const calculateRelativeDate = (
   const utcStartOfDay = getUtcStartOfDay(shifted);
 
   return formatUtcDate(utcStartOfDay);
+};
+
+/**
+ * function to format date for chat
+ * @param isoDate - date string in ISO format
+ * @param locale - locale used to translate values like month title
+ * @returns date as string formatted according to how long in the past the date is
+ * possible formats HH:MM, Weekday, DD Mon, DD Mon YYYY
+ */
+export const formatDateForChat = (isoDate: string | undefined, locale: string): string => {
+  if (!isoDate) return EMPTY_STRING;
+
+  const date = new Date(isoDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return EMPTY_STRING;
+  }
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  const parts = getDatePartsForLocale(isoDate, locale);
+
+  if (!parts) {
+    return EMPTY_STRING;
+  }
+
+  const { hour, minute, weekday, day, month, year } = parts;
+
+  if (!hour || !minute || !weekday || !day || !month || !year) {
+    return EMPTY_STRING;
+  }
+
+  // within last 24 hours - HH:MM
+  if (diffMs < MS_PER_DAY) {
+    return `${hour}:${minute}`;
+  }
+
+  // within last 7 days - Weekday
+  if (diffMs < DAYS_PER_WEEK * MS_PER_DAY) {
+    return weekday || EMPTY_STRING;
+  }
+
+  // within current year - DD Mon
+  if (date.getUTCFullYear() === now.getUTCFullYear()) {
+    return `${day} ${month}`;
+  }
+
+  // older than current year - DD Mon YYYY
+  return `${day} ${month} ${year}`;
 };

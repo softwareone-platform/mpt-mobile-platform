@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Buyers Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -28,7 +28,7 @@ describe('Buyers Page', () => {
   }
 
   before(async function () {
-    this.timeout(150000);
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
@@ -192,7 +192,7 @@ describe('Buyers Page', () => {
       
       const details = await buyersPage.getBuyerDetails(firstBuyer);
       // Buyers use 3-group IDs: BUY-XXXX-XXXX
-      expect(details.buyerId).toMatch(/^BUY-\d{4}-\d{4}$/);
+      expect(details.buyerId).toMatch(REGEX.BUYER_ID);
       expect(['Active', 'Unassigned']).toContain(details.status);
     });
 
@@ -213,7 +213,7 @@ describe('Buyers Page', () => {
       
       // Verify all buyer IDs have valid format (3-group)
       for (const buyerId of buyerIds) {
-        expect(buyerId).toMatch(/^BUY-\d{4}-\d{4}$/);
+        expect(buyerId).toMatch(REGEX.BUYER_ID);
       }
     });
 
@@ -308,7 +308,7 @@ describe('Buyers Page', () => {
         
         // Verify all visible UI buyers have valid format (3-group)
         for (const uiBuyerId of uiBuyerIds.slice(0, 10)) {
-          expect(uiBuyerId).toMatch(/^BUY-\d{4}-\d{4}$/);
+          expect(uiBuyerId).toMatch(REGEX.BUYER_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

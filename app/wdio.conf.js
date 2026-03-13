@@ -10,6 +10,42 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const SCREENSHOT_FOLDER = '../screenshots';
 
+const WDIO_DEFAULTS = {
+    FALLBACK_PORTAL_VERSION: '4.0.0',
+    APPIUM_HOST: 'localhost',
+    APPIUM_PORT: 4723,
+    PLATFORM_IOS: 'iOS',
+    PLATFORM_ANDROID: 'Android',
+    IOS_DEVICE_NAME: 'iPhone 16',
+    IOS_PLATFORM_VERSION: '26.0',
+    IOS_AUTOMATION_NAME: 'XCUITest',
+    IOS_BUNDLE_ID: 'com.softwareone.marketplaceMobile',
+    IOS_DERIVED_DATA_PATH: '/tmp/wda-derived-data',
+    ANDROID_DEVICE_NAME: 'Pixel 8',
+    ANDROID_PLATFORM_VERSION: '14',
+    ANDROID_AUTOMATION_NAME: 'UiAutomator2',
+    ANDROID_APP_PACKAGE: 'com.softwareone.marketplaceMobile',
+    ANDROID_APP_ACTIVITY: '.MainActivity',
+    APPIUM_NEW_COMMAND_TIMEOUT: 900,
+    APPIUM_WDA_TIMEOUT: 240000,
+    APPIUM_WDA_STARTUP_RETRIES: 4,
+    APPIUM_WDA_STARTUP_RETRY_INTERVAL: 30000,
+    WAITFOR_TIMEOUT: 30000,
+    CONNECTION_RETRY_TIMEOUT: 300000,
+    CONNECTION_RETRY_COUNT: 3,
+    REPORTER_SYNC_TIMEOUT: 10000,
+    REPORTER_SYNC_INTERVAL: 500,
+    MOCHA_TIMEOUT: 600000,
+    API_FETCH_TIMEOUT: 15000,
+    REPORT_PORTAL_CALL_TIMEOUT: 5000,
+    REPORT_PORTAL_PROJECT: 'default_personal',
+    REPORT_PORTAL_LAUNCH_NAME: 'Appium Tests Launch',
+    REPORT_PORTAL_LAUNCH_DESCRIPTION: 'Appium tests against ReactNative Marketplace Mobile App',
+    REPORT_PORTAL_MODE: 'DEFAULT',
+    REPORT_PORTAL_UUID_OUTPUT: 'stdout',
+    REPORT_PORTAL_ENDPOINT: 'http://localhost:8080',
+};
+
 // ============================================================================
 // Feature Flag Discovery
 // ============================================================================
@@ -37,7 +73,7 @@ const SCREENSHOT_FOLDER = '../screenshots';
 // ============================================================================
 
 // Fallback portal version (matches portalVersionService.ts)
-const FALLBACK_PORTAL_VERSION = '4.0.0';
+const FALLBACK_PORTAL_VERSION = WDIO_DEFAULTS.FALLBACK_PORTAL_VERSION;
 
 /**
  * Parse explicit feature flag overrides from environment variable
@@ -102,7 +138,7 @@ const fetchPortalVersion = () => {
         const curlArgs = ['-s', '-f', '--connect-timeout', '5', '--max-time', '10', apiUrl, '-H', 'Accept: application/json'];
         const output = execFileSync(curlPath, curlArgs, { 
             encoding: 'utf8', 
-            timeout: 15000,
+            timeout: WDIO_DEFAULTS.API_FETCH_TIMEOUT,
             stdio: ['pipe', 'pipe', 'pipe'],
         }).trim();
         
@@ -348,47 +384,48 @@ global.featureFlags = discoverFeatureFlags();
 const getLogDir = () => {
     const now = new Date();
     const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const platform = (process.env.PLATFORM_NAME || 'iOS').toLowerCase();
+    const platform = (process.env.PLATFORM_NAME || WDIO_DEFAULTS.PLATFORM_IOS).toLowerCase();
     return path.join('test-results', 'logs', `${platform}-${timestamp}`);
 };
 const LOG_OUTPUT_DIR = getLogDir();
 
 // Platform detection helpers
-const isAndroid = () => (process.env.PLATFORM_NAME || 'iOS').toLowerCase() === 'android';
+const isAndroid = () =>
+    (process.env.PLATFORM_NAME || WDIO_DEFAULTS.PLATFORM_IOS).toLowerCase() ===
+    WDIO_DEFAULTS.PLATFORM_ANDROID.toLowerCase();
 
 // Define platform-specific capabilities
 const iosCapabilities = {
-    platformName: 'iOS',
-    'appium:deviceName': process.env.DEVICE_NAME || 'iPhone 16',
-    'appium:platformVersion': process.env.PLATFORM_VERSION || '26.0',
-    'appium:automationName': 'XCUITest',
-    'appium:bundleId': process.env.APP_BUNDLE_ID || 'com.softwareone.marketplaceMobile',
+    platformName: WDIO_DEFAULTS.PLATFORM_IOS,
+    'appium:deviceName': process.env.DEVICE_NAME || WDIO_DEFAULTS.IOS_DEVICE_NAME,
+    'appium:platformVersion': process.env.PLATFORM_VERSION || WDIO_DEFAULTS.IOS_PLATFORM_VERSION,
+    'appium:automationName': WDIO_DEFAULTS.IOS_AUTOMATION_NAME,
+    'appium:bundleId': process.env.APP_BUNDLE_ID || WDIO_DEFAULTS.IOS_BUNDLE_ID,
     'appium:udid': process.env.DEVICE_UDID,
     'appium:noReset': true,
     'appium:fullReset': false,
-    'appium:newCommandTimeout': 900,
-    'appium:launchTimeout': 240000,
-    'appium:wdaLaunchTimeout': 240000,
-    'appium:wdaConnectionTimeout': 240000,
-    'appium:wdaStartupRetries': 4,
-    'appium:wdaStartupRetryInterval': 30000,
+    'appium:newCommandTimeout': WDIO_DEFAULTS.APPIUM_NEW_COMMAND_TIMEOUT,
+    'appium:wdaLaunchTimeout': WDIO_DEFAULTS.APPIUM_WDA_TIMEOUT,
+    'appium:wdaConnectionTimeout': WDIO_DEFAULTS.APPIUM_WDA_TIMEOUT,
+    'appium:wdaStartupRetries': WDIO_DEFAULTS.APPIUM_WDA_STARTUP_RETRIES,
+    'appium:wdaStartupRetryInterval': WDIO_DEFAULTS.APPIUM_WDA_STARTUP_RETRY_INTERVAL,
     'appium:shouldUseSingletonTestManager': false,
     'appium:simpleIsVisibleCheck': true,
     'appium:usePrebuiltWDA': false,
-    'appium:derivedDataPath': '/tmp/wda-derived-data'
+    'appium:derivedDataPath': WDIO_DEFAULTS.IOS_DERIVED_DATA_PATH,
 };
 
 const androidCapabilities = {
-    platformName: 'Android',
-    'appium:deviceName': process.env.DEVICE_NAME || 'Pixel 8',
-    'appium:platformVersion': process.env.PLATFORM_VERSION || '14',
-    'appium:automationName': 'UiAutomator2',
-    'appium:appPackage': process.env.APP_PACKAGE || 'com.softwareone.marketplaceMobile',
-    'appium:appActivity': process.env.APP_ACTIVITY || '.MainActivity',
+    platformName: WDIO_DEFAULTS.PLATFORM_ANDROID,
+    'appium:deviceName': process.env.DEVICE_NAME || WDIO_DEFAULTS.ANDROID_DEVICE_NAME,
+    'appium:platformVersion': process.env.PLATFORM_VERSION || WDIO_DEFAULTS.ANDROID_PLATFORM_VERSION,
+    'appium:automationName': WDIO_DEFAULTS.ANDROID_AUTOMATION_NAME,
+    'appium:appPackage': process.env.APP_PACKAGE || WDIO_DEFAULTS.ANDROID_APP_PACKAGE,
+    'appium:appActivity': process.env.APP_ACTIVITY || WDIO_DEFAULTS.ANDROID_APP_ACTIVITY,
     'appium:udid': process.env.DEVICE_UDID,
     'appium:noReset': true,
     'appium:fullReset': false,
-    'appium:newCommandTimeout': 900,
+    'appium:newCommandTimeout': WDIO_DEFAULTS.APPIUM_NEW_COMMAND_TIMEOUT,
     'appium:autoGrantPermissions': true,
     'appium:ignoreHiddenApiPolicyError': true
 };
@@ -400,8 +437,8 @@ exports.config = {
     // ====================
     // WebdriverIO supports running e2e tests as well as unit and component tests.
     runner: 'local',
-    hostname: process.env.APPIUM_HOST || 'localhost',
-    port: parseInt(process.env.APPIUM_PORT, 10) || 4723,
+    hostname: process.env.APPIUM_HOST || WDIO_DEFAULTS.APPIUM_HOST,
+    port: parseInt(process.env.APPIUM_PORT, 10) || WDIO_DEFAULTS.APPIUM_PORT,
     //
     // ===================
     // Log Output Directory
@@ -553,14 +590,14 @@ exports.config = {
     // baseUrl: 'http://localhost:8080',
     //
     // Default timeout for all waitFor* commands.
-    waitforTimeout: 30000,
+    waitforTimeout: WDIO_DEFAULTS.WAITFOR_TIMEOUT,
     //
     // Default timeout in milliseconds for request
     // if browser driver or grid doesn't send response
-    connectionRetryTimeout: 300000,
+    connectionRetryTimeout: WDIO_DEFAULTS.CONNECTION_RETRY_TIMEOUT,
     //
     // Default request retries count
-    connectionRetryCount: 3,
+    connectionRetryCount: WDIO_DEFAULTS.CONNECTION_RETRY_COUNT,
     //
     // Test runner services
     // Services take over a specific job you don't want to take care of. They enhance
@@ -601,35 +638,39 @@ exports.config = {
         ...(process.env.REPORT_PORTAL_API_KEY && process.env.REPORT_PORTAL_API_KEY !== 'value not set' ? [
             [Reporter, {
                 apiKey: process.env.REPORT_PORTAL_API_KEY,
-                endpoint: (process.env.REPORT_PORTAL_ENDPOINT || 'http://localhost:8080') + '/api/v2',
-                project: process.env.REPORT_PORTAL_PROJECT || 'default_personal',
-                launch: process.env.REPORT_PORTAL_LAUNCH_NAME || 'Appium Tests Launch',
-                description: process.env.REPORT_PORTAL_LAUNCH_DESCRIPTION || 'Appium tests against ReactNative Marketplace Mobile App',
+                endpoint:
+                    (process.env.REPORT_PORTAL_ENDPOINT || WDIO_DEFAULTS.REPORT_PORTAL_ENDPOINT) +
+                    '/api/v2',
+                project: process.env.REPORT_PORTAL_PROJECT || WDIO_DEFAULTS.REPORT_PORTAL_PROJECT,
+                launch: process.env.REPORT_PORTAL_LAUNCH_NAME || WDIO_DEFAULTS.REPORT_PORTAL_LAUNCH_NAME,
+                description:
+                    process.env.REPORT_PORTAL_LAUNCH_DESCRIPTION ||
+                    WDIO_DEFAULTS.REPORT_PORTAL_LAUNCH_DESCRIPTION,
                 attachPicturesToLogs: false,
                 reportSeleniumCommands: true,  // Disable to reduce API calls
                 seleniumCommandsLogLevel: 'debug',
                 autoAttachScreenshots: false,
                 screenshotsLogLevel: 'error',
-                mode: 'DEFAULT',  // Valid values: DEFAULT, DEBUG
+                mode: WDIO_DEFAULTS.REPORT_PORTAL_MODE,  // Valid values: DEFAULT, DEBUG
                 launchUuidPrint: true,  // Print launch UUID for debugging
-                launchUuidPrintOutput: 'stdout',
+                launchUuidPrintOutput: WDIO_DEFAULTS.REPORT_PORTAL_UUID_OUTPUT,
                 debug: false,  // Disable debug logging to reduce noise
                 restClientConfig: {
-                    timeout: 5000,  // 5 second timeout for individual API calls
+                    timeout: WDIO_DEFAULTS.REPORT_PORTAL_CALL_TIMEOUT,  // 5 second timeout for individual API calls
                 },
             }]
         ] : [])
     ],
 
     // Reporter sync settings for ReportPortal
-    reporterSyncTimeout: 10000,  // 10 seconds max wait for reporter sync
-    reporterSyncInterval: 500,
+    reporterSyncTimeout: WDIO_DEFAULTS.REPORTER_SYNC_TIMEOUT,  // 10 seconds max wait for reporter sync
+    reporterSyncInterval: WDIO_DEFAULTS.REPORTER_SYNC_INTERVAL,
 
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 600000, // 10 minutes - OTP retrieval can take 4+ minutes
+        timeout: WDIO_DEFAULTS.MOCHA_TIMEOUT, // 10 minutes - OTP retrieval can take 4+ minutes
         require: ['./test/fixtures/otp.fixture.js']
     },
 
@@ -700,7 +741,7 @@ exports.config = {
         }
 
         // Log test execution configuration
-        const platform = (process.env.PLATFORM_NAME || 'iOS').toUpperCase();
+        const platform = (process.env.PLATFORM_NAME || WDIO_DEFAULTS.PLATFORM_IOS).toUpperCase();
         const specs = config.specs || [];
         const suites = config.suites || {};
         
