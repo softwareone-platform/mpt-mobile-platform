@@ -1,13 +1,18 @@
-import { Color, BorderRadius, Spacing, Shadow, Typography } from '../tokens';
+import type { ViewStyle } from 'react-native';
+
+import { Color, BorderRadius, Spacing, Typography } from '../tokens';
+
+const buttonCommon: ViewStyle = {
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: BorderRadius.round,
+  paddingVertical: Spacing.spacing2,
+  paddingHorizontal: Spacing.spacing3,
+};
 
 export const buttonStyle = {
-  common: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: BorderRadius.round,
-    paddingVertical: Spacing.spacing2,
-  },
   primaryLight: {
+    ...buttonCommon,
     backgroundColor: Color.brand.white,
     color: Color.brand.primary,
   },
@@ -17,30 +22,22 @@ export const buttonStyle = {
     fontWeight: Typography.fontWeight.regular,
   },
   primary: {
+    ...buttonCommon,
     backgroundColor: Color.brand.primary,
-    borderRadius: BorderRadius.xs,
-    paddingVertical: Spacing.spacing2,
-    paddingHorizontal: Spacing.spacing3,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    ...Shadow.sm,
+  },
+  primaryIconOnly: {
+    paddingVertical: Spacing.spacingSmall6,
+    paddingHorizontal: Spacing.spacingSmall6,
   },
   secondary: {
+    ...buttonCommon,
     backgroundColor: Color.alerts.info1,
     borderWidth: 1,
     borderColor: Color.alerts.info1,
     borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.spacing2,
-    paddingHorizontal: Spacing.spacing3,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
   },
   authPrimary: {
-    height: 48,
-    borderRadius: BorderRadius.xl,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    paddingHorizontal: Spacing.spacing3,
+    ...buttonCommon,
     backgroundColor: Color.brand.primary,
     marginBottom: Spacing.spacing2,
   },

@@ -11,6 +11,7 @@ import {
   formatUtcDate,
   calculateRelativeDate,
   getDatePartsForLocale,
+  formatDateForChat,
 } from '@/utils/formatting';
 
 const EMPTY_STRING = '';
@@ -358,28 +359,24 @@ describe('getDatePartsForLocale', () => {
     expect(getDatePartsForLocale('invalid-date', enLocale)).toBeNull();
   });
 
-  it('returns correct date and time parts for English locale', () => {
+  it('returns correct date parts for English locale', () => {
     const result = getDatePartsForLocale(isoDate, enLocale);
 
     expect(result).not.toBeNull();
     if (!result) return;
 
-    expect(result.hour).toBe('15');
-    expect(result.minute).toBe('45');
     expect(result.weekday).toBe('Tue');
     expect(result.day).toBe('10');
     expect(result.month).toBe('Mar');
     expect(result.year).toBe('2026');
   });
 
-  it('returns correct date and time parts for French locale', () => {
+  it('returns correct date parts for French locale', () => {
     const result = getDatePartsForLocale(isoDate, frLocale);
 
     expect(result).not.toBeNull();
     if (!result) return;
 
-    expect(result.hour).toBe('15');
-    expect(result.minute).toBe('45');
     expect(result.weekday).toBe('mar.');
     expect(result.day).toBe('10');
     expect(result.month).toBe('mars');
@@ -393,11 +390,96 @@ describe('getDatePartsForLocale', () => {
     expect(result).not.toBeNull();
     if (!result) return;
 
-    expect(result.hour).toBe('08');
-    expect(result.minute).toBe('05');
     expect(result.weekday).toBe('Fri');
     expect(result.day).toBe('25');
     expect(result.month).toBe('Dec');
     expect(result.year).toBe('2026');
+  });
+});
+
+describe('formatDateForChat', () => {
+  const locale = 'en-GB';
+
+  const NOW = new Date('2026-03-10T12:00:00Z');
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(NOW);
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
+  describe('invalid input', () => {
+    it('returns EMPTY_STRING when isoDate is undefined', () => {
+      expect(formatDateForChat(undefined, locale)).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING when isoDate is empty string', () => {
+      expect(formatDateForChat('', locale)).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING when isoDate is invalid', () => {
+      expect(formatDateForChat('invalid-date', locale)).toBe(EMPTY_STRING);
+    });
+  });
+
+  describe('within last 24 hours', () => {
+    it('returns time (HH:mm)', () => {
+      const iso = '2026-03-10T09:30:00Z';
+
+      expect(formatDateForChat(iso, locale)).toBe('09:30');
+    });
+  });
+
+  describe('within last 7 days', () => {
+    it('returns weekday', () => {
+      const iso = '2026-03-08T10:00:00Z';
+
+      const result = formatDateForChat(iso, locale);
+
+      expect(result).toBe('Sun');
+    });
+  });
+
+  describe('within current year but older than 7 days', () => {
+    it('returns DD Mon', () => {
+      const iso = '2026-02-01T10:00:00Z';
+
+      expect(formatDateForChat(iso, locale)).toBe('01 Feb');
+    });
+
+    it('pads day with leading zero', () => {
+      const iso = '2026-01-05T10:00:00Z';
+
+      expect(formatDateForChat(iso, locale)).toBe('05 Jan');
+    });
+  });
+
+  describe('older than current year', () => {
+    it('returns DD Mon YYYY', () => {
+      const iso = '2025-12-25T10:00:00Z';
+
+      expect(formatDateForChat(iso, locale)).toBe('25 Dec 2025');
+    });
+  });
+
+  describe('different locales', () => {
+    it('formats weekday using locale rules', () => {
+      const iso = '2026-03-08T10:00:00Z';
+
+      const result = formatDateForChat(iso, 'fr-FR');
+
+      expect(result).toBe('dim.');
+    });
+
+    it('formats month using locale rules', () => {
+      const iso = '2026-02-01T10:00:00Z';
+
+      const result = formatDateForChat(iso, 'fr-FR');
+
+      expect(result).toBe('01 févr.');
+    });
   });
 });

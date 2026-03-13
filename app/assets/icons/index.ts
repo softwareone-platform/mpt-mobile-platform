@@ -5,7 +5,9 @@ import AddBusinessOutlined from './add-business';
 import AlternateEmailOutlined from './alternate-email';
 import AltRouteOutlined from './alt-route';
 import ApiOutlined from './api';
+import ArrowUpwardOutlined from './arrow-upward';
 import AssignmentTurnedInOutlined from './assignment-turned-in';
+import AttachFileOutlined from './attach-file';
 import BadgeOutlined from './badge';
 import BalanceOutlined from './balance';
 import CategoryOutlined from './category';
@@ -56,7 +58,9 @@ export const OutlinedIcons = {
   'alternate-email': AlternateEmailOutlined,
   'alt-route': AltRouteOutlined,
   api: ApiOutlined,
+  'arrow-upward': ArrowUpwardOutlined,
   'assignment-turned-in': AssignmentTurnedInOutlined,
+  'attach-file': AttachFileOutlined,
   badge: BadgeOutlined,
   balance: BalanceOutlined,
   category: CategoryOutlined,

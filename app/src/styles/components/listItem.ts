@@ -1,7 +1,31 @@
+import type { ViewStyle } from 'react-native';
+
 import { Color, Spacing, Typography, BorderRadius } from '../tokens';
 
 import { badgeStyle } from './badge';
 import { separatorStyle } from './separator';
+
+const avatarWrapperCommon: ViewStyle = {
+  borderRadius: 11,
+  overflow: 'hidden',
+  marginRight: Spacing.spacingSmall12,
+};
+
+const detailsHeaderContainerCommon: ViewStyle = {
+  backgroundColor: Color.brand.white,
+  paddingHorizontal: Spacing.spacing2,
+  paddingBottom: Spacing.spacing2,
+  flexDirection: 'column',
+  borderBottomWidth: 1,
+  borderBottomColor: Color.gray.gray2,
+};
+
+const detailsHeaderTopRowCommon: ViewStyle = {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingBottom: 16,
+  paddingTop: 4,
+};
 
 export const listItemStyle = {
   container: {
@@ -42,9 +66,12 @@ export const listItemStyle = {
   },
   textAndImage: {
     avatarWrapper: {
-      borderRadius: 11,
-      overflow: 'hidden',
-      marginRight: Spacing.spacingSmall12,
+      ...avatarWrapperCommon,
+    },
+    avatarWrapperChat: {
+      borderRadius: BorderRadius.round,
+      borderColor: Color.gray.gray2,
+      borderWidth: 1,
     },
     contentWrapper: {
       paddingVertical: Spacing.spacing1,
@@ -107,18 +134,33 @@ export const listItemStyle = {
     },
   },
   detailsHeaderContainer: {
-    backgroundColor: Color.brand.white,
-    paddingHorizontal: Spacing.spacing2,
-    paddingBottom: Spacing.spacing2,
-    flexDirection: 'column',
-    borderBottomWidth: 1,
-    borderBottomColor: separatorStyle.nonOpaque.borderColor,
+    default: {
+      ...detailsHeaderContainerCommon,
+    },
+    chat: {
+      ...detailsHeaderContainerCommon,
+      paddingBottom: 0,
+    },
   },
   detailsHeaderTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingBottom: 16,
-    paddingTop: 4,
+    default: {
+      ...detailsHeaderTopRowCommon,
+    },
+    chat: {
+      ...detailsHeaderTopRowCommon,
+      paddingBottom: 8,
+    },
+  },
+  detailsHeaderAvatarWrapper: {
+    default: {
+      ...avatarWrapperCommon,
+    },
+    chat: {
+      ...avatarWrapperCommon,
+      borderRadius: BorderRadius.round,
+      borderColor: Color.gray.gray2,
+      borderWidth: 1,
+    },
   },
   detailsHeaderTitle: {
     fontSize: Typography.fontSize.font5,
