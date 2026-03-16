@@ -55,7 +55,17 @@ export const getCompanyName = (chat: ChatItem, currentUserId: string): string =>
 
 export const getChatTitle = (chat: ChatItem, userId: string): string => {
   if (chat.type === 'Group') {
-    return chat.name ?? EMPTY_STRING;
+    if (chat.name) {
+      return chat.name;
+    }
+
+    const otherParticipants = chat.participants?.filter((p) => p.identity.id !== userId) ?? [];
+    if (otherParticipants.length > 0) {
+      const participantName = otherParticipants[0]?.identity?.name ?? EMPTY_STRING;
+      return `${participantName} + ${otherParticipants.length}`;
+    }
+
+    return EMPTY_STRING;
   }
 
   const otherParticipant = chat.participants?.find((p) => p.identity.id !== userId);

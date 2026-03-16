@@ -150,8 +150,43 @@ describe('getChatTitle', () => {
     expect(getChatTitle(chat, userId)).toBe('');
   });
 
-  it('returns EMPTY_STRING if Group chat has no name', () => {
-    const chat: ChatItem = { ...baseChat, type: 'Group', name: undefined };
+  it('constructs title from participants when Group chat has no name', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: [participantUser, participantOther, participants[2]],
+    };
+    expect(getChatTitle(chat, userId)).toBe('Alice + 2');
+  });
+
+  it('returns constructed title with single other participant for Group chat without name', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: [participantUser, participantOther],
+    };
+    expect(getChatTitle(chat, userId)).toBe('Alice + 1');
+  });
+
+  it('returns EMPTY_STRING if Group chat has no name and no other participants', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: [participantUser],
+    };
+    expect(getChatTitle(chat, userId)).toBe('');
+  });
+
+  it('returns EMPTY_STRING if Group chat has no name and no participants', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: undefined,
+    };
     expect(getChatTitle(chat, userId)).toBe('');
   });
 
