@@ -13,6 +13,10 @@ class FooterPage extends BasePage {
     return $(selectors.byAccessibilityId('nav-tab-orders'));
   }
 
+  get chatTab() {
+    return $(selectors.byAccessibilityId('nav-tab-chat'));
+  }
+
   get subscriptionsTab() {
     return $(selectors.byAccessibilityId('nav-tab-subscriptions'));
   }
@@ -23,10 +27,6 @@ class FooterPage extends BasePage {
 
   async clickSpotlightsTab() {
     await this.click(this.spotlightsTab);
-  }
-
-  async clickOrdersTab() {
-    await this.click(this.ordersTab);
   }
 
   async clickSubscriptionsTab() {

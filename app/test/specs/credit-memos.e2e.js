@@ -113,7 +113,7 @@ describe('Credit Memos Page', () => {
 
     it('should display all footer navigation tabs', async () => {
       await expect(creditMemosPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(creditMemosPage.footer.ordersTab).toBeDisplayed();
+      await expect(creditMemosPage.footer.chatTab).toBeDisplayed();
       await expect(creditMemosPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(creditMemosPage.footer.moreTab).toBeDisplayed();
     });
@@ -191,9 +191,9 @@ describe('Credit Memos Page', () => {
       await expect(firstCreditMemo).toBeDisplayed();
       
       const details = await creditMemosPage.getCreditMemoDetails(firstCreditMemo);
-      // Credit Memos use 4-group IDs: CRM-XXXX-XXXX-XXXX
-      expect(details.creditMemoId).toMatch(/^CRM-\d{4}-\d{4}-\d{4}$/);
-      expect(['Draft', 'Completed', 'Processing']).toContain(details.status);
+      // Credit Memos use 4-group IDs: CRD-XXXX-XXXX-XXXX-XXXX
+      expect(details.creditMemoId).toMatch(/^CRD-\d{4}-\d{4}-\d{4}-\d{4}$/);
+      expect(['Issued']).toContain(details.status);
     });
 
     it('should detect all loaded credit memos in the list', async function () {
@@ -213,7 +213,7 @@ describe('Credit Memos Page', () => {
       
       // Verify all credit memo IDs have valid format (4-group)
       for (const creditMemoId of creditMemoIds) {
-        expect(creditMemoId).toMatch(/^CRM-\d{4}-\d{4}-\d{4}$/);
+        expect(creditMemoId).toMatch(/^CRD-\d{4}-\d{4}-\d{4}-\d{4}$/);
       }
     });
 
