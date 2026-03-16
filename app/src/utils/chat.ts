@@ -36,6 +36,8 @@ export const getAvatarList = (
 };
 
 export const getUnreadCount = (participants: ChatParticipant[], userId: string): number => {
+  if (!participants?.length) return 0;
+
   const participant = participants.find((p) => p.identity.id === userId);
 
   return participant?.unreadMessageCount ?? 0;
@@ -67,7 +69,7 @@ export const mapToChatListItemProps = (
   userId: string,
 ): ListItemChatProps => {
   const avatars = getAvatarList(
-    chat.participants,
+    chat.participants ?? [],
     chat.type,
     userId,
     MIN_NUMBER_OF_CHAT_AVATARS,
@@ -75,7 +77,7 @@ export const mapToChatListItemProps = (
   );
   const messageLatest = chat.lastMessage?.content ?? EMPTY_STRING;
   const dateOfLastMessage = formatDateForChat(chat.lastMessage?.audit?.created?.at, locale);
-  const newMessageCounter = getUnreadCount(chat.participants, userId);
+  const newMessageCounter = getUnreadCount(chat.participants ?? [], userId);
   const companyName = getCompanyName(chat, userId);
   const title = getChatTitle(chat, userId);
 

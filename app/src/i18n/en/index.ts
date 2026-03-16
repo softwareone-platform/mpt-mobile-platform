@@ -3,6 +3,7 @@ import admin from './admin.json';
 import auth from './auth.json';
 import billing from './billing.json';
 import catalog from './catalog.json';
+import chat from './chat.json';
 import details from './details.json';
 import home from './home.json';
 import marketplace from './marketplace.json';
@@ -38,6 +39,9 @@ const en = {
 
   // Module: Program (programs, enrollments, certificates)
   ...program,
+
+  // Module: Helpdesk (chats, messages)
+  ...chat,
 
   // Module: Settings (profile, users, account settings, licensees)
   ...settings,

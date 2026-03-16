@@ -1,54 +1,94 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
+import StatusMessage from '@/components/common/EmptyStateHelper';
+import ListViewChat from '@/components/list/ListViewChat';
+import { useAccount } from '@/context/AccountContext';
+import { useChats, ChatsProvider } from '@/context/ChatsContext';
 import { useSignalR } from '@/context/SignalRContext';
 import type { RootStackParamList } from '@/types/navigation';
+import type { EntitySubscription } from '@/types/signalr';
+import { TestIDs } from '@/utils/testID';
 
-const ChatScreen = () => {
+const CHAT_SUBSCRIPTIONS: EntitySubscription[] = [
+  { moduleName: 'Helpdesk', entityName: 'Chat' },
+  { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
+  { moduleName: 'Helpdesk', entityName: 'ChatParticipant' },
+];
+
+const ChatScreenContent = () => {
+  const {
+    chats,
+    chatsLoading,
+    chatsError,
+    chatsFetchingNext,
+    hasMoreChats,
+    isUnauthorised,
+    fetchChats,
+  } = useChats();
+
+  const { userData } = useAccount();
+  const userId = userData?.id;
+  const currentAccountId = userData?.currentAccount?.id;
+
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { subscribe, unsubscribe, addMessageListener, isConnected } = useSignalR();
-
-  // TODO Subscribe to chat entities when connected here just for testing purposes, to be removed
-  useEffect(() => {
-    if (!isConnected) {
-      return;
-    }
-
-    const subscriptions = [
-      { moduleName: 'Helpdesk', entityName: 'Chat' },
-      { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
-      { moduleName: 'Helpdesk', entityName: 'ChatParticipant' },
-    ];
-
-    void subscribe(subscriptions);
-
-    return () => {
-      void unsubscribe(subscriptions);
-    };
-  }, [isConnected, subscribe, unsubscribe]);
+  const { subscribe, addMessageListener } = useSignalR();
 
   useEffect(() => {
-    const removeListener = addMessageListener(() => {
-      // Handle incoming messages logic here, to be implemented
+    void subscribe(CHAT_SUBSCRIPTIONS);
+  }, [subscribe]);
+
+  useEffect(() => {
+    const removeListener = addMessageListener((message) => {
+      if (message.entity === 'Chat' || message.entity === 'ChatMessage') {
+        void queryClient.invalidateQueries({
+          queryKey: ['chats', userId, currentAccountId],
+        });
+      }
     });
 
     return removeListener;
-  }, [addMessageListener]);
+  }, [addMessageListener, queryClient, userId, currentAccountId]);
 
   return (
-    <TouchableOpacity
-      onPress={() => {
-        navigation.navigate('chatConversation', {
-          id: 'USR-123',
-        });
-      }}
-      activeOpacity={0.7}
+    <StatusMessage
+      isLoading={chatsLoading}
+      isError={!!chatsError}
+      isEmpty={chats.length === 0}
+      isUnauthorised={isUnauthorised}
+      loadingTestId={TestIDs.CHATS_LOADING_INDICATOR}
+      errorTestId={TestIDs.CHATS_ERROR_STATE}
+      emptyTestId={TestIDs.CHATS_EMPTY_STATE}
+      emptyTitle={t('chatsScreen.emptyStateTitle')}
+      emptyDescription={t('chatsScreen.emptyStateDescription')}
     >
-      <Text>USR: 123</Text>
-      <Text>SignalR: {isConnected ? 'SignalR Connected' : 'SignalR Disconnected'}</Text>
-    </TouchableOpacity>
+      <ListViewChat
+        userId={userId || ''}
+        data={chats}
+        isFetchingNext={chatsFetchingNext}
+        hasMore={hasMoreChats}
+        fetchNext={fetchChats}
+        onItemPress={(id) => {
+          navigation.navigate('chatConversation', {
+            id,
+          });
+        }}
+      />
+    </StatusMessage>
+  );
+};
+
+const ChatScreen = () => {
+  return (
+    <ChatsProvider>
+      <ChatScreenContent />
+    </ChatsProvider>
   );
 };
 

@@ -11,7 +11,7 @@ export const useChatsData = (
 
   return usePaginatedQuery<ChatItem>({
     queryKey: ['chats', userId, currentAccountId, query],
-    queryFn: (offset, limit) => getChats(offset, limit, query),
+    queryFn: (offset, limit) => getChats(userId!, offset, limit, query),
     enabled: !!userId && !!currentAccountId,
   });
 };
