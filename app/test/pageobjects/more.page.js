@@ -44,6 +44,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get ordersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-orders',
+        android: '//*[@resource-id="nav-menu-orders"]',
+      }),
+    );
+  }
+
   get creditMemosMenuItem() {
     return $(
       getSelector({
@@ -160,6 +169,15 @@ class MorePage extends BasePage {
   async navigateToAgreements() {
     await this.ensureMorePage();
     await this.agreementsMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Orders page
+   */
+  async navigateToOrders() {
+    await this.ensureMorePage();
+    await this.ordersMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 

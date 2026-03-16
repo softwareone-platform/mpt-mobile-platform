@@ -45,7 +45,7 @@ describe('Subscriptions Page', () => {
 
     it('should display all footer navigation tabs', async () => {
       await expect(subscriptionsPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(subscriptionsPage.footer.ordersTab).toBeDisplayed();
+      await expect(subscriptionsPage.footer.chatTab).toBeDisplayed();
       await expect(subscriptionsPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(subscriptionsPage.footer.moreTab).toBeDisplayed();
     });

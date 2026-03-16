@@ -9,8 +9,8 @@ class FooterPage extends BasePage {
     return $(selectors.byAccessibilityId('nav-tab-spotlight'));
   }
 
-  get ordersTab() {
-    return $(selectors.byAccessibilityId('nav-tab-orders'));
+  get chatTab() {
+    return $(selectors.byAccessibilityId('nav-tab-chat'));
   }
 
   get subscriptionsTab() {
@@ -25,8 +25,8 @@ class FooterPage extends BasePage {
     await this.click(this.spotlightsTab);
   }
 
-  async clickOrdersTab() {
-    await this.click(this.ordersTab);
+  async clickChatTab() {
+    await this.click(this.chatTab);
   }
 
   async clickSubscriptionsTab() {
