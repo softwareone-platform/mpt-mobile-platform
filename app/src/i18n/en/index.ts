@@ -52,9 +52,6 @@ const en = {
 
   // Module Administration (buyers, sellers)
   ...admin,
-
-  // Chat
-  ...chat,
 };
 
 export default en;
