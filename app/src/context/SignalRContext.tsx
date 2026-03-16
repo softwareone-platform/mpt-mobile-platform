@@ -258,61 +258,41 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
     };
   }, [connection, isConnected]);
 
-  const manageGroups = useCallback(
-    async (subscriptions: EntitySubscription[], action: 'join' | 'leave'): Promise<void> => {
+  const subscribe = useCallback(
+    async (subscriptions: EntitySubscription[]): Promise<void> => {
       if (!connection || !isConnectedRef.current) {
-        logger.warn(`Cannot ${action} groups: SignalR not connected`);
+        logger.warn('Cannot subscribe to groups: SignalR not connected');
         return;
       }
 
       const groupStrings = subscriptions.map(toGroupString);
-      const relevantGroups =
-        action === 'join'
-          ? groupStrings.filter((g) => !subscriptionsRef.current.has(g))
-          : groupStrings.filter((g) => subscriptionsRef.current.has(g));
+      const newGroups = groupStrings.filter((g) => !subscriptionsRef.current.has(g));
 
-      if (relevantGroups.length === 0) {
-        logger.info(
-          action === 'join'
-            ? 'All requested groups already subscribed'
-            : 'No subscribed groups to leave',
-        );
+      if (newGroups.length === 0) {
+        logger.info('All requested groups already subscribed');
         return;
       }
 
-      const method = action === 'join' ? 'JoinGroups' : 'LeaveGroups';
-      const updateSet = action === 'join' ? 'add' : 'delete';
-
       try {
-        await connection.invoke(method, {
+        await connection.invoke('JoinGroups', {
           connectionId: connection.connectionId || '',
-          moduleEntityPairs: relevantGroups.map(toEntitySubscription),
+          moduleEntityPairs: newGroups.map(toEntitySubscription),
         });
 
-        relevantGroups.forEach((group) => subscriptionsRef.current[updateSet](group));
+        newGroups.forEach((group) => subscriptionsRef.current.add(group));
 
-        logger.info(`${action === 'join' ? 'Joined' : 'Left'} SignalR groups`, {
-          groupCount: relevantGroups.length,
+        logger.info('Joined SignalR groups', {
+          groupCount: newGroups.length,
           totalGroupCount: subscriptionsRef.current.size,
         });
       } catch (error) {
-        logger.error(`Failed to ${action} SignalR groups`, error, {
-          operation: `signalr.${action}Groups`,
-          groupCount: relevantGroups.length,
+        logger.error('Failed to join SignalR groups', error, {
+          operation: 'signalr.joinGroups',
+          groupCount: newGroups.length,
         });
       }
     },
     [connection, toGroupString, toEntitySubscription],
-  );
-
-  const subscribe = useCallback(
-    (subscriptions: EntitySubscription[]) => manageGroups(subscriptions, 'join'),
-    [manageGroups],
-  );
-
-  const unsubscribe = useCallback(
-    (subscriptions: EntitySubscription[]) => manageGroups(subscriptions, 'leave'),
-    [manageGroups],
   );
 
   const addMessageListener = useCallback((listener: MessageListener): (() => void) => {
@@ -326,12 +306,11 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
   const value = useMemo<SignalRContextType>(
     () => ({
       subscribe,
-      unsubscribe,
       addMessageListener,
       isConnected,
       connectionState,
     }),
-    [subscribe, unsubscribe, addMessageListener, isConnected, connectionState],
+    [subscribe, addMessageListener, isConnected, connectionState],
   );
 
   return <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>;

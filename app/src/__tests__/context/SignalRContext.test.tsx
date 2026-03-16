@@ -56,13 +56,12 @@ describe('SignalRContext', () => {
     }).toThrow('useSignalR must be used within SignalRProvider');
   });
 
-  it('provides context value with subscribe, unsubscribe, and addMessageListener', () => {
+  it('provides context value with subscribe and addMessageListener', () => {
     const { result } = renderHook(() => useSignalR(), {
       wrapper: createWrapper(),
     });
 
     expect(result.current).toHaveProperty('subscribe');
-    expect(result.current).toHaveProperty('unsubscribe');
     expect(result.current).toHaveProperty('addMessageListener');
     expect(result.current).toHaveProperty('isConnected');
     expect(result.current).toHaveProperty('connectionState');
