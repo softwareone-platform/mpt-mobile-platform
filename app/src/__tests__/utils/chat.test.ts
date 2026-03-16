@@ -23,7 +23,9 @@ describe('getAvatarList', () => {
   });
 
   it('returns empty array if participants is undefined', () => {
-    expect(getAvatarList(undefined as unknown as ChatParticipant[], 'Group', userId, 1, 5)).toEqual([]);
+    expect(getAvatarList(undefined as unknown as ChatParticipant[], 'Group', userId, 1, 5)).toEqual(
+      [],
+    );
   });
 
   it('returns minNumberOfAvatars for Direct chat excluding current user', () => {
