@@ -38,11 +38,11 @@ const ChatScreenContent = () => {
   const queryClient = useQueryClient();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { subscribe, addMessageListener } = useSignalR();
+  const { subscribe, addMessageListener, isConnected } = useSignalR();
 
   useEffect(() => {
     void subscribe(CHAT_SUBSCRIPTIONS);
-  }, [subscribe]);
+  }, [subscribe, isConnected]);
 
   useEffect(() => {
     const removeListener = addMessageListener((message) => {

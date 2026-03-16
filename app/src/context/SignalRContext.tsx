@@ -186,6 +186,10 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
       return;
     }
 
+    if (connection.state !== signalR.HubConnectionState.Disconnected) {
+      return;
+    }
+
     const startConnection = async () => {
       try {
         updateConnectionState('Connecting');
@@ -260,11 +264,6 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
 
   const subscribe = useCallback(
     async (subscriptions: EntitySubscription[]): Promise<void> => {
-      if (!connection || !isConnectedRef.current) {
-        logger.warn('Cannot subscribe to groups: SignalR not connected');
-        return;
-      }
-
       const groupStrings = subscriptions.map(toGroupString);
       const newGroups = groupStrings.filter((g) => !subscriptionsRef.current.has(g));
 
@@ -273,13 +272,21 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
         return;
       }
 
+      newGroups.forEach((group) => subscriptionsRef.current.add(group));
+
+      if (!connection || !isConnectedRef.current) {
+        logger.info('Registered subscriptions for later connection', {
+          groupCount: newGroups.length,
+          totalGroupCount: subscriptionsRef.current.size,
+        });
+        return;
+      }
+
       try {
         await connection.invoke('JoinGroups', {
           connectionId: connection.connectionId || '',
           moduleEntityPairs: newGroups.map(toEntitySubscription),
         });
-
-        newGroups.forEach((group) => subscriptionsRef.current.add(group));
 
         logger.info('Joined SignalR groups', {
           groupCount: newGroups.length,

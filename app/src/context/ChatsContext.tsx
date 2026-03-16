@@ -1,7 +1,8 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo } from 'react';
+import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useChatsData } from '@/hooks/queries/useChatsData';
+import { logger } from '@/services/loggerService';
 import type { ChatItem } from '@/types/chat';
 
 interface ChatsContextValue {
@@ -16,12 +17,11 @@ interface ChatsContextValue {
 
 interface ChatsProviderProps {
   children: ReactNode;
-  query?: string;
 }
 
 const ChatsContext = createContext<ChatsContextValue | undefined>(undefined);
 
-export const ChatsProvider = ({ children, query }: ChatsProviderProps) => {
+export const ChatsProvider = ({ children }: ChatsProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -35,25 +35,18 @@ export const ChatsProvider = ({ children, query }: ChatsProviderProps) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useChatsData(userId, currentAccountId, query);
+  } = useChatsData(userId, currentAccountId);
 
   const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
   useEffect(() => {
     if (data) {
-      console.info('[ChatsContext] Chats data fetched:', {
+      logger.debug('[ChatsContext] Chats data fetched:', {
         pageCount: data.pages.length,
         totalChats: chats.length,
       });
-
-      if (chats.length > 0) {
-        console.info('[ChatsContext] First chat item:', chats[0]);
-        console.info('[ChatsContext] Has participants?', {
-          hasParticipants: !!chats[0]?.participants,
-          participantCount: chats[0]?.participants?.length ?? 0,
-        });
-      } else {
-        console.info('[ChatsContext] No chats in response');
+      if (!chats.length) {
+        logger.info('[ChatsContext] No chats in response');
       }
     }
   }, [data, chats]);

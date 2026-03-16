@@ -94,17 +94,6 @@ export type ListItemChatProps = ListItemCommonProps & {
   isVerified: boolean;
 };
 
-export type ChatsListResponse = {
-  $meta: {
-    pagination: {
-      offset: number;
-      limit: number;
-      total: number;
-    };
-  };
-  data: ChatItem[];
-};
-
 export type Message = {
   id: string;
   revision: number;
