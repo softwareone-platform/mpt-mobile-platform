@@ -8,7 +8,7 @@ import {
   baseChat,
 } from '../__mocks__/utils/chat';
 
-import type { ChatItem, ListItemChatProps } from '@/types/chat';
+import type { ChatItem, ChatParticipant, ListItemChatProps } from '@/types/chat';
 import {
   getAvatarList,
   getUnreadCount,
@@ -23,7 +23,7 @@ describe('getAvatarList', () => {
   });
 
   it('returns empty array if participants is undefined', () => {
-    expect(getAvatarList(undefined as any, 'Group', userId, 1, 5)).toEqual([]);
+    expect(getAvatarList(undefined as unknown as ChatParticipant[], 'Group', userId, 1, 5)).toEqual([]);
   });
 
   it('returns minNumberOfAvatars for Direct chat excluding current user', () => {
@@ -81,14 +81,14 @@ describe('getUnreadCount', () => {
   });
 
   it('returns 0 if participants is undefined', () => {
-    const count = getUnreadCount(undefined as any, userId);
+    const count = getUnreadCount(undefined as unknown as ChatParticipant[], userId);
     expect(count).toBe(0);
   });
 
   it('returns 0 if participant unreadMessageCount is undefined', () => {
-    const participantWithoutCount = {
+    const participantWithoutCount: ChatParticipant = {
       ...participantUser,
-      unreadMessageCount: undefined as any,
+      unreadMessageCount: undefined as unknown as number,
     };
     const count = getUnreadCount([participantWithoutCount], userId);
     expect(count).toBe(0);
