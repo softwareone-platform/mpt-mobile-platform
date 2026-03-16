@@ -69,8 +69,7 @@ export const getChatTitle = (chat: ChatItem, userId: string): string => {
   }
 
   const otherParticipant = chat.participants?.find((p) => p.identity.id !== userId);
-
-  return otherParticipant?.contact?.name ?? EMPTY_STRING;
+  return otherParticipant?.contact?.name ?? otherParticipant?.identity?.name ?? EMPTY_STRING;
 };
 
 export const mapToChatListItemProps = (

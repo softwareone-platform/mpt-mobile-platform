@@ -30,7 +30,7 @@ export type Identity = {
 
 export type Contact = {
   id: string;
-  name: string;
+  name?: string;
   email: string;
   revision: number;
   identity?: Identity;

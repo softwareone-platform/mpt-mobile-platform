@@ -1,3 +1,12 @@
+jest.mock('@/services/loggerService', () => ({
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 import {
   userId,
   participantUser,
@@ -143,6 +152,19 @@ describe('getChatTitle', () => {
   it('returns other participant contact.name for Direct chat', () => {
     const title = getChatTitle({ ...baseChat, type: 'Direct' }, userId);
     expect(title).toBe('Alice Smith');
+  });
+
+  it('falls back to identity.name when contact exists but contact.name is missing for Direct chat', () => {
+    const participantWithContactButNoName = {
+      ...participantOther,
+      contact: { id: 'C-1', email: 'test@example.com', revision: 1 },
+    };
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Direct',
+      participants: [participantUser, participantWithContactButNoName],
+    };
+    expect(getChatTitle(chat, userId)).toBe('Alice');
   });
 
   it('returns EMPTY_STRING if other participant has no contact', () => {
