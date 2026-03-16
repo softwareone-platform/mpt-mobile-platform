@@ -18,3 +18,4 @@ export { linkStyle } from './link';
 export { textStyle } from './text';
 export { chipStyle } from './chip';
 export { badgeStyle } from './badge';
+export { chatStyle, chatMessageStyle } from './chat';

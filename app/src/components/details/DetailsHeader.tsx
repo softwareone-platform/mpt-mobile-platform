@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet } from 'react-native';
 
@@ -14,6 +15,7 @@ const DetailsHeader = ({
   title,
   subtitle,
   statusText,
+  variant = 'default',
   headerTitleTestId,
   headerStatusTestId,
 }: ListItemWithStatusProps) => {
@@ -22,6 +24,20 @@ const DetailsHeader = ({
   const hasSubtitle = Boolean(subtitle);
   const hasImage = Boolean(imagePath);
   const status = getStatus(statusText, statusList);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        /* eslint-disable react-native/no-unused-styles */
+        screenHeader: listItemStyle.detailsHeaderContainer[variant],
+        topRow: listItemStyle.detailsHeaderTopRow[variant],
+        avatarWrapper: listItemStyle.detailsHeaderAvatarWrapper[variant],
+        textWrapper: listItemStyle.textContainer,
+        title: listItemStyle.detailsHeaderTitle,
+        subtitle: listItemStyle.detailsHeaderSubtitle,
+      }),
+    [variant],
+  );
 
   return (
     <View style={styles.screenHeader}>
@@ -42,20 +58,11 @@ const DetailsHeader = ({
           </Text>
         </View>
       </View>
-      {status && (
+      {status && statusText && (
         <Chip status={status} text={t(`status.${statusText}`)} testId={headerStatusTestId} />
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  screenHeader: listItemStyle.detailsHeaderContainer,
-  topRow: listItemStyle.detailsHeaderTopRow,
-  textWrapper: listItemStyle.textContainer,
-  title: listItemStyle.detailsHeaderTitle,
-  subtitle: listItemStyle.detailsHeaderSubtitle,
-  avatarWrapper: listItemStyle.textAndImage.avatarWrapper,
-});
 
 export default DetailsHeader;

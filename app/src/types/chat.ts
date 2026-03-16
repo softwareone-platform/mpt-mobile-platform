@@ -2,6 +2,25 @@ import type { ListItemCommonProps } from '@/types/lists';
 
 export type ChatType = 'Direct' | 'Group' | 'Channel' | 'Case';
 
+export type MessageType = 'own' | 'other';
+
+export type Audit = {
+  created?: {
+    at: string;
+    by: unknown;
+  };
+  updated?: unknown;
+  deleted?: unknown;
+  madePublic?: unknown;
+  madePrivate?: unknown;
+};
+
+export type Chat = {
+  id: string;
+  type: ChatType;
+  revision: number;
+};
+
 export type Identity = {
   id: string;
   name: string;
@@ -23,6 +42,7 @@ export type Account = {
   icon?: string;
   type: string;
   status: string;
+  revision?: number;
 };
 
 export type ChatParticipant = {
@@ -31,16 +51,23 @@ export type ChatParticipant = {
   contact?: Contact;
   account?: Account;
   unreadMessageCount: number;
+  revision?: number;
+};
+
+export type Sender = ChatParticipant & {
+  chat: Chat;
+  muted: boolean;
+  status: string;
+  lastReadMessage: LastMessage;
 };
 
 export type LastMessage = {
   id: string;
   content: string;
-  audit?: {
-    created?: {
-      at: string;
-    };
-  };
+  audit?: Audit;
+  revision?: number;
+  visibility?: string;
+  isDeleted: boolean;
 };
 
 export type ChatItem = {
@@ -76,4 +103,17 @@ export type ChatsListResponse = {
     };
   };
   data: ChatItem[];
+};
+
+export type Message = {
+  id: string;
+  revision: number;
+  chat: Chat;
+  sender: Sender;
+  identity: Identity;
+  content: string;
+  visibility: 'Public' | 'Private';
+  isDeleted: boolean;
+  links: unknown[];
+  audit: Audit;
 };

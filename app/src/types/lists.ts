@@ -15,6 +15,7 @@ export type ListItemWithStatusProps = ListItemCommonProps & {
   title: string;
   subtitle?: string;
   statusText: string;
+  variant?: 'default' | 'chat';
 };
 
 export type ListItemConfig = {

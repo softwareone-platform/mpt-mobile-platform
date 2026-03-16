@@ -1,6 +1,9 @@
 {
-  "chatsScreen": {
+"chatsScreen": {
     "emptyStateTitle": "No chats",
     "emptyStateDescription": "No chats found."
+},
+  "chat": {
+    "messageInputPlaceholder": "Type a message"
   }
 }

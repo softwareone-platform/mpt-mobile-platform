@@ -95,7 +95,7 @@ const Avatar: React.FC<AvatarProps> = ({
           <Image
             source={{ uri: imageSource.uri, headers: imageSource.headers }}
             style={styles.imageStyle}
-            contentFit="contain"
+            contentFit="cover"
             onError={handleImageLoadError}
             cachePolicy="memory-disk"
           />
