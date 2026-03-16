@@ -40,6 +40,9 @@ const en = {
   // Module: Program (programs, enrollments, certificates)
   ...program,
 
+  // Module: Helpdesk (chats, messages)
+  ...chat,
+
   // Module: Settings (profile, users, account settings, licensees)
   ...settings,
   ...details,

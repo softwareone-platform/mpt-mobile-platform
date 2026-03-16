@@ -1,61 +1,95 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import chatData from './chatData.json';
-
+import StatusMessage from '@/components/common/EmptyStateHelper';
 import ListViewChat from '@/components/list/ListViewChat';
+import { useAccount } from '@/context/AccountContext';
+import { useChats, ChatsProvider } from '@/context/ChatsContext';
 import { useSignalR } from '@/context/SignalRContext';
-import { ChatItem } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
+import type { EntitySubscription } from '@/types/signalr';
+import { TestIDs } from '@/utils/testID';
 
-const ChatScreen = () => {
+const CHAT_SUBSCRIPTIONS: EntitySubscription[] = [
+  { moduleName: 'Helpdesk', entityName: 'Chat' },
+  { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
+  { moduleName: 'Helpdesk', entityName: 'ChatParticipant' },
+];
+
+const ChatScreenContent = () => {
+  const {
+    chats,
+    chatsLoading,
+    chatsError,
+    chatsFetchingNext,
+    hasMoreChats,
+    isUnauthorised,
+    fetchChats,
+  } = useChats();
+
+  const { userData } = useAccount();
+  const userId = userData?.id;
+  const currentAccountId = userData?.currentAccount?.id;
+
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const data: ChatItem[] = chatData as ChatItem[];
-
-  const { subscribe, unsubscribe, addMessageListener, isConnected } = useSignalR();
-
-  // TODO Subscribe to chat entities when connected here just for testing purposes, to be removed
-  useEffect(() => {
-    if (!isConnected) {
-      return;
-    }
-
-    const subscriptions = [
-      { moduleName: 'Helpdesk', entityName: 'Chat' },
-      { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
-      { moduleName: 'Helpdesk', entityName: 'ChatParticipant' },
-    ];
-
-    void subscribe(subscriptions);
-
-    return () => {
-      void unsubscribe(subscriptions);
-    };
-  }, [isConnected, subscribe, unsubscribe]);
+  const { subscribe, addMessageListener, isConnected } = useSignalR();
 
   useEffect(() => {
-    const removeListener = addMessageListener(() => {
-      // Handle incoming messages logic here, to be implemented
+    void subscribe(CHAT_SUBSCRIPTIONS);
+  }, [subscribe, isConnected]);
+
+  useEffect(() => {
+    const removeListener = addMessageListener((message) => {
+      if (message.entity === 'Chat' || message.entity === 'ChatMessage') {
+        void queryClient.invalidateQueries({
+          queryKey: ['chats', userId, currentAccountId],
+        });
+      }
     });
 
     return removeListener;
-  }, [addMessageListener]);
+  }, [addMessageListener, queryClient, userId, currentAccountId]);
 
   // TODO: warp into loading / error handling component when API is ready
   return (
-    <ListViewChat
-      data={data}
-      userId="USR-2267-7838"
-      // isFetchingNext={chatsIsFetchingNext}
-      // hasMore={hasMoreChats}
-      // fetchNext={fetchChats}
-      onItemPress={(id) => {
-        navigation.navigate('chatConversation', {
-          id,
-        });
-      }}
-    />
+    <StatusMessage
+      isLoading={chatsLoading}
+      isError={!!chatsError}
+      isEmpty={chats.length === 0}
+      isUnauthorised={isUnauthorised}
+      loadingTestId={TestIDs.CHATS_LOADING_INDICATOR}
+      errorTestId={TestIDs.CHATS_ERROR_STATE}
+      emptyTestId={TestIDs.CHATS_EMPTY_STATE}
+      emptyTitle={t('chatsScreen.emptyStateTitle')}
+      emptyDescription={t('chatsScreen.emptyStateDescription')}
+    >
+      <ListViewChat
+        userId={userId || ''}
+        data={chats}
+        isFetchingNext={chatsFetchingNext}
+        hasMore={hasMoreChats}
+        fetchNext={fetchChats}
+        onItemPress={(id) => {
+          navigation.navigate('chatConversation', {
+            id,
+          });
+        }}
+      />
+    </StatusMessage>
+  );
+};
+
+const ChatScreen = () => {
+  return (
+    <ChatsProvider>
+      <ChatScreenContent />
+    </ChatsProvider>
   );
 };
 
