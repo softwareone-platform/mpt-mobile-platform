@@ -74,7 +74,7 @@ export type ChatItem = {
   id: string;
   name?: string;
   type: ChatType;
-  participants: ChatParticipant[];
+  participants?: ChatParticipant[];
   lastMessage?: LastMessage;
 };
 

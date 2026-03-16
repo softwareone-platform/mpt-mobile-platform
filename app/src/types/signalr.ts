@@ -17,7 +17,6 @@ export type MessageListener = (message: ServerNotification) => void;
 
 export interface SignalRContextType {
   subscribe: (subscriptions: EntitySubscription[]) => Promise<void>;
-  unsubscribe: (subscriptions: EntitySubscription[]) => Promise<void>;
   addMessageListener: (listener: MessageListener) => () => void;
   isConnected: boolean;
   connectionState: SignalRConnectionState;

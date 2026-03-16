@@ -8,7 +8,7 @@ import {
   baseChat,
 } from '../__mocks__/utils/chat';
 
-import type { ChatItem, ListItemChatProps } from '@/types/chat';
+import type { ChatItem, ChatParticipant, ListItemChatProps } from '@/types/chat';
 import {
   getAvatarList,
   getUnreadCount,
@@ -20,6 +20,12 @@ import {
 describe('getAvatarList', () => {
   it('returns empty array if participants is empty', () => {
     expect(getAvatarList([], 'Group', userId, 1, 5)).toEqual([]);
+  });
+
+  it('returns empty array if participants is undefined', () => {
+    expect(getAvatarList(undefined as unknown as ChatParticipant[], 'Group', userId, 1, 5)).toEqual(
+      [],
+    );
   });
 
   it('returns minNumberOfAvatars for Direct chat excluding current user', () => {
@@ -53,6 +59,11 @@ describe('getAvatarList', () => {
     const avatars = getAvatarList(participants, 'Group', userId, 1, 5);
     avatars.forEach((a) => expect(a.id).not.toBe(userId));
   });
+
+  it('returns empty array when only current user is in participants', () => {
+    const avatars = getAvatarList([participantUser], 'Direct', userId, 1, 5);
+    expect(avatars).toEqual([]);
+  });
 });
 
 describe('getUnreadCount', () => {
@@ -63,6 +74,25 @@ describe('getUnreadCount', () => {
 
   it('returns 0 if current user is not in participants', () => {
     const count = getUnreadCount([participantOther], userId);
+    expect(count).toBe(0);
+  });
+
+  it('returns 0 if participants is empty', () => {
+    const count = getUnreadCount([], userId);
+    expect(count).toBe(0);
+  });
+
+  it('returns 0 if participants is undefined', () => {
+    const count = getUnreadCount(undefined as unknown as ChatParticipant[], userId);
+    expect(count).toBe(0);
+  });
+
+  it('returns 0 if participant unreadMessageCount is undefined', () => {
+    const participantWithoutCount: ChatParticipant = {
+      ...participantUser,
+      unreadMessageCount: undefined as unknown as number,
+    };
+    const count = getUnreadCount([participantWithoutCount], userId);
     expect(count).toBe(0);
   });
 });
@@ -87,6 +117,21 @@ describe('getCompanyName', () => {
     const chat: ChatItem = { ...baseChat, participants: [participantUser], type: 'Direct' };
     expect(getCompanyName(chat, userId)).toBe('');
   });
+
+  it('returns EMPTY_STRING if other participant has no account', () => {
+    const participantNoAccount = { ...participantOther, account: undefined };
+    const chat: ChatItem = {
+      ...baseChat,
+      participants: [participantUser, participantNoAccount],
+      type: 'Direct',
+    };
+    expect(getCompanyName(chat, userId)).toBe('');
+  });
+
+  it('returns EMPTY_STRING if participants is undefined', () => {
+    const chat: ChatItem = { ...baseChat, participants: undefined, type: 'Direct' };
+    expect(getCompanyName(chat, userId)).toBe('');
+  });
 });
 
 describe('getChatTitle', () => {
@@ -104,6 +149,51 @@ describe('getChatTitle', () => {
     const chat: ChatItem = { ...baseChat, type: 'Direct', participants: [participantUser] };
     expect(getChatTitle(chat, userId)).toBe('');
   });
+
+  it('constructs title from participants when Group chat has no name', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: [participantUser, participantOther, participants[2]],
+    };
+    expect(getChatTitle(chat, userId)).toBe('Alice + 2');
+  });
+
+  it('returns constructed title with single other participant for Group chat without name', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: [participantUser, participantOther],
+    };
+    expect(getChatTitle(chat, userId)).toBe('Alice + 1');
+  });
+
+  it('returns EMPTY_STRING if Group chat has no name and no other participants', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: [participantUser],
+    };
+    expect(getChatTitle(chat, userId)).toBe('');
+  });
+
+  it('returns EMPTY_STRING if Group chat has no name and no participants', () => {
+    const chat: ChatItem = {
+      ...baseChat,
+      type: 'Group',
+      name: undefined,
+      participants: undefined,
+    };
+    expect(getChatTitle(chat, userId)).toBe('');
+  });
+
+  it('returns EMPTY_STRING if participants is undefined for Direct chat', () => {
+    const chat: ChatItem = { ...baseChat, type: 'Direct', participants: undefined };
+    expect(getChatTitle(chat, userId)).toBe('');
+  });
 });
 
 describe('mapToChatListItemProps', () => {
@@ -117,5 +207,36 @@ describe('mapToChatListItemProps', () => {
     expect(props.dateOfLastMessage).toBeDefined();
     expect(props.avatars.length).toBeGreaterThan(0);
     expect(props.isVerified).toBe(false);
+  });
+
+  it('handles chat with no lastMessage', () => {
+    const chatWithoutMessage: ChatItem = { ...baseChat, lastMessage: undefined };
+    const props: ListItemChatProps = mapToChatListItemProps(chatWithoutMessage, 'en-US', userId);
+    expect(props.messageLatest).toBe('');
+    expect(props.dateOfLastMessage).toBeDefined();
+  });
+
+  it('handles chat with no participants', () => {
+    const chatWithoutParticipants: ChatItem = { ...baseChat, participants: undefined };
+    const props: ListItemChatProps = mapToChatListItemProps(
+      chatWithoutParticipants,
+      'en-US',
+      userId,
+    );
+    expect(props.avatars).toEqual([]);
+    expect(props.newMessageCounter).toBe(0);
+  });
+
+  it('handles Direct chat correctly', () => {
+    const directChat: ChatItem = { ...baseChat, type: 'Direct' };
+    const props: ListItemChatProps = mapToChatListItemProps(directChat, 'en-US', userId);
+    expect(props.title).toBe('Alice Smith');
+    expect(props.companyName).toBe('Acme Corp');
+  });
+
+  it('handles Channel chat correctly', () => {
+    const channelChat: ChatItem = { ...baseChat, type: 'Channel', name: 'Channel Name' };
+    const props: ListItemChatProps = mapToChatListItemProps(channelChat, 'en-US', userId);
+    expect(props.companyName).toBe('Acme Corp');
   });
 });
