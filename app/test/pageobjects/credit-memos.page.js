@@ -1,4 +1,5 @@
 const { getSelector, selectors } = require('./utils/selectors');
+const { REGEX } = require('./utils/constants');
 
 const ListPage = require('./base/list.page');
 
@@ -74,7 +75,7 @@ class CreditMemosPage extends ListPage {
     const label = (await itemElement.getAttribute('name')) || (await itemElement.getAttribute('content-desc'));
     
     // CRD- uses 4-group format: CRD-XXXX-XXXX-XXXX-XXXX
-    const idMatch = label.match(/(CRD-\d{4}-\d{4}-\d{4}-\d{4})/);
+    const idMatch = label.match(REGEX.CREDIT_MEMO_ID_EXTRACT);
     const id = idMatch ? idMatch[1] : '';
 
     // Extract status (everything after the last comma)

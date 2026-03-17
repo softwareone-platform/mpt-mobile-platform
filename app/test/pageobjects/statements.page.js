@@ -1,4 +1,5 @@
 const { getSelector, selectors } = require('./utils/selectors');
+const { REGEX } = require('./utils/constants');
 
 const ListPage = require('./base/list.page');
 
@@ -74,7 +75,7 @@ class StatementsPage extends ListPage {
     const label = (await itemElement.getAttribute('name')) || (await itemElement.getAttribute('content-desc'));
     
     // SOM- uses 4-group format: SOM-XXXX-XXXX-XXXX-XXXX
-    const idMatch = label.match(/(SOM-\d{4}-\d{4}-\d{4}-\d{4})/);
+    const idMatch = label.match(REGEX.STATEMENT_ID_EXTRACT);
     const id = idMatch ? idMatch[1] : '';
 
     // Extract status (everything after the last comma)

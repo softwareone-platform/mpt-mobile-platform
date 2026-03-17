@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { PAUSE } = require('../pageobjects/utils/constants');
+const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Credit Memos Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -33,16 +33,16 @@ describe('Credit Memos Page', () => {
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
     
-    // Check if Credit Memos menu item is available for this user
+     // Check if Credit Memos menu item is available for this user
     await creditMemosPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
+    
     creditMemosMenuAvailable = await morePage.creditMemosMenuItem.isDisplayed().catch(() => false);
     
     if (!creditMemosMenuAvailable) {
       console.info('⚠️ Credit Memos menu item not available for this user - skipping Credit Memos tests');
       return;
     }
-    
     // Navigate to Credit Memos page via More menu
     await morePage.creditMemosMenuItem.click();
     await creditMemosPage.waitForScreenReady();
@@ -192,7 +192,7 @@ describe('Credit Memos Page', () => {
       
       const details = await creditMemosPage.getCreditMemoDetails(firstCreditMemo);
       // Credit Memos use 4-group IDs: CRD-XXXX-XXXX-XXXX-XXXX
-      expect(details.creditMemoId).toMatch(/^CRD-\d{4}-\d{4}-\d{4}-\d{4}$/);
+      expect(details.creditMemoId).toMatch(REGEX.CREDIT_MEMO_ID);
       expect(['Issued']).toContain(details.status);
     });
 
@@ -213,7 +213,7 @@ describe('Credit Memos Page', () => {
       
       // Verify all credit memo IDs have valid format (4-group)
       for (const creditMemoId of creditMemoIds) {
-        expect(creditMemoId).toMatch(/^CRD-\d{4}-\d{4}-\d{4}-\d{4}$/);
+        expect(creditMemoId).toMatch(REGEX.CREDIT_MEMO_ID);
       }
     });
 
@@ -307,7 +307,7 @@ describe('Credit Memos Page', () => {
         
         // Verify all visible UI credit memos have valid format (4-group)
         for (const uiCreditMemoId of uiCreditMemoIds.slice(0, 10)) {
-          expect(uiCreditMemoId).toMatch(/^CRD-\d{4}-\d{4}-\d{4}$/);
+          expect(uiCreditMemoId).toMatch(REGEX.CREDIT_MEMO_ID);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);
