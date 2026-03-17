@@ -11,6 +11,7 @@ interface MessagesContextValue {
   messagesError: boolean;
   isUnauthorised: boolean;
   fetchMessages: () => void;
+  chatId: string | undefined;
 }
 
 interface MessagesProviderProps {
@@ -18,9 +19,7 @@ interface MessagesProviderProps {
   children: ReactNode;
 }
 
-const MessagesContext = createContext<
-  (MessagesContextValue & { chatId: string | undefined }) | undefined
->(undefined);
+const MessagesContext = createContext<MessagesContextValue | undefined>(undefined);
 
 export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) => {
   const {
