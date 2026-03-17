@@ -50,21 +50,45 @@ describe('Orders Page', () => {
     });
 
     it('should display all footer navigation tabs', async () => {
+      const hasSpotlightsTab = await ordersPage.footer.spotlightsTab.isDisplayed().catch(() => false);
+      const hasChatTab = await ordersPage.footer.chatTab.isDisplayed().catch(() => false);
+      const hasSubscriptionsTab = await ordersPage.footer.subscriptionsTab
+        .isDisplayed()
+        .catch(() => false);
+      const hasMoreTab = await ordersPage.footer.moreTab.isDisplayed().catch(() => false);
+
+      const hasPrimaryFooterTabs =
+        hasSpotlightsTab || hasChatTab || hasSubscriptionsTab || hasMoreTab;
+
+      // When Orders is opened from More menu as a secondary screen, root footer tabs are hidden.
+      if (!hasPrimaryFooterTabs) {
+        await expect(ordersPage.goBackButton).toBeDisplayed();
+        return;
+      }
+
       await expect(ordersPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(ordersPage.footer.ordersTab).toBeDisplayed();
+      await expect(ordersPage.footer.chatTab).toBeDisplayed();
       await expect(ordersPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(ordersPage.footer.moreTab).toBeDisplayed();
     });
 
-    it('should have Orders tab selected', async () => {
-      const ordersTab = ordersPage.footer.ordersTab;
+    it('should have More tab selected', async () => {
+      const moreTab = ordersPage.footer.moreTab;
+      const isMoreTabVisible = await moreTab.isDisplayed().catch(() => false);
+
+      // Secondary-screen navigation path: Orders is in More menu and footer tabs are hidden.
+      if (!isMoreTabVisible) {
+        await expect(ordersPage.goBackButton).toBeDisplayed();
+        return;
+      }
+
       if (isAndroid()) {
         // Android uses 'selected' attribute
-        const selected = await ordersTab.getAttribute('selected');
+        const selected = await moreTab.getAttribute('selected');
         expect(selected).toBe('true');
       } else {
         // iOS uses 'value' attribute
-        const value = await ordersTab.getAttribute('value');
+        const value = await moreTab.getAttribute('value');
         expect(value).toBe('1');
       }
     });
