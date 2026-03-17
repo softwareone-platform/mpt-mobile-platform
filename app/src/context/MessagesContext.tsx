@@ -18,7 +18,9 @@ interface MessagesProviderProps {
   children: ReactNode;
 }
 
-const MessagesContext = createContext<MessagesContextValue | undefined>(undefined);
+const MessagesContext = createContext<
+  (MessagesContextValue & { chatId: string | undefined }) | undefined
+>(undefined);
 
 export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) => {
   const {
@@ -43,6 +45,7 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
         messagesError: isError,
         isUnauthorised,
         fetchMessages: fetchNextPage,
+        chatId,
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { DEFAULT_OFFSET } from '@/constants/api';
+import { DEFAULT_OFFSET, MESSAGE_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse } from '@/types/api';
 import type { Message } from '@/types/chat';
@@ -11,7 +11,7 @@ export function useMessageApi(chatId: string) {
   const getMessages = useCallback(
     async (
       offset: number = DEFAULT_OFFSET,
-      limit: number = 20,
+      limit: number = MESSAGE_PAGE_SIZE,
     ): Promise<PaginatedResponse<Message>> => {
       const endpoint =
         `/v1/helpdesk/chats/${chatId}/messages` +

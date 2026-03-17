@@ -31,10 +31,13 @@ export function usePaginatedQuery<T>({
       const { offset, limit, total } = lastPage.$meta.pagination;
       const nextOffset = offset + limit;
 
+      // If total is provided (most endpoints), use it for accurate pagination
       if (total !== undefined) {
         return nextOffset < total ? nextOffset : undefined;
       }
 
+      // Fallback for endpoints without total (e.g., messages API):
+      // If we received fewer items than requested, we've reached the end
       const receivedCount = lastPage.data?.length ?? 0;
       return receivedCount === limit ? nextOffset : undefined;
     },

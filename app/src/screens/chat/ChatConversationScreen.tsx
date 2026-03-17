@@ -24,7 +24,6 @@ import { TestIDs } from '@/utils/testID';
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const { i18n, t } = useTranslation();
-  const route = useRoute<RouteProp<RootStackParamList, 'chatConversation'>>();
   const flatListRef = useRef<FlatList<Message>>(null);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
@@ -37,9 +36,8 @@ const ChatConversationScreenContent = () => {
     messagesError,
     isUnauthorised,
     fetchMessages,
+    chatId,
   } = useMessages();
-
-  const chatId = route.params?.id;
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -68,7 +66,7 @@ const ChatConversationScreenContent = () => {
       />
       <StatusMessage
         isLoading={messagesLoading}
-        isError={!!messagesError}
+        isError={messagesError}
         isEmpty={messages.length === 0}
         isUnauthorised={isUnauthorised}
         loadingTestId={TestIDs.CHAT_CONVERSATION_LOADING_INDICATOR}
