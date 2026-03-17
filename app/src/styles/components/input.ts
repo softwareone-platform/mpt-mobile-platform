@@ -4,10 +4,10 @@ export const inputStyle = {
   container: {
     borderWidth: 1,
     borderColor: Color.gray.gray4,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.xl,
     backgroundColor: Color.brand.white,
     paddingHorizontal: Spacing.spacing2,
-    paddingVertical: Spacing.spacing2,
+    paddingVertical: Spacing.spacing1,
   },
   transparent: {
     borderWidth: 1,
@@ -52,5 +52,11 @@ export const inputStyle = {
     fontSize: Typography.fontSize.font1,
     color: Color.brand.danger,
     marginTop: Spacing.spacing1,
+  },
+  inputFullWidth: {
+    flexGrow: 1,
+  },
+  inputChat: {
+    maxHeight: 100,
   },
 } as const;

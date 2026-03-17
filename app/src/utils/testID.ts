@@ -249,6 +249,16 @@ export const TestIDs = {
   PRODUCTS_LOADING_INDICATOR: 'products-loading-indicator',
   PRODUCTS_ERROR_STATE: 'products-error-state',
   PRODUCTS_EMPTY_STATE: 'products-empty-state',
+
+  // Chats Screen
+  CHATS_LOADING_INDICATOR: 'chats-loading-indicator',
+  CHATS_ERROR_STATE: 'chats-error-state',
+  CHATS_EMPTY_STATE: 'chats-empty-state',
+
+  // Chat Conversation Screen
+  CHAT_CONVERSATION_LOADING_INDICATOR: 'chat-conversation-loading-indicator',
+  CHAT_CONVERSATION_ERROR_STATE: 'chat-conversation-error-state',
+  CHAT_CONVERSATION_EMPTY_STATE: 'chat-conversation-empty-state',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;

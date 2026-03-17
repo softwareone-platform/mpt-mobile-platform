@@ -79,15 +79,7 @@ export const getDatePartsForLocale = (
     timeZone: 'UTC',
   }).formatToParts(date);
 
-  const timeParts = new Intl.DateTimeFormat(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'UTC',
-  }).formatToParts(date);
-
   return {
-    hour: timeParts.find((p) => p.type === 'hour')?.value,
-    minute: timeParts.find((p) => p.type === 'minute')?.value,
     weekday: dateParts.find((p) => p.type === 'weekday')?.value,
     day: dateParts.find((p) => p.type === 'day')?.value,
     month: dateParts.find((p) => p.type === 'month')?.value,
@@ -187,25 +179,26 @@ export const formatDateForChat = (isoDate: string | undefined, locale: string): 
   const diffMs = now.getTime() - date.getTime();
 
   const parts = getDatePartsForLocale(isoDate, locale);
+  const time = getTime(isoDate);
 
   if (!parts) {
     return EMPTY_STRING;
   }
 
-  const { hour, minute, weekday, day, month, year } = parts;
+  const { weekday, day, month, year } = parts;
 
-  if (!hour || !minute || !weekday || !day || !month || !year) {
+  if (!weekday || !day || !month || !year) {
     return EMPTY_STRING;
   }
 
   // within last 24 hours - HH:MM
   if (diffMs < MS_PER_DAY) {
-    return `${hour}:${minute}`;
+    return time;
   }
 
   // within last 7 days - Weekday
   if (diffMs < DAYS_PER_WEEK * MS_PER_DAY) {
-    return weekday || EMPTY_STRING;
+    return weekday;
   }
 
   // within current year - DD Mon
