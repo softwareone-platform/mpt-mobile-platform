@@ -1,22 +1,51 @@
-import { useState } from 'react';
+import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
-
-import messageData from './messageData.json';
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 
 import ChatConversationFooter from '@/components/chat/ChatConversationFooter';
 import ChatMessage from '@/components/chat/ChatMessage';
+import StatusMessage from '@/components/common/EmptyStateHelper';
 import DetailsHeader from '@/components/details/DetailsHeader';
+import { useAccount } from '@/context/AccountContext';
+import { useMessages, MessagesProvider } from '@/context/MessagesContext';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
+import type { RootStackParamList } from '@/types/navigation';
+import { TestIDs } from '@/utils/testID';
 
-const ChatConversationScreen = () => {
+const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
+  const { i18n, t } = useTranslation();
+  const route = useRoute<RouteProp<RootStackParamList, 'chatConversation'>>();
+  const flatListRef = useRef<FlatList<Message>>(null);
+  const { userData } = useAccount();
+  const currentUserId = userData?.id ?? '';
 
-  // TODO: replace when API is ready
-  const currentUserId = 'USR-2267-7838';
-  const { i18n } = useTranslation();
-  const messages: Message[] = messageData as Message[];
+  const {
+    messages,
+    messagesLoading,
+    messagesFetchingNext,
+    hasMoreMessages,
+    messagesError,
+    isUnauthorised,
+    fetchMessages,
+  } = useMessages();
+
+  const chatId = route.params?.id;
+
+  const handleLoadMore = () => {
+    if (hasMoreMessages && !messagesFetchingNext) {
+      fetchMessages();
+    }
+  };
 
   const sendMessage = () => {
     if (!inputText.trim()) return;
@@ -29,27 +58,57 @@ const ChatConversationScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={100}
     >
-      {/* TODO: replace with real data when API is ready */}
       <DetailsHeader
-        id="USR-123-455"
-        title="Tania Roche"
-        subtitle="CHT-0907-6973-2140"
+        id={chatId ?? ''}
+        title="Chat"
+        subtitle={chatId ?? ''}
         statusText=""
-        imagePath="/images/test.png"
+        imagePath=""
         variant="chat"
       />
-      <FlatList
-        style={styles.flatList}
-        data={messages}
-        inverted
-        keyExtractor={(item) => item.id}
-        keyboardShouldPersistTaps="handled"
-        renderItem={({ item }) => (
-          <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
-        )}
-      />
+      <StatusMessage
+        isLoading={messagesLoading}
+        isError={!!messagesError}
+        isEmpty={messages.length === 0}
+        isUnauthorised={isUnauthorised}
+        loadingTestId={TestIDs.CHAT_CONVERSATION_LOADING_INDICATOR}
+        errorTestId={TestIDs.CHAT_CONVERSATION_ERROR_STATE}
+        emptyTestId={TestIDs.CHAT_CONVERSATION_EMPTY_STATE}
+        emptyTitle={t('messagesScreen.emptyStateTitle')}
+        emptyDescription={t('messagesScreen.emptyStateDescription')}
+      >
+        <FlatList
+          ref={flatListRef}
+          style={styles.flatList}
+          data={messages}
+          inverted
+          keyExtractor={(item) => item.id}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => (
+            <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
+          )}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
+          showsVerticalScrollIndicator={false}
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+          }}
+        />
+      </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
     </KeyboardAvoidingView>
+  );
+};
+
+const ChatConversationScreen = () => {
+  const route = useRoute<RouteProp<RootStackParamList, 'chatConversation'>>();
+  const chatId = route.params?.id;
+
+  return (
+    <MessagesProvider chatId={chatId}>
+      <ChatConversationScreenContent />
+    </MessagesProvider>
   );
 };
 

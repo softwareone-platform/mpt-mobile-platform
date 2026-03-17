@@ -8,12 +8,14 @@ interface UsePaginatedQueryParams<T> {
   queryKey: readonly unknown[];
   queryFn: (offset: number, limit: number) => Promise<PaginatedResponse<T>>;
   enabled?: boolean;
+  pageSize?: number;
 }
 
 export function usePaginatedQuery<T>({
   queryKey,
   queryFn,
   enabled = true,
+  pageSize = DEFAULT_PAGE_SIZE,
 }: UsePaginatedQueryParams<T>) {
   const query = useInfiniteQuery<
     PaginatedResponse<T>,
@@ -23,12 +25,18 @@ export function usePaginatedQuery<T>({
     number
   >({
     queryKey,
-    queryFn: ({ pageParam = 0 }) => queryFn(pageParam, DEFAULT_PAGE_SIZE),
+    queryFn: ({ pageParam = 0 }) => queryFn(pageParam, pageSize),
 
     getNextPageParam: (lastPage) => {
       const { offset, limit, total } = lastPage.$meta.pagination;
       const nextOffset = offset + limit;
-      return nextOffset < total ? nextOffset : undefined;
+
+      if (total !== undefined) {
+        return nextOffset < total ? nextOffset : undefined;
+      }
+
+      const receivedCount = lastPage.data?.length ?? 0;
+      return receivedCount === limit ? nextOffset : undefined;
     },
 
     initialPageParam: 0,
