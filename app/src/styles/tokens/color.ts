@@ -69,6 +69,7 @@ export const Color = {
   },
   fills: {
     tertiary: 'rgba(118, 118, 128, 0.12)',
+    overlay: 'rgba(0, 0, 0, 0.15)',
   },
 } as const;
 
