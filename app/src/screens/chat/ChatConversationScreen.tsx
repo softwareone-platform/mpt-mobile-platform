@@ -1,6 +1,6 @@
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -21,10 +21,13 @@ import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
+const SCROLL_DELAY_MS = 200;
+
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
+  const previousFirstMessageIdRef = useRef<string | null>(null);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
 
@@ -38,6 +41,40 @@ const ChatConversationScreenContent = () => {
     fetchMessages,
     chatId,
   } = useMessages();
+
+  const handleScrollToIndexFailed = useCallback(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
+
+  const scrollToNewestMessage = useCallback(() => {
+    if (messages.length === 0) return;
+
+    setTimeout(() => {
+      try {
+        flatListRef.current?.scrollToIndex({
+          index: 0,
+          animated: true,
+        });
+      } catch (error) {
+        handleScrollToIndexFailed();
+      }
+    }, SCROLL_DELAY_MS);
+  }, [messages.length, handleScrollToIndexFailed]);
+
+  useEffect(() => {
+    const currentFirstMessageId = messages[0]?.id ?? null;
+    const previousFirstMessageId = previousFirstMessageIdRef.current;
+
+    if (
+      currentFirstMessageId &&
+      currentFirstMessageId !== previousFirstMessageId &&
+      previousFirstMessageId !== null
+    ) {
+      scrollToNewestMessage();
+    }
+
+    previousFirstMessageIdRef.current = currentFirstMessageId;
+  }, [messages, scrollToNewestMessage]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -79,6 +116,7 @@ const ChatConversationScreenContent = () => {
           ref={flatListRef}
           style={styles.flatList}
           data={messages}
+          extraData={messages}
           inverted
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
@@ -87,6 +125,7 @@ const ChatConversationScreenContent = () => {
           )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          onScrollToIndexFailed={handleScrollToIndexFailed}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
           maintainVisibleContentPosition={{

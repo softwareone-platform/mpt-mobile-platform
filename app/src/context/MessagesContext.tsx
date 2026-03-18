@@ -1,7 +1,11 @@
-import { createContext, ReactNode, useContext, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react';
 
+import { useSignalR } from '@/context/SignalRContext';
 import { useMessagesData } from '@/hooks/queries/useMessagesData';
+import { logger } from '@/services/loggerService';
 import type { Message } from '@/types/chat';
+import type { EntitySubscription, ServerNotification } from '@/types/signalr';
 
 interface MessagesContextValue {
   messages: Message[];
@@ -21,7 +25,14 @@ interface MessagesProviderProps {
 
 const MessagesContext = createContext<MessagesContextValue | undefined>(undefined);
 
+const MESSAGE_SUBSCRIPTIONS: EntitySubscription[] = [
+  { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
+];
+
 export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) => {
+  const queryClient = useQueryClient();
+  const { subscribe, addMessageListener } = useSignalR();
+
   const {
     data,
     isLoading,
@@ -33,6 +44,50 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
   } = useMessagesData(chatId);
 
   const messages = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
+
+  useEffect(() => {
+    if (chatId) {
+      logger.debug('[MessagesContext] Entering chat dialogue, invalidating messages cache', {
+        chatId,
+      });
+      void queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
+    }
+  }, [chatId, queryClient]);
+
+  useEffect(() => {
+    if (!chatId) return;
+
+    void subscribe(MESSAGE_SUBSCRIPTIONS);
+
+    const removeListener = addMessageListener((notification: ServerNotification) => {
+      if (notification.entity !== 'ChatMessage') return;
+
+      const message = notification.data as Message;
+
+      if (!message?.id || !message?.identity || !message?.content) {
+        logger.warn('[MessagesContext] Invalid message from SignalR, missing required fields', {
+          hasId: !!message?.id,
+          hasIdentity: !!message?.identity,
+          hasContent: !!message?.content,
+        });
+        return;
+      }
+
+      if (message.chat?.id && message.chat.id !== chatId) {
+        return;
+      }
+
+      logger.debug('[MessagesContext] New message received via SignalR, invalidating cache', {
+        messageId: message.id,
+        event: notification.event,
+        chatId,
+      });
+
+      void queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
+    });
+
+    return removeListener;
+  }, [chatId, subscribe, addMessageListener, queryClient]);
 
   return (
     <MessagesContext.Provider
