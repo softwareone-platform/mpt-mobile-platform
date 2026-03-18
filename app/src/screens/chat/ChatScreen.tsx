@@ -1,7 +1,7 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
@@ -55,6 +55,16 @@ const ChatScreenContent = () => {
 
     return removeListener;
   }, [addMessageListener, queryClient, userId, currentAccountId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (userId && currentAccountId) {
+        void queryClient.invalidateQueries({
+          queryKey: ['chats', userId, currentAccountId],
+        });
+      }
+    }, [queryClient, userId, currentAccountId]),
+  );
 
   // TODO: warp into loading / error handling component when API is ready
   return (

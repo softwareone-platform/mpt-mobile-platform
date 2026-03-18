@@ -64,6 +64,15 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
 
       const message = notification.data as Message;
 
+      if (!message?.id || !message?.identity || !message?.content) {
+        logger.warn('[MessagesContext] Invalid message from SignalR, missing required fields', {
+          hasId: !!message?.id,
+          hasIdentity: !!message?.identity,
+          hasContent: !!message?.content,
+        });
+        return;
+      }
+
       if (message.chat?.id && message.chat.id !== chatId) {
         return;
       }

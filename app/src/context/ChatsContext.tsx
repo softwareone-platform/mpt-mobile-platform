@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
@@ -23,7 +22,6 @@ interface ChatsProviderProps {
 const ChatsContext = createContext<ChatsContextValue | undefined>(undefined);
 
 export const ChatsProvider = ({ children }: ChatsProviderProps) => {
-  const queryClient = useQueryClient();
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -40,16 +38,6 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
   } = useChatsData(userId, currentAccountId);
 
   const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
-
-  useEffect(() => {
-    if (userId && currentAccountId) {
-      logger.debug('[ChatsContext] Entering chat list, invalidating chats cache', {
-        userId,
-        currentAccountId,
-      });
-      void queryClient.invalidateQueries({ queryKey: ['chats', userId, currentAccountId] });
-    }
-  }, [userId, currentAccountId, queryClient]);
 
   useEffect(() => {
     if (data) {

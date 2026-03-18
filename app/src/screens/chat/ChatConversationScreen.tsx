@@ -27,7 +27,7 @@ const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
-  const previousMessageCountRef = useRef(0);
+  const previousFirstMessageIdRef = useRef<string | null>(null);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
 
@@ -41,10 +41,6 @@ const ChatConversationScreenContent = () => {
     fetchMessages,
     chatId,
   } = useMessages();
-
-  const shouldAutoScroll = (currentCount: number, previousCount: number): boolean => {
-    return currentCount > previousCount && previousCount > 0;
-  };
 
   const handleScrollToIndexFailed = useCallback(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -65,19 +61,19 @@ const ChatConversationScreenContent = () => {
     }, SCROLL_DELAY_MS);
   }, [messages.length, handleScrollToIndexFailed]);
 
-  const updatePreviousMessageCount = (count: number) => {
-    previousMessageCountRef.current = count;
-  };
-
   useEffect(() => {
-    const currentMessageCount = messages.length;
-    const previousMessageCount = previousMessageCountRef.current;
+    const currentFirstMessageId = messages[0]?.id ?? null;
+    const previousFirstMessageId = previousFirstMessageIdRef.current;
 
-    if (shouldAutoScroll(currentMessageCount, previousMessageCount)) {
+    if (
+      currentFirstMessageId &&
+      currentFirstMessageId !== previousFirstMessageId &&
+      previousFirstMessageId !== null
+    ) {
       scrollToNewestMessage();
     }
 
-    updatePreviousMessageCount(currentMessageCount);
+    previousFirstMessageIdRef.current = currentFirstMessageId;
   }, [messages, scrollToNewestMessage]);
 
   const handleLoadMore = () => {
@@ -122,7 +118,7 @@ const ChatConversationScreenContent = () => {
           data={messages}
           extraData={messages}
           inverted
-          keyExtractor={(item, index) => item.id || `message-${index}`}
+          keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />

@@ -38,7 +38,7 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
 
   const avatarId = message.identity.id;
   const avatarPath = message.identity.icon;
-  const senderName = message.sender?.identity?.name || message.identity.name;
+  const senderName = message.sender?.identity?.name ?? message.identity.name;
 
   return (
     <View style={styles.container}>
