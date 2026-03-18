@@ -40,7 +40,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: bundleId,
-      buildNumber: '13',
+      buildNumber: '14',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
