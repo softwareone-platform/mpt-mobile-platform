@@ -100,8 +100,8 @@ class SpotlightsPage extends BasePage {
     return $(selectors.byContentDesc('nav-tab-spotlight'));
   }
 
-  get navTabOrders() {
-    return $(selectors.byContentDesc('nav-tab-orders'));
+  get navTabChat() {
+    return $(selectors.byContentDesc('nav-tab-chat'));
   }
 
   get navTabSubscriptions() {
@@ -728,12 +728,12 @@ class SpotlightsPage extends BasePage {
   // ========== Navigation Methods ==========
   /**
    * Navigate to a tab
-   * @param {string} tabName - 'spotlight', 'orders', 'subscriptions', 'more'
+   * @param {string} tabName - 'spotlight', 'chat', 'subscriptions', 'more'
    */
   async navigateToTab(tabName) {
     const tabMap = {
       spotlight: this.navTabSpotlight,
-      orders: this.navTabOrders,
+      chat: this.navTabChat,
       subscriptions: this.navTabSubscriptions,
       more: this.navTabMore,
     };

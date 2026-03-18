@@ -112,12 +112,12 @@ describe('Order Details Navigation', () => {
       await orderDetailsPage.waitForPageReady();
 
       await expect(orderDetailsPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(orderDetailsPage.footer.ordersTab).toBeDisplayed();
+      await expect(orderDetailsPage.footer.chatTab).toBeDisplayed();
       await expect(orderDetailsPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(orderDetailsPage.footer.moreTab).toBeDisplayed();
     });
 
-    it('should have Orders tab selected on details page', async function () {
+    it('should have More tab selected on details page', async function () {
       if (!hasOrdersData) {
         this.skip();
         return;
@@ -126,12 +126,12 @@ describe('Order Details Navigation', () => {
       await ordersPage.tapFirstOrder();
       await orderDetailsPage.waitForPageReady();
 
-      const ordersTab = orderDetailsPage.footer.ordersTab;
+      const moreTab = orderDetailsPage.footer.moreTab;
       if (isAndroid()) {
-        const selected = await ordersTab.getAttribute('selected');
+        const selected = await moreTab.getAttribute('selected');
         expect(selected).toBe('true');
       } else {
-        const value = await ordersTab.getAttribute('value');
+        const value = await moreTab.getAttribute('value');
         expect(value).toBe('1');
       }
     });

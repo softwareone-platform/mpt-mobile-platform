@@ -22,12 +22,21 @@ describe('Navigation via footer', () => {
     await navigation.ensureHomePage({ resetFilters: false });
   });
 
-  it('click on Orders button to load Orders page', async () => {
-    await expect(homePage.footer.ordersTab).toBeDisplayed();
-    await homePage.footer.clickOrdersTab();
+  it('click on Chat button to load Chat page', async () => {
+    await expect(homePage.footer.chatTab).toBeDisplayed();
+    await homePage.footer.clickChatTab();
+    const chatHeader = await $('//*[@name="Chat" or @text="Chat"]');
+    await expect(chatHeader).toBeDisplayed();
+    await expect(homePage.footer.chatTab).toBeDisplayed();
+  });
+
+  it('click on Orders in More to load Orders page', async () => {
+    await expect(homePage.footer.moreTab).toBeDisplayed();
+    await homePage.footer.clickMoreTab();
+    await expect(morePage.ordersMenuItem).toBeDisplayed();
+    await morePage.navigateToOrders();
     await ordersPage.waitForScreenReady();
-    // Verify we navigated by checking the Orders tab is still accessible (we're on orders screen)
-    await expect(ordersPage.footer.ordersTab).toBeDisplayed();
+    await expect(ordersPage.headerTitle).toBeDisplayed();
   });
 
   it('click on Subscriptions button to load Subscriptions page', async () => {
@@ -84,7 +93,8 @@ describe('Navigation via footer', () => {
 
   it('navigate from Orders page to Profile via account button', async () => {
     // Navigate to Orders page first
-    await homePage.footer.clickOrdersTab();
+    await homePage.footer.clickMoreTab();
+    await morePage.navigateToOrders();
     await ordersPage.waitForScreenReady();
 
     // Tap account button from Orders page
