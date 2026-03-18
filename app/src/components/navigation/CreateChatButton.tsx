@@ -3,9 +3,13 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { navigationStyle } from '@/styles';
 
-const CreateChatButton = () => {
+type Props = {
+  onPress?: () => void;
+};
+
+const CreateChatButton = ({ onPress }: Props) => {
   return (
-    <TouchableOpacity style={styles.topBarIconWrapper} onPress={() => {}}>
+    <TouchableOpacity style={styles.topBarIconWrapper} onPress={onPress}>
       <OutlinedIcon
         name="edit-square"
         color={navigationStyle.header.rightIconColorSecondary}

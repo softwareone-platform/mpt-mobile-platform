@@ -28,6 +28,7 @@ export { default as EnrollmentDetailsScreen } from './enrollments/EnrollmentDeta
 export { default as CertificateDetailsScreen } from './certificates/CertificateDetailsScreen';
 export { default as ChatScreen } from './chat/ChatScreen';
 export { default as ChatConversationScreen } from './chat/ChatConversationScreen';
+export { default as CreateChatModal } from './chat/CreateChatModal';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';
