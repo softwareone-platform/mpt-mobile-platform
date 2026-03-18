@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
+import { logger } from '@/services/loggerService';
 import type { PaginatedResponse } from '@/types/api';
 import type { ChatItem } from '@/types/chat';
 
@@ -22,14 +23,13 @@ export function useChatApi() {
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      console.info('[ChatService] Fetching chats', { endpoint, offset, limit, userId });
+      logger.debug('[ChatService] Fetching chats', { endpoint, offset, limit, userId });
 
       const response = await api.get<PaginatedResponse<ChatItem>>(endpoint);
 
-      console.info('[ChatService] Chats response', {
-        dataCount: response.data?.length ?? 0,
-        pagination: response.$meta?.pagination,
-        firstChat: response.data?.[0],
+      logger.debug('[ChatService] Chats fetched', {
+        count: response.data?.length ?? 0,
+        total: response.$meta?.pagination?.total,
       });
 
       return response;

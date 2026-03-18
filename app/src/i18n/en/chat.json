@@ -3,6 +3,10 @@
       "emptyStateTitle": "No chats",
       "emptyStateDescription": "No chats found."
   },
+  "messagesScreen": {
+    "emptyStateTitle": "No messages",
+    "emptyStateDescription": "No messages in this conversation yet."
+  },
   "chat": {
     "messageInputPlaceholder": "Type a message"
   },

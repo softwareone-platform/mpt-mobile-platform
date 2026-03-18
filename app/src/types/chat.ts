@@ -30,7 +30,7 @@ export type Identity = {
 
 export type Contact = {
   id: string;
-  name: string;
+  name?: string;
   email: string;
   revision: number;
   identity?: Identity;
@@ -97,8 +97,8 @@ export type ListItemChatProps = ListItemCommonProps & {
 export type Message = {
   id: string;
   revision: number;
-  chat: Chat;
-  sender: Sender;
+  chat?: Chat;
+  sender?: Sender;
   identity: Identity;
   content: string;
   visibility: 'Public' | 'Private';

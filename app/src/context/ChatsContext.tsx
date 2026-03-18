@@ -46,7 +46,7 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
         totalChats: chats.length,
       });
       if (!chats.length) {
-        logger.info('[ChatsContext] No chats in response');
+        logger.debug('[ChatsContext] No chats in response');
       }
     }
   }, [data, chats]);

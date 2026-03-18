@@ -1,5 +1,14 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+jest.mock('@/services/loggerService', () => ({
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useChatApi } from '@/services/chatService';
 import type { PaginatedResponse } from '@/types/api';

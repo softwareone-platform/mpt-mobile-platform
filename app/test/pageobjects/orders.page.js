@@ -1,5 +1,6 @@
 const { selectors } = require('./utils/selectors');
 const { PAUSE, RETRY } = require('./utils/constants');
+const morePage = require('./more.page');
 
 const ListPage = require('./base/list.page');
 
@@ -119,7 +120,7 @@ class OrdersPage extends ListPage {
 
   /**
    * Ensures the app is on the Orders page, navigating there if needed
-   * Uses the footer navigation to get to Orders from any page with visible footer
+    * Uses More -> Orders navigation to get to Orders from any page with visible footer
    */
   async ensureOrdersPage() {
     // Check if already on Orders page
@@ -130,7 +131,7 @@ class OrdersPage extends ListPage {
 
     // Try to navigate back until footer is visible
     for (let i = 0; i < RETRY.MAX_BACK_ATTEMPTS; i++) {
-      const isFooterVisible = await this.footer.ordersTab.isDisplayed().catch(() => false);
+      const isFooterVisible = await this.footer.chatTab.isDisplayed().catch(() => false);
       if (isFooterVisible) {
         break;
       }
@@ -140,8 +141,8 @@ class OrdersPage extends ListPage {
       await browser.pause(PAUSE.NAVIGATION);
     }
 
-    // Click Orders tab from footer
-    await this.footer.clickOrdersTab();
+    // Navigate through More menu to Orders
+    await morePage.navigateToOrders();
     await this.waitForScreenReady();
   }
 

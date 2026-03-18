@@ -113,7 +113,7 @@ describe('Enrollments Page', () => {
 
     it('should display all footer navigation tabs', async () => {
       await expect(enrollmentsPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(enrollmentsPage.footer.ordersTab).toBeDisplayed();
+      await expect(enrollmentsPage.footer.chatTab).toBeDisplayed();
       await expect(enrollmentsPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(enrollmentsPage.footer.moreTab).toBeDisplayed();
     });
