@@ -17,6 +17,7 @@ import {
 import BottomSheet from '@/components/modal/BottomSheet';
 import { createChatWizardStyle, inputStyle } from '@/styles';
 import type { RootStackParamList } from '@/types/navigation';
+import { TestIDs } from '@/utils/testID';
 
 type Props = {
   visible: boolean;
@@ -53,7 +54,7 @@ const CreateChatModal = ({ visible, onClose }: Props) => {
   };
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose}>
+    <BottomSheet visible={visible} onClose={handleClose} testID={TestIDs.CHAT_CREATE_MODAL}>
       <View style={styles.headerRow}>
         <View style={styles.headerSide}>
           <TouchableOpacity onPress={handleClose}>

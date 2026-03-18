@@ -11,11 +11,12 @@ import {
 
 import { bottomSheetStyle } from '@/styles';
 
-type Props = {
+type BottomSheetProps = {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
   snapHeight?: number;
+  testID: string;
 };
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -23,10 +24,21 @@ const DEFAULT_SNAP_HEIGHT = 0.9;
 const CLOSE_THRESHOLD = 120;
 const DRAG_ACTIVATION_THRESHOLD = 5;
 
-const BottomSheet = ({ visible, onClose, children, snapHeight = DEFAULT_SNAP_HEIGHT }: Props) => {
+const BottomSheet = ({
+  visible,
+  onClose,
+  children,
+  snapHeight = DEFAULT_SNAP_HEIGHT,
+}: BottomSheetProps) => {
   const [internalVisible, setInternalVisible] = useState(false);
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const SHEET_MAX_HEIGHT = SCREEN_HEIGHT * snapHeight;
+
+  const sheetMaxHeightRef = useRef(SHEET_MAX_HEIGHT);
+
+  useEffect(() => {
+    sheetMaxHeightRef.current = SCREEN_HEIGHT * snapHeight;
+  }, [snapHeight]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -34,8 +46,9 @@ const BottomSheet = ({ visible, onClose, children, snapHeight = DEFAULT_SNAP_HEI
       onMoveShouldSetPanResponder: (_, gestureState) =>
         Math.abs(gestureState.dy) > DRAG_ACTIVATION_THRESHOLD,
       onPanResponderMove: (_, gestureState) => {
-        const newY = SCREEN_HEIGHT - SHEET_MAX_HEIGHT + gestureState.dy;
-        if (newY >= SCREEN_HEIGHT - SHEET_MAX_HEIGHT) {
+        const sheetMaxHeight = sheetMaxHeightRef.current;
+        const newY = SCREEN_HEIGHT - sheetMaxHeight + gestureState.dy;
+        if (newY >= SCREEN_HEIGHT - sheetMaxHeight) {
           translateY.setValue(newY);
         }
       },
@@ -44,7 +57,7 @@ const BottomSheet = ({ visible, onClose, children, snapHeight = DEFAULT_SNAP_HEI
           onClose();
         } else {
           Animated.spring(translateY, {
-            toValue: SCREEN_HEIGHT - SHEET_MAX_HEIGHT,
+            toValue: SCREEN_HEIGHT - sheetMaxHeightRef.current,
             useNativeDriver: true,
             stiffness: 100,
             damping: 20,
@@ -58,7 +71,7 @@ const BottomSheet = ({ visible, onClose, children, snapHeight = DEFAULT_SNAP_HEI
     if (visible) {
       setInternalVisible(true);
       Animated.spring(translateY, {
-        toValue: SCREEN_HEIGHT - SHEET_MAX_HEIGHT,
+        toValue: SCREEN_HEIGHT - sheetMaxHeightRef.current,
         useNativeDriver: true,
         stiffness: 250,
         damping: 28,
@@ -71,7 +84,7 @@ const BottomSheet = ({ visible, onClose, children, snapHeight = DEFAULT_SNAP_HEI
         useNativeDriver: true,
       }).start(() => setInternalVisible(false));
     }
-  }, [visible, translateY, SHEET_MAX_HEIGHT]);
+  }, [visible, translateY]);
 
   if (!internalVisible) {
     return null;

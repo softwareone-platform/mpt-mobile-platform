@@ -48,7 +48,7 @@ const ChatScreenContent = () => {
     navigation.setOptions({
       headerRight: () => <CreateChatButton onPress={() => setCreateChatVisible(true)} />,
     });
-  }, [navigation]);
+  }, [navigation, setCreateChatVisible]);
 
   useEffect(() => {
     void subscribe(CHAT_SUBSCRIPTIONS);
