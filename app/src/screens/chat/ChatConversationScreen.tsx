@@ -1,6 +1,6 @@
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -21,10 +21,13 @@ import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
+const SCROLL_DELAY_MS = 200;
+
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
+  const previousMessageCountRef = useRef(0);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
 
@@ -38,6 +41,44 @@ const ChatConversationScreenContent = () => {
     fetchMessages,
     chatId,
   } = useMessages();
+
+  const shouldAutoScroll = (currentCount: number, previousCount: number): boolean => {
+    return currentCount > previousCount && previousCount > 0;
+  };
+
+  const handleScrollToIndexFailed = useCallback(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
+
+  const scrollToNewestMessage = useCallback(() => {
+    if (messages.length === 0) return;
+
+    setTimeout(() => {
+      try {
+        flatListRef.current?.scrollToIndex({
+          index: 0,
+          animated: true,
+        });
+      } catch (error) {
+        handleScrollToIndexFailed();
+      }
+    }, SCROLL_DELAY_MS);
+  }, [messages.length, handleScrollToIndexFailed]);
+
+  const updatePreviousMessageCount = (count: number) => {
+    previousMessageCountRef.current = count;
+  };
+
+  useEffect(() => {
+    const currentMessageCount = messages.length;
+    const previousMessageCount = previousMessageCountRef.current;
+
+    if (shouldAutoScroll(currentMessageCount, previousMessageCount)) {
+      scrollToNewestMessage();
+    }
+
+    updatePreviousMessageCount(currentMessageCount);
+  }, [messages, scrollToNewestMessage]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -79,19 +120,18 @@ const ChatConversationScreenContent = () => {
           ref={flatListRef}
           style={styles.flatList}
           data={messages}
+          extraData={messages}
           inverted
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => item.id || `message-${index}`}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
           )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          onScrollToIndexFailed={handleScrollToIndexFailed}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
-          maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-          }}
         />
       </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />

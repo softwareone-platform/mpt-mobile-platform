@@ -18,8 +18,8 @@ type Props = {
 const ChatMessage = ({ message, currentUserId, locale }: Props) => {
   const isOwn = message.identity.id === currentUserId;
   const type: MessageType = isOwn ? 'own' : 'other';
-  const messageDate = formatDateForChat(message.audit.created?.at, locale);
-  const messageTime = getTime(message.audit.created?.at || '');
+  const messageDate = formatDateForChat(message.audit?.created?.at, locale);
+  const messageTime = getTime(message.audit?.created?.at || '');
 
   const styles = useMemo(
     () =>
@@ -37,7 +37,8 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
   );
 
   const avatarId = message.identity.id;
-  const avatarPath = message.identity?.icon;
+  const avatarPath = message.identity.icon;
+  const senderName = message.sender?.identity?.name || message.identity.name;
 
   return (
     <View style={styles.container}>
@@ -48,7 +49,7 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
       )}
       <View style={styles.messageWrapper}>
         <View style={styles.info}>
-          {!isOwn && <Text style={styles.infoText}>{message.sender.identity.name}</Text>}
+          {!isOwn && <Text style={styles.infoText}>{senderName}</Text>}
           {messageDate !== messageTime && <Text style={styles.infoText}>{messageDate}</Text>}
           <Text style={styles.infoText}>{messageTime}</Text>
           <Text>

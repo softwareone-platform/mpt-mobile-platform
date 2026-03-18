@@ -97,8 +97,8 @@ export type ListItemChatProps = ListItemCommonProps & {
 export type Message = {
   id: string;
   revision: number;
-  chat: Chat;
-  sender: Sender;
+  chat?: Chat;
+  sender?: Sender;
   identity: Identity;
   content: string;
   visibility: 'Public' | 'Private';
