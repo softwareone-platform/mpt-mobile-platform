@@ -128,6 +128,9 @@ const ChatConversationScreenContent = () => {
           onScrollToIndexFailed={handleScrollToIndexFailed}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+          }}
         />
       </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
