@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet } from 'react-native';
 
 import AvatarIcon from '@/components/avatar/Avatar';
+import GroupAvatar from '@/components/avatar/GroupAvatar';
 import Chip from '@/components/chip/Chip';
 import { statusList } from '@/constants/status';
 import { listItemStyle } from '@/styles';
@@ -18,11 +19,11 @@ const DetailsHeader = ({
   variant = 'default',
   headerTitleTestId,
   headerStatusTestId,
+  avatars,
 }: ListItemWithStatusProps) => {
   const { t } = useTranslation();
 
   const hasSubtitle = Boolean(subtitle);
-  const hasImage = Boolean(imagePath);
   const status = getStatus(statusText, statusList);
 
   const styles = useMemo(
@@ -42,11 +43,13 @@ const DetailsHeader = ({
   return (
     <View style={styles.screenHeader}>
       <View style={styles.topRow}>
-        {hasImage && (
-          <View style={styles.avatarWrapper}>
+        <View style={styles.avatarWrapper}>
+          {avatars && avatars.length > 0 ? (
+            <GroupAvatar avatars={avatars} size={44} />
+          ) : (
             <AvatarIcon id={id} imagePath={imagePath} size={44} />
-          </View>
-        )}
+          )}
+        </View>
         <View style={styles.textWrapper}>
           {hasSubtitle && (
             <Text style={styles.title} numberOfLines={1} testID={headerTitleTestId}>

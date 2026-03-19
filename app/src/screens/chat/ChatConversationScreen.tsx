@@ -14,11 +14,14 @@ import ChatConversationFooter from '@/components/chat/ChatConversationFooter';
 import ChatMessage from '@/components/chat/ChatMessage';
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import DetailsHeader from '@/components/details/DetailsHeader';
+import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import { useMessages, MessagesProvider } from '@/context/MessagesContext';
+import { useChatData } from '@/hooks/queries/useChatData';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
+import { getChatTitle, getAvatarList } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
 const SCROLL_DELAY_MS = 200;
@@ -41,6 +44,21 @@ const ChatConversationScreenContent = () => {
     fetchMessages,
     chatId,
   } = useMessages();
+
+  const { data: chatData } = useChatData(chatId);
+
+  const otherParticipant =
+    chatData?.type === 'Direct'
+      ? chatData.participants?.find((p) => p.identity.id !== currentUserId)
+      : null;
+
+  const chatTitle = chatData ? getChatTitle(chatData, currentUserId) || EMPTY_VALUE : EMPTY_VALUE;
+  const chatAvatar = chatData?.type === 'Direct' ? otherParticipant?.identity.icon : undefined;
+
+  const avatars =
+    chatData && chatData.type !== 'Direct'
+      ? getAvatarList(chatData.participants ?? [], chatData.type, currentUserId)
+      : undefined;
 
   const handleScrollToIndexFailed = useCallback(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -94,11 +112,12 @@ const ChatConversationScreenContent = () => {
       keyboardVerticalOffset={100}
     >
       <DetailsHeader
-        id={chatId ?? ''}
-        title="Chat"
+        id={otherParticipant?.identity.id ?? chatId ?? ''}
+        title={chatTitle}
         subtitle={chatId ?? ''}
         statusText=""
-        imagePath=""
+        imagePath={chatAvatar ?? ''}
+        avatars={avatars}
         variant="chat"
       />
       <StatusMessage
