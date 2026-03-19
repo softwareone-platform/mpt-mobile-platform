@@ -198,21 +198,37 @@ describe('formatDateForLocale', () => {
 });
 
 describe('getTime', () => {
-  describe('valid ISO dates (UTC)', () => {
-    it('returns correct UTC time (HH:mm)', () => {
-      expect(getTime('2026-02-17T09:55:24.190Z')).toBe('09:55');
+  describe('valid ISO dates (local time)', () => {
+    it('returns correct local time (HH:mm)', () => {
+      const testDate = '2026-02-17T09:55:24.190Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
 
     it('pads single digit hours and minutes', () => {
-      expect(getTime('2026-02-17T05:07:00.000Z')).toBe('05:07');
+      const testDate = '2026-02-17T05:07:00.000Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
 
     it('handles midnight correctly', () => {
-      expect(getTime('2026-02-17T00:00:00.000Z')).toBe('00:00');
+      const testDate = '2026-02-17T00:00:00.000Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
 
     it('handles end of day correctly', () => {
-      expect(getTime('2026-02-17T23:59:59.999Z')).toBe('23:59');
+      const testDate = '2026-02-17T23:59:59.999Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
   });
 
@@ -428,8 +444,12 @@ describe('formatDateForChat', () => {
   describe('within last 24 hours', () => {
     it('returns time (HH:mm)', () => {
       const iso = '2026-03-10T09:30:00Z';
+      const date = new Date(iso);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      const expectedTime = `${expectedHours}:${expectedMinutes}`;
 
-      expect(formatDateForChat(iso, locale)).toBe('09:30');
+      expect(formatDateForChat(iso, locale)).toBe(expectedTime);
     });
   });
 
