@@ -7,7 +7,7 @@ import Avatar from '@/components/avatar/Avatar';
 import { chatMessageStyle } from '@/styles/components';
 import { Color } from '@/styles/tokens';
 import type { Message, MessageType } from '@/types/chat';
-import { formatDateForChat, getTime } from '@/utils/formatting';
+import { formatDateForChat, getLocalTime } from '@/utils/formatting';
 
 type Props = {
   message: Message;
@@ -19,7 +19,7 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
   const isOwn = message.identity.id === currentUserId;
   const type: MessageType = isOwn ? 'own' : 'other';
   const messageDate = formatDateForChat(message.audit?.created?.at, locale);
-  const messageTime = getTime(message.audit?.created?.at || '');
+  const messageTime = getLocalTime(message.audit?.created?.at || '');
 
   const styles = useMemo(
     () =>

@@ -101,7 +101,7 @@ export const formatDateForLocale = (isoDate: string | undefined, locale: string)
   return `${day} ${month} ${year}`;
 };
 
-export function getTime(isoDate: string): string {
+export function getLocalTime(isoDate: string): string {
   if (!isoDate) {
     return EMPTY_STRING;
   }
@@ -113,6 +113,28 @@ export function getTime(isoDate: string): string {
 
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
+
+  return `${hours}:${minutes}`;
+}
+
+/**
+ * Get UTC time from ISO date string
+ * Used for statements and accounts where time should be displayed in UTC
+ * @param isoDate - ISO date string
+ * @returns time in HH:MM format in UTC timezone
+ */
+export function getTime(isoDate: string): string {
+  if (!isoDate) {
+    return EMPTY_STRING;
+  }
+  const date = new Date(isoDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return EMPTY_STRING;
+  }
+
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
 
   return `${hours}:${minutes}`;
 }
@@ -179,7 +201,7 @@ export const formatDateForChat = (isoDate: string | undefined, locale: string): 
   const diffMs = now.getTime() - date.getTime();
 
   const parts = getDatePartsForLocale(isoDate, locale);
-  const time = getTime(isoDate);
+  const time = getLocalTime(isoDate);
 
   if (!parts) {
     return EMPTY_STRING;

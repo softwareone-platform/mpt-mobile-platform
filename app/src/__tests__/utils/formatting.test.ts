@@ -5,6 +5,7 @@ import {
   formatNumber,
   formatDateForLocale,
   getTime,
+  getLocalTime,
   FUTURE,
   PAST,
   getUtcStartOfDay,
@@ -198,36 +199,36 @@ describe('formatDateForLocale', () => {
 });
 
 describe('getTime', () => {
-  describe('valid ISO dates (local time)', () => {
-    it('returns correct local time (HH:mm)', () => {
+  describe('valid ISO dates (UTC time)', () => {
+    it('returns correct UTC time (HH:mm)', () => {
       const testDate = '2026-02-17T09:55:24.190Z';
       const date = new Date(testDate);
-      const expectedHours = date.getHours().toString().padStart(2, '0');
-      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      const expectedHours = date.getUTCHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getUTCMinutes().toString().padStart(2, '0');
       expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
 
     it('pads single digit hours and minutes', () => {
       const testDate = '2026-02-17T05:07:00.000Z';
       const date = new Date(testDate);
-      const expectedHours = date.getHours().toString().padStart(2, '0');
-      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      const expectedHours = date.getUTCHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getUTCMinutes().toString().padStart(2, '0');
       expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
 
     it('handles midnight correctly', () => {
       const testDate = '2026-02-17T00:00:00.000Z';
       const date = new Date(testDate);
-      const expectedHours = date.getHours().toString().padStart(2, '0');
-      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      const expectedHours = date.getUTCHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getUTCMinutes().toString().padStart(2, '0');
       expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
 
     it('handles end of day correctly', () => {
       const testDate = '2026-02-17T23:59:59.999Z';
       const date = new Date(testDate);
-      const expectedHours = date.getHours().toString().padStart(2, '0');
-      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      const expectedHours = date.getUTCHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getUTCMinutes().toString().padStart(2, '0');
       expect(getTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
     });
   });
@@ -251,6 +252,64 @@ describe('getTime', () => {
 
     it('returns EMPTY_STRING for undefined (runtime edge case)', () => {
       expect(getTime(undefined as unknown as string)).toBe(EMPTY_STRING);
+    });
+  });
+});
+
+describe('getLocalTime', () => {
+  describe('valid ISO dates (local time)', () => {
+    it('returns correct local time (HH:mm)', () => {
+      const testDate = '2026-02-17T09:55:24.190Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getLocalTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
+    });
+
+    it('pads single digit hours and minutes', () => {
+      const testDate = '2026-02-17T05:07:00.000Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getLocalTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
+    });
+
+    it('handles midnight correctly', () => {
+      const testDate = '2026-02-17T00:00:00.000Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getLocalTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
+    });
+
+    it('handles end of day correctly', () => {
+      const testDate = '2026-02-17T23:59:59.999Z';
+      const date = new Date(testDate);
+      const expectedHours = date.getHours().toString().padStart(2, '0');
+      const expectedMinutes = date.getMinutes().toString().padStart(2, '0');
+      expect(getLocalTime(testDate)).toBe(`${expectedHours}:${expectedMinutes}`);
+    });
+  });
+
+  describe('invalid input', () => {
+    it('returns EMPTY_STRING for empty string', () => {
+      expect(getLocalTime('')).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for invalid date string', () => {
+      expect(getLocalTime('not-a-date')).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for malformed ISO string', () => {
+      expect(getLocalTime('2026-99-99T99:99:99Z')).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for null (runtime edge case)', () => {
+      expect(getLocalTime(null as unknown as string)).toBe(EMPTY_STRING);
+    });
+
+    it('returns EMPTY_STRING for undefined (runtime edge case)', () => {
+      expect(getLocalTime(undefined as unknown as string)).toBe(EMPTY_STRING);
     });
   });
 });
