@@ -12,8 +12,8 @@ export const getAvatarList = (
   participants: ChatParticipant[],
   type: ChatType,
   userId: string,
-  minNumberOfAvatars: number,
-  maxNumberOfAvatars: number,
+  minNumberOfAvatars: number = MIN_NUMBER_OF_CHAT_AVATARS,
+  maxNumberOfAvatars: number = MAX_NUMBER_OF_CHAT_AVATARS,
 ): AvatarItem[] => {
   if (!participants?.length) return [];
 
@@ -77,13 +77,7 @@ export const mapToChatListItemProps = (
   locale: string,
   userId: string,
 ): ListItemChatProps => {
-  const avatars = getAvatarList(
-    chat.participants ?? [],
-    chat.type,
-    userId,
-    MIN_NUMBER_OF_CHAT_AVATARS,
-    MAX_NUMBER_OF_CHAT_AVATARS,
-  );
+  const avatars = getAvatarList(chat.participants ?? [], chat.type, userId);
   const messageLatest = chat.lastMessage?.content ?? EMPTY_STRING;
   const dateOfLastMessage = formatDateForChat(chat.lastMessage?.audit?.created?.at, locale);
   const newMessageCounter = getUnreadCount(chat.participants ?? [], userId);

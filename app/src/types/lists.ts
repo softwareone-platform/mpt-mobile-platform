@@ -1,3 +1,5 @@
+import type { AvatarItem } from '@/types/chat';
+
 export type Status = 'default' | 'info' | 'warning' | 'danger' | 'success';
 
 export type ListItemCommonProps = {
@@ -16,6 +18,7 @@ export type ListItemWithStatusProps = ListItemCommonProps & {
   subtitle?: string;
   statusText: string;
   variant?: 'default' | 'chat';
+  avatars?: AvatarItem[];
 };
 
 export type ListItemConfig = {

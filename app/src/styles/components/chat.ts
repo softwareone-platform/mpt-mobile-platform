@@ -99,3 +99,35 @@ export const chatMessageStyle = {
     },
   },
 } as const;
+
+const wizardHeaderButtonCommon = {
+  fontSize: Typography.fontSize.font3,
+  color: Color.brand.type,
+};
+
+export const createChatWizardStyle = {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.spacing2,
+  },
+  headerSide: {
+    minWidth: 60,
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: Typography.fontSize.font4,
+    fontWeight: Typography.fontWeight.medium,
+    lineHeight: Typography.lineHeight.height5,
+  },
+  headerTextCancel: {
+    ...wizardHeaderButtonCommon,
+  },
+  headerTextNext: {
+    ...wizardHeaderButtonCommon,
+    color: Color.brand.primary,
+  },
+} as const;

@@ -259,6 +259,10 @@ export const TestIDs = {
   CHAT_CONVERSATION_LOADING_INDICATOR: 'chat-conversation-loading-indicator',
   CHAT_CONVERSATION_ERROR_STATE: 'chat-conversation-error-state',
   CHAT_CONVERSATION_EMPTY_STATE: 'chat-conversation-empty-state',
+
+  // Create Chat
+  CHAT_CREATE_BUTTON: 'chat-create-button',
+  CHAT_CREATE_MODAL: 'chat-create-modal',
 } as const;
 
 export type TestIDKey = keyof typeof TestIDs;

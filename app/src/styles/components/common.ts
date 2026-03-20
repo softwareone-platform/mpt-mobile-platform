@@ -29,6 +29,10 @@ export const screenStyle = {
   contentFillContainer: {
     flexGrow: 1,
   },
+  contentContainerTop: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+  },
   containerFlex: {
     flex: 1,
   },
