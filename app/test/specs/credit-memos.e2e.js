@@ -5,14 +5,14 @@ const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { isAndroid } = require('../pageobjects/utils/selectors');
+const { testPageStructure } = require('../utils/shared-tests');
 const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Credit Memos Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
   let hasCreditMemosData = false;
   let hasEmptyState = false;
-  let apiCreditMemosAvailable = false;
+  let apiAvailable = false;
   let creditMemosMenuAvailable = false;
 
   /**
@@ -50,9 +50,9 @@ describe('Credit Memos Page', () => {
     // Check data state ONCE and cache the results
     hasCreditMemosData = await creditMemosPage.hasCreditMemos();
     hasEmptyState = !hasCreditMemosData && await creditMemosPage.emptyState.isDisplayed().catch(() => false);
-    apiCreditMemosAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!process.env.API_OPS_TOKEN;
 
-    console.info(`📊 Credit Memos data state: hasCreditMemos=${hasCreditMemosData}, emptyState=${hasEmptyState}, apiAvailable=${apiCreditMemosAvailable}`);
+    console.info(`📊 Credit Memos data state: hasCreditMemos=${hasCreditMemosData}, emptyState=${hasEmptyState}, apiAvailable=${apiAvailable}`);
   });
 
   beforeEach(async function () {
@@ -97,40 +97,7 @@ describe('Credit Memos Page', () => {
     });
   });
 
-  describe('Page Structure', () => {
-    it('should display the Credit Memos header title', async () => {
-      await expect(creditMemosPage.headerTitle).toBeDisplayed();
-    });
-
-    it('should display the account button in header', async function () {
-      const isDisplayed = await creditMemosPage.accountButton.isDisplayed().catch(() => false);
-      if (!isDisplayed && isAndroid()) {
-        this.skip();
-        return;
-      }
-      await expect(creditMemosPage.accountButton).toBeDisplayed();
-    });
-
-    it('should display all footer navigation tabs', async () => {
-      await expect(creditMemosPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(creditMemosPage.footer.chatTab).toBeDisplayed();
-      await expect(creditMemosPage.footer.subscriptionsTab).toBeDisplayed();
-      await expect(creditMemosPage.footer.moreTab).toBeDisplayed();
-    });
-
-    it('should have More tab selected', async () => {
-      const moreTab = creditMemosPage.footer.moreTab;
-      if (isAndroid()) {
-        // Android uses 'selected' attribute
-        const selected = await moreTab.getAttribute('selected');
-        expect(selected).toBe('true');
-      } else {
-        // iOS uses 'value' attribute
-        const value = await moreTab.getAttribute('value');
-        expect(value).toBe('1');
-      }
-    });
-  });
+  testPageStructure(creditMemosPage, { selectedTab: 'more' });
 
   describe('Empty State', () => {
     // This test suite runs when user has no credit memos
@@ -203,7 +170,7 @@ describe('Credit Memos Page', () => {
       }
 
       const creditMemosCount = await creditMemosPage.getVisibleCreditMemosCount();
-      const creditMemoIds = await creditMemosPage.getVisibleCreditMemoIds();
+      const creditMemoIds = await creditMemosPage.getVisibleItemIds();
       
       console.info(`Total credit memos detected: ${creditMemosCount}`);
       console.info(`First 5 credit memo IDs: ${creditMemoIds.slice(0, 5).join(', ')}`);
@@ -235,7 +202,7 @@ describe('Credit Memos Page', () => {
         return;
       }
 
-      const issuedCreditMemos = await creditMemosPage.getCreditMemosByStatus('Issued');
+      const issuedCreditMemos = await creditMemosPage.getItemsByStatus('Issued');
 
       // At least one status should have credit memos
       const totalStatusCreditMemos = issuedCreditMemos.length;
@@ -248,7 +215,7 @@ describe('Credit Memos Page', () => {
   describe('API Integration', () => {
     it('should match API credit-memos count with visible credit memos', async function () {
       // Skip if API token not configured or no credit memos in UI
-      if (!apiCreditMemosAvailable || !hasCreditMemosData) {
+      if (!apiAvailable || !hasCreditMemosData) {
         this.skip();
         return;
       }
@@ -273,7 +240,7 @@ describe('Credit Memos Page', () => {
     });
 
     it('should verify first 10 credit memos IDs and statuses match API data', async function () {
-      if (!apiCreditMemosAvailable || !hasCreditMemosData) {
+      if (!apiAvailable || !hasCreditMemosData) {
         this.skip();
         return;
       }
@@ -281,8 +248,8 @@ describe('Credit Memos Page', () => {
       try {
         const apiCreditMemos = await apiClient.getCreditMemos({ limit: 10 });
         const apiCreditMemosList = apiCreditMemos.data || apiCreditMemos;
-        const uiCreditMemoIds = await creditMemosPage.getVisibleCreditMemoIds();
-        const uiCreditMemosWithStatus = await creditMemosPage.getVisibleCreditMemosWithStatus();
+        const uiCreditMemoIds = await creditMemosPage.getVisibleItemIds();
+        const uiCreditMemosWithStatus = await creditMemosPage.getVisibleItemsWithStatus();
         
         // Compare each API credit memo with UI and log results
         const comparisons = [];

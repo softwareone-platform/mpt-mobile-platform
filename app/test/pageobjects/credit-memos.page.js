@@ -25,16 +25,20 @@ class CreditMemosPage extends ListPage {
     return 'Credit Memos';
   }
 
+  get pageIdPrefix() {
+    return 'credit-memos';
+  }
+
   get loadingIndicatorId() {
-    return 'credit-memos-loading-indicator';
+    return `${this.pageIdPrefix}-loading-indicator`;
   }
 
   get emptyStateId() {
-    return 'credit-memos-empty-state';
+    return `${this.pageIdPrefix}-empty-state`;
   }
 
   get errorStateId() {
-    return 'credit-memos-error-state';
+    return `${this.pageIdPrefix}-error-state`;
   }
 
   // ========== Empty State Elements (page-specific) ==========
@@ -157,7 +161,7 @@ class CreditMemosPage extends ListPage {
   async getCreditMemoDetails(creditMemoElement) {
     return this.getItemDetails(creditMemoElement);
   }
-
+  
   /**
    * Get all visible credit-memo IDs
    * @returns {Promise<string[]>}
