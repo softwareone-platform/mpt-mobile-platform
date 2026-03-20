@@ -32,6 +32,8 @@ This guide covers how to set up and run Appium tests for Android on Windows. It 
 ```batch
 REM 1. Create .env file in app\ directory with Auth0 configuration
 REM See app\.env.example for required variables
+REM 1.a For Zscaler issues run script from: scripts\windows\export-zscaler-cert.ps1 
+REM 1.b Add NODE_EXTRA_CA_CERTS with path to .env file - see app\.env.example
 
 REM 2. Setup environment and verify
 scripts\windows\setup-test-env.bat

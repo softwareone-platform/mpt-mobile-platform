@@ -131,8 +131,12 @@ const fetchPortalVersion = () => {
     try {
         // Fetch the portal manifest (same endpoint as portalVersionService.ts)
         // Using execFileSync with absolute path and curl args array to avoid shell injection (S4721, S4036)
+        // Resolve curl path per platform: Windows ships curl.exe in System32 since Win10 1803+
+        const curlPath = process.platform === 'win32'
+            ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'curl.exe')
+            : '/usr/bin/curl';
         const curlArgs = ['-s', '-f', '--connect-timeout', '5', '--max-time', '10', apiUrl, '-H', 'Accept: application/json'];
-        const output = execFileSync('/usr/bin/curl', curlArgs, { 
+        const output = execFileSync(curlPath, curlArgs, { 
             encoding: 'utf8', 
             timeout: WDIO_DEFAULTS.API_FETCH_TIMEOUT,
             stdio: ['pipe', 'pipe', 'pipe'],
@@ -667,7 +671,7 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: WDIO_DEFAULTS.MOCHA_TIMEOUT, // 10 minutes - OTP retrieval can take 4+ minutes
-        require: ['./test/fixtures/constants.fixture.js', './test/fixtures/otp.fixture.js']
+        require: ['./test/fixtures/otp.fixture.js']
     },
 
     //

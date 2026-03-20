@@ -75,15 +75,15 @@ class ListPage extends BasePage {
   // ========== Common Loading States ==========
 
   get loadingIndicator() {
-    return $(selectors.byAccessibilityId(this.loadingIndicatorId));
+    return $(selectors.byResourceId(this.loadingIndicatorId));
   }
 
   get emptyState() {
-    return $(selectors.byAccessibilityId(this.emptyStateId));
+    return $(selectors.byResourceId(this.emptyStateId));
   }
 
   get errorState() {
-    return $(selectors.byAccessibilityId(this.errorStateId));
+    return $(selectors.byResourceId(this.errorStateId));
   }
 
   // ========== Common Header Elements ==========
