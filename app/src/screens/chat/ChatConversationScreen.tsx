@@ -21,36 +21,17 @@ import { useChatData } from '@/hooks/queries/useChatData';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
-import { getChatTitle, getAvatarList } from '@/utils/chat';
+import { mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
-/**
- * Chat list behavior constants
- *
- * The chat uses two display modes:
- * - Non-inverted: Messages start at top, grow downward (for short chats)
- * - Inverted: Messages stick to bottom (standard chat behavior)
- *
- * Hysteresis thresholds prevent flickering during the transition
- */
 const SCROLL_TO_NEWEST_DELAY_MS = 200;
 const KEYBOARD_VERTICAL_OFFSET = 100;
 const LOAD_MORE_THRESHOLD = 0.5;
-const MODE_TRANSITION_DURATION_MS = 300;
-
-// Switch to inverted when content is within 30px of filling the screen
-const CONTENT_FILLS_SCREEN_THRESHOLD = 30;
-
-// Switch to non-inverted when content is more than 50px below screen height
-const CONTENT_BELOW_SCREEN_THRESHOLD = 50;
 
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const [contentHeight, setContentHeight] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
-  const [isInverted, setIsInverted] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const isModeTransitionInProgress = useRef(false);
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageIdRef = useRef<string | null>(null);
@@ -70,18 +51,15 @@ const ChatConversationScreenContent = () => {
 
   const { data: chatData } = useChatData(chatId);
 
+  const chatProps = useMemo(
+    () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
+    [chatData, i18n.language, currentUserId],
+  );
+
   const otherParticipant =
     chatData?.type === 'Direct'
       ? chatData.participants?.find((p) => p.identity.id !== currentUserId)
       : null;
-
-  const chatTitle = chatData ? getChatTitle(chatData, currentUserId) || EMPTY_VALUE : EMPTY_VALUE;
-  const chatAvatar = chatData?.type === 'Direct' ? otherParticipant?.identity.icon : undefined;
-
-  const avatars =
-    chatData && chatData.type !== 'Direct'
-      ? getAvatarList(chatData.participants ?? [], chatData.type, currentUserId)
-      : undefined;
 
   const handleScrollToIndexFailed = useCallback(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -109,8 +87,7 @@ const ChatConversationScreenContent = () => {
     if (
       currentFirstMessageId &&
       currentFirstMessageId !== previousFirstMessageId &&
-      previousFirstMessageId !== null &&
-      !isModeTransitionInProgress.current
+      previousFirstMessageId !== null
     ) {
       scrollToNewestMessage();
     }
@@ -137,50 +114,16 @@ const ChatConversationScreenContent = () => {
     setLayoutHeight(event.nativeEvent.layout.height);
   }, []);
 
-  useEffect(() => {
-    if (contentHeight === 0 || layoutHeight === 0) return;
-
-    const contentGap = layoutHeight - contentHeight;
-
-    if (!isInitialized) {
-      const shouldInvert = contentGap < CONTENT_BELOW_SCREEN_THRESHOLD;
-      setTimeout(() => {
-        setIsInverted(shouldInvert);
-        setIsInitialized(true);
-      }, 0);
-      return;
-    }
-
-    // Prevent mode switching during active transition
-    if (isModeTransitionInProgress.current) return;
-
-    // Hysteresis: Different thresholds for switching on/off to prevent flickering
-    const shouldSwitchToInverted = !isInverted && contentGap < CONTENT_FILLS_SCREEN_THRESHOLD;
-    const shouldSwitchToNonInverted = isInverted && contentGap > CONTENT_BELOW_SCREEN_THRESHOLD;
-
-    if (shouldSwitchToInverted) {
-      isModeTransitionInProgress.current = true;
-      setIsInverted(true);
-      setTimeout(() => {
-        isModeTransitionInProgress.current = false;
-      }, MODE_TRANSITION_DURATION_MS);
-    } else if (shouldSwitchToNonInverted) {
-      isModeTransitionInProgress.current = true;
-      setIsInverted(false);
-      setTimeout(() => {
-        isModeTransitionInProgress.current = false;
-      }, MODE_TRANSITION_DURATION_MS);
-    }
-  }, [contentHeight, layoutHeight, isInverted, isInitialized]);
+  const contentFillsScreen = contentHeight > layoutHeight;
 
   const displayMessages = useMemo(
-    () => (isInverted ? messages : [...messages].reverse()),
-    [messages, isInverted],
+    () => (contentFillsScreen ? messages : [...messages].reverse()),
+    [messages, contentFillsScreen],
   );
 
-  const flatListStyle = useMemo(
-    () => [styles.flatList, { opacity: isInitialized || messages.length === 0 ? 1 : 0 }],
-    [isInitialized, messages.length],
+  const contentContainerStyle = useMemo(
+    () => (contentFillsScreen ? undefined : screenStyle.contentContainerTop),
+    [contentFillsScreen],
   );
 
   return (
@@ -191,11 +134,11 @@ const ChatConversationScreenContent = () => {
     >
       <DetailsHeader
         id={otherParticipant?.identity.id ?? chatId ?? ''}
-        title={chatTitle}
+        title={chatProps?.title ?? EMPTY_VALUE}
         subtitle={chatId ?? ''}
         statusText=""
-        imagePath={chatAvatar ?? ''}
-        avatars={avatars}
+        imagePath={otherParticipant?.identity.icon ?? ''}
+        avatars={chatProps?.avatars}
         variant="chat"
       />
       <StatusMessage
@@ -211,11 +154,11 @@ const ChatConversationScreenContent = () => {
       >
         <FlatList
           ref={flatListRef}
-          style={flatListStyle}
-          contentContainerStyle={!isInverted && styles.contentContainerTop}
+          style={styles.flatList}
+          contentContainerStyle={contentContainerStyle}
           data={displayMessages}
           extraData={displayMessages}
-          inverted={isInverted}
+          inverted={contentFillsScreen}
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
@@ -229,7 +172,7 @@ const ChatConversationScreenContent = () => {
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
           maintainVisibleContentPosition={
-            isInverted
+            contentFillsScreen
               ? {
                   minIndexForVisible: 0,
                 }
@@ -258,10 +201,6 @@ const styles = StyleSheet.create({
   flatList: {
     ...screenStyle.containerFlex,
     ...screenStyle.padding,
-  },
-  contentContainerTop: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
   },
 });
 
