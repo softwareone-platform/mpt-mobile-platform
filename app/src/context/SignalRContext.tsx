@@ -58,6 +58,7 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
   const subscriptionsRef = useRef<Set<string>>(new Set());
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   const isConnected = connectionState === 'Connected';
 
@@ -136,6 +137,9 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
           });
 
           retryTimeoutRef.current = setTimeout(() => {
+            if (!isMountedRef.current) {
+              return;
+            }
             void startConnection(conn);
           }, delay);
         } else {
@@ -152,6 +156,8 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
     if (!isEnabled('FEATURE_SIGNALR') || authStatus !== 'authenticated') {
       return;
     }
+
+    isMountedRef.current = true;
 
     const baseUrl = configService.get('AUTH0_API_URL');
     if (!baseUrl) {
@@ -200,6 +206,7 @@ export const SignalRProvider = ({ children }: PropsWithChildren) => {
     void startConnection(newConnection);
 
     return () => {
+      isMountedRef.current = false;
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
         retryTimeoutRef.current = null;
