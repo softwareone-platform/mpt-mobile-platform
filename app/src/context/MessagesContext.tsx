@@ -31,7 +31,7 @@ const MESSAGE_SUBSCRIPTIONS: EntitySubscription[] = [
 
 export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) => {
   const queryClient = useQueryClient();
-  const { subscribe, addMessageListener } = useSignalR();
+  const { subscribe, addMessageListener, addReconnectionListener } = useSignalR();
 
   const {
     data,
@@ -86,8 +86,16 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
       void queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
     });
 
-    return removeListener;
-  }, [chatId, subscribe, addMessageListener, queryClient]);
+    const removeReconnectionListener = addReconnectionListener(() => {
+      logger.debug('[MessagesContext] SignalR reconnected, invalidating messages', { chatId });
+      void queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
+    });
+
+    return () => {
+      removeListener();
+      removeReconnectionListener();
+    };
+  }, [chatId, subscribe, addMessageListener, addReconnectionListener, queryClient]);
 
   return (
     <MessagesContext.Provider
