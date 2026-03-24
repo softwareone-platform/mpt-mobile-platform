@@ -23,8 +23,6 @@ export function useChatApi() {
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      logger.debug('[ChatService] Fetching chats', { endpoint, offset, limit, userId });
-
       const response = await api.get<PaginatedResponse<ChatItem>>(endpoint);
 
       logger.debug('[ChatService] Chats fetched', {
@@ -37,10 +35,19 @@ export function useChatApi() {
     [api],
   );
 
+  const getChat = useCallback(
+    async (chatId: string): Promise<ChatItem> => {
+      const endpoint = `/v1/helpdesk/chats/${chatId}?select=participants`;
+      return await api.get<ChatItem>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getChats,
+      getChat,
     }),
-    [getChats],
+    [getChats, getChat],
   );
 }

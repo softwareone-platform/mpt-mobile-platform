@@ -1,6 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
+import { useSignalR } from '@/context/SignalRContext';
 import { useChatsData } from '@/hooks/queries/useChatsData';
 import { logger } from '@/services/loggerService';
 import type { ChatItem } from '@/types/chat';
@@ -22,6 +24,8 @@ interface ChatsProviderProps {
 const ChatsContext = createContext<ChatsContextValue | undefined>(undefined);
 
 export const ChatsProvider = ({ children }: ChatsProviderProps) => {
+  const queryClient = useQueryClient();
+  const { addReconnectionListener } = useSignalR();
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -50,6 +54,22 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
       }
     }
   }, [data, chats]);
+
+  useEffect(() => {
+    if (!userId || !currentAccountId) return;
+
+    const removeReconnectionListener = addReconnectionListener(() => {
+      logger.debug('[ChatsContext] SignalR reconnected, invalidating chats', {
+        userId,
+        currentAccountId,
+      });
+      void queryClient.invalidateQueries({ queryKey: ['chats', userId, currentAccountId] });
+    });
+
+    return () => {
+      removeReconnectionListener();
+    };
+  }, [userId, currentAccountId, addReconnectionListener, queryClient]);
 
   return (
     <ChatsContext.Provider

@@ -1,6 +1,6 @@
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -14,17 +14,24 @@ import ChatConversationFooter from '@/components/chat/ChatConversationFooter';
 import ChatMessage from '@/components/chat/ChatMessage';
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import DetailsHeader from '@/components/details/DetailsHeader';
+import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import { useMessages, MessagesProvider } from '@/context/MessagesContext';
+import { useChatData } from '@/hooks/queries/useChatData';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
+import { mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
-const SCROLL_DELAY_MS = 200;
+const SCROLL_TO_NEWEST_DELAY_MS = 200;
+const KEYBOARD_VERTICAL_OFFSET = 100;
+const LOAD_MORE_THRESHOLD = 0.5;
 
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
+  const [contentHeight, setContentHeight] = useState(0);
+  const [layoutHeight, setLayoutHeight] = useState(0);
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageIdRef = useRef<string | null>(null);
@@ -42,6 +49,18 @@ const ChatConversationScreenContent = () => {
     chatId,
   } = useMessages();
 
+  const { data: chatData } = useChatData(chatId);
+
+  const chatProps = useMemo(
+    () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
+    [chatData, i18n.language, currentUserId],
+  );
+
+  const otherParticipant =
+    chatData?.type === 'Direct'
+      ? chatData.participants?.find((p) => p.identity.id !== currentUserId)
+      : null;
+
   const handleScrollToIndexFailed = useCallback(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
@@ -58,7 +77,7 @@ const ChatConversationScreenContent = () => {
       } catch (error) {
         handleScrollToIndexFailed();
       }
-    }, SCROLL_DELAY_MS);
+    }, SCROLL_TO_NEWEST_DELAY_MS);
   }, [messages.length, handleScrollToIndexFailed]);
 
   useEffect(() => {
@@ -87,18 +106,39 @@ const ChatConversationScreenContent = () => {
     setInputText('');
   };
 
+  const handleContentSizeChange = useCallback((_width: number, height: number) => {
+    setContentHeight(height);
+  }, []);
+
+  const handleLayout = useCallback((event: { nativeEvent: { layout: { height: number } } }) => {
+    setLayoutHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  const contentFillsScreen = contentHeight > layoutHeight;
+
+  const displayMessages = useMemo(
+    () => (contentFillsScreen ? messages : [...messages].reverse()),
+    [messages, contentFillsScreen],
+  );
+
+  const contentContainerStyle = useMemo(
+    () => (contentFillsScreen ? undefined : screenStyle.contentContainerTop),
+    [contentFillsScreen],
+  );
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={100}
+      keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
     >
       <DetailsHeader
-        id={chatId ?? ''}
-        title="Chat"
+        id={otherParticipant?.identity.id ?? chatId ?? ''}
+        title={chatProps?.title ?? EMPTY_VALUE}
         subtitle={chatId ?? ''}
         statusText=""
-        imagePath=""
+        imagePath={otherParticipant?.identity.icon ?? ''}
+        avatars={chatProps?.avatars}
         variant="chat"
       />
       <StatusMessage
@@ -115,22 +155,29 @@ const ChatConversationScreenContent = () => {
         <FlatList
           ref={flatListRef}
           style={styles.flatList}
-          data={messages}
-          extraData={messages}
-          inverted
+          contentContainerStyle={contentContainerStyle}
+          data={displayMessages}
+          extraData={displayMessages}
+          inverted={contentFillsScreen}
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
           )}
           onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
+          onEndReachedThreshold={LOAD_MORE_THRESHOLD}
           onScrollToIndexFailed={handleScrollToIndexFailed}
+          onContentSizeChange={handleContentSizeChange}
+          onLayout={handleLayout}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
-          maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-          }}
+          maintainVisibleContentPosition={
+            contentFillsScreen
+              ? {
+                  minIndexForVisible: 0,
+                }
+              : undefined
+          }
         />
       </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
