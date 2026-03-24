@@ -2,6 +2,7 @@ import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ViewToken } from 'react-native';
 import {
   ActivityIndicator,
   FlatList,
@@ -18,6 +19,9 @@ import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import { useMessages, MessagesProvider } from '@/context/MessagesContext';
 import { useChatData } from '@/hooks/queries/useChatData';
+import { useMyParticipant } from '@/hooks/useMyParticipant';
+import { logger } from '@/services/loggerService';
+import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
@@ -27,6 +31,9 @@ import { TestIDs } from '@/utils/testID';
 const SCROLL_TO_NEWEST_DELAY_MS = 200;
 const KEYBOARD_VERTICAL_OFFSET = 100;
 const LOAD_MORE_THRESHOLD = 0.5;
+const VIEWABILITY_ITEM_PERCENT_THRESHOLD = 50;
+const VIEWABILITY_MIN_VIEW_TIME_MS = 500;
+const MARK_AS_READ_DEBOUNCE_MS = 500;
 
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
@@ -35,6 +42,9 @@ const ChatConversationScreenContent = () => {
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageIdRef = useRef<string | null>(null);
+  const lastReadMessageIdRef = useRef<string | null>(null);
+  const markAsReadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingMessageIdRef = useRef<string | null>(null);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
 
@@ -50,6 +60,8 @@ const ChatConversationScreenContent = () => {
   } = useMessages();
 
   const { data: chatData } = useChatData(chatId);
+  const myParticipant = useMyParticipant(chatData, currentUserId);
+  const { saveParticipant } = useParticipantApi(chatId ?? '');
 
   const chatProps = useMemo(
     () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
@@ -101,6 +113,116 @@ const ChatConversationScreenContent = () => {
     }
   };
 
+  const markAsRead = useCallback(
+    async (messageId: string, messageCreatedAt: string) => {
+      const currentParticipant = myParticipant;
+
+      if (!currentParticipant?.id) {
+        return;
+      }
+
+      if (messageId === lastReadMessageIdRef.current) {
+        return;
+      }
+
+      const currentLastReadMessage = currentParticipant.lastReadMessage;
+      if (currentLastReadMessage?.id) {
+        const currentLastReadTimestamp = messages.find((m) => m.id === currentLastReadMessage.id)
+          ?.audit.created?.at;
+
+        if (currentLastReadTimestamp && messageCreatedAt <= currentLastReadTimestamp) {
+          return;
+        }
+      }
+
+      lastReadMessageIdRef.current = messageId;
+
+      try {
+        logger.debug('[ChatConversation] Marking message as read', {
+          operation: 'markAsRead',
+          messageId,
+          participantId: currentParticipant.id,
+          participantRevision: currentParticipant.revision,
+          chatId,
+        });
+
+        await saveParticipant({
+          id: currentParticipant.id,
+          lastReadMessage: { id: messageId },
+        });
+      } catch (error) {
+        lastReadMessageIdRef.current = null;
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'object' && error !== null
+              ? JSON.stringify(error)
+              : 'Unknown error';
+        logger.warn('[ChatConversation] Failed to mark message as read (non-critical)', {
+          operation: 'markAsRead',
+          messageId,
+          error: errorMessage,
+        });
+      }
+    },
+    [myParticipant, chatId, saveParticipant, messages],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (markAsReadTimeoutRef.current) {
+        clearTimeout(markAsReadTimeoutRef.current);
+        const pendingId = pendingMessageIdRef.current;
+        const pendingMessage = messages.find((m) => m.id === pendingId);
+        if (pendingId && pendingMessage?.audit?.created?.at) {
+          void markAsRead(pendingId, pendingMessage.audit.created.at);
+        }
+      }
+    };
+  }, [markAsRead, messages]);
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length === 0) {
+        return;
+      }
+
+      const newestVisibleMessage = contentFillsScreenRef.current
+        ? viewableItems[0]
+        : viewableItems[viewableItems.length - 1];
+      const messageItem = newestVisibleMessage?.item as Message | undefined;
+      const messageId = messageItem?.id;
+      const messageCreatedAt = messageItem?.audit?.created?.at;
+
+      if (!messageId || !messageCreatedAt || messageId === lastReadMessageIdRef.current) {
+        return;
+      }
+
+      pendingMessageIdRef.current = messageId;
+
+      if (markAsReadTimeoutRef.current) {
+        clearTimeout(markAsReadTimeoutRef.current);
+      }
+
+      markAsReadTimeoutRef.current = setTimeout(() => {
+        const pendingId = pendingMessageIdRef.current;
+        if (pendingId && pendingId !== lastReadMessageIdRef.current) {
+          void markAsRead(pendingId, messageCreatedAt);
+        }
+        markAsReadTimeoutRef.current = null;
+      }, MARK_AS_READ_DEBOUNCE_MS);
+    },
+    [markAsRead],
+  );
+
+  const viewabilityConfig = useMemo(
+    () => ({
+      itemVisiblePercentThreshold: VIEWABILITY_ITEM_PERCENT_THRESHOLD,
+      minimumViewTime: VIEWABILITY_MIN_VIEW_TIME_MS,
+    }),
+    [],
+  );
+
   const sendMessage = () => {
     if (!inputText.trim()) return;
     setInputText('');
@@ -115,6 +237,11 @@ const ChatConversationScreenContent = () => {
   }, []);
 
   const contentFillsScreen = contentHeight > layoutHeight;
+  const contentFillsScreenRef = useRef(contentFillsScreen);
+
+  useEffect(() => {
+    contentFillsScreenRef.current = contentFillsScreen;
+  }, [contentFillsScreen]);
 
   const displayMessages = useMemo(
     () => (contentFillsScreen ? messages : [...messages].reverse()),
@@ -169,6 +296,8 @@ const ChatConversationScreenContent = () => {
           onScrollToIndexFailed={handleScrollToIndexFailed}
           onContentSizeChange={handleContentSizeChange}
           onLayout={handleLayout}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
           maintainVisibleContentPosition={
