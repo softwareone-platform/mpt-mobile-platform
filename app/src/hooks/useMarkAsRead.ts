@@ -7,7 +7,7 @@ import type { ChatParticipant, Message } from '@/types/chat';
 
 const VIEWABILITY_ITEM_PERCENT_THRESHOLD = 50;
 const VIEWABILITY_MIN_VIEW_TIME_MS = 500;
-const MARK_AS_READ_DEBOUNCE_MS = 500;
+const MARK_AS_READ_DEBOUNCE_MS = 200;
 
 interface UseMarkAsReadParams {
   chatId: string | undefined;
