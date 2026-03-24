@@ -86,3 +86,12 @@ export interface StatementDetails extends CommonBillingDetails {
   };
   audit: Audit;
 }
+
+export interface JournalDetails extends CommonBillingDetails {
+  name: string;
+  ledger?: {
+    id: string;
+    owner?: DetailsListItemValue;
+  };
+  audit: Audit;
+}

@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
-import type { PaginatedResponse, ListItemNoImageNoSubtitle } from '@/types/api';
-import type { CreditMemoDetails, InvoiceDetails, StatementDetails } from '@/types/billing';
+import type { PaginatedResponse, ListItemNoImageNoSubtitle, ListItemNoImage } from '@/types/api';
+import type { CreditMemoDetails, InvoiceDetails, JournalDetails, StatementDetails } from '@/types/billing';
 
 export function useBillingApi() {
   const api = useApi();
@@ -95,6 +95,33 @@ export function useBillingApi() {
     [api],
   );
 
+  const getJournals = useCallback(
+    async (
+      offset: number = DEFAULT_OFFSET,
+      limit: number = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedResponse<ListItemNoImage>> => {
+      const endpoint =
+        `/v1/billing/journals` +
+        `?select=-*,id,name,status` +
+        `&ne(status,%22Deleted%22)` +
+        `&order=-audit.created.at` +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
+
+      return api.get<PaginatedResponse<ListItemNoImage>>(endpoint);
+    },
+    [api],
+  );
+
+  const getJournalDetails = useCallback(
+    async (journalId: string): Promise<JournalDetails> => {
+      const endpoint = `/v1/billing/journals/${journalId}?select=seller.address.country,audit,ledger.owner`;
+
+      return api.get<JournalDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getCreditMemos,
@@ -103,6 +130,8 @@ export function useBillingApi() {
       getInvoiceData,
       getStatements,
       getStatementData,
+      getJournals,
+      getJournalDetails,
     }),
     [
       getCreditMemos,
@@ -111,6 +140,8 @@ export function useBillingApi() {
       getInvoiceData,
       getStatements,
       getStatementData,
+      getJournals,
+      getJournalDetails,
     ],
   );
 }

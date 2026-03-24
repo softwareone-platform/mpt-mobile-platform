@@ -5,6 +5,7 @@ import {
   AgreementsScreen,
   InvoicesScreen,
   CreditMemosScreen,
+  JournalsScreen,
   StatementsScreen,
   UsersScreen,
   ProgramsScreen,
@@ -83,6 +84,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         component: CreditMemosScreen,
         modules: ['billing'],
         roles: ['Client', 'Operations'],
+      },
+      {
+        name: 'journals',
+        icon: 'menu-book',
+        component: JournalsScreen,
+        modules: ['billing'],
+        roles: ['Vendor', 'Operations'],
       },
       {
         name: 'invoices',
@@ -185,6 +193,7 @@ export const secondaryTabItems: SecondaryTabItem[] = secondaryTabsData.flatMap(
 export const appScreensData: AppScreenItem[] = [
   { name: 'agreements', component: AgreementsScreen },
   { name: 'creditMemos', component: CreditMemosScreen },
+  { name: 'journals', component: JournalsScreen },
   { name: 'invoices', component: InvoicesScreen },
   { name: 'statements', component: StatementsScreen },
   { name: 'users', component: UsersScreen },

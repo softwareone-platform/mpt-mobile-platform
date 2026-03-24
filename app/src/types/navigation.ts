@@ -24,6 +24,7 @@ export type SecondaryTabsParamList = {
   agreements: ScreenParams;
   invoices: ScreenParams;
   creditMemos: ScreenParams;
+  journals: ScreenParams;
   statements: ScreenParams;
   users: ScreenParams;
   allUsers: ScreenParams;
@@ -38,6 +39,7 @@ export type SecondaryTabsParamList = {
 
 export type AppScreensParamList = {
   creditMemoDetails: { id: string | undefined };
+  journalDetails: { id: string | undefined };
   orderDetails: { id: string | undefined };
   accountDetails: { id: string | undefined; type?: 'client' | 'vendor' | 'operations' | 'account' };
   userDetails: { id: string | undefined };

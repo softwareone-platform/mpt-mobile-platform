@@ -109,6 +109,18 @@ export const TestIDs = {
   CREDIT_MEMO_DETAILS_HEADER_TITLE: 'credit-memo-details-header-title',
   CREDIT_MEMO_DETAILS_HEADER_STATUS: 'credit-memo-details-header-status',
 
+  // Journals Screen
+  JOURNALS_LOADING_INDICATOR: 'journals-loading-indicator',
+  JOURNALS_ERROR_STATE: 'journals-error-state',
+  JOURNALS_EMPTY_STATE: 'journals-empty-state',
+
+  // Journal Details Screen
+  JOURNAL_DETAILS_LOADING_INDICATOR: 'journal-details-loading-indicator',
+  JOURNAL_DETAILS_ERROR_STATE: 'journal-details-error-state',
+  JOURNAL_DETAILS_EMPTY_STATE: 'journal-details-empty-state',
+  JOURNAL_DETAILS_HEADER_TITLE: 'journal-details-header-title',
+  JOURNAL_DETAILS_HEADER_STATUS: 'journal-details-header-status',
+
   // Users Screen
   USERS_LOADING_INDICATOR: 'users-loading-indicator',
   USERS_ERROR_STATE: 'users-error-state',
