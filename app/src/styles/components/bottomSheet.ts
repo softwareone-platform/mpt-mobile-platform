@@ -13,7 +13,7 @@ export const bottomSheetStyle = {
     position: 'absolute',
     bottom: Spacing.spacing0,
     width: '100%',
-    backgroundColor: Color.brand.white,
+    backgroundColor: Color.gray.gray1,
     borderTopLeftRadius: BorderRadius.md,
     borderTopRightRadius: BorderRadius.md,
     paddingHorizontal: Spacing.spacing2,
