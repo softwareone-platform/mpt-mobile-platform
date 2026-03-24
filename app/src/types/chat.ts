@@ -52,6 +52,8 @@ export type ChatParticipant = {
   contact?: Contact;
   account?: Account;
   unreadMessageCount: number;
+  lastReadMessage?: { id: string };
+  status?: 'Active' | 'Exited';
   revision?: number;
 };
 

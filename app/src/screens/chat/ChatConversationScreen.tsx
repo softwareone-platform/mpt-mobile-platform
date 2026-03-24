@@ -18,6 +18,9 @@ import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import { useMessages, MessagesProvider } from '@/context/MessagesContext';
 import { useChatData } from '@/hooks/queries/useChatData';
+import { useMarkAsRead } from '@/hooks/useMarkAsRead';
+import { useMyParticipant } from '@/hooks/useMyParticipant';
+import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
@@ -50,6 +53,8 @@ const ChatConversationScreenContent = () => {
   } = useMessages();
 
   const { data: chatData } = useChatData(chatId);
+  const myParticipant = useMyParticipant(chatData, currentUserId);
+  const { saveParticipant } = useParticipantApi(chatId ?? '');
 
   const chatProps = useMemo(
     () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
@@ -101,11 +106,6 @@ const ChatConversationScreenContent = () => {
     }
   };
 
-  const sendMessage = () => {
-    if (!inputText.trim()) return;
-    setInputText('');
-  };
-
   const handleContentSizeChange = useCallback((_width: number, height: number) => {
     setContentHeight(height);
   }, []);
@@ -116,6 +116,14 @@ const ChatConversationScreenContent = () => {
 
   const contentFillsScreen = contentHeight > layoutHeight;
 
+  const { onViewableItemsChanged, viewabilityConfig } = useMarkAsRead({
+    chatId,
+    myParticipant,
+    messages,
+    contentFillsScreen,
+    saveParticipant,
+  });
+
   const displayMessages = useMemo(
     () => (contentFillsScreen ? messages : [...messages].reverse()),
     [messages, contentFillsScreen],
@@ -125,6 +133,11 @@ const ChatConversationScreenContent = () => {
     () => (contentFillsScreen ? undefined : screenStyle.contentContainerTop),
     [contentFillsScreen],
   );
+
+  const sendMessage = () => {
+    if (!inputText.trim()) return;
+    setInputText('');
+  };
 
   return (
     <KeyboardAvoidingView
@@ -169,6 +182,8 @@ const ChatConversationScreenContent = () => {
           onScrollToIndexFailed={handleScrollToIndexFailed}
           onContentSizeChange={handleContentSizeChange}
           onLayout={handleLayout}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
           maintainVisibleContentPosition={
