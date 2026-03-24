@@ -3,7 +3,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { Color, navigationStyle } from '@/styles';
+import { navigationStyle } from '@/styles';
 
 type NavigationItemWithIconProps = {
   title: string;
@@ -31,14 +31,24 @@ const NavigationItemWithIcon = ({
   >
     <OutlinedIcon
       name={icon as keyof typeof OutlinedIcons}
-      color={isDisabled ? Color.gray.gray3 : Color.brand.primary}
+      color={
+        isDisabled
+          ? navigationStyle.secondary.iconColorDisabled
+          : navigationStyle.secondary.iconColor
+      }
       size={24}
     />
 
     <View style={styles.labelContainer}>
       <Text style={[styles.label, isDisabled && styles.labelDisabled]}>{title}</Text>
 
-      {!isDisabled && <MaterialIcons name="chevron-right" size={22} color={Color.gray.gray4} />}
+      {!isDisabled && (
+        <MaterialIcons
+          name="chevron-right"
+          size={22}
+          color={navigationStyle.secondary.chevronColor}
+        />
+      )}
     </View>
   </TouchableOpacity>
 );

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, Pressable } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { Color, inputStyle } from '@/styles';
+import { inputStyle } from '@/styles';
 
 type SearchInputProps = {
   placeholder?: string;
@@ -29,26 +29,21 @@ const SearchInput = ({ placeholder, onChangeText, onFocus, onBlur, testID }: Sea
   return (
     <View>
       <View style={styles.leftIcon}>
-        <OutlinedIcon name="search" size={22} color={Color.gray.gray4} />
+        <OutlinedIcon name="search" size={22} color={inputStyle.searchIconColor} />
       </View>
-      {value.length > 0 && (
-        <Pressable onPress={clearInput} style={styles.rightIcon} testID={`${testID}-clear`}>
-          <MaterialIcons name="cancel" size={16} color={Color.gray.gray4} />
-        </Pressable>
-      )}
       <TextInput
         value={value}
         onChangeText={handleChange}
         placeholder={placeholder}
         style={styles.input}
-        placeholderTextColor={Color.gray.gray3}
+        placeholderTextColor={inputStyle.searchTextPlaceholderColor}
         onFocus={onFocus}
         onBlur={onBlur}
         testID={testID}
       />
       {value.length > 0 && (
         <Pressable onPress={clearInput} style={styles.rightIcon} testID={`${testID}-clear`}>
-          <MaterialIcons name="cancel" size={16} color={Color.gray.gray4} />
+          <MaterialIcons name="cancel" size={16} color={inputStyle.searchIconColor} />
         </Pressable>
       )}
     </View>

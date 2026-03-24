@@ -1,6 +1,6 @@
 import { Color, BorderRadius, Spacing, Typography } from '../tokens';
 
-const ICON_OFFSET_HORISONTAL = 36;
+const ICON_OFFSET_HORIZONTAL = 36;
 
 export const inputStyle = {
   container: {
@@ -23,10 +23,12 @@ export const inputStyle = {
     height: 36,
     borderRadius: BorderRadius.md,
     backgroundColor: Color.fills.tertiary,
-    paddingLeft: ICON_OFFSET_HORISONTAL,
-    paddingRight: ICON_OFFSET_HORISONTAL,
+    paddingLeft: ICON_OFFSET_HORIZONTAL,
+    paddingRight: ICON_OFFSET_HORIZONTAL,
     fontSize: Typography.fontSize.font3,
   },
+  searchIconColor: Color.gray.gray4,
+  searchTextPlaceholderColor: Color.gray.gray3,
   leftIcon: {
     position: 'absolute',
     left: 8,

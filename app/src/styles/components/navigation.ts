@@ -57,6 +57,9 @@ export const navigationStyle = {
     lastItem: {
       borderBottomWidth: 0,
     },
+    iconColor: Color.brand.primary,
+    chevronColor: Color.gray.gray4,
+    iconColorDisabled: Color.gray.gray3,
   },
   header: {
     title: {
