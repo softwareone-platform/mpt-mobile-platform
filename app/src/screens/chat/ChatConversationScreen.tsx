@@ -1,5 +1,6 @@
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,6 +21,8 @@ import { useMessages, MessagesProvider } from '@/context/MessagesContext';
 import { useChatData } from '@/hooks/queries/useChatData';
 import { useMarkAsRead } from '@/hooks/useMarkAsRead';
 import { useMyParticipant } from '@/hooks/useMyParticipant';
+import { logger } from '@/services/loggerService';
+import { useMessageApi } from '@/services/messageService';
 import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
@@ -40,6 +43,8 @@ const ChatConversationScreenContent = () => {
   const previousFirstMessageIdRef = useRef<string | null>(null);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
+  const currentAccountId = userData?.currentAccount?.id;
+  const queryClient = useQueryClient();
 
   const {
     messages,
@@ -55,6 +60,7 @@ const ChatConversationScreenContent = () => {
   const { data: chatData } = useChatData(chatId);
   const myParticipant = useMyParticipant(chatData, currentUserId);
   const { saveParticipant } = useParticipantApi(chatId ?? '');
+  const { saveMessage } = useMessageApi(chatId ?? '');
 
   const chatProps = useMemo(
     () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
@@ -134,10 +140,45 @@ const ChatConversationScreenContent = () => {
     [contentFillsScreen],
   );
 
-  const sendMessage = () => {
-    if (!inputText.trim()) return;
+  const sendMessage = useCallback(async () => {
+    if (!inputText.trim() || !chatId) {
+      return;
+    }
+
+    const messageContent = inputText.trim();
     setInputText('');
-  };
+
+    try {
+      await saveMessage({
+        content: messageContent,
+        visibility: 'Public',
+        isDeleted: false,
+        links: [],
+      });
+
+      if (currentUserId && currentAccountId) {
+        void queryClient.invalidateQueries({
+          queryKey: ['chats', currentUserId, currentAccountId],
+        });
+      }
+
+      scrollToNewestMessage();
+    } catch (error) {
+      logger.error('[ChatConversationScreen] Failed to send message', error, {
+        operation: 'sendMessage',
+        chatId,
+      });
+      setInputText(messageContent);
+    }
+  }, [
+    inputText,
+    chatId,
+    saveMessage,
+    queryClient,
+    scrollToNewestMessage,
+    currentUserId,
+    currentAccountId,
+  ]);
 
   return (
     <KeyboardAvoidingView
