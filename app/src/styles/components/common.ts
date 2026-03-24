@@ -56,6 +56,9 @@ export const spacingStyle = {
   marginLeft3: {
     marginLeft: Spacing.spacing3,
   },
+  marginBottom2: {
+    marginBottom: Spacing.spacing2,
+  },
   marginBottom4: {
     marginBottom: Spacing.spacing4,
   },
@@ -64,6 +67,12 @@ export const spacingStyle = {
   },
   paddingVertical4: {
     paddingVertical: Spacing.spacing4,
+  },
+  paddingBottom4: {
+    paddingBottom: Spacing.spacing4,
+  },
+  paddingBottom6: {
+    paddingBottom: Spacing.spacing6,
   },
 } as const;
 
