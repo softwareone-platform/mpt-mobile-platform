@@ -45,6 +45,7 @@ const ChatConversationScreenContent = () => {
   const lastReadMessageIdRef = useRef<string | null>(null);
   const markAsReadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingMessageIdRef = useRef<string | null>(null);
+  const pendingMessageCreatedAtRef = useRef<string | null>(null);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
 
@@ -130,8 +131,12 @@ const ChatConversationScreenContent = () => {
         const currentLastReadTimestamp = messages.find((m) => m.id === currentLastReadMessage.id)
           ?.audit.created?.at;
 
-        if (currentLastReadTimestamp && messageCreatedAt <= currentLastReadTimestamp) {
-          return;
+        if (currentLastReadTimestamp) {
+          const currentDate = new Date(currentLastReadTimestamp);
+          const messageDate = new Date(messageCreatedAt);
+          if (messageDate <= currentDate) {
+            return;
+          }
         }
       }
 
@@ -173,9 +178,9 @@ const ChatConversationScreenContent = () => {
       if (markAsReadTimeoutRef.current) {
         clearTimeout(markAsReadTimeoutRef.current);
         const pendingId = pendingMessageIdRef.current;
-        const pendingMessage = messages.find((m) => m.id === pendingId);
-        if (pendingId && pendingMessage?.audit?.created?.at) {
-          void markAsRead(pendingId, pendingMessage.audit.created.at);
+        const pendingCreatedAt = pendingMessageCreatedAtRef.current;
+        if (pendingId && pendingCreatedAt) {
+          void markAsRead(pendingId, pendingCreatedAt);
         }
       }
     };
@@ -199,6 +204,7 @@ const ChatConversationScreenContent = () => {
       }
 
       pendingMessageIdRef.current = messageId;
+      pendingMessageCreatedAtRef.current = messageCreatedAt;
 
       if (markAsReadTimeoutRef.current) {
         clearTimeout(markAsReadTimeoutRef.current);
@@ -206,8 +212,9 @@ const ChatConversationScreenContent = () => {
 
       markAsReadTimeoutRef.current = setTimeout(() => {
         const pendingId = pendingMessageIdRef.current;
-        if (pendingId && pendingId !== lastReadMessageIdRef.current) {
-          void markAsRead(pendingId, messageCreatedAt);
+        const pendingCreatedAt = pendingMessageCreatedAtRef.current;
+        if (pendingId && pendingCreatedAt && pendingId !== lastReadMessageIdRef.current) {
+          void markAsRead(pendingId, pendingCreatedAt);
         }
         markAsReadTimeoutRef.current = null;
       }, MARK_AS_READ_DEBOUNCE_MS);
