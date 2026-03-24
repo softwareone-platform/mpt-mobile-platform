@@ -11,11 +11,13 @@ import {
   KeyboardAvoidingView,
   TouchableOpacity,
   Platform,
-  Button,
 } from 'react-native';
 
+import ChatTypeStep from './ChatTypeStep';
+
 import BottomSheet from '@/components/modal/BottomSheet';
-import { createChatWizardStyle, inputStyle } from '@/styles';
+import { createChatWizardStyle, inputStyle, screenStyle, spacingStyle } from '@/styles';
+import type { ChatType } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
@@ -24,9 +26,12 @@ type Props = {
   onClose: () => void;
 };
 
-const CreateChatModal = ({ visible, onClose }: Props) => {
+const KEYBOARD_VERTICAL_OFFSET_IOS = 200;
+const KEYBOARD_VERTICAL_OFFSET_NONE = 0;
+
+const CreateChatWizard = ({ visible, onClose }: Props) => {
   const [step, setStep] = useState(0);
-  const [chatType, setChatType] = useState<'group' | 'direct' | null>(null);
+  const [chatType, setChatType] = useState<ChatType>(null);
   const [chatName, setChatName] = useState('');
 
   const { t } = useTranslation();
@@ -40,6 +45,12 @@ const CreateChatModal = ({ visible, onClose }: Props) => {
     onClose();
   }, [onClose]);
 
+  const handleNavigateToChat = () => {
+    // TODO: call create chat API and pass ID of newly created chat
+    navigation.navigate('chatConversation', { id: 'CHT-9231-8917-3633' });
+    handleClose();
+  };
+
   const handleNext = () => {
     if (step === 0) {
       if (!chatType) return;
@@ -48,13 +59,12 @@ const CreateChatModal = ({ visible, onClose }: Props) => {
       if (!chatName.trim()) return;
       setStep(2);
     } else if (step === 2) {
-      navigation.navigate('chatConversation', { id: 'CHT-123-4565' });
-      handleClose();
+      handleNavigateToChat();
     }
   };
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose} testID={TestIDs.CHAT_CREATE_MODAL}>
+    <BottomSheet visible={visible} onClose={handleClose} testID={TestIDs.CREATE_CHAT_MODAL}>
       <View style={styles.headerRow}>
         <View style={styles.headerSide}>
           <TouchableOpacity onPress={handleClose}>
@@ -72,49 +82,47 @@ const CreateChatModal = ({ visible, onClose }: Props) => {
           )}
         </View>
       </View>
-      <KeyboardAvoidingView
-        behavior="height"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 200 : 0}
-      >
-        {step === 0 && (
-          <View>
-            <Button
-              title="Group Chat"
-              onPress={() => {
-                setChatType('group');
+      <View style={styles.keyboardWrapper}>
+        <KeyboardAvoidingView
+          behavior="height"
+          keyboardVerticalOffset={
+            Platform.OS === 'ios' ? KEYBOARD_VERTICAL_OFFSET_IOS : KEYBOARD_VERTICAL_OFFSET_NONE
+          }
+          style={styles.container}
+        >
+          {step === 0 && (
+            <ChatTypeStep
+              onSelectChatType={(type) => {
+                setChatType(type);
                 setStep(1);
               }}
-            />
-            <Button
-              title="Direct Chat: John Doe"
-              onPress={() => {
-                handleClose();
-                navigation.navigate('chatConversation', { id: 'CHT-234-2345' });
+              onSelectParticipant={() => {
+                handleNavigateToChat();
               }}
             />
-          </View>
-        )}
+          )}
 
-        {step === 1 && (
-          <View>
-            <TextInput
-              placeholder="Enter chat name"
-              value={chatName}
-              onChangeText={setChatName}
-              style={styles.input}
-              autoFocus
-            />
-          </View>
-        )}
+          {step === 1 && (
+            <View>
+              <TextInput
+                placeholder="Enter chat name"
+                value={chatName}
+                onChangeText={setChatName}
+                style={styles.input}
+                autoFocus
+              />
+            </View>
+          )}
 
-        {step === 2 && (
-          <View>
-            <ScrollView>
-              <Text>User list placeholder</Text>
-            </ScrollView>
-          </View>
-        )}
-      </KeyboardAvoidingView>
+          {step === 2 && (
+            <View>
+              <ScrollView>
+                <Text>User list placeholder</Text>
+              </ScrollView>
+            </View>
+          )}
+        </KeyboardAvoidingView>
+      </View>
     </BottomSheet>
   );
 };
@@ -127,6 +135,11 @@ const styles = StyleSheet.create({
   headerTextCancel: createChatWizardStyle.headerTextCancel,
   headerTextNext: createChatWizardStyle.headerTextNext,
   input: inputStyle.container,
+  container: screenStyle.containerFlex,
+  keyboardWrapper: {
+    ...screenStyle.containerFlex,
+    ...spacingStyle.paddingBottom6,
+  },
 });
 
-export default CreateChatModal;
+export default CreateChatWizard;

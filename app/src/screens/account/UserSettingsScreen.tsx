@@ -1,12 +1,13 @@
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 import AccountSummary from '@/components/account-summary/AccountSummary';
+import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import NavigationItemWithIcon from '@/components/navigation-item/NavigationItemWithIcon';
 import { useAuth } from '@/context/AuthContext';
-import { cardStyle, screenStyle, buttonStyle, Spacing } from '@/styles';
+import { screenStyle, buttonStyle } from '@/styles';
 import type { ProfileStackParamList } from '@/types/navigation';
 
 type UserDetailsScreen = Exclude<keyof ProfileStackParamList, 'profile' | 'userSettings'>;
@@ -43,21 +44,18 @@ const UserSettingsScreen = () => {
   return (
     <ScrollView style={styles.containerMain}>
       <AccountSummary id={id} title={name} subtitle={id} icon={icon} />
-      <View>
-        <Text style={styles.sectionHeader}>{t('userSettingsScreen.userDetails')}</Text>
-        <View style={styles.containerCard}>
-          {userDetailsData.map((item, index) => (
-            <NavigationItemWithIcon
-              key={item.name}
-              title={t(`userSettingsScreen.${item.name}`)}
-              icon={item.icon}
-              isLast={index === userDetailsData.length - 1}
-              isDisabled={item.isDisabled}
-              onPress={item.isDisabled ? undefined : () => navigation.navigate(item.name)}
-            />
-          ))}
-        </View>
-      </View>
+      <NavigationGroupCard title={t('userSettingsScreen.userDetails')}>
+        {userDetailsData.map((item, index) => (
+          <NavigationItemWithIcon
+            key={item.name}
+            title={t(`userSettingsScreen.${item.name}`)}
+            icon={item.icon}
+            isLast={index === userDetailsData.length - 1}
+            isDisabled={item.isDisabled}
+            onPress={item.isDisabled ? undefined : () => navigation.navigate(item.name)}
+          />
+        ))}
+      </NavigationGroupCard>
       <TouchableOpacity style={styles.buttonPrimary} onPress={handleLogout}>
         <Text style={styles.buttonPrimaryText}>{t('common.action.signOut')}</Text>
       </TouchableOpacity>
@@ -67,11 +65,6 @@ const UserSettingsScreen = () => {
 
 const styles = StyleSheet.create({
   containerMain: screenStyle.containerMain,
-  containerCard: {
-    ...cardStyle.containerRounded,
-    marginBottom: Spacing.spacing4,
-  },
-  sectionHeader: screenStyle.sectionHeader,
   buttonPrimary: {
     ...buttonStyle.primaryLight,
     ...buttonStyle.fullWidth,

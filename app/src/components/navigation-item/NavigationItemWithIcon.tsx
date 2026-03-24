@@ -1,47 +1,64 @@
 import { OutlinedIcons } from '@assets/icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
-import NavigationItemChevron from './NavigationItemChevron';
-
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { Color, listItemStyle } from '@/styles';
+import { navigationStyle } from '@/styles';
 
-type Props = {
+type NavigationItemWithIconProps = {
   title: string;
   icon: string;
   isLast?: boolean;
   isDisabled?: boolean;
   onPress?: () => void;
+  testID?: string;
 };
 
-const NavigationItemWithIcon = ({ title, icon, isLast, isDisabled, onPress }: Props) => (
-  <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
-    <View style={styles.iconWrapper}>
-      <OutlinedIcon
-        name={icon as keyof typeof OutlinedIcons}
-        color={isDisabled ? Color.gray.gray3 : Color.brand.primary}
-        size={24}
-      />
-    </View>
-    <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{title}</Text>
-      </View>
-      {!isDisabled && <NavigationItemChevron />}
+const NavigationItemWithIcon = ({
+  title,
+  icon,
+  isLast,
+  isDisabled,
+  onPress,
+  testID = '',
+}: NavigationItemWithIconProps) => (
+  <TouchableOpacity
+    testID={testID}
+    style={[styles.navigationItem, isLast && styles.lastItem]}
+    activeOpacity={0.7}
+    disabled={isDisabled}
+    onPress={onPress}
+  >
+    <OutlinedIcon
+      name={icon as keyof typeof OutlinedIcons}
+      color={
+        isDisabled
+          ? navigationStyle.secondary.iconColorDisabled
+          : navigationStyle.secondary.iconColor
+      }
+      size={24}
+    />
+
+    <View style={styles.labelContainer}>
+      <Text style={[styles.label, isDisabled && styles.labelDisabled]}>{title}</Text>
+
+      {!isDisabled && (
+        <MaterialIcons
+          name="chevron-right"
+          size={22}
+          color={navigationStyle.secondary.chevronColor}
+        />
+      )}
     </View>
   </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
-  container: listItemStyle.container,
-  lastItem: listItemStyle.lastItem,
-  iconWrapper: listItemStyle.textAndIcon.iconWrapper,
-  contentWrapper: {
-    ...listItemStyle.contentWrapper,
-    ...listItemStyle.textAndIcon.contentWrapper,
-  },
-  textContainer: listItemStyle.textContainer,
-  title: listItemStyle.title,
+  navigationItem: navigationStyle.secondary.navigationItem,
+  label: navigationStyle.secondary.label,
+  labelDisabled: navigationStyle.secondary.labelDisabled,
+  labelContainer: navigationStyle.secondary.labelContainer,
+  lastItem: navigationStyle.secondary.lastItem,
 });
 
 export default NavigationItemWithIcon;

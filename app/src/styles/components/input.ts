@@ -1,5 +1,7 @@
 import { Color, BorderRadius, Spacing, Typography } from '../tokens';
 
+const ICON_OFFSET_HORIZONTAL = 36;
+
 export const inputStyle = {
   container: {
     borderWidth: 1,
@@ -18,12 +20,24 @@ export const inputStyle = {
     paddingVertical: Spacing.spacing2,
   },
   search: {
-    borderWidth: 1,
-    borderColor: Color.brand.white,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Color.brand.white,
-    paddingHorizontal: Spacing.spacing2,
-    paddingVertical: Spacing.spacing2,
+    height: 36,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Color.fills.tertiary,
+    paddingLeft: ICON_OFFSET_HORIZONTAL,
+    paddingRight: ICON_OFFSET_HORIZONTAL,
+    fontSize: Typography.fontSize.font3,
+  },
+  searchIconColor: Color.gray.gray4,
+  searchTextPlaceholderColor: Color.gray.gray3,
+  leftIcon: {
+    position: 'absolute',
+    left: 8,
+    top: 8,
+  },
+  rightIcon: {
+    position: 'absolute',
+    right: 8,
+    top: 10,
   },
   text: {
     fontSize: Typography.fontSize.font3,

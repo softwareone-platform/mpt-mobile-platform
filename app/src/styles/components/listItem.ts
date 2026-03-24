@@ -44,6 +44,14 @@ export const listItemStyle = {
   textContainer: {
     flex: 1,
   },
+  textContainerGrow: {
+    flexGrow: 1,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    gap: Spacing.spacing1,
+    marginLeft: Spacing.spacing2,
+  },
   title: {
     fontSize: Typography.fontSize.font4,
     color: Color.labels.primary,
