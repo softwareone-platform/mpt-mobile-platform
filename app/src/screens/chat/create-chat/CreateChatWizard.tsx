@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
@@ -13,10 +12,11 @@ import {
   Platform,
 } from 'react-native';
 
+import ChatDetailsStep from './ChatDetailsStep';
 import ChatTypeStep from './ChatTypeStep';
 
 import BottomSheet from '@/components/modal/BottomSheet';
-import { createChatWizardStyle, inputStyle, screenStyle, spacingStyle } from '@/styles';
+import { createChatWizardStyle, screenStyle, spacingStyle } from '@/styles';
 import type { ChatType } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
@@ -102,17 +102,7 @@ const CreateChatWizard = ({ visible, onClose }: Props) => {
             />
           )}
 
-          {step === 1 && (
-            <View>
-              <TextInput
-                placeholder="Enter chat name"
-                value={chatName}
-                onChangeText={setChatName}
-                style={styles.input}
-                autoFocus
-              />
-            </View>
-          )}
+          {step === 1 && <ChatDetailsStep chatName={chatName} setChatName={setChatName} />}
 
           {step === 2 && (
             <View>
@@ -134,7 +124,6 @@ const styles = StyleSheet.create({
   headerTitle: createChatWizardStyle.headerTitle,
   headerTextCancel: createChatWizardStyle.headerTextCancel,
   headerTextNext: createChatWizardStyle.headerTextNext,
-  input: inputStyle.container,
   container: screenStyle.containerFlex,
   keyboardWrapper: {
     ...screenStyle.containerFlex,

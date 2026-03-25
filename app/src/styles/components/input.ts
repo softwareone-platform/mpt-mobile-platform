@@ -74,3 +74,14 @@ export const inputStyle = {
     maxHeight: 100,
   },
 } as const;
+
+export const inputWithIconStyle = {
+  container: {
+    flexDirection: 'row',
+    marginVertical: Spacing.spacing1,
+  },
+  input: {
+    paddingLeft: Spacing.spacing2,
+    flexShrink: 1,
+  },
+} as const;

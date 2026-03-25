@@ -43,18 +43,16 @@ const ChatTypeStep = ({ onSelectChatType, onSelectParticipant }: ChatTypeStepPro
       </View>
       {!isSearchFocused && (
         <NavigationGroupCard title={t('createChatWizard.chatType')}>
-          <View>
-            {chatTypes.map((item, index) => (
-              <NavigationItemWithIcon
-                key={item.name}
-                title={t(`createChatWizard.${item.name}`)}
-                icon={item.icon}
-                isLast={index === chatTypes.length - 1}
-                onPress={() => onSelectChatType(item.type)}
-                testID={`${TestIDs.CHAT_TYPES}-${item.name}`}
-              />
-            ))}
-          </View>
+          {chatTypes.map((item, index) => (
+            <NavigationItemWithIcon
+              key={item.name}
+              title={t(`createChatWizard.${item.name}`)}
+              icon={item.icon}
+              isLast={index === chatTypes.length - 1}
+              onPress={() => onSelectChatType(item.type)}
+              testID={`${TestIDs.CHAT_TYPES}-${item.name}`}
+            />
+          ))}
         </NavigationGroupCard>
       )}
       <FlatList

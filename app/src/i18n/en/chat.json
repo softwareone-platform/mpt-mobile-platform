@@ -15,6 +15,8 @@
     "next": "Next",
     "cancel": "Cancel",
     "chatType": "Chat type",
-    "groupChat": "Group chat"
+    "groupChat": "Group chat",
+    "chatDetails": "Chat details",
+    "enterGroupName": "Enter a group name (optional)"
   }
 }
