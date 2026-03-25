@@ -97,40 +97,7 @@ describe('Invoices Page', () => {
     });
   });
 
-  describe('Page Structure', () => {
-    it('should display the Invoices header title', async () => {
-      await expect(invoicesPage.headerTitle).toBeDisplayed();
-    });
-
-    it('should display the account button in header', async function () {
-      const isDisplayed = await invoicesPage.accountButton.isDisplayed().catch(() => false);
-      if (!isDisplayed && isAndroid()) {
-        this.skip();
-        return;
-      }
-      await expect(invoicesPage.accountButton).toBeDisplayed();
-    });
-
-    it('should display all footer navigation tabs', async () => {
-      await expect(invoicesPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(invoicesPage.footer.chatTab).toBeDisplayed();
-      await expect(invoicesPage.footer.subscriptionsTab).toBeDisplayed();
-      await expect(invoicesPage.footer.moreTab).toBeDisplayed();
-    });
-
-    it('should have More tab selected', async () => {
-      const moreTab = invoicesPage.footer.moreTab;
-      if (isAndroid()) {
-        // Android uses 'selected' attribute
-        const selected = await moreTab.getAttribute('selected');
-        expect(selected).toBe('true');
-      } else {
-        // iOS uses 'value' attribute
-        const value = await moreTab.getAttribute('value');
-        expect(value).toBe('1');
-      }
-    });
-  });
+  testPageStructure(invoicesPage, { selectedTab: 'more' });
 
   describe('Empty State', () => {
     // This test suite runs when user has no invoices

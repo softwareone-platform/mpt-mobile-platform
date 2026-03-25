@@ -5,6 +5,7 @@ const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
+const { testPageStructure } = require('../utils/shared-tests');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
@@ -97,40 +98,7 @@ describe('Statements Page', () => {
     });
   });
 
-  describe('Page Structure', () => {
-    it('should display the Statements header title', async () => {
-      await expect(statementsPage.headerTitle).toBeDisplayed();
-    });
-
-    it('should display the account button in header', async function () {
-      const isDisplayed = await statementsPage.accountButton.isDisplayed().catch(() => false);
-      if (!isDisplayed && isAndroid()) {
-        this.skip();
-        return;
-      }
-      await expect(statementsPage.accountButton).toBeDisplayed();
-    });
-
-    it('should display all footer navigation tabs', async () => {
-      await expect(statementsPage.footer.spotlightsTab).toBeDisplayed();
-      await expect(statementsPage.footer.chatTab).toBeDisplayed();
-      await expect(statementsPage.footer.subscriptionsTab).toBeDisplayed();
-      await expect(statementsPage.footer.moreTab).toBeDisplayed();
-    });
-
-    it('should have More tab selected', async () => {
-      const moreTab = statementsPage.footer.moreTab;
-      if (isAndroid()) {
-        // Android uses 'selected' attribute
-        const selected = await moreTab.getAttribute('selected');
-        expect(selected).toBe('true');
-      } else {
-        // iOS uses 'value' attribute
-        const value = await moreTab.getAttribute('value');
-        expect(value).toBe('1');
-      }
-    });
-  });
+  testPageStructure(statementsPage, { selectedTab: 'more' });
 
   describe('Empty State', () => {
     // This test suite runs when user has no statements
