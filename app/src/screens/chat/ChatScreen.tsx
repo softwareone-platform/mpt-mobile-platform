@@ -10,7 +10,7 @@ import CreateChatButton from '@/components/navigation/CreateChatButton';
 import { useAccount } from '@/context/AccountContext';
 import { useChats, ChatsProvider } from '@/context/ChatsContext';
 import { useSignalR } from '@/context/SignalRContext';
-import CreateChatModal from '@/screens/chat/CreateChatModal';
+import CreateChatWizard from '@/screens/chat/create-chat/CreateChatWizard';
 import type { RootStackParamList } from '@/types/navigation';
 import type { EntitySubscription } from '@/types/signalr';
 import { TestIDs } from '@/utils/testID';
@@ -101,7 +101,7 @@ const ChatScreenContent = () => {
           });
         }}
       />
-      <CreateChatModal visible={isCreateChatVisible} onClose={() => setCreateChatVisible(false)} />
+      <CreateChatWizard visible={isCreateChatVisible} onClose={() => setCreateChatVisible(false)} />
     </StatusMessage>
   );
 };

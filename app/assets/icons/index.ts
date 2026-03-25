@@ -36,12 +36,14 @@ import MenuBookOutlined from './menu-book';
 import MoreHorizOutlined from './more-horiz';
 import NotificationsOutlined from './notifications';
 import PersonOutlined from './person';
+import PhotoCameraOutlined from './photo-camera';
 import PriceChangeOutlined from './price-change';
 import PriceCheckOutlined from './price-check';
 import PublicOutlined from './public';
 import ReceiptOutlined from './receipt';
 import ReceiptLongOutlined from './receipt-long';
 import RedeemOutlined from './redeem';
+import SearchOutlined from './search';
 import ShopTwoOutlined from './shop-two';
 import ShoppingCartOutlined from './shopping-cart';
 import ShoppingCartCheckoutOutlined from './shopping-cart-checkout';
@@ -89,12 +91,14 @@ export const OutlinedIcons = {
   'more-horiz': MoreHorizOutlined,
   notifications: NotificationsOutlined,
   person: PersonOutlined,
+  'photo-camera': PhotoCameraOutlined,
   'price-change': PriceChangeOutlined,
   'price-check': PriceCheckOutlined,
   public: PublicOutlined,
   receipt: ReceiptOutlined,
   'receipt-long': ReceiptLongOutlined,
   redeem: RedeemOutlined,
+  search: SearchOutlined,
   'shop-two': ShopTwoOutlined,
   'shopping-cart': ShoppingCartOutlined,
   'shopping-cart-checkout': ShoppingCartCheckoutOutlined,

@@ -2,7 +2,7 @@
  * Central export for shared component styles
  */
 export { buttonStyle } from './button';
-export { inputStyle } from './input';
+export { inputStyle, inputWithIconStyle } from './input';
 export { authLayoutStyle } from './authLayout';
 export { cardStyle } from './card';
 export { screenStyle, spacingStyle, commonStyle } from './common';
@@ -20,3 +20,4 @@ export { chipStyle } from './chip';
 export { badgeStyle } from './badge';
 export { chatStyle, chatMessageStyle, createChatWizardStyle } from './chat';
 export { bottomSheetStyle } from './bottomSheet';
+export { iconStyle } from './icon';
