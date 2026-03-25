@@ -37,7 +37,11 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
         />
       </View>
 
-      <TouchableOpacity style={styles.buttonPrimaryIconOnly} onPress={onSend}>
+      <TouchableOpacity
+        style={styles.buttonPrimaryIconOnly}
+        onPress={onSend}
+        disabled={!value.trim()}
+      >
         <OutlinedIcon
           name={'arrow-upward' as keyof typeof OutlinedIcons}
           color={Color.brand.white}

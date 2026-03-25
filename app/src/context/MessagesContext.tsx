@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -55,14 +56,16 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
   } = useMessagesData(chatId);
 
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  const localKeyByIdRef = useRef<Map<string, string>>(new Map());
 
   const addOptimisticMessage = useCallback((message: Message) => {
     setLocalMessages((prev) => [message, ...prev]);
   }, []);
 
   const replaceOptimisticMessage = useCallback((optimisticId: string, realMessage: Message) => {
+    localKeyByIdRef.current.set(realMessage.id, optimisticId);
     setLocalMessages((prev) =>
-      prev.map((m) => (m.id === optimisticId ? { ...realMessage, _localKey: m._localKey } : m)),
+      prev.map((m) => (m.id === optimisticId ? { ...realMessage, _localKey: optimisticId } : m)),
     );
   }, []);
 
@@ -74,25 +77,25 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
     );
   }, []);
 
+  useEffect(() => {
+    const serverMessages = data?.pages.flatMap((page) => page.data) ?? [];
+    if (serverMessages.length === 0) return;
+    const serverIds = new Set(serverMessages.map((m) => m.id));
+    setLocalMessages((prev) => {
+      const next = prev.filter((m) => !serverIds.has(m.id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [data]);
+
   const messages = useMemo(() => {
     const serverMessages = data?.pages.flatMap((page) => page.data) ?? [];
     const serverIds = new Set(serverMessages.map((m) => m.id));
     const localOnlyMessages = localMessages.filter((m) => !serverIds.has(m.id));
 
-    // Transfer _localKey from local messages to their server counterparts so the
-    // FlatList keyExtractor returns the same key through the local→server transition,
-    // preventing item remount and the scroll jump it causes via maintainVisibleContentPosition.
-    const localKeyById = new Map(
-      localMessages
-        .filter((m) => serverIds.has(m.id) && m._localKey)
-        .map((m) => [m.id, m._localKey!]),
-    );
-    const mergedServerMessages =
-      localKeyById.size > 0
-        ? serverMessages.map((m) =>
-            localKeyById.has(m.id) ? { ...m, _localKey: localKeyById.get(m.id) } : m,
-          )
-        : serverMessages;
+    const mergedServerMessages = serverMessages.map((m) => {
+      const localKey = localKeyByIdRef.current.get(m.id);
+      return localKey ? { ...m, _localKey: localKey } : m;
+    });
 
     return [...localOnlyMessages, ...mergedServerMessages];
   }, [data, localMessages]);

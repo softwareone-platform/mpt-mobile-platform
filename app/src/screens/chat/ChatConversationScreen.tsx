@@ -41,9 +41,12 @@ const ChatConversationScreenContent = () => {
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageKeyRef = useRef<string | null>(null);
   const scrollToBottomOnContentChangeRef = useRef(false);
+  const isSendingRef = useRef(false);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
   const currentAccountId = userData?.currentAccount?.id;
+  const userName = userData?.name ?? '';
+  const userIcon = userData?.icon;
   const queryClient = useQueryClient();
 
   const {
@@ -133,10 +136,11 @@ const ChatConversationScreenContent = () => {
   );
 
   const sendMessage = useCallback(async () => {
-    if (!inputText.trim() || !chatId) {
+    if (!inputText.trim() || !chatId || isSendingRef.current) {
       return;
     }
 
+    isSendingRef.current = true;
     const messageContent = inputText.trim();
     const optimisticId = `optimistic-${Date.now()}`;
     const optimisticMessage: Message = {
@@ -148,8 +152,8 @@ const ChatConversationScreenContent = () => {
       links: [],
       identity: {
         id: currentUserId,
-        name: userData?.name ?? '',
-        icon: userData?.icon,
+        name: userName,
+        icon: userIcon,
         revision: 0,
       },
       audit: {
@@ -185,12 +189,15 @@ const ChatConversationScreenContent = () => {
       });
       markMessageFailed(optimisticId);
       setInputText(messageContent);
+    } finally {
+      isSendingRef.current = false;
     }
   }, [
     inputText,
     chatId,
     currentUserId,
-    userData,
+    userName,
+    userIcon,
     saveMessage,
     addOptimisticMessage,
     replaceOptimisticMessage,
