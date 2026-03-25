@@ -274,7 +274,12 @@ describe('useMarkAsRead', () => {
 
   it('skips older message while a newer markAsRead is in flight (rapid scroll race condition)', async () => {
     let resolveFirst!: () => void;
-    mockSave.mockImplementationOnce(() => new Promise((res) => { resolveFirst = () => res({}); }));
+    mockSave.mockImplementationOnce(
+      () =>
+        new Promise((res) => {
+          resolveFirst = () => res({});
+        }),
+    );
 
     const { result } = renderHook(() =>
       useMarkAsRead({
