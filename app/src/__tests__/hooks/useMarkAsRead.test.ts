@@ -271,4 +271,35 @@ describe('useMarkAsRead', () => {
     unmount();
     await waitFor(() => expect(mockSave).toHaveBeenCalled());
   });
+
+  it('skips older message while a newer markAsRead is in flight (rapid scroll race condition)', async () => {
+    let resolveFirst!: () => void;
+    mockSave.mockImplementationOnce(() => new Promise((res) => { resolveFirst = () => res({}); }));
+
+    const { result } = renderHook(() =>
+      useMarkAsRead({
+        chatId,
+        myParticipant: mockParticipant,
+        messages,
+        contentFillsScreen: true,
+        saveParticipant: mockSave,
+        currentUserId: 'OTHER-USER',
+      }),
+    );
+
+    // Mark MSG-003 (12:00) — API call stays pending
+    result.current.onViewableItemsChanged({ viewableItems: [viewToken(messages[2])] });
+    jest.runAllTimers();
+    await waitFor(() => expect(mockSave).toHaveBeenCalledTimes(1));
+
+    // While pending, scroll back to MSG-001 (10:00) — should be blocked by lastReadCreatedAtRef
+    result.current.onViewableItemsChanged({ viewableItems: [viewToken(messages[0])] });
+    jest.runAllTimers();
+
+    resolveFirst();
+    await waitFor(() => Promise.resolve());
+
+    expect(mockSave).toHaveBeenCalledTimes(1);
+    expect(mockSave).toHaveBeenCalledWith({ id: 'CHP-456', lastReadMessage: { id: 'MSG-003' } });
+  });
 });
