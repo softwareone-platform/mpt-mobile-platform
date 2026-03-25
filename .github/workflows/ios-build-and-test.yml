@@ -31,7 +31,7 @@ on:
         description: 'iOS simulator device name'
         required: false
         type: string
-        default: 'iPhone 16'
+        default: 'iPhone 16e'
       test-suite:
         description: 'Test suite to run'
         required: false
