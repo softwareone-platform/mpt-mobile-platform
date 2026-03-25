@@ -28,6 +28,7 @@ export function useMarkAsRead({
 }: UseMarkAsReadParams) {
   const queryClient = useQueryClient();
   const lastReadMessageIdRef = useRef<string | null>(null);
+  const lastReadCreatedAtRef = useRef<string | null>(null);
   const markAsReadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingMessageIdRef = useRef<string | null>(null);
   const pendingMessageCreatedAtRef = useRef<string | null>(null);
@@ -49,6 +50,13 @@ export function useMarkAsRead({
         return;
       }
 
+      // Guard against rapid scrolling: if we've already attempted a newer timestamp
+      // this session, skip — the server would reject it as older regardless.
+      const lastAttemptedAt = lastReadCreatedAtRef.current;
+      if (lastAttemptedAt && new Date(messageCreatedAt) <= new Date(lastAttemptedAt)) {
+        return;
+      }
+
       const currentLastReadMessage = currentParticipant.lastReadMessage;
       if (currentLastReadMessage?.id) {
         const currentLastReadTimestamp = messages.find((m) => m.id === currentLastReadMessage.id)
@@ -64,6 +72,7 @@ export function useMarkAsRead({
       }
 
       lastReadMessageIdRef.current = messageId;
+      lastReadCreatedAtRef.current = messageCreatedAt;
 
       try {
         await saveParticipant({
@@ -72,6 +81,7 @@ export function useMarkAsRead({
         });
       } catch (error) {
         lastReadMessageIdRef.current = null;
+        lastReadCreatedAtRef.current = null;
 
         void queryClient.invalidateQueries({ queryKey: ['chats'] });
 
