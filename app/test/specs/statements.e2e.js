@@ -193,7 +193,7 @@ describe('Statements Page', () => {
       const details = await statementsPage.getStatementDetails(firstStatement);
       // Statements use 4-group IDs: SOM-XXXX-XXXX-XXXX-XXXX
       expect(details.statementId).toMatch(REGEX.STATEMENT_ID);
-      expect(['Issued','Generated', 'Queued', 'Error', 'Cancelled', 'Pending', 'Issued', 'Generating']).toContain(details.status);
+      expect(['Issued','Generated', 'Queued', 'Error', 'Cancelled', 'Pending', 'Generating']).toContain(details.status);
     });
 
     it('should detect all loaded statements in the list', async function () {
