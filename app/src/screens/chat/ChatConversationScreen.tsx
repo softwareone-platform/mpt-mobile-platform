@@ -30,7 +30,6 @@ import type { RootStackParamList } from '@/types/navigation';
 import { mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
-const SCROLL_TO_NEWEST_DELAY_MS = 200;
 const KEYBOARD_VERTICAL_OFFSET = 100;
 const LOAD_MORE_THRESHOLD = 0.5;
 
@@ -76,25 +75,6 @@ const ChatConversationScreenContent = () => {
       ? chatData.participants?.find((p) => p.identity.id !== currentUserId)
       : null;
 
-  const handleScrollToIndexFailed = useCallback(() => {
-    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, []);
-
-  const scrollToNewestMessage = useCallback(() => {
-    if (messages.length === 0) return;
-
-    setTimeout(() => {
-      try {
-        flatListRef.current?.scrollToIndex({
-          index: 0,
-          animated: true,
-        });
-      } catch (error) {
-        handleScrollToIndexFailed();
-      }
-    }, SCROLL_TO_NEWEST_DELAY_MS);
-  }, [messages.length, handleScrollToIndexFailed]);
-
   useEffect(() => {
     const newest = messages[0];
     const currentKey = newest?._localKey ?? newest?.id ?? null;
@@ -107,11 +87,11 @@ const ChatConversationScreenContent = () => {
       !newest?._optimistic &&
       newest?.identity?.id !== currentUserId
     ) {
-      scrollToNewestMessage();
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
 
     previousFirstMessageKeyRef.current = currentKey;
-  }, [messages, scrollToNewestMessage, currentUserId]);
+  }, [messages, currentUserId]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -259,7 +239,6 @@ const ChatConversationScreenContent = () => {
           )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={LOAD_MORE_THRESHOLD}
-          onScrollToIndexFailed={handleScrollToIndexFailed}
           onContentSizeChange={handleContentSizeChange}
           onLayout={handleLayout}
           onViewableItemsChanged={onViewableItemsChanged}
