@@ -1,5 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useEffect,
+  useState,
+} from 'react';
 
 import { useSignalR } from '@/context/SignalRContext';
 import { useMessagesData } from '@/hooks/queries/useMessagesData';
@@ -16,6 +24,9 @@ interface MessagesContextValue {
   isUnauthorised: boolean;
   fetchMessages: () => void;
   chatId: string | undefined;
+  addOptimisticMessage: (message: Message) => void;
+  replaceOptimisticMessage: (optimisticId: string, realMessage: Message) => void;
+  markMessageFailed: (optimisticId: string) => void;
 }
 
 interface MessagesProviderProps {
@@ -43,7 +54,48 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
     fetchNextPage,
   } = useMessagesData(chatId);
 
-  const messages = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+
+  const addOptimisticMessage = useCallback((message: Message) => {
+    setLocalMessages((prev) => [message, ...prev]);
+  }, []);
+
+  const replaceOptimisticMessage = useCallback((optimisticId: string, realMessage: Message) => {
+    setLocalMessages((prev) =>
+      prev.map((m) => (m.id === optimisticId ? { ...realMessage, _localKey: m._localKey } : m)),
+    );
+  }, []);
+
+  const markMessageFailed = useCallback((optimisticId: string) => {
+    setLocalMessages((prev) =>
+      prev.map((m) =>
+        m.id === optimisticId ? { ...m, _optimistic: undefined, _failed: true as const } : m,
+      ),
+    );
+  }, []);
+
+  const messages = useMemo(() => {
+    const serverMessages = data?.pages.flatMap((page) => page.data) ?? [];
+    const serverIds = new Set(serverMessages.map((m) => m.id));
+    const localOnlyMessages = localMessages.filter((m) => !serverIds.has(m.id));
+
+    // Transfer _localKey from local messages to their server counterparts so the
+    // FlatList keyExtractor returns the same key through the local→server transition,
+    // preventing item remount and the scroll jump it causes via maintainVisibleContentPosition.
+    const localKeyById = new Map(
+      localMessages
+        .filter((m) => serverIds.has(m.id) && m._localKey)
+        .map((m) => [m.id, m._localKey!]),
+    );
+    const mergedServerMessages =
+      localKeyById.size > 0
+        ? serverMessages.map((m) =>
+            localKeyById.has(m.id) ? { ...m, _localKey: localKeyById.get(m.id) } : m,
+          )
+        : serverMessages;
+
+    return [...localOnlyMessages, ...mergedServerMessages];
+  }, [data, localMessages]);
 
   useEffect(() => {
     if (chatId) {
@@ -77,10 +129,15 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
         return;
       }
 
-      logger.debug('[MessagesContext] New message received via SignalR, invalidating cache', {
+      logger.debug('[MessagesContext] New message received via SignalR, adding to local messages', {
         messageId: message.id,
         event: notification.event,
         chatId,
+      });
+
+      setLocalMessages((prev) => {
+        const exists = prev.some((m) => m.id === message.id);
+        return exists ? prev : [message, ...prev];
       });
 
       void queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
@@ -108,6 +165,9 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
         isUnauthorised,
         fetchMessages: fetchNextPage,
         chatId,
+        addOptimisticMessage,
+        replaceOptimisticMessage,
+        markMessageFailed,
       }}
     >
       {children}

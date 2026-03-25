@@ -15,6 +15,7 @@ interface UseMarkAsReadParams {
   messages: Message[];
   contentFillsScreen: boolean;
   saveParticipant: (participant: Partial<ChatParticipant>) => Promise<ChatParticipant>;
+  currentUserId: string;
 }
 
 export function useMarkAsRead({
@@ -23,6 +24,7 @@ export function useMarkAsRead({
   messages,
   contentFillsScreen,
   saveParticipant,
+  currentUserId,
 }: UseMarkAsReadParams) {
   const queryClient = useQueryClient();
   const lastReadMessageIdRef = useRef<string | null>(null);
@@ -119,6 +121,10 @@ export function useMarkAsRead({
         return;
       }
 
+      if (messageItem?._optimistic || messageItem?.identity?.id === currentUserId) {
+        return;
+      }
+
       pendingMessageIdRef.current = messageId;
       pendingMessageCreatedAtRef.current = messageCreatedAt;
 
@@ -135,7 +141,7 @@ export function useMarkAsRead({
         markAsReadTimeoutRef.current = null;
       }, MARK_AS_READ_DEBOUNCE_MS);
     },
-    [markAsRead],
+    [markAsRead, currentUserId],
   );
 
   const viewabilityConfig = useMemo(

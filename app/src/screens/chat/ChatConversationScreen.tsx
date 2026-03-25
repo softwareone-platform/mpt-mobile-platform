@@ -40,7 +40,8 @@ const ChatConversationScreenContent = () => {
   const [layoutHeight, setLayoutHeight] = useState(0);
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
-  const previousFirstMessageIdRef = useRef<string | null>(null);
+  const previousFirstMessageKeyRef = useRef<string | null>(null);
+  const scrollToBottomOnContentChangeRef = useRef(false);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
   const currentAccountId = userData?.currentAccount?.id;
@@ -55,6 +56,9 @@ const ChatConversationScreenContent = () => {
     isUnauthorised,
     fetchMessages,
     chatId,
+    addOptimisticMessage,
+    replaceOptimisticMessage,
+    markMessageFailed,
   } = useMessages();
 
   const { data: chatData } = useChatData(chatId);
@@ -92,19 +96,22 @@ const ChatConversationScreenContent = () => {
   }, [messages.length, handleScrollToIndexFailed]);
 
   useEffect(() => {
-    const currentFirstMessageId = messages[0]?.id ?? null;
-    const previousFirstMessageId = previousFirstMessageIdRef.current;
+    const newest = messages[0];
+    const currentKey = newest?._localKey ?? newest?.id ?? null;
+    const previousKey = previousFirstMessageKeyRef.current;
 
     if (
-      currentFirstMessageId &&
-      currentFirstMessageId !== previousFirstMessageId &&
-      previousFirstMessageId !== null
+      currentKey &&
+      currentKey !== previousKey &&
+      previousKey !== null &&
+      !newest?._optimistic &&
+      newest?.identity?.id !== currentUserId
     ) {
       scrollToNewestMessage();
     }
 
-    previousFirstMessageIdRef.current = currentFirstMessageId;
-  }, [messages, scrollToNewestMessage]);
+    previousFirstMessageKeyRef.current = currentKey;
+  }, [messages, scrollToNewestMessage, currentUserId]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -114,6 +121,10 @@ const ChatConversationScreenContent = () => {
 
   const handleContentSizeChange = useCallback((_width: number, height: number) => {
     setContentHeight(height);
+    if (scrollToBottomOnContentChangeRef.current) {
+      scrollToBottomOnContentChangeRef.current = false;
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
   }, []);
 
   const handleLayout = useCallback((event: { nativeEvent: { layout: { height: number } } }) => {
@@ -128,6 +139,7 @@ const ChatConversationScreenContent = () => {
     messages,
     contentFillsScreen,
     saveParticipant,
+    currentUserId,
   });
 
   const displayMessages = useMemo(
@@ -146,37 +158,64 @@ const ChatConversationScreenContent = () => {
     }
 
     const messageContent = inputText.trim();
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticMessage: Message = {
+      id: optimisticId,
+      revision: 0,
+      content: messageContent,
+      visibility: 'Public',
+      isDeleted: false,
+      links: [],
+      identity: {
+        id: currentUserId,
+        name: userData?.name ?? '',
+        icon: userData?.icon,
+        revision: 0,
+      },
+      audit: {
+        created: { at: new Date().toISOString(), by: null },
+      },
+      _optimistic: true,
+      _localKey: optimisticId,
+    };
+
+    scrollToBottomOnContentChangeRef.current = true;
+    addOptimisticMessage(optimisticMessage);
     setInputText('');
 
     try {
-      await saveMessage({
+      const response = await saveMessage({
         content: messageContent,
         visibility: 'Public',
         isDeleted: false,
         links: [],
       });
 
+      replaceOptimisticMessage(optimisticId, response);
+
       if (currentUserId && currentAccountId) {
         void queryClient.invalidateQueries({
           queryKey: ['chats', currentUserId, currentAccountId],
         });
       }
-
-      scrollToNewestMessage();
     } catch (error) {
       logger.error('[ChatConversationScreen] Failed to send message', error, {
         operation: 'sendMessage',
         chatId,
       });
+      markMessageFailed(optimisticId);
       setInputText(messageContent);
     }
   }, [
     inputText,
     chatId,
-    saveMessage,
-    queryClient,
-    scrollToNewestMessage,
     currentUserId,
+    userData,
+    saveMessage,
+    addOptimisticMessage,
+    replaceOptimisticMessage,
+    markMessageFailed,
+    queryClient,
     currentAccountId,
   ]);
 
@@ -213,7 +252,7 @@ const ChatConversationScreenContent = () => {
           data={displayMessages}
           extraData={displayMessages}
           inverted={contentFillsScreen}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._localKey ?? item.id}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
