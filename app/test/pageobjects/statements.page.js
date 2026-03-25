@@ -23,18 +23,22 @@ class StatementsPage extends ListPage {
 
   get pageName() {
     return 'Statements';
+  }  
+
+  get pageIdPrefix() {
+    return 'statements';
   }
 
   get loadingIndicatorId() {
-    return 'statements-loading-indicator';
+    return `${this.pageIdPrefix}-loading-indicator`;
   }
 
   get emptyStateId() {
-    return 'statements-empty-state';
+    return `${this.pageIdPrefix}-empty-state`;
   }
 
   get errorStateId() {
-    return 'statements-error-state';
+    return `${this.pageIdPrefix}-error-state`;
   }
 
   // ========== Empty State Elements (page-specific) ==========
