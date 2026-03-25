@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '../common/OutlinedIcon';
@@ -65,4 +65,4 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
   );
 };
 
-export default ChatMessage;
+export default memo(ChatMessage);

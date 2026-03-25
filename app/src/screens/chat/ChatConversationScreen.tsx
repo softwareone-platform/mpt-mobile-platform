@@ -135,6 +135,13 @@ const ChatConversationScreenContent = () => {
     [contentFillsScreen],
   );
 
+  const renderMessage = useCallback(
+    ({ item }: { item: Message }) => (
+      <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
+    ),
+    [currentUserId, i18n.language],
+  );
+
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || !chatId || isSendingRef.current) {
       return;
@@ -241,9 +248,7 @@ const ChatConversationScreenContent = () => {
           inverted={contentFillsScreen}
           keyExtractor={(item) => item._localKey ?? item.id}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
-          )}
+          renderItem={renderMessage}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={LOAD_MORE_THRESHOLD}
           onContentSizeChange={handleContentSizeChange}
