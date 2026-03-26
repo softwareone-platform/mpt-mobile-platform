@@ -35,6 +35,7 @@ const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const [contentHeight, setContentHeight] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
+  const [layoutReady, setLayoutReady] = useState(false);
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageKeyRef = useRef<string | null>(null);
@@ -67,17 +68,25 @@ const ChatConversationScreenContent = () => {
       ? chatData.participants?.find((p) => p.identity.id !== currentUserId)
       : null;
 
+  const contentFillsScreen = contentHeight > layoutHeight;
+
   useEffect(() => {
     const newest = messages[0];
     const currentKey = newest?._localKey ?? newest?.id ?? null;
     const previousKey = previousFirstMessageKeyRef.current;
 
-    if (currentKey && currentKey !== previousKey && previousKey !== null && !newest?._optimistic) {
+    if (
+      contentFillsScreen &&
+      currentKey &&
+      currentKey !== previousKey &&
+      previousKey !== null &&
+      !newest?._optimistic
+    ) {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
 
     previousFirstMessageKeyRef.current = currentKey;
-  }, [messages]);
+  }, [messages, contentFillsScreen]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -87,6 +96,7 @@ const ChatConversationScreenContent = () => {
 
   const handleContentSizeChange = useCallback((_width: number, height: number) => {
     setContentHeight(height);
+    setLayoutReady(true);
     if (scrollToBottomOnContentChangeRef.current) {
       scrollToBottomOnContentChangeRef.current = false;
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -96,8 +106,6 @@ const ChatConversationScreenContent = () => {
   const handleLayout = useCallback((event: { nativeEvent: { layout: { height: number } } }) => {
     setLayoutHeight(event.nativeEvent.layout.height);
   }, []);
-
-  const contentFillsScreen = contentHeight > layoutHeight;
 
   const { onViewableItemsChanged, viewabilityConfig } = useMarkAsRead({
     chatId,
@@ -159,7 +167,7 @@ const ChatConversationScreenContent = () => {
       >
         <FlatList
           ref={flatListRef}
-          style={styles.flatList}
+          style={[styles.flatList, !layoutReady && styles.invisible]}
           contentContainerStyle={contentContainerStyle}
           data={displayMessages}
           extraData={displayMessages}
@@ -175,13 +183,7 @@ const ChatConversationScreenContent = () => {
           viewabilityConfig={viewabilityConfig}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
-          maintainVisibleContentPosition={
-            contentFillsScreen
-              ? {
-                  minIndexForVisible: 0,
-                }
-              : undefined
-          }
+          maintainVisibleContentPosition={contentFillsScreen ? { minIndexForVisible: 0 } : undefined}
         />
       </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
@@ -205,6 +207,9 @@ const styles = StyleSheet.create({
   flatList: {
     ...screenStyle.containerFlex,
     ...screenStyle.padding,
+  },
+  invisible: {
+    opacity: 0,
   },
 });
 
