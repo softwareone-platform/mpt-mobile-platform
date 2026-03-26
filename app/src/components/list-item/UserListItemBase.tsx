@@ -50,7 +50,7 @@ const UserListItemBase = ({
           isLast && styles.lastItem,
         ]}
       >
-        {leftElement && <View style={styles.leftWrapper}>{leftElement}</View>}
+        {leftElement && <View style={styles.leftElementWrapper}>{leftElement}</View>}
         <View style={styles.avatarWrapper}>
           <AvatarIcon id={id} imagePath={imagePath} size={44} />
         </View>
@@ -102,10 +102,7 @@ const styles = StyleSheet.create({
   firstItemDynamic: listItemStyle.listItemDynamic.firstItem,
   lastItemDynamic: listItemStyle.listItemDynamic.lastItem,
   lastItem: listItemStyle.lastItem,
-  leftWrapper: {
-    marginRight: 12,
-    justifyContent: 'center',
-  },
+  leftElementWrapper: listItemStyle.leftElementWrapper,
 });
 
 export default UserListItemBase;
