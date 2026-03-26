@@ -108,4 +108,8 @@ export type Message = {
   isDeleted: boolean;
   links: unknown[];
   audit: Audit;
+  _optimistic?: true;
+  _failed?: true;
+  /** Stable key for FlatList — preserved when optimistic message is replaced with real server data */
+  _localKey?: string;
 };
