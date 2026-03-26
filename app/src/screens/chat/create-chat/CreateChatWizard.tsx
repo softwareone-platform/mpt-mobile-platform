@@ -34,6 +34,8 @@ type CreateChatWizardProps = {
 
 const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
   const [step, setStep] = useState(WIZARD_INITIAL_STEP);
+  // must have chatType here, but it is not used untill we have POST API to create chat
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [chatType, setChatType] = useState<ChatType>(null);
   const [chatName, setChatName] = useState(EMPTY_STRING);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
