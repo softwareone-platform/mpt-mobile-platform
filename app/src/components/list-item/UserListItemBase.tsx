@@ -1,15 +1,25 @@
 import { useTranslation } from 'react-i18next';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 import AvatarIcon from '@/components/avatar/Avatar';
 import Chip from '@/components/chip/Chip';
-import NavigationItemChevron from '@/components/navigation-item/NavigationItemChevron';
 import { statusList } from '@/constants/status';
 import { listItemStyle, linkStyle } from '@/styles';
-import type { ListItemWithStatusProps } from '@/types/lists';
 import { getStatus } from '@/utils/list';
 
-const ListItemUser = ({
+type Props = {
+  id: string;
+  imagePath?: string;
+  title: string;
+  subtitle?: string;
+  statusText: string;
+  isFirst?: boolean;
+  isLast?: boolean;
+  leftElement?: React.ReactNode;
+  rightElement?: React.ReactNode;
+};
+
+const UserListItemBase = ({
   id,
   imagePath,
   title,
@@ -17,24 +27,21 @@ const ListItemUser = ({
   statusText,
   isFirst,
   isLast,
-  onPress,
-  testID,
-}: ListItemWithStatusProps) => {
+  leftElement,
+  rightElement,
+}: Props) => {
   const { t } = useTranslation();
-  const hasSubtitle = Boolean(subtitle);
 
+  const hasSubtitle = Boolean(subtitle);
   const status = getStatus(statusText, statusList);
 
   return (
-    <TouchableOpacity
-      testID={testID}
+    <View
       style={[
         styles.container,
         isFirst && styles.firstItemDynamic,
         isLast && styles.lastItemDynamic,
       ]}
-      onPress={onPress}
-      activeOpacity={0.7}
     >
       <View
         style={[
@@ -43,26 +50,29 @@ const ListItemUser = ({
           isLast && styles.lastItem,
         ]}
       >
+        {leftElement && <View style={styles.leftWrapper}>{leftElement}</View>}
         <View style={styles.avatarWrapper}>
           <AvatarIcon id={id} imagePath={imagePath} size={44} />
         </View>
 
         <View style={styles.textContainer}>
           {hasSubtitle && (
-            <Text style={[styles.title, styles.titleMain]} numberOfLines={1} ellipsizeMode="tail">
+            <Text style={[styles.title, styles.titleMain]} numberOfLines={1}>
               {title.trim()}
             </Text>
           )}
+
           <Text style={[styles.subtitle, !hasSubtitle && styles.title]} numberOfLines={1}>
             {hasSubtitle ? subtitle?.trim() : title.trim()}
           </Text>
         </View>
+
         <View style={styles.statusContainer}>
           {status && <Chip status={status} text={t(`status.${statusText}`)} />}
-          <NavigationItemChevron />
+          {rightElement}
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -71,14 +81,13 @@ const styles = StyleSheet.create({
     ...listItemStyle.container,
     ...listItemStyle.listItemDynamic.container,
   },
-  lastItem: listItemStyle.lastItem,
-  avatarWrapper: listItemStyle.textAndImage.avatarWrapper,
   contentWrapper: {
     ...listItemStyle.contentWrapper,
     ...listItemStyle.textAndImage.contentWrapper,
     ...listItemStyle.listItemDynamic.contentWrapper,
   },
   inlineContentWrapper: listItemStyle.textInline.contentWrapper,
+  avatarWrapper: listItemStyle.textAndImage.avatarWrapper,
   textContainer: {
     ...listItemStyle.textContainer,
     ...listItemStyle.textContainerGrow,
@@ -92,6 +101,11 @@ const styles = StyleSheet.create({
   statusContainer: listItemStyle.statusContainer,
   firstItemDynamic: listItemStyle.listItemDynamic.firstItem,
   lastItemDynamic: listItemStyle.listItemDynamic.lastItem,
+  lastItem: listItemStyle.lastItem,
+  leftWrapper: {
+    marginRight: 12,
+    justifyContent: 'center',
+  },
 });
 
-export default ListItemUser;
+export default UserListItemBase;

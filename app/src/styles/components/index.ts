@@ -21,3 +21,4 @@ export { badgeStyle } from './badge';
 export { chatStyle, chatMessageStyle, createChatWizardStyle } from './chat';
 export { bottomSheetStyle } from './bottomSheet';
 export { iconStyle } from './icon';
+export { checkboxStyle } from './checkbox';
