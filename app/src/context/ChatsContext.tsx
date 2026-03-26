@@ -41,7 +41,10 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
     fetchNextPage,
   } = useChatsData(userId, currentAccountId);
 
-  const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
+  const chats = useMemo(
+    () => data?.pages.flatMap((page) => page.data).filter((chat) => chat.type !== 'Case') ?? [],
+    [data],
+  );
 
   useEffect(() => {
     if (data) {
