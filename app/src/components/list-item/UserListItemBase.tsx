@@ -5,19 +5,8 @@ import AvatarIcon from '@/components/avatar/Avatar';
 import Chip from '@/components/chip/Chip';
 import { statusList } from '@/constants/status';
 import { listItemStyle, linkStyle } from '@/styles';
+import type { ListItemWithStatusProps } from '@/types/lists';
 import { getStatus } from '@/utils/list';
-
-type Props = {
-  id: string;
-  imagePath?: string;
-  title: string;
-  subtitle?: string;
-  statusText: string;
-  isFirst?: boolean;
-  isLast?: boolean;
-  leftElement?: React.ReactNode;
-  rightElement?: React.ReactNode;
-};
 
 const UserListItemBase = ({
   id,
@@ -29,7 +18,7 @@ const UserListItemBase = ({
   isLast,
   leftElement,
   rightElement,
-}: Props) => {
+}: ListItemWithStatusProps) => {
   const { t } = useTranslation();
 
   const hasSubtitle = Boolean(subtitle);
