@@ -37,6 +37,7 @@ interface MessagesProviderProps {
 
 const MessagesContext = createContext<MessagesContextValue | undefined>(undefined);
 
+const LOCAL_KEY_PRUNE_DELAY_MS = 1000;
 const MESSAGE_SUBSCRIPTIONS: EntitySubscription[] = [
   { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
 ];
@@ -77,18 +78,30 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
     );
   }, []);
 
+  const serverMessages = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
+
   useEffect(() => {
-    const serverMessages = data?.pages.flatMap((page) => page.data) ?? [];
     if (serverMessages.length === 0) return;
     const serverIds = new Set(serverMessages.map((m) => m.id));
+
     setLocalMessages((prev) => {
       const next = prev.filter((m) => !serverIds.has(m.id));
       return next.length === prev.length ? prev : next;
     });
-  }, [data]);
+
+    // Prune after a delay to avoid disrupting in-progress FlatList key transitions
+    const timer = setTimeout(() => {
+      for (const [id] of localKeyByIdRef.current) {
+        if (serverIds.has(id)) {
+          localKeyByIdRef.current.delete(id);
+        }
+      }
+    }, LOCAL_KEY_PRUNE_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, [serverMessages]);
 
   const messages = useMemo(() => {
-    const serverMessages = data?.pages.flatMap((page) => page.data) ?? [];
     const serverIds = new Set(serverMessages.map((m) => m.id));
     const localOnlyMessages = localMessages.filter((m) => !serverIds.has(m.id));
 
@@ -98,7 +111,7 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
     });
 
     return [...localOnlyMessages, ...mergedServerMessages];
-  }, [data, localMessages]);
+  }, [serverMessages, localMessages]);
 
   useEffect(() => {
     if (chatId) {
