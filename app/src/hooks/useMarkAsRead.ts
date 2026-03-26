@@ -9,12 +9,13 @@ const VIEWABILITY_ITEM_PERCENT_THRESHOLD = 50;
 const VIEWABILITY_MIN_VIEW_TIME_MS = 500;
 const MARK_AS_READ_DEBOUNCE_MS = 200;
 
-interface UseMarkAsReadParams {
+export interface UseMarkAsReadParams {
   chatId: string | undefined;
   myParticipant: ChatParticipant | undefined;
   messages: Message[];
   contentFillsScreen: boolean;
   saveParticipant: (participant: Partial<ChatParticipant>) => Promise<ChatParticipant>;
+  currentUserId: string;
 }
 
 export function useMarkAsRead({
@@ -23,9 +24,11 @@ export function useMarkAsRead({
   messages,
   contentFillsScreen,
   saveParticipant,
+  currentUserId,
 }: UseMarkAsReadParams) {
   const queryClient = useQueryClient();
   const lastReadMessageIdRef = useRef<string | null>(null);
+  const lastReadCreatedAtRef = useRef<number | null>(null);
   const markAsReadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingMessageIdRef = useRef<string | null>(null);
   const pendingMessageCreatedAtRef = useRef<string | null>(null);
@@ -47,21 +50,30 @@ export function useMarkAsRead({
         return;
       }
 
+      const messageCreatedAtMs = new Date(messageCreatedAt).getTime();
+
+      // Guard against rapid scrolling: if we've already attempted a newer timestamp
+      // this session, skip — the server would reject it as older regardless.
+      const lastAttemptedMs = lastReadCreatedAtRef.current;
+      if (lastAttemptedMs !== null && messageCreatedAtMs <= lastAttemptedMs) {
+        return;
+      }
+
       const currentLastReadMessage = currentParticipant.lastReadMessage;
       if (currentLastReadMessage?.id) {
         const currentLastReadTimestamp = messages.find((m) => m.id === currentLastReadMessage.id)
           ?.audit.created?.at;
 
-        if (currentLastReadTimestamp) {
-          const currentDate = new Date(currentLastReadTimestamp);
-          const messageDate = new Date(messageCreatedAt);
-          if (messageDate <= currentDate) {
-            return;
-          }
+        if (
+          currentLastReadTimestamp &&
+          messageCreatedAtMs <= new Date(currentLastReadTimestamp).getTime()
+        ) {
+          return;
         }
       }
 
       lastReadMessageIdRef.current = messageId;
+      lastReadCreatedAtRef.current = messageCreatedAtMs;
 
       try {
         await saveParticipant({
@@ -70,6 +82,7 @@ export function useMarkAsRead({
         });
       } catch (error) {
         lastReadMessageIdRef.current = null;
+        lastReadCreatedAtRef.current = null;
 
         void queryClient.invalidateQueries({ queryKey: ['chats'] });
 
@@ -119,6 +132,10 @@ export function useMarkAsRead({
         return;
       }
 
+      if (messageItem?._optimistic || messageItem?.identity?.id === currentUserId) {
+        return;
+      }
+
       pendingMessageIdRef.current = messageId;
       pendingMessageCreatedAtRef.current = messageCreatedAt;
 
@@ -135,7 +152,7 @@ export function useMarkAsRead({
         markAsReadTimeoutRef.current = null;
       }, MARK_AS_READ_DEBOUNCE_MS);
     },
-    [markAsRead],
+    [markAsRead, currentUserId],
   );
 
   const viewabilityConfig = useMemo(

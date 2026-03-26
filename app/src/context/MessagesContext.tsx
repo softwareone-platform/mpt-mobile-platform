@@ -1,5 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useSignalR } from '@/context/SignalRContext';
 import { useMessagesData } from '@/hooks/queries/useMessagesData';
@@ -16,6 +25,9 @@ interface MessagesContextValue {
   isUnauthorised: boolean;
   fetchMessages: () => void;
   chatId: string | undefined;
+  addOptimisticMessage: (message: Message) => void;
+  replaceOptimisticMessage: (optimisticId: string, realMessage: Message) => void;
+  markMessageFailed: (optimisticId: string) => void;
 }
 
 interface MessagesProviderProps {
@@ -25,6 +37,7 @@ interface MessagesProviderProps {
 
 const MessagesContext = createContext<MessagesContextValue | undefined>(undefined);
 
+const LOCAL_KEY_PRUNE_DELAY_MS = 1000;
 const MESSAGE_SUBSCRIPTIONS: EntitySubscription[] = [
   { moduleName: 'Helpdesk', entityName: 'ChatMessage' },
 ];
@@ -43,7 +56,62 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
     fetchNextPage,
   } = useMessagesData(chatId);
 
-  const messages = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  const localKeyByIdRef = useRef<Map<string, string>>(new Map());
+
+  const addOptimisticMessage = useCallback((message: Message) => {
+    setLocalMessages((prev) => [message, ...prev]);
+  }, []);
+
+  const replaceOptimisticMessage = useCallback((optimisticId: string, realMessage: Message) => {
+    localKeyByIdRef.current.set(realMessage.id, optimisticId);
+    setLocalMessages((prev) =>
+      prev.map((m) => (m.id === optimisticId ? { ...realMessage, _localKey: optimisticId } : m)),
+    );
+  }, []);
+
+  const markMessageFailed = useCallback((optimisticId: string) => {
+    setLocalMessages((prev) =>
+      prev.map((m) =>
+        m.id === optimisticId ? { ...m, _optimistic: undefined, _failed: true as const } : m,
+      ),
+    );
+  }, []);
+
+  const serverMessages = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
+
+  useEffect(() => {
+    if (serverMessages.length === 0) return;
+    const serverIds = new Set(serverMessages.map((m) => m.id));
+
+    setLocalMessages((prev) => {
+      const next = prev.filter((m) => !serverIds.has(m.id));
+      return next.length === prev.length ? prev : next;
+    });
+
+    // Prune after a delay to avoid disrupting in-progress FlatList key transitions
+    const timer = setTimeout(() => {
+      for (const [id] of localKeyByIdRef.current) {
+        if (serverIds.has(id)) {
+          localKeyByIdRef.current.delete(id);
+        }
+      }
+    }, LOCAL_KEY_PRUNE_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, [serverMessages]);
+
+  const messages = useMemo(() => {
+    const serverIds = new Set(serverMessages.map((m) => m.id));
+    const localOnlyMessages = localMessages.filter((m) => !serverIds.has(m.id));
+
+    const mergedServerMessages = serverMessages.map((m) => {
+      const localKey = localKeyByIdRef.current.get(m.id);
+      return localKey ? { ...m, _localKey: localKey } : m;
+    });
+
+    return [...localOnlyMessages, ...mergedServerMessages];
+  }, [serverMessages, localMessages]);
 
   useEffect(() => {
     if (chatId) {
@@ -77,10 +145,15 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
         return;
       }
 
-      logger.debug('[MessagesContext] New message received via SignalR, invalidating cache', {
+      logger.debug('[MessagesContext] New message received via SignalR, adding to local messages', {
         messageId: message.id,
         event: notification.event,
         chatId,
+      });
+
+      setLocalMessages((prev) => {
+        const exists = prev.some((m) => m.id === message.id);
+        return exists ? prev : [message, ...prev];
       });
 
       void queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
@@ -108,6 +181,9 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
         isUnauthorised,
         fetchMessages: fetchNextPage,
         chatId,
+        addOptimisticMessage,
+        replaceOptimisticMessage,
+        markMessageFailed,
       }}
     >
       {children}

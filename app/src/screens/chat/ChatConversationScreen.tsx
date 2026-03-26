@@ -20,6 +20,7 @@ import { useMessages, MessagesProvider } from '@/context/MessagesContext';
 import { useChatData } from '@/hooks/queries/useChatData';
 import { useMarkAsRead } from '@/hooks/useMarkAsRead';
 import { useMyParticipant } from '@/hooks/useMyParticipant';
+import { useSendMessage } from '@/hooks/useSendMessage';
 import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
@@ -27,7 +28,6 @@ import type { RootStackParamList } from '@/types/navigation';
 import { mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
-const SCROLL_TO_NEWEST_DELAY_MS = 200;
 const KEYBOARD_VERTICAL_OFFSET = 100;
 const LOAD_MORE_THRESHOLD = 0.5;
 
@@ -37,7 +37,8 @@ const ChatConversationScreenContent = () => {
   const [layoutHeight, setLayoutHeight] = useState(0);
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
-  const previousFirstMessageIdRef = useRef<string | null>(null);
+  const previousFirstMessageKeyRef = useRef<string | null>(null);
+  const scrollToBottomOnContentChangeRef = useRef(false);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
 
@@ -66,39 +67,23 @@ const ChatConversationScreenContent = () => {
       ? chatData.participants?.find((p) => p.identity.id !== currentUserId)
       : null;
 
-  const handleScrollToIndexFailed = useCallback(() => {
-    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, []);
-
-  const scrollToNewestMessage = useCallback(() => {
-    if (messages.length === 0) return;
-
-    setTimeout(() => {
-      try {
-        flatListRef.current?.scrollToIndex({
-          index: 0,
-          animated: true,
-        });
-      } catch (error) {
-        handleScrollToIndexFailed();
-      }
-    }, SCROLL_TO_NEWEST_DELAY_MS);
-  }, [messages.length, handleScrollToIndexFailed]);
-
   useEffect(() => {
-    const currentFirstMessageId = messages[0]?.id ?? null;
-    const previousFirstMessageId = previousFirstMessageIdRef.current;
+    const newest = messages[0];
+    const currentKey = newest?._localKey ?? newest?.id ?? null;
+    const previousKey = previousFirstMessageKeyRef.current;
 
     if (
-      currentFirstMessageId &&
-      currentFirstMessageId !== previousFirstMessageId &&
-      previousFirstMessageId !== null
+      currentKey &&
+      currentKey !== previousKey &&
+      previousKey !== null &&
+      !newest?._optimistic &&
+      newest?.identity?.id !== currentUserId
     ) {
-      scrollToNewestMessage();
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
 
-    previousFirstMessageIdRef.current = currentFirstMessageId;
-  }, [messages, scrollToNewestMessage]);
+    previousFirstMessageKeyRef.current = currentKey;
+  }, [messages, currentUserId]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -108,6 +93,10 @@ const ChatConversationScreenContent = () => {
 
   const handleContentSizeChange = useCallback((_width: number, height: number) => {
     setContentHeight(height);
+    if (scrollToBottomOnContentChangeRef.current) {
+      scrollToBottomOnContentChangeRef.current = false;
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
   }, []);
 
   const handleLayout = useCallback((event: { nativeEvent: { layout: { height: number } } }) => {
@@ -122,6 +111,7 @@ const ChatConversationScreenContent = () => {
     messages,
     contentFillsScreen,
     saveParticipant,
+    currentUserId,
   });
 
   const displayMessages = useMemo(
@@ -134,10 +124,18 @@ const ChatConversationScreenContent = () => {
     [contentFillsScreen],
   );
 
-  const sendMessage = () => {
-    if (!inputText.trim()) return;
-    setInputText('');
-  };
+  const renderMessage = useCallback(
+    ({ item }: { item: Message }) => (
+      <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
+    ),
+    [currentUserId, i18n.language],
+  );
+
+  const onBeforeSend = useCallback(() => {
+    scrollToBottomOnContentChangeRef.current = true;
+  }, []);
+
+  const sendMessage = useSendMessage({ chatId, inputText, setInputText, onBeforeSend });
 
   return (
     <KeyboardAvoidingView
@@ -172,14 +170,11 @@ const ChatConversationScreenContent = () => {
           data={displayMessages}
           extraData={displayMessages}
           inverted={contentFillsScreen}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._localKey ?? item.id}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
-          )}
+          renderItem={renderMessage}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={LOAD_MORE_THRESHOLD}
-          onScrollToIndexFailed={handleScrollToIndexFailed}
           onContentSizeChange={handleContentSizeChange}
           onLayout={handleLayout}
           onViewableItemsChanged={onViewableItemsChanged}

@@ -1,6 +1,6 @@
 import { OutlinedIcons } from '@assets/icons';
 import { useTranslation } from 'react-i18next';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { buttonStyle, Color, inputStyle, chatStyle } from '@/styles';
@@ -37,13 +37,18 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
         />
       </View>
 
-      <View style={styles.buttonPrimaryIconOnly}>
+      {/* TODO: add visual disabled state when !value.trim() */}
+      <TouchableOpacity
+        style={styles.buttonPrimaryIconOnly}
+        onPress={onSend}
+        disabled={!value.trim()}
+      >
         <OutlinedIcon
           name={'arrow-upward' as keyof typeof OutlinedIcons}
           color={Color.brand.white}
           size={24}
         />
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };
