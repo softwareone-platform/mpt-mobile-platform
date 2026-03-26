@@ -24,16 +24,20 @@ class InvoicesPage extends ListPage {
     return 'Invoices';
   }
 
+  get pageIdPrefix() {
+    return 'invoices';
+  }
+
   get loadingIndicatorId() {
-    return 'invoices-loading-indicator';
+    return `${this.pageIdPrefix}-loading-indicator`;
   }
 
   get emptyStateId() {
-    return 'invoices-empty-state';
+    return `${this.pageIdPrefix}-empty-state`;
   }
 
   get errorStateId() {
-    return 'invoices-error-state';
+    return `${this.pageIdPrefix}-error-state`;
   }
 
   // ========== Empty State Elements (page-specific) ========== 
