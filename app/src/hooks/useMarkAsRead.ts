@@ -9,7 +9,7 @@ const VIEWABILITY_ITEM_PERCENT_THRESHOLD = 50;
 const VIEWABILITY_MIN_VIEW_TIME_MS = 500;
 const MARK_AS_READ_DEBOUNCE_MS = 200;
 
-interface UseMarkAsReadParams {
+export interface UseMarkAsReadParams {
   chatId: string | undefined;
   myParticipant: ChatParticipant | undefined;
   messages: Message[];
@@ -28,7 +28,7 @@ export function useMarkAsRead({
 }: UseMarkAsReadParams) {
   const queryClient = useQueryClient();
   const lastReadMessageIdRef = useRef<string | null>(null);
-  const lastReadCreatedAtRef = useRef<string | null>(null);
+  const lastReadCreatedAtRef = useRef<number | null>(null);
   const markAsReadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingMessageIdRef = useRef<string | null>(null);
   const pendingMessageCreatedAtRef = useRef<string | null>(null);
@@ -50,10 +50,12 @@ export function useMarkAsRead({
         return;
       }
 
+      const messageCreatedAtMs = new Date(messageCreatedAt).getTime();
+
       // Guard against rapid scrolling: if we've already attempted a newer timestamp
       // this session, skip — the server would reject it as older regardless.
-      const lastAttemptedAt = lastReadCreatedAtRef.current;
-      if (lastAttemptedAt && new Date(messageCreatedAt) <= new Date(lastAttemptedAt)) {
+      const lastAttemptedMs = lastReadCreatedAtRef.current;
+      if (lastAttemptedMs !== null && messageCreatedAtMs <= lastAttemptedMs) {
         return;
       }
 
@@ -62,17 +64,16 @@ export function useMarkAsRead({
         const currentLastReadTimestamp = messages.find((m) => m.id === currentLastReadMessage.id)
           ?.audit.created?.at;
 
-        if (currentLastReadTimestamp) {
-          const currentDate = new Date(currentLastReadTimestamp);
-          const messageDate = new Date(messageCreatedAt);
-          if (messageDate <= currentDate) {
-            return;
-          }
+        if (
+          currentLastReadTimestamp &&
+          messageCreatedAtMs <= new Date(currentLastReadTimestamp).getTime()
+        ) {
+          return;
         }
       }
 
       lastReadMessageIdRef.current = messageId;
-      lastReadCreatedAtRef.current = messageCreatedAt;
+      lastReadCreatedAtRef.current = messageCreatedAtMs;
 
       try {
         await saveParticipant({
