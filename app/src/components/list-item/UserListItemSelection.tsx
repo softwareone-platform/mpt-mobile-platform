@@ -13,10 +13,7 @@ type UserListItemSelectionProps = ListItemWithStatusProps & {
 const UserListItemSelection = ({ selected, onToggle, ...rest }: UserListItemSelectionProps) => {
   return (
     <TouchableOpacity onPress={onToggle} activeOpacity={0.7}>
-      <UserListItemBase
-        {...rest}
-        leftElement={<Checkbox selected={selected} onPress={onToggle} />}
-      />
+      <UserListItemBase {...rest} leftElement={<Checkbox selected={selected} />} />
     </TouchableOpacity>
   );
 };
