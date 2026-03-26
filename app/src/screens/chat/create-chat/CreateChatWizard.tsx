@@ -57,10 +57,7 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
   };
 
   const handleNext = () => {
-    if (step === 1) {
-      if (!chatType) return;
-      setStep(1);
-    } else if (step === 2) {
+    if (step === 2) {
       if (!chatName.trim()) return;
       setStep(3);
     } else if (step === 3) {
