@@ -72,18 +72,12 @@ const ChatConversationScreenContent = () => {
     const currentKey = newest?._localKey ?? newest?.id ?? null;
     const previousKey = previousFirstMessageKeyRef.current;
 
-    if (
-      currentKey &&
-      currentKey !== previousKey &&
-      previousKey !== null &&
-      !newest?._optimistic &&
-      newest?.identity?.id !== currentUserId
-    ) {
+    if (currentKey && currentKey !== previousKey && previousKey !== null && !newest?._optimistic) {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
 
     previousFirstMessageKeyRef.current = currentKey;
-  }, [messages, currentUserId]);
+  }, [messages]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
