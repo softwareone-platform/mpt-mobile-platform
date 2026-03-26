@@ -1,6 +1,5 @@
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { useQueryClient } from '@tanstack/react-query';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,8 +20,7 @@ import { useMessages, MessagesProvider } from '@/context/MessagesContext';
 import { useChatData } from '@/hooks/queries/useChatData';
 import { useMarkAsRead } from '@/hooks/useMarkAsRead';
 import { useMyParticipant } from '@/hooks/useMyParticipant';
-import { logger } from '@/services/loggerService';
-import { useMessageApi } from '@/services/messageService';
+import { useSendMessage } from '@/hooks/useSendMessage';
 import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
@@ -41,13 +39,8 @@ const ChatConversationScreenContent = () => {
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageKeyRef = useRef<string | null>(null);
   const scrollToBottomOnContentChangeRef = useRef(false);
-  const isSendingRef = useRef(false);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
-  const currentAccountId = userData?.currentAccount?.id;
-  const userName = userData?.name ?? '';
-  const userIcon = userData?.icon;
-  const queryClient = useQueryClient();
 
   const {
     messages,
@@ -58,15 +51,11 @@ const ChatConversationScreenContent = () => {
     isUnauthorised,
     fetchMessages,
     chatId,
-    addOptimisticMessage,
-    replaceOptimisticMessage,
-    markMessageFailed,
   } = useMessages();
 
   const { data: chatData } = useChatData(chatId);
   const myParticipant = useMyParticipant(chatData, currentUserId);
   const { saveParticipant } = useParticipantApi(chatId ?? '');
-  const { saveMessage } = useMessageApi(chatId ?? '');
 
   const chatProps = useMemo(
     () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
@@ -142,76 +131,11 @@ const ChatConversationScreenContent = () => {
     [currentUserId, i18n.language],
   );
 
-  const sendMessage = useCallback(async () => {
-    if (!inputText.trim() || !chatId || isSendingRef.current) {
-      return;
-    }
-
-    isSendingRef.current = true;
-    const messageContent = inputText.trim();
-    const optimisticId = `optimistic-${Date.now()}`;
-    const optimisticMessage: Message = {
-      id: optimisticId,
-      revision: 0,
-      content: messageContent,
-      visibility: 'Public',
-      isDeleted: false,
-      links: [],
-      identity: {
-        id: currentUserId,
-        name: userName,
-        icon: userIcon,
-        revision: 0,
-      },
-      audit: {
-        created: { at: new Date().toISOString(), by: null },
-      },
-      _optimistic: true,
-      _localKey: optimisticId,
-    };
-
+  const onBeforeSend = useCallback(() => {
     scrollToBottomOnContentChangeRef.current = true;
-    addOptimisticMessage(optimisticMessage);
-    setInputText('');
+  }, []);
 
-    try {
-      const response = await saveMessage({
-        content: messageContent,
-        visibility: 'Public',
-        isDeleted: false,
-        links: [],
-      });
-
-      replaceOptimisticMessage(optimisticId, response);
-
-      if (currentUserId && currentAccountId) {
-        void queryClient.invalidateQueries({
-          queryKey: ['chats', currentUserId, currentAccountId],
-        });
-      }
-    } catch (error) {
-      logger.error('[ChatConversationScreen] Failed to send message', error, {
-        operation: 'sendMessage',
-        chatId,
-      });
-      markMessageFailed(optimisticId);
-      setInputText(messageContent);
-    } finally {
-      isSendingRef.current = false;
-    }
-  }, [
-    inputText,
-    chatId,
-    currentUserId,
-    userName,
-    userIcon,
-    saveMessage,
-    addOptimisticMessage,
-    replaceOptimisticMessage,
-    markMessageFailed,
-    queryClient,
-    currentAccountId,
-  ]);
+  const sendMessage = useSendMessage({ chatId, inputText, setInputText, onBeforeSend });
 
   return (
     <KeyboardAvoidingView
