@@ -399,6 +399,55 @@ export const buttonStyle = {
 } as const;
 ```
 
+### Raw Values vs. Design Tokens
+
+Not all numeric values in styles require a design token. The rule depends on **what the value represents**:
+
+| Value type                              | Where to define         | Token required? |
+| --------------------------------------- | ----------------------- | --------------- |
+| **Spacing** (margin, padding, gap)      | `@/styles/components/`  | ✅ Yes          |
+| **Color**                               | `@/styles/components/`  | ✅ Yes          |
+| **Typography** (fontSize, lineHeight)   | `@/styles/components/`  | ✅ Yes          |
+| **Border radius**                       | `@/styles/components/`  | ✅ Yes          |
+| **Intrinsic sizing** (width, height)    | `@/styles/components/`  | ❌ Raw is fine  |
+
+**Intrinsic sizing** refers to dimensions that are specific to a single component's visual identity (e.g., the size of a checkbox or an icon container). These may use raw numeric values because they have no corresponding design token — but they must still be defined in `@/styles/components/`, not in the component's `StyleSheet.create()`.
+
+```typescript
+// @/styles/components/checkbox.ts
+import { Spacing } from '@/styles/tokens';
+
+export const checkboxStyle = {
+  // ✅ Raw values for intrinsic sizing — acceptable
+  box: {
+    width: 22,
+    height: 22,
+  },
+  // ✅ Spacing uses tokens — required
+  wrapper: {
+    marginRight: Spacing.spacing3,
+  },
+} as const;
+```
+
+```typescript
+// In a component file
+import { checkboxStyle } from '@/styles/components';
+
+// ✅ Correct — spacing comes from the style layer
+const styles = StyleSheet.create({
+  checkbox: checkboxStyle.box,
+  wrapper: checkboxStyle.wrapper,
+});
+
+// ❌ Incorrect — spacing defined directly in the component
+const styles = StyleSheet.create({
+  wrapper: {
+    marginRight: 12, // Spacing must use tokens via @/styles/components/
+  },
+});
+```
+
 ### ESLint Rules
 
 The following are enforced:
