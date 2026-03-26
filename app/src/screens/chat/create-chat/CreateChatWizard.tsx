@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
   TouchableOpacity,
@@ -14,34 +13,42 @@ import {
 
 import ChatDetailsStep from './ChatDetailsStep';
 import ChatTypeStep from './ChatTypeStep';
+import ChatUsersStep from './ChatUsersStep';
 
 import BottomSheet from '@/components/modal/BottomSheet';
+import {
+  KEYBOARD_VERTICAL_OFFSET_IOS,
+  KEYBOARD_VERTICAL_OFFSET_NONE,
+  WIZARD_INITIAL_STEP,
+  EMPTY_STRING,
+} from '@/constants';
 import { createChatWizardStyle, screenStyle, spacingStyle } from '@/styles';
 import type { ChatType } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type Props = {
+type CreateChatWizardProps = {
   visible: boolean;
   onClose: () => void;
 };
 
-const KEYBOARD_VERTICAL_OFFSET_IOS = 200;
-const KEYBOARD_VERTICAL_OFFSET_NONE = 0;
-
-const CreateChatWizard = ({ visible, onClose }: Props) => {
-  const [step, setStep] = useState(0);
+const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
+  const [step, setStep] = useState(WIZARD_INITIAL_STEP);
+  // must have chatType here, but it is not used untill we have POST API to create chat
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [chatType, setChatType] = useState<ChatType>(null);
-  const [chatName, setChatName] = useState('');
+  const [chatName, setChatName] = useState(EMPTY_STRING);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handleClose = useCallback(() => {
-    setStep(0);
+    setStep(WIZARD_INITIAL_STEP);
     setChatType(null);
-    setChatName('');
+    setChatName(EMPTY_STRING);
+    setSelectedIds([]);
     onClose();
   }, [onClose]);
 
@@ -52,15 +59,16 @@ const CreateChatWizard = ({ visible, onClose }: Props) => {
   };
 
   const handleNext = () => {
-    if (step === 0) {
-      if (!chatType) return;
-      setStep(1);
-    } else if (step === 1) {
+    if (step === 2) {
       if (!chatName.trim()) return;
-      setStep(2);
-    } else if (step === 2) {
+      setStep(3);
+    } else if (step === 3) {
       handleNavigateToChat();
     }
+  };
+
+  const toggleParticipant = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   return (
@@ -75,7 +83,7 @@ const CreateChatWizard = ({ visible, onClose }: Props) => {
           <Text style={styles.headerTitle}>{t('createChatWizard.title')}</Text>
         </View>
         <View style={styles.headerSide}>
-          {step > 0 && (
+          {step > 1 && (
             <TouchableOpacity onPress={handleNext}>
               <Text style={styles.headerTextNext}>{t('createChatWizard.next')}</Text>
             </TouchableOpacity>
@@ -90,11 +98,11 @@ const CreateChatWizard = ({ visible, onClose }: Props) => {
           }
           style={styles.container}
         >
-          {step === 0 && (
+          {step === 1 && (
             <ChatTypeStep
               onSelectChatType={(type) => {
                 setChatType(type);
-                setStep(1);
+                setStep(2);
               }}
               onSelectParticipant={() => {
                 handleNavigateToChat();
@@ -102,14 +110,10 @@ const CreateChatWizard = ({ visible, onClose }: Props) => {
             />
           )}
 
-          {step === 1 && <ChatDetailsStep chatName={chatName} setChatName={setChatName} />}
+          {step === 2 && <ChatDetailsStep chatName={chatName} setChatName={setChatName} />}
 
-          {step === 2 && (
-            <View>
-              <ScrollView>
-                <Text>User list placeholder</Text>
-              </ScrollView>
-            </View>
+          {step === 3 && (
+            <ChatUsersStep selectedIds={selectedIds} onToggleParticipant={toggleParticipant} />
           )}
         </KeyboardAvoidingView>
       </View>

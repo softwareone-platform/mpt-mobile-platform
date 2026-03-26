@@ -5,7 +5,7 @@ import { View, StyleSheet, FlatList } from 'react-native';
 import ContactData from './ContactsData.json';
 
 import NavigationGroupCard from '@/components/card/NavigationGroupCard';
-import ListItemUser from '@/components/list-item/ListItemUser';
+import UserListItemNavigation from '@/components/list-item/UserListItemNavigation';
 import NavigationItemWithIcon from '@/components/navigation-item/NavigationItemWithIcon';
 import SearchInput from '@/components/search/SearchInput';
 import { screenStyle, spacingStyle } from '@/styles';
@@ -64,12 +64,12 @@ const ChatTypeStep = ({ onSelectChatType, onSelectParticipant }: ChatTypeStepPro
           const isLast = index === contactsData.length - 1;
 
           return (
-            <ListItemUser
+            <UserListItemNavigation
               id={item.identity.id}
               imagePath={item.identity.icon}
               title={item.identity.name}
               subtitle={item.identity.id}
-              statusText={item?.status}
+              statusText={item.status}
               isFirst={isFirst}
               isLast={isLast}
               onPress={onSelectParticipant}
