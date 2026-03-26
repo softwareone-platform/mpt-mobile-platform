@@ -26,7 +26,7 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
       StyleSheet.create({
         /* eslint-disable react-native/no-unused-styles */
         container: chatMessageStyle[type].container,
-        messageWrapper: chatMessageStyle.messageWrapper,
+        messageWrapper: chatMessageStyle[type].messageWrapper,
         textContainer: chatMessageStyle[type].textContainer,
         text: chatMessageStyle[type].text,
         info: chatMessageStyle[type].info,

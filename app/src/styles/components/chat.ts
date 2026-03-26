@@ -2,7 +2,8 @@ import type { ViewStyle, TextStyle } from 'react-native';
 
 import { BorderRadius, Color, Spacing, Typography } from '../tokens';
 
-const AVATAR_OFFSET_HORIZONTAL = 48;
+const SMALL_AVATAR_SIZE = 32;
+const AVATAR_OFFSET_HORIZONTAL = SMALL_AVATAR_SIZE + Spacing.spacing2;
 const AVATAR_OFFSET_VERTICAL = 22;
 
 const containerCommon: ViewStyle = {
@@ -53,13 +54,14 @@ export const chatStyle = {
   },
 } as const;
 
+const messageWrapperCommon: ViewStyle = {
+  flexGrow: 1,
+  flexShrink: 1,
+};
+
 export const chatMessageStyle = {
   avatarWrapper: {
     paddingTop: AVATAR_OFFSET_VERTICAL,
-  },
-  messageWrapper: {
-    flexGrow: 1,
-    flexShrink: 1,
   },
   infoText: {
     color: Color.gray.gray4,
@@ -67,11 +69,16 @@ export const chatMessageStyle = {
   own: {
     container: {
       ...containerCommon,
+      justifyContent: 'flex-end',
+      paddingLeft: AVATAR_OFFSET_HORIZONTAL,
+    },
+    messageWrapper: {
+      ...messageWrapperCommon,
+      alignItems: 'flex-end',
     },
     textContainer: {
       ...textContainerCommon,
       backgroundColor: Color.brand.primary,
-      marginLeft: AVATAR_OFFSET_HORIZONTAL,
     },
     text: {
       ...chatTextCommon,
@@ -79,12 +86,15 @@ export const chatMessageStyle = {
     },
     info: {
       ...infoCommon,
-      justifyContent: 'flex-end',
     },
   },
   other: {
     container: {
       ...containerCommon,
+    },
+    messageWrapper: {
+      ...messageWrapperCommon,
+      alignItems: 'flex-start',
     },
     textContainer: {
       ...textContainerCommon,
