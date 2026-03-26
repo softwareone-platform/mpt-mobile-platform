@@ -20,10 +20,4 @@ const UserListItemSelection = ({ selected, onToggle, ...rest }: Props) => {
   );
 };
 
-// const styles = StyleSheet.create({
-//   selectionWrapper: {
-//     // marginLeft: 12,
-//   },
-// });
-
 export default UserListItemSelection;
