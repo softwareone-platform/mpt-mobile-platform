@@ -183,7 +183,9 @@ const ChatConversationScreenContent = () => {
           viewabilityConfig={viewabilityConfig}
           ListHeaderComponent={messagesFetchingNext ? <ActivityIndicator /> : null}
           showsVerticalScrollIndicator={false}
-          maintainVisibleContentPosition={contentFillsScreen ? { minIndexForVisible: 0 } : undefined}
+          maintainVisibleContentPosition={
+            contentFillsScreen ? { minIndexForVisible: 0 } : undefined
+          }
         />
       </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
