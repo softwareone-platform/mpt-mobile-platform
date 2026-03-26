@@ -19,6 +19,8 @@ export type ListItemWithStatusProps = ListItemCommonProps & {
   statusText: string;
   variant?: 'default' | 'chat';
   avatars?: AvatarItem[];
+  leftElement?: React.ReactNode;
+  rightElement?: React.ReactNode;
 };
 
 export type ListItemConfig = {
