@@ -6,7 +6,6 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { testPageStructure } = require('../utils/shared-tests');
-const { isAndroid } = require('../pageobjects/utils/selectors');
 const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Statements Page', () => {

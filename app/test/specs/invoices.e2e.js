@@ -5,7 +5,7 @@ const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { isAndroid } = require('../pageobjects/utils/selectors');
+const { testPageStructure } = require('../utils/shared-tests');
 const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Invoices Page', () => {
