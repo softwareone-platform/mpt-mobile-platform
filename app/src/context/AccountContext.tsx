@@ -1,12 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
 
-import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { useAuth } from '@/context/AuthContext';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
 import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
 import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
 import { useUserData } from '@/hooks/queries/useUserData';
+import { authService } from '@/services/authService';
 import { logger } from '@/services/loggerService';
 import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
 
@@ -28,7 +28,7 @@ const AccountContext = createContext<AccountContextValue | undefined>(undefined)
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
-  const userId = user?.[USER_ID_CLAIM_KEY] as string | undefined;
+  const userId = authService.getUserIdFromUser(user);
 
   if (user && (!userId || userId.trim() === '')) {
     logger.error('User authentication token is missing required userId claim');
