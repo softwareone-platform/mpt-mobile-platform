@@ -2,6 +2,7 @@ import { jwtDecode } from 'jwt-decode';
 import Auth0 from 'react-native-auth0';
 
 import { configService } from '@/config/env.config';
+import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import {
   AUTH0_REQUEST_TIMEOUT_MS,
   AUTH0_REFRESH_TOKEN_MAX_RETRIES,
@@ -169,7 +170,7 @@ class AuthenticationService {
   }
 
   getUserIdFromUser(user: User | null | undefined): string | undefined {
-    return user?.['https://claims.softwareone.com/userId'] as string | undefined;
+    return user?.[USER_ID_CLAIM_KEY] as string | undefined;
   }
 
   getUserFromToken(accessToken: string): User {

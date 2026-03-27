@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
 
+import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { useAuth } from '@/context/AuthContext';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
 import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
@@ -27,7 +28,7 @@ const AccountContext = createContext<AccountContextValue | undefined>(undefined)
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
-  const userId = user?.['https://claims.softwareone.com/userId'] as string | undefined;
+  const userId = user?.[USER_ID_CLAIM_KEY] as string | undefined;
 
   if (user && (!userId || userId.trim() === '')) {
     logger.error('User authentication token is missing required userId claim');

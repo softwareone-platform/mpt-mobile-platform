@@ -57,6 +57,7 @@ jest.mock('../config/env.config', () => ({
 
 const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
 
+import { ACCOUNT_ID_CLAIM_KEY, USER_ID_CLAIM_KEY } from '@/constants/auth';
 import authService, { User } from '../services/authService';
 import { logger } from '../services/loggerService';
 
@@ -78,7 +79,7 @@ describe('authService', () => {
         name: 'Test User',
         picture: 'https://example.com/avatar.jpg',
         email_verified: true,
-        'https://claims.softwareone.com/userId': 'user-123',
+        [USER_ID_CLAIM_KEY]: 'user-123',
       };
 
       mockJwtDecode.mockReturnValue(mockUser);
@@ -105,8 +106,8 @@ describe('authService', () => {
       const mockUser: User = {
         sub: 'auth0|456',
         email: 'custom@example.com',
-        'https://claims.softwareone.com/userId': 'custom-user-id',
-        'https://claims.softwareone.com/accountId': 'account-123',
+        [USER_ID_CLAIM_KEY]: 'custom-user-id',
+        [ACCOUNT_ID_CLAIM_KEY]: 'account-123',
         customClaim: 'custom-value',
       };
 
@@ -115,7 +116,7 @@ describe('authService', () => {
       const result = authService.getUserFromToken('custom-token');
 
       expect(result).toEqual(mockUser);
-      expect(result['https://claims.softwareone.com/userId']).toBe('custom-user-id');
+      expect(result[USER_ID_CLAIM_KEY]).toBe('custom-user-id');
     });
 
     it('should throw error when token decode fails', () => {
@@ -150,7 +151,7 @@ describe('authService', () => {
     it('should return userId from user claims', () => {
       const user: User = {
         sub: 'auth0|123',
-        'https://claims.softwareone.com/userId': 'user-abc',
+        [USER_ID_CLAIM_KEY]: 'user-abc',
       };
 
       expect(authService.getUserIdFromUser(user)).toBe('user-abc');

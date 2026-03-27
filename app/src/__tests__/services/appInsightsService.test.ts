@@ -1,3 +1,4 @@
+import { ACCOUNT_ID_CLAIM_KEY } from '@/constants/auth';
 import { AppInsightsService } from '@/services/appInsightsService';
 
 const mockLoadAppInsights = jest.fn();
@@ -80,7 +81,7 @@ describe('AppInsightsService', () => {
     it('should register telemetry initializer with user context', () => {
       const mockUser = {
         sub: 'test-user',
-        'https://claims.softwareone.com/accountId': 'ACC-TEST-123',
+        [ACCOUNT_ID_CLAIM_KEY]: 'ACC-TEST-123',
       };
 
       service.setUserProvider(() => mockUser);
