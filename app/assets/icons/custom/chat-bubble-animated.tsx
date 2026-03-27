@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 import { Rect, Svg } from 'react-native-svg';
-import ChatBubblePath from './chat-bubble';
+import { ChatBubblePath } from './chat-bubble';
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
@@ -29,9 +29,13 @@ export default function AnimatedChatIcon({ size = 48, color = '#3366FF', textCol
     useNativeDriver: false,
   };
 
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+
   useEffect(() => {
+    let mounted = true;
+
     const loop = () => {
-      Animated.sequence([
+      animationRef.current = Animated.sequence([
         Animated.timing(r1, lineGrowAnimation),
         Animated.timing(r2, lineGrowAnimation),
         Animated.timing(r3, {
@@ -44,9 +48,22 @@ export default function AnimatedChatIcon({ size = 48, color = '#3366FF', textCol
           Animated.timing(r2, lineShrinkAnimation),
           Animated.timing(r3, lineShrinkAnimation),
         ]),
-      ]).start(() => loop());
+      ]);
+
+      animationRef.current.start(() => {
+        if (mounted) loop();
+      });
     };
+
     loop();
+
+    return () => {
+      mounted = false;
+      animationRef.current?.stop();
+      r1.stopAnimation();
+      r2.stopAnimation();
+      r3.stopAnimation();
+    };
   }, []);
 
   // Interpolate opacity from width: 0 → 20% opacity, full width → 100%

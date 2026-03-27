@@ -5,6 +5,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { useAccount } from '@/context/AccountContext';
 import { screenStyle } from '@/styles/components';
 import { Color } from '@/styles/tokens';
+import type { AnimatedIconName } from '@/types/icons';
 
 interface EmptyStateHelperProps {
   isLoading: boolean;
@@ -13,7 +14,7 @@ interface EmptyStateHelperProps {
   isUnauthorised: boolean;
   errorTitle?: string;
   errorDescription?: string;
-  emptyIconName?: string;
+  emptyIconName?: AnimatedIconName;
   emptyTitle: string;
   emptyDescription: string;
   loadingTestId?: string;

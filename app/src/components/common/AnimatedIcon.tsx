@@ -2,9 +2,10 @@ import { AnimatedIcons } from '@assets/icons/custom';
 import { View } from 'react-native';
 
 import { DEFAULT_ICON_SIZE } from '@/constants/icons';
+import { AnimatedIconName } from '@/types/icons';
 
 type AnimatedIconProps = {
-  name: string;
+  name: AnimatedIconName;
   size?: number;
 };
 
