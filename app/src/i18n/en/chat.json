@@ -4,8 +4,8 @@
       "emptyStateDescription": "No chats found."
   },
   "messagesScreen": {
-    "emptyStateTitle": "No messages",
-    "emptyStateDescription": "No messages in this conversation yet."
+    "emptyStateTitle": "New conversation",
+    "emptyStateDescription": "Type your first message below"
   },
   "chat": {
     "messageInputPlaceholder": "Type a message"

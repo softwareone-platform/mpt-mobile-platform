@@ -5,10 +5,11 @@ import AnimatedIcon from '@/components/common/AnimatedIcon';
 import DynamicIcon from '@/components/common/DynamicIcon';
 import { screenStyle, emptyStateStyle } from '@/styles';
 import { Color } from '@/styles/tokens';
+import { AnimatedIconName, OutlinedIconName, MaterialIconName } from '@/types/icons';
 
 type EmptyStateProps = {
   icon?: {
-    name?: string;
+    name?: AnimatedIconName | OutlinedIconName | MaterialIconName;
     variant?: 'filled' | 'outlined';
     size?: number;
     color?: string;

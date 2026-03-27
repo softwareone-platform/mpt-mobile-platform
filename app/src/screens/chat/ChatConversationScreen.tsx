@@ -162,6 +162,7 @@ const ChatConversationScreenContent = () => {
         loadingTestId={TestIDs.CHAT_CONVERSATION_LOADING_INDICATOR}
         errorTestId={TestIDs.CHAT_CONVERSATION_ERROR_STATE}
         emptyTestId={TestIDs.CHAT_CONVERSATION_EMPTY_STATE}
+        emptyIconName="chat-bubble-animated"
         emptyTitle={t('messagesScreen.emptyStateTitle')}
         emptyDescription={t('messagesScreen.emptyStateDescription')}
       >
