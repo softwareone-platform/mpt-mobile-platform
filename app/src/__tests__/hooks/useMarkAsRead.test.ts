@@ -91,7 +91,7 @@ describe('useMarkAsRead', () => {
     expect(mockSave).toHaveBeenCalledWith({ id: 'CHP-456', lastReadMessage: { id: 'MSG-003' } });
   });
 
-  it('selects first item when contentFillsScreen is true', async () => {
+  it('selects first viewable item as newest when contentFillsScreen (inverted list)', async () => {
     const { result } = setup();
 
     result.current.onViewableItemsChanged({
@@ -102,7 +102,7 @@ describe('useMarkAsRead', () => {
     expect(mockSave).toHaveBeenCalledWith({ id: 'CHP-456', lastReadMessage: { id: 'MSG-001' } });
   });
 
-  it('selects last item when contentFillsScreen is false', async () => {
+  it('selects last viewable item as newest when not contentFillsScreen (non-inverted list)', async () => {
     const { result } = setup({ contentFillsScreen: false });
 
     result.current.onViewableItemsChanged({
