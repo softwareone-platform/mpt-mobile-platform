@@ -13,6 +13,7 @@ interface EmptyStateHelperProps {
   isUnauthorised: boolean;
   errorTitle?: string;
   errorDescription?: string;
+  emptyIconName?: string;
   emptyTitle: string;
   emptyDescription: string;
   loadingTestId?: string;
@@ -28,6 +29,7 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
   isUnauthorised,
   errorTitle,
   errorDescription,
+  emptyIconName,
   emptyTitle,
   emptyDescription,
   loadingTestId,
@@ -69,7 +71,7 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
       <EmptyState
         testID={emptyTestId}
         icon={{
-          name: 'no-results-animated',
+          name: emptyIconName || 'no-results-animated',
           variant: 'outlined',
         }}
         animatedIcon={true}
