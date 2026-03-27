@@ -57,9 +57,10 @@ jest.mock('../config/env.config', () => ({
 
 const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
 
-import { ACCOUNT_ID_CLAIM_KEY, USER_ID_CLAIM_KEY } from '@/constants/auth';
 import authService, { User } from '../services/authService';
 import { logger } from '../services/loggerService';
+
+import { ACCOUNT_ID_CLAIM_KEY, USER_ID_CLAIM_KEY } from '@/constants/auth';
 
 describe('authService', () => {
   beforeEach(() => {

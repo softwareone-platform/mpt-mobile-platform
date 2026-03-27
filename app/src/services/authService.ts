@@ -2,12 +2,12 @@ import { jwtDecode } from 'jwt-decode';
 import Auth0 from 'react-native-auth0';
 
 import { configService } from '@/config/env.config';
-import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import {
   AUTH0_REQUEST_TIMEOUT_MS,
   AUTH0_REFRESH_TOKEN_MAX_RETRIES,
   AUTH0_REFRESH_TOKEN_INITIAL_DELAY_MS,
 } from '@/constants/api';
+import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { appInsightsService } from '@/services/appInsightsService';
 import { logger } from '@/services/loggerService';
 import { retryAuth0Operation } from '@/utils/retryAuth0';

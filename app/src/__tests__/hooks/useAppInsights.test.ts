@@ -29,7 +29,6 @@ jest.mock('@/context/AuthContext', () => ({
 import { renderHook } from '@testing-library/react-native';
 
 import { ACCOUNT_ID_CLAIM_KEY, USER_ID_CLAIM_KEY } from '@/constants/auth';
-
 import { useAppInsights } from '@/hooks/useAppInsights';
 import { appInsightsService } from '@/services/appInsightsService';
 import { logger } from '@/services/loggerService';
