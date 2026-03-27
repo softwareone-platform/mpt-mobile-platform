@@ -168,6 +168,10 @@ class AuthenticationService {
     }
   }
 
+  getUserIdFromUser(user: User | null | undefined): string | undefined {
+    return user?.['https://claims.softwareone.com/userId'] as string | undefined;
+  }
+
   getUserFromToken(accessToken: string): User {
     try {
       const decoded = jwtDecode<User>(accessToken);

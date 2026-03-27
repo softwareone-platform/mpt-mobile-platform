@@ -146,6 +146,31 @@ describe('authService', () => {
     });
   });
 
+  describe('getUserIdFromUser', () => {
+    it('should return userId from user claims', () => {
+      const user: User = {
+        sub: 'auth0|123',
+        'https://claims.softwareone.com/userId': 'user-abc',
+      };
+
+      expect(authService.getUserIdFromUser(user)).toBe('user-abc');
+    });
+
+    it('should return undefined when user is null', () => {
+      expect(authService.getUserIdFromUser(null)).toBeUndefined();
+    });
+
+    it('should return undefined when user is undefined', () => {
+      expect(authService.getUserIdFromUser(undefined)).toBeUndefined();
+    });
+
+    it('should return undefined when userId claim is missing', () => {
+      const user: User = { sub: 'auth0|123' };
+
+      expect(authService.getUserIdFromUser(user)).toBeUndefined();
+    });
+  });
+
   describe('isTokenExpired', () => {
     it('should return true for expired token', () => {
       const pastTimestamp = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
