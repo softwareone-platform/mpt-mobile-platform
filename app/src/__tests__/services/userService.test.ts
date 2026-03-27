@@ -15,7 +15,7 @@ jest.mock('@/hooks/useApi', () => ({
 const setup = () => renderHook(() => useUserApi()).result.current;
 
 const expectedUrlBase = (accountId: string) =>
-  `v1/accounts/accounts/${accountId}/users` + `?select=id,name,status,icon` + `&order=name`;
+  `v1/accounts/accounts/${accountId}/users` + `?select=-*,id,name,status,icon` + `&order=name`;
 
 describe('useUserApi', () => {
   beforeEach(() => {
@@ -503,7 +503,7 @@ describe('useUserApi - getUsers with custom query', () => {
 
     const expectedUrl =
       `v1/accounts/accounts/${mockAccountId}/users` +
-      `?select=id,name,status,icon` +
+      `?select=-*,id,name,status,icon` +
       `${customQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -531,7 +531,7 @@ describe('useUserApi - getUsers with custom query', () => {
     const defaultQuery = '&order=name';
     const expectedUrl =
       `v1/accounts/accounts/${mockAccountId}/users` +
-      `?select=id,name,status,icon` +
+      `?select=-*,id,name,status,icon` +
       `${defaultQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -554,7 +554,7 @@ describe('useUserApi - getUsers with custom query', () => {
 
     const expectedUrl =
       `v1/accounts/accounts/${mockAccountId}/users` +
-      `?select=id,name,status,icon` +
+      `?select=-*,id,name,status,icon` +
       `${invalidQuery}` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;

@@ -344,6 +344,138 @@ class ApiClient {
     return this.get(`/public/v1/billing/invoices/${invoiceId}`);
   }
 
+  // ========== Credit Memos Methods ==========
+
+  /**
+   * Get credit memos list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of credit memos to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by credit memo status (Issued)
+   * @returns {Promise<object>} - Credit memos list response
+   *
+   * @example
+   * // Get all credit memos
+   * const creditMemos = await apiClient.getCreditMemos();
+   *
+   * // Get credit memos with pagination
+   * const creditMemos = await apiClient.getCreditMemos({ limit: 10, offset: 0 });
+   */
+  async getCreditMemos(options = {}) {
+    let endpoint = '/public/v1/billing/credit-memos';
+
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific credit memo by ID
+   * @param {string} creditMemoId - Credit Memo ID in format CRD-XXXX-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Credit memo details
+   *
+   * @example
+   * const creditMemo = await apiClient.getCreditMemoById('CRD-9994-9916-5145-1234');
+   */
+  async getCreditMemoById(creditMemoId) {
+    // Validate creditMemoId format (4-group)
+    if (!creditMemoId || !/^CRD-\d{4}-\d{4}-\d{4}-\d{4}$/.test(creditMemoId)) {
+      throw new Error(`Invalid creditMemoId format: "${creditMemoId}". Expected format: CRD-XXXX-XXXX-XXXX-XXXX`);
+    }
+    return this.get(`/public/v1/billing/credit-memos/${creditMemoId}`);
+  }
+
+  /**
+   * Get credit memos count
+   * @returns {Promise<number>} - Total number of credit memos
+   */
+  async getCreditMemosCount() {
+    const response = await this.getCreditMemos({ limit: 1 });
+    return response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any credit memos
+   * @returns {Promise<boolean>}
+   */
+  async hasCreditMemos() {
+    const count = await this.getCreditMemosCount();
+    return count > 0;
+  }
+
+  // ========== Statements Methods ==========
+
+  /**
+   * Get statements list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of statements to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by statement status (Generated, Queued, Error, Cancelled, Pending, Issued, Generating)
+   * @returns {Promise<object>} - Statements list response
+   *
+   * @example
+   * // Get all statements
+   * const statements = await apiClient.getStatements();
+   *
+   * // Get statements with pagination
+   * const statements = await apiClient.getStatements({ limit: 10, offset: 0 });
+   */
+  async getStatements(options = {}) {
+    let endpoint = '/public/v1/billing/statements';
+
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific statement by ID
+   * @param {string} statementId - Statement ID in format SOM-XXXX-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Statement details
+   *
+   * @example
+   * const statement = await apiClient.getStatementById('SOM-9994-9916-5145-1234');
+   */
+  async getStatementById(statementId) {
+    // Validate statementId format (4-group)
+    if (!statementId || !/^SOM-\d{4}-\d{4}-\d{4}-\d{4}$/.test(statementId)) {
+      throw new Error(`Invalid statementId format: "${statementId}". Expected format: SOM-XXXX-XXXX-XXXX-XXXX`);
+    }
+    return this.get(`/public/v1/billing/statements/${statementId}`);
+  }
+
+  /**
+   * Get statements count
+   * @returns {Promise<number>} - Total number of statements
+   */
+  async getStatementsCount() {
+    const response = await this.getStatements({ limit: 1 });
+    return response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any statements
+   * @returns {Promise<boolean>}
+   */
+  async hasStatements() {
+    const count = await this.getStatementsCount();
+    return count > 0;
+  }
+
   // ========== Agreements Methods ==========
 
   /**
