@@ -60,6 +60,8 @@ const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
 import authService, { User } from '../services/authService';
 import { logger } from '../services/loggerService';
 
+import { ACCOUNT_ID_CLAIM_KEY, USER_ID_CLAIM_KEY } from '@/constants/auth';
+
 describe('authService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -78,7 +80,7 @@ describe('authService', () => {
         name: 'Test User',
         picture: 'https://example.com/avatar.jpg',
         email_verified: true,
-        'https://claims.softwareone.com/userId': 'user-123',
+        [USER_ID_CLAIM_KEY]: 'user-123',
       };
 
       mockJwtDecode.mockReturnValue(mockUser);
@@ -105,8 +107,8 @@ describe('authService', () => {
       const mockUser: User = {
         sub: 'auth0|456',
         email: 'custom@example.com',
-        'https://claims.softwareone.com/userId': 'custom-user-id',
-        'https://claims.softwareone.com/accountId': 'account-123',
+        [USER_ID_CLAIM_KEY]: 'custom-user-id',
+        [ACCOUNT_ID_CLAIM_KEY]: 'account-123',
         customClaim: 'custom-value',
       };
 
@@ -115,7 +117,7 @@ describe('authService', () => {
       const result = authService.getUserFromToken('custom-token');
 
       expect(result).toEqual(mockUser);
-      expect(result['https://claims.softwareone.com/userId']).toBe('custom-user-id');
+      expect(result[USER_ID_CLAIM_KEY]).toBe('custom-user-id');
     });
 
     it('should throw error when token decode fails', () => {
@@ -143,6 +145,31 @@ describe('authService', () => {
       expect(() => authService.getUserFromToken('malformed.token')).toThrow(
         'Failed to decode user from token',
       );
+    });
+  });
+
+  describe('getUserIdFromUser', () => {
+    it('should return userId from user claims', () => {
+      const user: User = {
+        sub: 'auth0|123',
+        [USER_ID_CLAIM_KEY]: 'user-abc',
+      };
+
+      expect(authService.getUserIdFromUser(user)).toBe('user-abc');
+    });
+
+    it('should return undefined when user is null', () => {
+      expect(authService.getUserIdFromUser(null)).toBeUndefined();
+    });
+
+    it('should return undefined when user is undefined', () => {
+      expect(authService.getUserIdFromUser(undefined)).toBeUndefined();
+    });
+
+    it('should return undefined when userId claim is missing', () => {
+      const user: User = { sub: 'auth0|123' };
+
+      expect(authService.getUserIdFromUser(user)).toBeUndefined();
     });
   });
 

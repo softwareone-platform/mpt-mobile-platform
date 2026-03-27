@@ -7,6 +7,7 @@ import {
   AUTH0_REFRESH_TOKEN_MAX_RETRIES,
   AUTH0_REFRESH_TOKEN_INITIAL_DELAY_MS,
 } from '@/constants/api';
+import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { appInsightsService } from '@/services/appInsightsService';
 import { logger } from '@/services/loggerService';
 import { retryAuth0Operation } from '@/utils/retryAuth0';
@@ -166,6 +167,10 @@ class AuthenticationService {
       appInsightsService.trackException(err, { operation: 'refreshAccessToken' }, 'Critical');
       throw err;
     }
+  }
+
+  getUserIdFromUser(user: User | null | undefined): string | undefined {
+    return user?.[USER_ID_CLAIM_KEY] as string | undefined;
   }
 
   getUserFromToken(accessToken: string): User {
