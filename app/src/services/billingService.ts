@@ -3,7 +3,12 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse, ListItemNoImageNoSubtitle, ListItemNoImage } from '@/types/api';
-import type { CreditMemoDetails, InvoiceDetails, JournalDetails, StatementDetails } from '@/types/billing';
+import type {
+  CreditMemoDetails,
+  InvoiceDetails,
+  JournalDetails,
+  StatementDetails,
+} from '@/types/billing';
 
 export function useBillingApi() {
   const api = useApi();
@@ -112,7 +117,7 @@ export function useBillingApi() {
     },
     [api],
   );
-  
+
   const getJournalDetails = useCallback(
     async (journalId: string): Promise<JournalDetails> => {
       const endpoint = `/v1/billing/journals/${journalId}?select=seller.address.country,audit,ledger.owner`;

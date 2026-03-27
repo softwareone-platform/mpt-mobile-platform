@@ -1,7 +1,7 @@
-import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
+import { StyleSheet, View } from 'react-native';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
@@ -9,10 +9,10 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
+import { cardStyle, Spacing } from '@/styles';
 import type { JournalDetails } from '@/types/billing';
 import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
-import { cardStyle, Spacing } from '@/styles';
 import { formatDateForLocale, formatNumber } from '@/utils/formatting';
 import { canNavigateTo } from '@/utils/navigationPermissions';
 
