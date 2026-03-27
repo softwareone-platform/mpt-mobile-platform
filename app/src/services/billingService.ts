@@ -112,7 +112,7 @@ export function useBillingApi() {
     },
     [api],
   );
-
+  
   const getJournalDetails = useCallback(
     async (journalId: string): Promise<JournalDetails> => {
       const endpoint = `/v1/billing/journals/${journalId}?select=seller.address.country,audit,ledger.owner`;

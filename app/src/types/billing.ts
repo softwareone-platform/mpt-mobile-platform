@@ -89,6 +89,25 @@ export interface StatementDetails extends CommonBillingDetails {
 
 export interface JournalDetails extends CommonBillingDetails {
   name: string;
+  authorization?: DetailsListItemValue;
+  attributes?: {
+    dueDate?: string;
+    baseCurrency?: string;
+  };
+  stats?: {
+    all?: number;
+    ready?: number;
+    ignored?: number;
+    split?: number;
+    error?: number;
+    skipped?: number;
+  };
+  price?: {
+    currency?: string;
+    totalPP?: number;
+  };
+  assignee?: DetailsListItemValue;
+  charges?: DetailsListItemValue;
   ledger?: {
     id: string;
     owner?: DetailsListItemValue;
