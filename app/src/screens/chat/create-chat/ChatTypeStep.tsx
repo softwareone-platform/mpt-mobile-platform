@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList } from 'react-native';
-
-import ContactData from './ContactsData.json';
+import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
 import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import UserListItemNavigation from '@/components/list-item/UserListItemNavigation';
 import NavigationItemWithIcon from '@/components/navigation-item/NavigationItemWithIcon';
 import SearchInput from '@/components/search/SearchInput';
+import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
+import { useAccount } from '@/context/AccountContext';
+import { useContactsData } from '@/hooks/queries/useContactsData';
+import { useDebounce } from '@/hooks/useDebounce';
 import { screenStyle, spacingStyle } from '@/styles';
 import { ChatType, Contact } from '@/types/chat';
 import { TestIDs } from '@/utils/testID';
@@ -20,28 +22,40 @@ type ChatSelectionItem = {
 
 type ChatTypeStepProps = {
   onSelectChatType: (type: ChatType) => void;
-  onSelectParticipant: () => void;
+  onSelectParticipant: (contact: Contact) => void;
 };
 
 const chatTypes: Array<ChatSelectionItem> = [{ name: 'groupChat', type: 'Group', icon: 'group' }];
 
 const ChatTypeStep = ({ onSelectChatType, onSelectParticipant }: ChatTypeStepProps) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { t } = useTranslation();
+  const { userData } = useAccount();
+  const userId = userData?.id;
 
-  const contactsData: Contact[] = ContactData as Contact[];
+  const debouncedSearch = useDebounce(searchQuery);
+
+  const { data, isFetchingNextPage, hasNextPage, fetchNextPage } = useContactsData(
+    userId,
+    debouncedSearch || undefined,
+  );
+
+  const contacts = data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
     <View style={styles.container}>
       <View style={styles.marginBottom}>
         <SearchInput
+          placeholder={t('createChatWizard.searchPlaceholder')}
+          onChangeText={setSearchQuery}
           onFocus={() => setIsSearchFocused(true)}
           onBlur={() => setIsSearchFocused(false)}
           testID={TestIDs.CREATE_CHAT_CONTACT_SEARCH}
         />
       </View>
-      {!isSearchFocused && (
+      {!isSearchFocused && !searchQuery && (
         <NavigationGroupCard title={t('createChatWizard.chatType')}>
           {chatTypes.map((item, index) => (
             <NavigationItemWithIcon
@@ -56,12 +70,12 @@ const ChatTypeStep = ({ onSelectChatType, onSelectParticipant }: ChatTypeStepPro
         </NavigationGroupCard>
       )}
       <FlatList
-        data={contactsData}
+        data={contacts}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.containerList}
         renderItem={({ item, index }) => {
           const isFirst = index === 0;
-          const isLast = index === contactsData.length - 1;
+          const isLast = index === contacts.length - 1;
 
           return (
             <UserListItemNavigation
@@ -72,18 +86,17 @@ const ChatTypeStep = ({ onSelectChatType, onSelectParticipant }: ChatTypeStepPro
               statusText={item.status}
               isFirst={isFirst}
               isLast={isLast}
-              onPress={onSelectParticipant}
+              onPress={() => onSelectParticipant(item)}
             />
           );
         }}
-        // TODO: Add the below lines back when have API and hook working to fetch data
-        // onEndReached={() => {
-        //   if (hasMore && !isFetchingNext) {
-        //     fetchNext?.();
-        //   }
-        // }}
-        // onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
-        // ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            void fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
+        ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
         showsVerticalScrollIndicator={false}
       />
     </View>

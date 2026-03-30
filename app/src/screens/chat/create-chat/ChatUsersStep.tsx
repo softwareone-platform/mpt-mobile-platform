@@ -1,11 +1,14 @@
-import { View, StyleSheet, FlatList } from 'react-native';
-
-import ContactData from './ContactsData.json';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
 import UserListItemSelection from '@/components/list-item/UserListItemSelection';
 import SearchInput from '@/components/search/SearchInput';
+import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
+import { useAccount } from '@/context/AccountContext';
+import { useContactsData } from '@/hooks/queries/useContactsData';
+import { useDebounce } from '@/hooks/useDebounce';
 import { screenStyle, spacingStyle } from '@/styles';
-import { Contact } from '@/types/chat';
 import { TestIDs } from '@/utils/testID';
 
 type ChatUserStepProps = {
@@ -14,20 +17,37 @@ type ChatUserStepProps = {
 };
 
 const ChatUsersStep = ({ selectedIds, onToggleParticipant }: ChatUserStepProps) => {
-  const contactsData: Contact[] = ContactData as Contact[];
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const { t } = useTranslation();
+  const { userData } = useAccount();
+  const userId = userData?.id;
+
+  const debouncedSearch = useDebounce(searchQuery);
+
+  const { data, isFetchingNextPage, hasNextPage, fetchNextPage } = useContactsData(
+    userId,
+    debouncedSearch || undefined,
+  );
+
+  const contacts = data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
     <View style={styles.container}>
       <View style={styles.marginBottom}>
-        <SearchInput testID={TestIDs.CREATE_CHAT_CONTACT_SEARCH} />
+        <SearchInput
+          placeholder={t('createChatWizard.searchPlaceholder')}
+          onChangeText={setSearchQuery}
+          testID={TestIDs.CREATE_CHAT_CONTACT_SEARCH}
+        />
       </View>
       <FlatList
-        data={contactsData}
+        data={contacts}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.containerList}
         renderItem={({ item, index }) => {
           const isFirst = index === 0;
-          const isLast = index === contactsData.length - 1;
+          const isLast = index === contacts.length - 1;
           const id = item.identity.id;
 
           return (
@@ -44,14 +64,13 @@ const ChatUsersStep = ({ selectedIds, onToggleParticipant }: ChatUserStepProps) 
             />
           );
         }}
-        // TODO: Add the below lines back when have API and hook working to fetch data
-        // onEndReached={() => {
-        //   if (hasMore && !isFetchingNext) {
-        //     fetchNext?.();
-        //   }
-        // }}
-        // onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
-        // ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            void fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
+        ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
         showsVerticalScrollIndicator={false}
       />
     </View>
