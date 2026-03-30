@@ -19,6 +19,7 @@ const CATEGORY_MERGE_MAP: Partial<Record<SpotlightCategoryName, string>> = {
 const DAYS_AGO_REGEX = /\{(\d+) days ago\}/i;
 const DAYS_FROM_NOW_REGEX = /\{(\d+) days from now\}/i;
 const LIMIT_IN_QUERY_REGEX = /&limit=\d+$/;
+const CURRENT_USER_REGEX = /\{current user\}/gi;
 
 /**
  * Build a lookup object, that maps spotlight template names to category names
@@ -218,14 +219,34 @@ export const replaceSpotlightQueryDate = (query: string): string => {
 };
 
 /**
+ * Replace {current user} token in query with the actual user ID
+ * @param query - query string
+ * @param userId - current user ID to substitute
+ * @returns query with {current user} replaced, or original query if userId is not provided
+ */
+export const replaceCurrentUser = (query: string, userId: string | undefined): string => {
+  if (!query?.trim()) {
+    return '';
+  }
+
+  if (!userId) {
+    return query;
+  }
+
+  return query.replace(CURRENT_USER_REGEX, userId);
+};
+
+/**
  * Wrapper function to format endpoint, so it is suitable to use in API call
  * @param query - endpoint string to view all items in Spotlight
- * @returns query part of endpoint with limit removed and date formatted if applicable
+ * @param userId - current user ID used to resolve {current user} token
+ * @returns query part of endpoint with limit removed, date formatted, and user token replaced if applicable
  */
-export const formatSpotlightQuery = (endpoint: string): string => {
+export const formatSpotlightQuery = (endpoint: string, userId?: string): string => {
   const query = getQueryFromEndpoint(endpoint);
   const queryNoLimit = removeLimitFromQuery(query);
-  const formattedQuery = replaceSpotlightQueryDate(queryNoLimit);
+  const queryWithUser = replaceCurrentUser(queryNoLimit, userId);
+  const formattedQuery = replaceSpotlightQueryDate(queryWithUser);
 
   return formattedQuery;
 };

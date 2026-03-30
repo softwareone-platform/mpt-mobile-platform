@@ -27,6 +27,7 @@ import {
   getQueryFromEndpoint,
   removeLimitFromQuery,
   replaceSpotlightQueryDate,
+  replaceCurrentUser,
   formatSpotlightQuery,
 } from '@/utils/spotlight';
 
@@ -338,6 +339,40 @@ describe('replaceSpotlightQueryDate', () => {
   });
 });
 
+describe('replaceCurrentUser', () => {
+  it('should return empty string for empty or whitespace query', () => {
+    expect(replaceCurrentUser('', 'user-123')).toBe('');
+    expect(replaceCurrentUser('   ', 'user-123')).toBe('');
+  });
+
+  it('should replace {current user} token with userId', () => {
+    const query = '&filter(assignee={current user})';
+    expect(replaceCurrentUser(query, 'user-123')).toBe('&filter(assignee=user-123)');
+  });
+
+  it('should replace multiple {current user} tokens', () => {
+    const query = '&filter(assignee={current user},createdBy={current user})';
+    expect(replaceCurrentUser(query, 'user-abc')).toBe(
+      '&filter(assignee=user-abc,createdBy=user-abc)',
+    );
+  });
+
+  it('should be case-insensitive', () => {
+    const query = '&filter(assignee={Current User})';
+    expect(replaceCurrentUser(query, 'user-123')).toBe('&filter(assignee=user-123)');
+  });
+
+  it('should return query unchanged when userId is undefined', () => {
+    const query = '&filter(assignee={current user})';
+    expect(replaceCurrentUser(query, undefined)).toBe(query);
+  });
+
+  it('should return query unchanged when no token present', () => {
+    const query = '&filter(status=Active)';
+    expect(replaceCurrentUser(query, 'user-123')).toBe(query);
+  });
+});
+
 describe('formatSpotlightQuery', () => {
   const now = new Date('2026-02-26T12:00:00Z'); // fixed date
 
@@ -375,5 +410,17 @@ describe('formatSpotlightQuery', () => {
       '/v1/items?select=id,name&filter(created_at>{abc days ago})&order=name&limit=25';
     const result = formatSpotlightQuery(endpoint);
     expect(result).toBe('&filter(created_at>{abc days ago})&order=name');
+  });
+
+  it('should replace {current user} token when userId is provided', () => {
+    const endpoint = '/v1/cases?select=id&filter(assignee={current user})&limit=10';
+    const result = formatSpotlightQuery(endpoint, 'user-123');
+    expect(result).toBe('&filter(assignee=user-123)');
+  });
+
+  it('should leave {current user} token when userId is not provided', () => {
+    const endpoint = '/v1/cases?select=id&filter(assignee={current user})&limit=10';
+    const result = formatSpotlightQuery(endpoint);
+    expect(result).toBe('&filter(assignee={current user})');
   });
 });

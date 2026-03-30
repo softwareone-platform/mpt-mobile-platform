@@ -1,10 +1,13 @@
 import { OutlinedIcons } from '@assets/icons';
+import { AnimatedIcons } from '@assets/icons/custom';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 
 export type MaterialIconName = ComponentProps<typeof MaterialIcons>['name'];
 
 export type OutlinedIconName = keyof typeof OutlinedIcons;
+
+export type AnimatedIconName = keyof typeof AnimatedIcons;
 
 export type IconVariant = 'filled' | 'outlined';
 
@@ -14,7 +17,7 @@ export interface BaseIconProps {
 }
 
 export interface DynamicIconProps extends BaseIconProps {
-  name: string;
+  name: OutlinedIconName | MaterialIconName | AnimatedIconName;
   variant?: IconVariant;
 }
 

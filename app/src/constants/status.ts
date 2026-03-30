@@ -39,7 +39,7 @@ export const statusList = {
   Provisioning: 'info',
   Public: 'success',
   Published: 'success',
-  Querying: 'info',
+  Querying: 'warning',
   Queued: 'warning',
   Quoted: 'default',
   Ready: 'warning',

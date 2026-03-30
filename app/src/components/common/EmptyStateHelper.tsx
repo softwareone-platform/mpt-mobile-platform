@@ -5,6 +5,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { useAccount } from '@/context/AccountContext';
 import { screenStyle } from '@/styles/components';
 import { Color } from '@/styles/tokens';
+import type { AnimatedIconName } from '@/types/icons';
 
 interface EmptyStateHelperProps {
   isLoading: boolean;
@@ -13,6 +14,7 @@ interface EmptyStateHelperProps {
   isUnauthorised: boolean;
   errorTitle?: string;
   errorDescription?: string;
+  emptyIconName?: AnimatedIconName;
   emptyTitle: string;
   emptyDescription: string;
   loadingTestId?: string;
@@ -28,6 +30,7 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
   isUnauthorised,
   errorTitle,
   errorDescription,
+  emptyIconName,
   emptyTitle,
   emptyDescription,
   loadingTestId,
@@ -69,7 +72,7 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
       <EmptyState
         testID={emptyTestId}
         icon={{
-          name: 'no-results-animated',
+          name: emptyIconName || 'no-results-animated',
           variant: 'outlined',
         }}
         animatedIcon={true}

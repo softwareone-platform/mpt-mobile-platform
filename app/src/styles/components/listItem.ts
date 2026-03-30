@@ -41,8 +41,20 @@ export const listItemStyle = {
     borderBottomWidth: separatorStyle.bottomBorder1.borderBottomWidth,
     borderBottomColor: separatorStyle.bottomBorder1.borderBottomColor,
   },
+  leftElementWrapper: {
+    marginRight: Spacing.spacingSmall12,
+    justifyContent: 'center',
+  },
   textContainer: {
     flex: 1,
+  },
+  textContainerGrow: {
+    flexGrow: 1,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    gap: Spacing.spacing1,
+    marginLeft: Spacing.spacing2,
   },
   title: {
     fontSize: Typography.fontSize.font4,

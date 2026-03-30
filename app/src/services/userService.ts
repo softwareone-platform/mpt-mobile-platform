@@ -18,8 +18,7 @@ export function useUserApi() {
 
       const endpoint =
         `v1/accounts/accounts/${accountId}/users` +
-        //TODO: once unselect param bug will be fixed, change select to `select=-*,id,name,status,icon`
-        `?select=id,name,status,icon` +
+        `?select=-*,id,name,status,icon` +
         `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;

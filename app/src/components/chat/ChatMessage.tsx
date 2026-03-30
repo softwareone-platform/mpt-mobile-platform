@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '../common/OutlinedIcon';
@@ -26,7 +26,7 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
       StyleSheet.create({
         /* eslint-disable react-native/no-unused-styles */
         container: chatMessageStyle[type].container,
-        messageWrapper: chatMessageStyle.messageWrapper,
+        messageWrapper: chatMessageStyle[type].messageWrapper,
         textContainer: chatMessageStyle[type].textContainer,
         text: chatMessageStyle[type].text,
         info: chatMessageStyle[type].info,
@@ -56,6 +56,7 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
             {isOwn && <OutlinedIcon name="more-horiz" size={16} color={Color.brand.type} />}
           </Text>
         </View>
+        {/* TODO: add sending indicator (message._optimistic) and failed state with retry (message._failed) */}
         <View style={styles.textContainer}>
           <Text style={styles.text}>{message.content}</Text>
         </View>
@@ -64,4 +65,4 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
   );
 };
 
-export default ChatMessage;
+export default memo(ChatMessage);

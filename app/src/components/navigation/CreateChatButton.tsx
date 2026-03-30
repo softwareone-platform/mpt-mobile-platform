@@ -13,7 +13,7 @@ const CreateChatButton = ({ onPress }: CreateChatButtonProps) => {
     <TouchableOpacity
       style={styles.topBarIconWrapper}
       onPress={onPress}
-      testID={TestIDs.CHAT_CREATE_BUTTON}
+      testID={TestIDs.CREATE_CHAT_BUTTON}
     >
       <OutlinedIcon
         name="edit-square"

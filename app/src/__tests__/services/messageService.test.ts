@@ -11,14 +11,17 @@ jest.mock('@/services/loggerService', () => ({
 
 import { DEFAULT_OFFSET, MESSAGE_PAGE_SIZE } from '@/constants/api';
 import { useMessageApi } from '@/services/messageService';
+import type { MessageInput } from '@/services/messageService';
 import type { PaginatedResponse } from '@/types/api';
 import type { Message } from '@/types/chat';
 
 const mockGet = jest.fn();
+const mockPost = jest.fn();
 
 jest.mock('@/hooks/useApi', () => ({
   useApi: () => ({
     get: mockGet,
+    post: mockPost,
   }),
 }));
 
@@ -248,6 +251,88 @@ describe('useMessageApi', () => {
 
       const calledUrl = mockGet.mock.calls[0][0];
       expect(calledUrl).toContain('order=-audit.created.at');
+    });
+  });
+
+  describe('saveMessage', () => {
+    it('calls api.post with correct endpoint and message data', async () => {
+      const api = setup();
+      const messageInput: MessageInput = {
+        content: 'Test message',
+        visibility: 'Public',
+        isDeleted: false,
+        links: [],
+      };
+
+      mockPost.mockResolvedValueOnce(mockMessage);
+
+      let result;
+      await act(async () => {
+        result = await api.saveMessage(messageInput);
+      });
+
+      const expectedEndpoint = `/v1/helpdesk/chats/${chatId}/messages`;
+
+      expect(mockPost).toHaveBeenCalledWith(expectedEndpoint, messageInput);
+      expect(result).toEqual(mockMessage);
+    });
+
+    it('sends message with correct visibility', async () => {
+      const api = setup();
+      const messageInput: MessageInput = {
+        content: 'Private message',
+        visibility: 'Private',
+        isDeleted: false,
+        links: [],
+      };
+
+      const expectedMessage = { ...mockMessage, content: 'Private message', visibility: 'Private' };
+      mockPost.mockResolvedValueOnce(expectedMessage);
+
+      let result;
+      await act(async () => {
+        result = await api.saveMessage(messageInput);
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(expect.any(String), messageInput);
+      expect(result).toEqual(expectedMessage);
+    });
+
+    it('handles API errors when sending message', async () => {
+      const api = setup();
+      const messageInput: MessageInput = {
+        content: 'Test message',
+        visibility: 'Public',
+        isDeleted: false,
+        links: [],
+      };
+      const mockError = new Error('Failed to send message');
+
+      mockPost.mockRejectedValueOnce(mockError);
+
+      await expect(async () => {
+        await act(async () => {
+          await api.saveMessage(messageInput);
+        });
+      }).rejects.toThrow('Failed to send message');
+    });
+
+    it('includes links when provided', async () => {
+      const api = setup();
+      const messageInput: MessageInput = {
+        content: 'Message with links',
+        visibility: 'Public',
+        isDeleted: false,
+        links: [{ objectId: 'CASE-123', objectType: 'Case' }],
+      };
+
+      mockPost.mockResolvedValueOnce(mockMessage);
+
+      await act(async () => {
+        await api.saveMessage(messageInput);
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(expect.any(String), messageInput);
     });
   });
 });

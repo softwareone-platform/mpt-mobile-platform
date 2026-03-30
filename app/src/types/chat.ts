@@ -1,6 +1,6 @@
 import type { ListItemCommonProps } from '@/types/lists';
 
-export type ChatType = 'Direct' | 'Group' | 'Channel' | 'Case';
+export type ChatType = 'Direct' | 'Group' | 'Channel' | 'Case' | null;
 
 export type MessageType = 'own' | 'other';
 
@@ -33,7 +33,8 @@ export type Contact = {
   name?: string;
   email: string;
   revision: number;
-  identity?: Identity;
+  identity: Identity;
+  status: string;
 };
 
 export type Account = {
@@ -51,6 +52,8 @@ export type ChatParticipant = {
   contact?: Contact;
   account?: Account;
   unreadMessageCount: number;
+  lastReadMessage?: { id: string };
+  status?: 'Active' | 'Exited';
   revision?: number;
 };
 
@@ -105,4 +108,8 @@ export type Message = {
   isDeleted: boolean;
   links: unknown[];
   audit: Audit;
+  _optimistic?: true;
+  _failed?: true;
+  /** Stable key for FlatList — preserved when optimistic message is replaced with real server data */
+  _localKey?: string;
 };

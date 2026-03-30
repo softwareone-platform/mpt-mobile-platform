@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 
 import { configService } from '@/config/env.config';
+import { ACCOUNT_ID_CLAIM_KEY } from '@/constants/auth';
 import { User } from '@/services/authService';
 
 export type SeverityLevel = 'Verbose' | 'Information' | 'Warning' | 'Error' | 'Critical';
@@ -62,7 +63,7 @@ class AppInsightsService {
         }
         const currentUser = this.getUserFn?.();
         if (currentUser) {
-          const accountId = currentUser['https://claims.softwareone.com/accountId'];
+          const accountId = currentUser[ACCOUNT_ID_CLAIM_KEY];
           if (accountId) {
             item.tags = item.tags || [];
             item.tags['ai.user.accountId'] = accountId as string;

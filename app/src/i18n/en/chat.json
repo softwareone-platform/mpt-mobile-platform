@@ -4,8 +4,8 @@
       "emptyStateDescription": "No chats found."
   },
   "messagesScreen": {
-    "emptyStateTitle": "No messages",
-    "emptyStateDescription": "No messages in this conversation yet."
+    "emptyStateTitle": "New conversation",
+    "emptyStateDescription": "Type your first message below"
   },
   "chat": {
     "messageInputPlaceholder": "Type a message"
@@ -13,6 +13,10 @@
   "createChatWizard": {
     "title": "Create chat",
     "next": "Next",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "chatType": "Chat type",
+    "groupChat": "Group chat",
+    "chatDetails": "Chat details",
+    "enterGroupName": "Enter a group name (optional)"
   }
 }
