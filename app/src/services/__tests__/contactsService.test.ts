@@ -1,6 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
+import { useApi } from '@/hooks/useApi';
+import { useContactsApi } from '@/services/contactsService';
+import { logger } from '@/services/loggerService';
+import type { PaginatedResponse } from '@/types/api';
+import type { Contact } from '@/types/chat';
 
 jest.mock('@/hooks/useApi', () => ({
   useApi: jest.fn(),
@@ -12,13 +17,6 @@ jest.mock('@/services/loggerService', () => ({
     error: jest.fn(),
   },
 }));
-
-import { useApi } from '@/hooks/useApi';
-import { logger } from '@/services/loggerService';
-import type { PaginatedResponse } from '@/types/api';
-import type { Contact } from '@/types/chat';
-
-import { useContactsApi } from '../contactsService';
 
 const mockGet = jest.fn();
 const mockUseApi = useApi as jest.Mock;
@@ -50,9 +48,7 @@ describe('useContactsApi', () => {
       const { result } = renderHook(() => useContactsApi());
       await result.current.getContacts(USER_ID);
 
-      expect(mockGet).toHaveBeenCalledWith(
-        expect.stringContaining(`/v1/notifications/contacts`),
-      );
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining(`/v1/notifications/contacts`));
       const endpoint: string = mockGet.mock.calls[0][0];
       expect(endpoint).toContain(`ne(identity.id,"${USER_ID}")`);
       expect(endpoint).toContain(`eq(chat,true)`);
