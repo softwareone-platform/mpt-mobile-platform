@@ -12,8 +12,15 @@ export const participantUser: ChatParticipant = {
 export const participantOther: ChatParticipant = {
   id: 'P-2',
   identity: { id: otherUserId, name: 'Alice', revision: 1, icon: 'avatar.png' },
-  account: { id: 'A-1', name: 'Acme Corp', type: 'Company', status: 'Active' },
-  contact: { id: 'C-1', name: 'Alice Smith', email: 'alice@example.com', revision: 1 },
+  account: { id: 'A-1', icon: '', name: 'Acme Corp', type: 'Company', status: 'Active' },
+  contact: {
+    id: 'C-1',
+    name: 'Alice Smith',
+    email: 'alice@example.com',
+    revision: 1,
+    identity: { id: userId, name: 'Me', revision: 1 },
+    status: 'Active',
+  },
   unreadMessageCount: 2,
 };
 
@@ -31,7 +38,8 @@ export const baseChat: ChatItem = {
   lastMessage: {
     id: 'MSG-1',
     content: 'Hello',
-    audit: { created: { at: '2026-03-10T15:45:30Z' } },
+    isDeleted: false,
+    audit: { created: { at: '2026-03-10T15:45:30Z', by: 'Jane Doe' } },
   },
 };
 
@@ -57,3 +65,14 @@ export const participants = [
     unreadMessageCount: 0,
   },
 ];
+
+export const avatarWithBadgePropsEmpty = {
+  userAvatarProps: {
+    id: '',
+    imagePath: '',
+  },
+  accountLogoProps: {
+    id: '',
+    imagePath: '',
+  },
+};

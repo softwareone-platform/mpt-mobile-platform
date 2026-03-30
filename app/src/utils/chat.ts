@@ -21,6 +21,8 @@ export const getAvatarList = (
 
   const numberOfAvatars = type === 'Group' ? maxNumberOfAvatars : minNumberOfAvatars;
 
+  participants.sort((a, b) => a.id.localeCompare(b.id));
+
   for (let i = 0; i < participants.length && avatars.length < numberOfAvatars; i++) {
     const participant = participants[i];
 
@@ -72,6 +74,38 @@ export const getChatTitle = (chat: ChatItem, userId: string): string => {
   return otherParticipant?.contact?.name ?? otherParticipant?.identity?.name ?? EMPTY_STRING;
 };
 
+export const getDirectChatParticipant = (
+  participants: ChatParticipant[],
+  userId: string,
+): ChatParticipant | undefined => {
+  return participants?.find((p) => p.identity.id !== userId);
+};
+
+export const getAvatarWithBadgeProps = (
+  chatType: ChatType,
+  participants: ChatParticipant[],
+  userId: string,
+) => {
+  if (chatType !== 'Direct') {
+    return undefined;
+  }
+
+  const participant = getDirectChatParticipant(participants, userId);
+
+  const props = {
+    userAvatarProps: {
+      id: participant?.identity.id || '',
+      imagePath: participant?.identity.icon || '',
+    },
+    accountLogoProps: {
+      id: participant?.account?.id || '',
+      imagePath: participant?.account?.icon || '',
+    },
+  };
+
+  return props;
+};
+
 export const mapToChatListItemProps = (
   chat: ChatItem,
   locale: string,
@@ -83,11 +117,14 @@ export const mapToChatListItemProps = (
   const newMessageCounter = getUnreadCount(chat.participants ?? [], userId);
   const companyName = getCompanyName(chat, userId);
   const title = getChatTitle(chat, userId);
+  const avatarWithBadge = getAvatarWithBadgeProps(chat.type, chat.participants ?? [], userId);
 
   return {
     id: chat.id,
     title,
+    type: chat.type,
     companyName,
+    avatarWithBadge,
     messageLatest,
     newMessageCounter,
     dateOfLastMessage,

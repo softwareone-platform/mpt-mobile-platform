@@ -4,7 +4,7 @@
  */
 
 export const BorderRadius = {
-  xxs: 2.5,
+  xxs: 2,
   xs: 4,
   sm: 8,
   md: 12,
