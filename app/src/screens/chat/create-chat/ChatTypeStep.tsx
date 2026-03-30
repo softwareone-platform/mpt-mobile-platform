@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
+import ContactsListBase from './ContactsListBase';
+
 import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import UserListItemNavigation from '@/components/list-item/UserListItemNavigation';
 import NavigationItemWithIcon from '@/components/navigation-item/NavigationItemWithIcon';
 import type { ChatType, Contact } from '@/types/chat';
 import { TestIDs } from '@/utils/testID';
-
-import ContactsListBase from './ContactsListBase';
 
 type ChatSelectionItem = {
   name: string;
