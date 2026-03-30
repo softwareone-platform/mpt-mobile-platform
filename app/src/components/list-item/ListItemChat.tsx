@@ -2,14 +2,17 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
+import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import GroupAvatar from '@/components/avatar/GroupAvatar';
 import { listItemStyle, listItemChatStyle, linkStyle, Color } from '@/styles';
 import type { ListItemChatProps } from '@/types/chat';
 
 const ListItemChat = ({
   id,
+  type,
   title,
   companyName,
+  avatarWithBadge,
   messageLatest,
   newMessageCounter,
   dateOfLastMessage,
@@ -35,7 +38,21 @@ const ListItemChat = ({
       activeOpacity={0.7}
     >
       <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
-        <GroupAvatar avatars={avatars || []} />
+        {type === 'Direct' ? (
+          <AvatarWithBadge
+            userAvatarProps={{
+              id: avatarWithBadge?.userAvatarProps.id || '',
+              imagePath: avatarWithBadge?.userAvatarProps.imagePath || '',
+            }}
+            accountLogoProps={{
+              id: avatarWithBadge?.accountLogoProps.id || '',
+              imagePath: avatarWithBadge?.accountLogoProps.imagePath || '',
+            }}
+            variant="medium"
+          />
+        ) : (
+          <GroupAvatar avatars={avatars || []} />
+        )}
         <View style={styles.textContainer}>
           <View style={styles.textColumn}>
             <View style={styles.topRow}>

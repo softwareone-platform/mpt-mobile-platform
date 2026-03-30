@@ -1,21 +1,20 @@
 import { memo, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-import OutlinedIcon from '../common/OutlinedIcon';
-
-import Avatar from '@/components/avatar/Avatar';
+import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
+import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { chatMessageStyle } from '@/styles/components';
 import { Color } from '@/styles/tokens';
 import type { Message, MessageType } from '@/types/chat';
 import { formatDateForChat, getLocalTime } from '@/utils/formatting';
 
-type Props = {
+type ChatMessageProps = {
   message: Message;
   currentUserId: string;
   locale: string;
 };
 
-const ChatMessage = ({ message, currentUserId, locale }: Props) => {
+const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
   const isOwn = message.identity.id === currentUserId;
   const type: MessageType = isOwn ? 'own' : 'other';
   const messageDate = formatDateForChat(message.audit?.created?.at, locale);
@@ -44,7 +43,17 @@ const ChatMessage = ({ message, currentUserId, locale }: Props) => {
     <View style={styles.container}>
       {!isOwn && (
         <View style={styles.avatarWrapper}>
-          <Avatar id={avatarId} imagePath={avatarPath} variant="small" />
+          <AvatarWithBadge
+            userAvatarProps={{
+              id: avatarId,
+              imagePath: avatarPath,
+            }}
+            accountLogoProps={{
+              id: message.sender.account.id,
+              imagePath: message.sender.account.icon,
+            }}
+            variant="small"
+          />
         </View>
       )}
       <View style={styles.messageWrapper}>

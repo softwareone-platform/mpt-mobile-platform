@@ -15,6 +15,7 @@ import {
   otherUserId,
   participants,
   baseChat,
+  avatarWithBadgePropsEmpty,
 } from '../__mocks__/utils/chat';
 
 import type { ChatItem, ChatParticipant, ListItemChatProps } from '@/types/chat';
@@ -24,6 +25,8 @@ import {
   getCompanyName,
   getChatTitle,
   mapToChatListItemProps,
+  getDirectChatParticipant,
+  getAvatarWithBadgeProps,
 } from '@/utils/chat';
 
 describe('getAvatarList', () => {
@@ -72,6 +75,16 @@ describe('getAvatarList', () => {
   it('returns empty array when only current user is in participants', () => {
     const avatars = getAvatarList([participantUser], 'Direct', userId, 1, 5);
     expect(avatars).toEqual([]);
+  });
+
+  it('returns same avatars when participants are in different order', () => {
+    const ordered = [participantUser, participantOther, participants[2]];
+    const reversed = [participants[2], participantOther, participantUser];
+
+    const avatarsFromOrdered = getAvatarList(ordered, 'Group', userId, 1, 5);
+    const avatarsFromReversed = getAvatarList(reversed, 'Group', userId, 1, 5);
+
+    expect(avatarsFromOrdered).toEqual(avatarsFromReversed);
   });
 });
 
@@ -157,7 +170,13 @@ describe('getChatTitle', () => {
   it('falls back to identity.name when contact exists but contact.name is missing for Direct chat', () => {
     const participantWithContactButNoName = {
       ...participantOther,
-      contact: { id: 'C-1', email: 'test@example.com', revision: 1 },
+      contact: {
+        id: 'C-1',
+        email: 'test@example.com',
+        revision: 1,
+        identity: { id: userId, name: 'Me', revision: 1 },
+        status: 'Active',
+      },
     };
     const chat: ChatItem = {
       ...baseChat,
@@ -260,5 +279,94 @@ describe('mapToChatListItemProps', () => {
     const channelChat: ChatItem = { ...baseChat, type: 'Channel', name: 'Channel Name' };
     const props: ListItemChatProps = mapToChatListItemProps(channelChat, 'en-US', userId);
     expect(props.companyName).toBe('Acme Corp');
+  });
+});
+
+describe('getDirectChatParticipant', () => {
+  it('returns other participant in Direct chat', () => {
+    const participant = getDirectChatParticipant([participantUser, participantOther], userId);
+
+    expect(participant).toEqual(participantOther);
+  });
+
+  it('returns undefined if only current user is present', () => {
+    const participant = getDirectChatParticipant([participantUser], userId);
+
+    expect(participant).toBeUndefined();
+  });
+
+  it('returns undefined if participants is empty', () => {
+    const participant = getDirectChatParticipant([], userId);
+
+    expect(participant).toBeUndefined();
+  });
+
+  it('returns undefined if participants is undefined', () => {
+    const participant = getDirectChatParticipant(undefined as unknown as ChatParticipant[], userId);
+
+    expect(participant).toBeUndefined();
+  });
+});
+
+describe('getAvatarWithBadgeProps', () => {
+  it('returns undefined for non-Direct chat types', () => {
+    const result = getAvatarWithBadgeProps('Group', participants, userId);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns avatar and account logo props for Direct chat', () => {
+    const expectedUserAvatarProps = {
+      id: participantOther.identity.id,
+      imagePath: participantOther.identity.icon,
+    };
+    const expectedAccountAvatarProps = {
+      id: participantOther.account?.id,
+      imagePath: participantOther.account?.icon,
+    };
+    const result = getAvatarWithBadgeProps('Direct', [participantUser, participantOther], userId);
+
+    expect(result?.userAvatarProps).toEqual(expectedUserAvatarProps);
+    expect(result?.accountLogoProps).toEqual(expectedAccountAvatarProps);
+  });
+
+  it('returns empty strings if participant has no account', () => {
+    const participantNoAccount = {
+      ...participantOther,
+      account: undefined,
+    };
+
+    const result = getAvatarWithBadgeProps(
+      'Direct',
+      [participantUser, participantNoAccount],
+      userId,
+    );
+
+    expect(result).toEqual({
+      userAvatarProps: {
+        id: participantNoAccount.identity.id,
+        imagePath: participantNoAccount.identity.icon,
+      },
+      accountLogoProps: {
+        id: '',
+        imagePath: '',
+      },
+    });
+  });
+
+  it('returns empty strings if no other participant is found', () => {
+    const result = getAvatarWithBadgeProps('Direct', [participantUser], userId);
+
+    expect(result).toEqual(avatarWithBadgePropsEmpty);
+  });
+
+  it('handles participants being undefined', () => {
+    const result = getAvatarWithBadgeProps(
+      'Direct',
+      undefined as unknown as ChatParticipant[],
+      userId,
+    );
+
+    expect(result).toEqual(avatarWithBadgePropsEmpty);
   });
 });

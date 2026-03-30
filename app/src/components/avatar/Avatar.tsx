@@ -39,7 +39,10 @@ const Avatar: React.FC<AvatarProps> = ({
   const containerVariantStyle = {
     default: styles.default,
     small: styles.small,
+    medium: styles.medium,
     large: styles.large,
+    badgeSmall: styles.badgeSmall,
+    badgeMedium: styles.badgeMedium,
   };
 
   useEffect(() => {
@@ -90,8 +93,8 @@ const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <View style={styles.container}>
-      {imageSource && !hasError ? (
-        <View style={[styles.commonIconContainer, containerVariantStyle[variant]]}>
+      <View style={[styles.commonIconContainer, containerVariantStyle[variant]]}>
+        {imageSource && !hasError ? (
           <Image
             source={{ uri: imageSource.uri, headers: imageSource.headers }}
             style={styles.imageStyle}
@@ -99,10 +102,10 @@ const Avatar: React.FC<AvatarProps> = ({
             onError={handleImageLoadError}
             cachePolicy="memory-disk"
           />
-        </View>
-      ) : (
-        <Jdenticon value={id} size={size} />
-      )}
+        ) : (
+          <Jdenticon value={id} size={size} />
+        )}
+      </View>
     </View>
   );
 };
@@ -113,7 +116,10 @@ const styles = StyleSheet.create({
   imageStyle: avatarStyle.imageStyle,
   default: avatarStyle.iconContainer,
   small: avatarStyle.smallIconContainer,
+  medium: avatarStyle.mediumIconContainer,
   large: avatarStyle.largeIconContainer,
+  badgeSmall: avatarStyle.smallBadgeContainer,
+  badgeMedium: avatarStyle.mediumBadgeContainer,
 });
 
 export default Avatar;
