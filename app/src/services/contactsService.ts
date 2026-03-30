@@ -30,14 +30,6 @@ export function useContactsApi() {
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      logger.debug('[ContactsService] Fetching contacts', {
-        userId,
-        search,
-        offset,
-        limit,
-        endpoint,
-      });
-
       try {
         const response = await api.get<PaginatedResponse<Contact>>(endpoint);
 
@@ -51,13 +43,8 @@ export function useContactsApi() {
         const apiError = error as ApiError;
         logger.error('[ContactsService] Failed to fetch contacts', error, {
           userId,
-          search,
-          offset,
-          limit,
-          endpoint,
           httpStatus: apiError?.status ?? undefined,
           errorMessage: apiError?.message,
-          errorDetails: JSON.stringify(apiError?.details),
         });
         throw error;
       }

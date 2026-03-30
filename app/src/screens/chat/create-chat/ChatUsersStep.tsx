@@ -1,6 +1,6 @@
-import UserListItemSelection from '@/components/list-item/UserListItemSelection';
-
 import ContactsListBase from './ContactsListBase';
+
+import UserListItemSelection from '@/components/list-item/UserListItemSelection';
 
 type ChatUserStepProps = {
   selectedIds: string[];
