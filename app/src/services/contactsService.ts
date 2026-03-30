@@ -18,8 +18,9 @@ export function useContactsApi() {
       search?: string,
     ): Promise<PaginatedResponse<Contact>> => {
       const baseFilters = `and(and(and(eq(chat,true),ne(status,"deleted")),ne(identity.id,"${userId}")),any(directories))`;
-      const filters = search
-        ? `and(${baseFilters},ilike(identity.name,"*${search}*"))`
+      const sanitizedSearch = search?.replace(/["\\()]/g, '');
+      const filters = sanitizedSearch
+        ? `and(${baseFilters},ilike(identity.name,"*${sanitizedSearch}*"))`
         : baseFilters;
 
       const endpoint =

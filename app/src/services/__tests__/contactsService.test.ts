@@ -67,6 +67,17 @@ describe('useContactsApi', () => {
       expect(endpoint).toContain(`ilike(identity.name,"*alice*")`);
     });
 
+    it('strips RQL-breaking characters from search before building the filter', async () => {
+      mockGet.mockResolvedValue(mockResponse);
+
+      const { result } = renderHook(() => useContactsApi());
+      await result.current.getContacts(USER_ID, DEFAULT_OFFSET, DEFAULT_PAGE_SIZE, 'ali"ce(x)\\y');
+
+      const endpoint: string = mockGet.mock.calls[0][0];
+      expect(endpoint).toContain(`ilike(identity.name,"*alicexy*")`);
+      expect(endpoint).not.toContain('"ali');
+    });
+
     it('applies offset and limit to the endpoint', async () => {
       mockGet.mockResolvedValue(mockResponse);
 
