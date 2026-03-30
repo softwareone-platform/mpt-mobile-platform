@@ -23,7 +23,7 @@ import {
   EMPTY_STRING,
 } from '@/constants';
 import { createChatWizardStyle, screenStyle, spacingStyle } from '@/styles';
-import type { ChatType } from '@/types/chat';
+import type { ChatType, Contact } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
@@ -104,7 +104,7 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
                 setChatType(type);
                 setStep(2);
               }}
-              onSelectParticipant={() => {
+              onSelectParticipant={(_contact: Contact) => {
                 handleNavigateToChat();
               }}
             />

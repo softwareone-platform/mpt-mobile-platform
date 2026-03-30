@@ -16,8 +16,8 @@ jest.mock('@/services/loggerService', () => ({
 
 const mockUser = {
   sub: 'auth0|123',
-  'https://claims.softwareone.com/userId': 'USR-1234-5678',
-  'https://claims.softwareone.com/accountId': 'ACC-9876-5432',
+  [USER_ID_CLAIM_KEY]: 'USR-1234-5678',
+  [ACCOUNT_ID_CLAIM_KEY]: 'ACC-9876-5432',
 };
 
 jest.mock('@/context/AuthContext', () => ({
@@ -28,6 +28,7 @@ jest.mock('@/context/AuthContext', () => ({
 
 import { renderHook } from '@testing-library/react-native';
 
+import { ACCOUNT_ID_CLAIM_KEY, USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { useAppInsights } from '@/hooks/useAppInsights';
 import { appInsightsService } from '@/services/appInsightsService';
 import { logger } from '@/services/loggerService';

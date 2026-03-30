@@ -17,6 +17,7 @@
     "chatType": "Chat type",
     "groupChat": "Group chat",
     "chatDetails": "Chat details",
-    "enterGroupName": "Enter a group name (optional)"
+    "enterGroupName": "Enter a group name (optional)",
+    "searchPlaceholder": "Search"
   }
 }
