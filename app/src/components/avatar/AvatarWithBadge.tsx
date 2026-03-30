@@ -6,12 +6,12 @@ import Avatar from './Avatar';
 import { avatarWithBadgeStyle, avatarSize, badgeSize } from '@/styles/components/avatar';
 import type { AvatarWithBadgeProps, AvatarWithBadgeVariant, AvatarVariant } from '@/types/icons';
 
-const AvatarWithBadge = ({ userAvatarProps, accountLogoProps, variant }: AvatarWithBadgeProps) => {
-  const mapVariant: Record<AvatarWithBadgeVariant, AvatarVariant> = {
-    small: 'badgeSmall',
-    medium: 'badgeMedium',
-  };
+const mapVariant: Record<AvatarWithBadgeVariant, AvatarVariant> = {
+  small: 'badgeSmall',
+  medium: 'badgeMedium',
+};
 
+const AvatarWithBadge = ({ userAvatarProps, accountLogoProps, variant }: AvatarWithBadgeProps) => {
   const styles = useMemo(
     () =>
       StyleSheet.create({

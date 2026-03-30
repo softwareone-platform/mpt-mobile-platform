@@ -21,10 +21,10 @@ export const getAvatarList = (
 
   const numberOfAvatars = type === 'Group' ? maxNumberOfAvatars : minNumberOfAvatars;
 
-  participants.sort((a, b) => a.id.localeCompare(b.id));
+  const sortedParticipants = [...participants].sort((a, b) => a.id.localeCompare(b.id));
 
-  for (let i = 0; i < participants.length && avatars.length < numberOfAvatars; i++) {
-    const participant = participants[i];
+  for (let i = 0; i < sortedParticipants.length && avatars.length < numberOfAvatars; i++) {
+    const participant = sortedParticipants[i];
 
     if (participant.identity.id !== userId) {
       avatars.push({
