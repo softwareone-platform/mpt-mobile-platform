@@ -25,7 +25,7 @@ export interface OutlinedIconProps extends BaseIconProps {
   name: OutlinedIconName;
 }
 
-export type AvatarVariant = 'default' | 'small' | 'large';
+export type AvatarVariant = 'default' | 'small' | 'medium' | 'large' | 'badgeSmall' | 'badgeMedium';
 
 export interface AvatarProps {
   id: string;
@@ -33,3 +33,11 @@ export interface AvatarProps {
   size?: number;
   variant?: AvatarVariant;
 }
+
+export type AvatarWithBadgeVariant = 'small' | 'medium';
+
+export type AvatarWithBadgeProps = {
+  userAvatarProps: AvatarProps;
+  accountLogoProps: AvatarProps;
+  variant: AvatarWithBadgeVariant;
+};

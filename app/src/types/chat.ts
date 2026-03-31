@@ -59,6 +59,7 @@ export type ChatParticipant = {
 
 export type Sender = ChatParticipant & {
   chat: Chat;
+  account: Account;
   muted: boolean;
   status: string;
   lastReadMessage: LastMessage;
@@ -81,6 +82,12 @@ export type ChatItem = {
   lastMessage?: LastMessage;
 };
 
+export type CreateChatPayload = {
+  type: ChatType;
+  name?: string;
+  participants: Array<{ contact: { id: string } }>;
+};
+
 export type AvatarItem = {
   id: string;
   imagePath?: string;
@@ -88,8 +95,10 @@ export type AvatarItem = {
 
 export type ListItemChatProps = ListItemCommonProps & {
   id: string;
+  type: ChatType;
   title: string;
   companyName: string;
+  avatarWithBadge?: Record<string, AvatarItem>;
   messageLatest: string;
   newMessageCounter: number;
   dateOfLastMessage: string;
@@ -101,7 +110,7 @@ export type Message = {
   id: string;
   revision: number;
   chat?: Chat;
-  sender?: Sender;
+  sender: Sender;
   identity: Identity;
   content: string;
   visibility: 'Public' | 'Private';

@@ -22,8 +22,10 @@ import {
   WIZARD_INITIAL_STEP,
   EMPTY_STRING,
 } from '@/constants';
+import { useCreateChatMutation } from '@/hooks/queries/useCreateChatMutation';
+import { logger } from '@/services/loggerService';
 import { createChatWizardStyle, screenStyle, spacingStyle } from '@/styles';
-import type { ChatType } from '@/types/chat';
+import type { Contact } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
@@ -34,36 +36,40 @@ type CreateChatWizardProps = {
 
 const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
   const [step, setStep] = useState(WIZARD_INITIAL_STEP);
-  // must have chatType here, but it is not used untill we have POST API to create chat
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [chatType, setChatType] = useState<ChatType>(null);
   const [chatName, setChatName] = useState(EMPTY_STRING);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { t } = useTranslation();
-
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { mutateAsync: createChat, isPending } = useCreateChatMutation();
 
   const handleClose = useCallback(() => {
     setStep(WIZARD_INITIAL_STEP);
-    setChatType(null);
     setChatName(EMPTY_STRING);
     setSelectedIds([]);
     onClose();
   }, [onClose]);
 
-  const handleNavigateToChat = () => {
-    // TODO: call create chat API and pass ID of newly created chat
-    navigation.navigate('chatConversation', { id: 'CHT-9231-8917-3633' });
-    handleClose();
-  };
+  const handleCreateDirectChat = useCallback(
+    async (contact: Contact) => {
+      try {
+        const chat = await createChat({
+          type: 'Direct',
+          participants: [{ contact: { id: contact.id } }],
+        });
+        navigation.navigate('chatConversation', { id: chat.id });
+        handleClose();
+      } catch (error) {
+        logger.error('Failed to create direct chat', error, { operation: 'createDirectChat' });
+      }
+    },
+    [createChat, navigation, handleClose],
+  );
 
   const handleNext = () => {
     if (step === 2) {
       if (!chatName.trim()) return;
       setStep(3);
-    } else if (step === 3) {
-      handleNavigateToChat();
     }
   };
 
@@ -84,7 +90,7 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
         </View>
         <View style={styles.headerSide}>
           {step > 1 && (
-            <TouchableOpacity onPress={handleNext}>
+            <TouchableOpacity onPress={handleNext} disabled={isPending}>
               <Text style={styles.headerTextNext}>{t('createChatWizard.next')}</Text>
             </TouchableOpacity>
           )}
@@ -100,13 +106,13 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
         >
           {step === 1 && (
             <ChatTypeStep
-              onSelectChatType={(type) => {
-                setChatType(type);
+              onSelectChatType={() => {
                 setStep(2);
               }}
-              onSelectParticipant={() => {
-                handleNavigateToChat();
+              onSelectParticipant={(contact: Contact) => {
+                void handleCreateDirectChat(contact);
               }}
+              isLoading={isPending}
             />
           )}
 

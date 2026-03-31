@@ -2,9 +2,34 @@ import type { ViewStyle } from 'react-native';
 
 import { BorderRadius, Color } from '../tokens';
 
+const containerBorderCommon: ViewStyle = {
+  borderWidth: 1,
+  borderColor: Color.gray.gray2,
+};
+
 const regionCommon: ViewStyle = {
   position: 'absolute',
   borderColor: Color.brand.white,
+};
+
+const badgeCommon: ViewStyle = {
+  position: 'absolute',
+  borderWidth: 1,
+  backgroundColor: Color.brand.white,
+  borderColor: Color.brand.white,
+  borderRadius: BorderRadius.xxs,
+};
+
+export const avatarSize = {
+  default: 44,
+  small: 32,
+  medium: 48,
+  large: 80,
+};
+
+export const badgeSize = {
+  small: 12,
+  medium: 16,
 };
 
 export const avatarStyle = {
@@ -18,18 +43,36 @@ export const avatarStyle = {
     alignItems: 'center',
   },
   iconContainer: {
-    width: 44,
-    height: 44,
+    width: avatarSize.default,
+    height: avatarSize.default,
     borderRadius: BorderRadius.md,
   },
+  smallBadgeContainer: {
+    width: badgeSize.small,
+    height: badgeSize.small,
+    borderRadius: BorderRadius.xxs,
+  },
+  mediumBadgeContainer: {
+    width: badgeSize.medium,
+    height: badgeSize.medium,
+    borderRadius: BorderRadius.xxs,
+  },
   smallIconContainer: {
-    width: 32,
-    height: 32,
+    ...containerBorderCommon,
+    width: avatarSize.small,
+    height: avatarSize.small,
+    borderRadius: BorderRadius.round,
+  },
+  mediumIconContainer: {
+    ...containerBorderCommon,
+    width: avatarSize.medium,
+    height: avatarSize.medium,
     borderRadius: BorderRadius.round,
   },
   largeIconContainer: {
-    width: 80,
-    height: 80,
+    ...containerBorderCommon,
+    width: avatarSize.large,
+    height: avatarSize.large,
     borderRadius: BorderRadius.round,
   },
   loadingOverlay: {
@@ -98,5 +141,36 @@ export const groupAvatarStyle = {
     top: '50%',
     left: '50%',
     borderLeftWidth: 1,
+  },
+} as const;
+
+export const avatarWithBadgeStyle = {
+  small: {
+    container: {
+      position: 'relative',
+      width: avatarSize.small,
+      height: avatarSize.small,
+    },
+    badge: {
+      ...badgeCommon,
+      bottom: -3,
+      right: -3,
+      width: badgeSize.small,
+      height: badgeSize.small,
+    },
+  },
+  medium: {
+    container: {
+      position: 'relative',
+      width: avatarSize.medium,
+      height: avatarSize.medium,
+    },
+    badge: {
+      ...badgeCommon,
+      bottom: -2,
+      right: -2,
+      width: badgeSize.medium,
+      height: badgeSize.medium,
+    },
   },
 } as const;
