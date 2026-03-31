@@ -87,9 +87,17 @@ export interface StatementDetails extends CommonBillingDetails {
   audit: Audit;
 }
 
-export interface JournalDetails extends CommonBillingDetails {
+export interface JournalDetails {
+  id: string;
   name: string;
+  status?: string;
   authorization?: DetailsListItemValue;
+  product?: DetailsListItemValue;
+  ledger?: {
+    id: string;
+    owner?: DetailsListItemValue;
+  };
+  vendor?: DetailsListItemValue;
   attributes?: {
     dueDate?: string;
     baseCurrency?: string;
@@ -108,9 +116,5 @@ export interface JournalDetails extends CommonBillingDetails {
   };
   assignee?: DetailsListItemValue;
   charges?: DetailsListItemValue;
-  ledger?: {
-    id: string;
-    owner?: DetailsListItemValue;
-  };
   audit: Audit;
 }

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
-import { listItemConfigFull } from '@/config/list';
+import { listItemConfigNoImage } from '@/config/list';
 import { JournalsProvider, useJournals } from '@/context/JournalsContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
@@ -41,7 +41,7 @@ const JournalsScreenContent = () => {
         isFetchingNext={journalsFetchingNext}
         hasMore={hasMoreJournals}
         fetchNext={fetchJournals}
-        config={listItemConfigFull}
+        config={listItemConfigNoImage}
         onItemPress={(id) => {
           navigation.navigate('journalDetails', { id });
         }}
