@@ -143,7 +143,11 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
           )}
 
           {step === 2 && (
-            <ChatDetailsStep onChangeName={(value) => { chatNameRef.current = value; }} />
+            <ChatDetailsStep
+              onChangeName={(value) => {
+                chatNameRef.current = value;
+              }}
+            />
           )}
 
           {step === 3 && (
