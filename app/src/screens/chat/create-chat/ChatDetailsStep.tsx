@@ -6,11 +6,10 @@ import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { iconStyle, inputWithIconStyle } from '@/styles';
 
 type ChatDetailsStepProps = {
-  chatName: string;
-  setChatName: (value: string) => void;
+  onChangeName: (value: string) => void;
 };
 
-export const ChatDetailsStep = ({ chatName, setChatName }: ChatDetailsStepProps) => {
+export const ChatDetailsStep = ({ onChangeName }: ChatDetailsStepProps) => {
   const { t } = useTranslation();
 
   return (
@@ -21,8 +20,8 @@ export const ChatDetailsStep = ({ chatName, setChatName }: ChatDetailsStepProps)
         </View>
         <TextInput
           placeholder={t('createChatWizard.enterGroupName')}
-          value={chatName}
-          onChangeText={setChatName}
+          defaultValue=""
+          onChangeText={onChangeName}
           style={styles.input}
           autoFocus
         />

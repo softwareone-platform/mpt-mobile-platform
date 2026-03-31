@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -36,7 +36,7 @@ type CreateChatWizardProps = {
 
 const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
   const [step, setStep] = useState(WIZARD_INITIAL_STEP);
-  const [chatName, setChatName] = useState(EMPTY_STRING);
+  const chatNameRef = useRef(EMPTY_STRING);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { t } = useTranslation();
@@ -45,7 +45,7 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
 
   const handleClose = useCallback(() => {
     setStep(WIZARD_INITIAL_STEP);
-    setChatName(EMPTY_STRING);
+    chatNameRef.current = EMPTY_STRING;
     setSelectedIds([]);
     onClose();
   }, [onClose]);
@@ -66,10 +66,25 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
     [createChat, navigation, handleClose],
   );
 
+  const handleCreateGroupChat = useCallback(async () => {
+    try {
+      const chat = await createChat({
+        type: 'Group',
+        participants: selectedIds.map((id) => ({ contact: { id } })),
+        ...(chatNameRef.current.trim() && { name: chatNameRef.current.trim() }),
+      });
+      navigation.navigate('chatConversation', { id: chat.id });
+      handleClose();
+    } catch (error) {
+      logger.error('Failed to create group chat', error, { operation: 'createGroupChat' });
+    }
+  }, [createChat, selectedIds, navigation, handleClose]);
+
   const handleNext = () => {
     if (step === 2) {
-      if (!chatName.trim()) return;
       setStep(3);
+    } else if (step === 3) {
+      void handleCreateGroupChat();
     }
   };
 
@@ -90,8 +105,19 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
         </View>
         <View style={styles.headerSide}>
           {step > 1 && (
-            <TouchableOpacity onPress={handleNext} disabled={isPending}>
-              <Text style={styles.headerTextNext}>{t('createChatWizard.next')}</Text>
+            <TouchableOpacity
+              onPress={handleNext}
+              disabled={isPending || (step === 3 && selectedIds.length === 0)}
+            >
+              <Text
+                style={[
+                  styles.headerTextNext,
+                  (isPending || (step === 3 && selectedIds.length === 0)) &&
+                    styles.headerButtonDisabled,
+                ]}
+              >
+                {step === 3 ? t('createChatWizard.create') : t('createChatWizard.next')}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -116,7 +142,13 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
             />
           )}
 
-          {step === 2 && <ChatDetailsStep chatName={chatName} setChatName={setChatName} />}
+          {step === 2 && (
+            <ChatDetailsStep
+              onChangeName={(value) => {
+                chatNameRef.current = value;
+              }}
+            />
+          )}
 
           {step === 3 && (
             <ChatUsersStep selectedIds={selectedIds} onToggleParticipant={toggleParticipant} />
@@ -134,6 +166,7 @@ const styles = StyleSheet.create({
   headerTitle: createChatWizardStyle.headerTitle,
   headerTextCancel: createChatWizardStyle.headerTextCancel,
   headerTextNext: createChatWizardStyle.headerTextNext,
+  headerButtonDisabled: createChatWizardStyle.headerButtonDisabled,
   container: screenStyle.containerFlex,
   keyboardWrapper: {
     ...screenStyle.containerFlex,
