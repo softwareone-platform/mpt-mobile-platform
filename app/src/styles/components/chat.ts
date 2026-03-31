@@ -140,4 +140,7 @@ export const createChatWizardStyle = {
     ...wizardHeaderButtonCommon,
     color: Color.brand.primary,
   },
+  headerButtonDisabled: {
+    color: Color.gray.gray4,
+  },
 } as const;
