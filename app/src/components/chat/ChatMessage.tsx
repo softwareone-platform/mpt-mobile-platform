@@ -49,8 +49,8 @@ const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
               imagePath: avatarPath,
             }}
             accountLogoProps={{
-              id: message.sender.account.id,
-              imagePath: message.sender.account.icon,
+              id: message.sender?.account?.id ?? '',
+              imagePath: message.sender?.account?.icon,
             }}
             variant="small"
           />
