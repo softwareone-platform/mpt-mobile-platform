@@ -66,22 +66,19 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
     [createChat, navigation, handleClose],
   );
 
-  const handleCreateGroupChat = useCallback(
-    async () => {
-      try {
-        const chat = await createChat({
-          type: 'Group',
-          participants: selectedIds.map((id) => ({ contact: { id } })),
-          ...(chatName.trim() && { name: chatName.trim() }),
-        });
-        navigation.navigate('chatConversation', { id: chat.id });
-        handleClose();
-      } catch (error) {
-        logger.error('Failed to create group chat', error, { operation: 'createGroupChat' });
-      }
-    },
-    [createChat, selectedIds, chatName, navigation, handleClose],
-  );
+  const handleCreateGroupChat = useCallback(async () => {
+    try {
+      const chat = await createChat({
+        type: 'Group',
+        participants: selectedIds.map((id) => ({ contact: { id } })),
+        ...(chatName.trim() && { name: chatName.trim() }),
+      });
+      navigation.navigate('chatConversation', { id: chat.id });
+      handleClose();
+    } catch (error) {
+      logger.error('Failed to create group chat', error, { operation: 'createGroupChat' });
+    }
+  }, [createChat, selectedIds, chatName, navigation, handleClose]);
 
   const handleNext = () => {
     if (step === 2) {
