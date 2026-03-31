@@ -9,22 +9,19 @@ type ChatUserStepProps = {
 
 const ChatUsersStep = ({ selectedIds, onToggleParticipant }: ChatUserStepProps) => (
   <ContactsListBase
-    renderItem={(item, isFirst, isLast) => {
-      const id = item.identity.id;
-      return (
-        <UserListItemSelection
-          id={id}
-          imagePath={item.identity.icon}
-          title={item.identity.name}
-          subtitle={id}
-          statusText={item.status}
-          isFirst={isFirst}
-          isLast={isLast}
-          selected={selectedIds.includes(id)}
-          onToggle={() => onToggleParticipant(id)}
-        />
-      );
-    }}
+    renderItem={(item, isFirst, isLast) => (
+      <UserListItemSelection
+        id={item.identity.id}
+        imagePath={item.identity.icon}
+        title={item.identity.name}
+        subtitle={item.identity.id}
+        statusText={item.status}
+        isFirst={isFirst}
+        isLast={isLast}
+        selected={selectedIds.includes(item.id)}
+        onToggle={() => onToggleParticipant(item.id)}
+      />
+    )}
   />
 );
 

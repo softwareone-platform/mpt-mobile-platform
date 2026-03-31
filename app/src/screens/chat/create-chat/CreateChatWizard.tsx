@@ -66,10 +66,28 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
     [createChat, navigation, handleClose],
   );
 
+  const handleCreateGroupChat = useCallback(
+    async () => {
+      try {
+        const chat = await createChat({
+          type: 'Group',
+          participants: selectedIds.map((id) => ({ contact: { id } })),
+          ...(chatName.trim() && { name: chatName.trim() }),
+        });
+        navigation.navigate('chatConversation', { id: chat.id });
+        handleClose();
+      } catch (error) {
+        logger.error('Failed to create group chat', error, { operation: 'createGroupChat' });
+      }
+    },
+    [createChat, selectedIds, chatName, navigation, handleClose],
+  );
+
   const handleNext = () => {
     if (step === 2) {
-      if (!chatName.trim()) return;
       setStep(3);
+    } else if (step === 3) {
+      void handleCreateGroupChat();
     }
   };
 
@@ -90,8 +108,13 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
         </View>
         <View style={styles.headerSide}>
           {step > 1 && (
-            <TouchableOpacity onPress={handleNext} disabled={isPending}>
-              <Text style={styles.headerTextNext}>{t('createChatWizard.next')}</Text>
+            <TouchableOpacity
+              onPress={handleNext}
+              disabled={isPending || (step === 3 && selectedIds.length === 0)}
+            >
+              <Text style={styles.headerTextNext}>
+                {step === 3 ? t('createChatWizard.create') : t('createChatWizard.next')}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
