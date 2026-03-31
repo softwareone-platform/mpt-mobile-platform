@@ -4,7 +4,7 @@ import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import { logger } from '@/services/loggerService';
 import type { PaginatedResponse } from '@/types/api';
-import type { ChatItem } from '@/types/chat';
+import type { ChatItem, CreateChatPayload } from '@/types/chat';
 
 export function useChatApi() {
   const api = useApi();
@@ -43,11 +43,19 @@ export function useChatApi() {
     [api],
   );
 
+  const createChat = useCallback(
+    async (payload: CreateChatPayload): Promise<ChatItem> => {
+      return await api.post<ChatItem>('/v1/helpdesk/chats', payload);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getChats,
       getChat,
+      createChat,
     }),
-    [getChats, getChat],
+    [getChats, getChat, createChat],
   );
 }

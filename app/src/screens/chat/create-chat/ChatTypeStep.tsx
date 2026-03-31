@@ -17,11 +17,12 @@ type ChatSelectionItem = {
 type ChatTypeStepProps = {
   onSelectChatType: (type: ChatType) => void;
   onSelectParticipant: (contact: Contact) => void;
+  isLoading?: boolean;
 };
 
 const chatTypes: Array<ChatSelectionItem> = [{ name: 'groupChat', type: 'Group', icon: 'group' }];
 
-const ChatTypeStep = ({ onSelectChatType, onSelectParticipant }: ChatTypeStepProps) => {
+const ChatTypeStep = ({ onSelectChatType, onSelectParticipant, isLoading }: ChatTypeStepProps) => {
   const { t } = useTranslation();
 
   return (
@@ -50,6 +51,7 @@ const ChatTypeStep = ({ onSelectChatType, onSelectParticipant }: ChatTypeStepPro
           isFirst={isFirst}
           isLast={isLast}
           onPress={() => onSelectParticipant(item)}
+          disabled={isLoading}
         />
       )}
     />

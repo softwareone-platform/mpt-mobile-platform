@@ -82,6 +82,12 @@ export type ChatItem = {
   lastMessage?: LastMessage;
 };
 
+export type CreateChatPayload = {
+  type: ChatType;
+  name?: string;
+  participants: Array<{ contact: { id: string } }>;
+};
+
 export type AvatarItem = {
   id: string;
   imagePath?: string;
