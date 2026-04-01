@@ -18,7 +18,13 @@ export { linkStyle } from './link';
 export { textStyle } from './text';
 export { chipStyle } from './chip';
 export { badgeStyle } from './badge';
-export { chatStyle, chatMessageStyle, createChatWizardStyle } from './chat';
+export {
+  chatStyle,
+  chatMessageStyle,
+  createChatWizardStyle,
+  chatMarkdownSpacing,
+  chatMarkdownTypography,
+} from './chat';
 export { bottomSheetStyle } from './bottomSheet';
 export { iconStyle } from './icon';
 export { checkboxStyle } from './checkbox';

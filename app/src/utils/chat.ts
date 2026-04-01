@@ -1,3 +1,5 @@
+import { marked } from 'marked';
+
 import { MIN_NUMBER_OF_CHAT_AVATARS, MAX_NUMBER_OF_CHAT_AVATARS, EMPTY_STRING } from '@/constants';
 import type {
   ChatParticipant,
@@ -131,4 +133,14 @@ export const mapToChatListItemProps = (
     avatars,
     isVerified: false,
   };
+};
+
+export const parseMarkdownToHtml = (content: string): string => {
+  const raw = marked(content) as string;
+  return raw.replace(/<ul>([\s\S]*?)<\/ul>/g, (match, inner: string) => {
+    if (!/<input[^>]*type="checkbox"/.test(inner)) return match;
+    return inner
+      .replace(/<li>\s*<input[^>]*checked[^>]*>([\s\S]*?)<\/li>/g, '<p>☑ $1</p>')
+      .replace(/<li>\s*<input[^>]*type="checkbox"[^>]*>([\s\S]*?)<\/li>/g, '<p>☐ $1</p>');
+  });
 };

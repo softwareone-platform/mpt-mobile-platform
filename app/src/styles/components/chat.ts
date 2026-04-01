@@ -110,6 +110,16 @@ export const chatMessageStyle = {
   },
 } as const;
 
+export const chatMarkdownSpacing = {
+  imageMarginVertical: Spacing.spacingSmall4,
+  headingMarginBottom: Spacing.spacingSmall4,
+} as const;
+
+export const chatMarkdownTypography = {
+  headingBoldWeight: Typography.fontWeight.bold,
+  headingSemiboldWeight: Typography.fontWeight.semibold,
+} as const;
+
 const wizardHeaderButtonCommon = {
   fontSize: Typography.fontSize.font3,
   color: Color.brand.type,
