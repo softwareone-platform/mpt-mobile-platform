@@ -25,7 +25,7 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
   const { userData } = useAccount();
   const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
-  const dueDate = formatDateForLocale(data.attributes?.dueDate, language);
+  const dueDate = formatDateForLocale(data.dueDate, language);
   const totalPP = formatNumber(data.price?.totalPP, 2, language) || EMPTY_VALUE;
 
   return (
@@ -44,11 +44,11 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         />
         <DetailsListItem
           label={t('details.owner')}
-          data={data.ledger?.owner}
+          data={data.owner}
           onPress={
             canNavigateTo('seller', accountType)
               ? () => {
-                  navigation.navigate('sellerDetails', { id: data.ledger?.owner?.id });
+                  navigation.navigate('sellerDetails', { id: data.owner?.id });
                 }
               : undefined
           }
@@ -67,31 +67,27 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         <ListItemWithLabelAndText title={t('details.dueDate')} subtitle={dueDate} />
         <ListItemWithLabelAndText
           title={t('details.baseCurrency')}
-          subtitle={data.attributes?.baseCurrency}
+          subtitle={data.price?.currency}
         />
         <ListItemWithLabelAndText
           title={t('details.allCharges')}
-          subtitle={data.stats?.all?.toString()}
+          subtitle={data.processingSummary?.total?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.readyCharges')}
-          subtitle={data.stats?.ready?.toString()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.ignoredCharges')}
-          subtitle={data.stats?.ignored?.toString()}
+          subtitle={data.processingSummary?.ready?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.splitCharges')}
-          subtitle={data.stats?.split?.toString()}
+          subtitle={data.processingSummary?.split?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.errorCharges')}
-          subtitle={data.stats?.error?.toString()}
+          subtitle={data.processingSummary?.error?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.skippedCharges')}
-          subtitle={data.stats?.skipped?.toString()}
+          subtitle={data.processingSummary?.skipped?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.pp')}
@@ -103,33 +99,6 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
           isLast={true}
         />
       </CardWithHeader>
-      <View style={styles.navigationCard}>
-        <NavigationItemWithImage
-          id={data.charges?.id || ''}
-          title={t('details.charges')}
-          subtitle={data.charges?.name || ''}
-          imagePath={data.charges?.icon}
-        />
-        <NavigationItemWithImage
-          id={data.ledger?.id || ''}
-          title={t('details.ledgers')}
-          subtitle={data.ledger?.id || ''}
-        />
-        <NavigationItemWithImage
-          id={data.seller?.id || ''}
-          title={t('details.sellers')}
-          subtitle={data.seller?.name || ''}
-          imagePath={data.seller?.icon}
-          isLast={true}
-          onPress={
-            canNavigateTo('seller', accountType)
-              ? () => {
-                  navigation.navigate('sellerDetails', { id: data.seller?.id });
-                }
-              : undefined
-          }
-        />
-      </View>
     </>
   );
 };

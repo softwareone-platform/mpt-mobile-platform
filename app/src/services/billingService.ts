@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
+import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE, JOURNALS_LIST_API_ENDPOINT } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse, ListItemNoImageNoSubtitle, ListItemNoImage } from '@/types/api';
 import type {
@@ -106,10 +106,7 @@ export function useBillingApi() {
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<ListItemNoImage>> => {
       const endpoint =
-        `/v1/billing/journals` +
-        `?select=-*,id,name,status` +
-        `&ne(status,%22Deleted%22)` +
-        `&order=-audit.created.at` +
+        `${JOURNALS_LIST_API_ENDPOINT}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

@@ -93,19 +93,16 @@ export interface JournalDetails {
   status?: string;
   authorization?: DetailsListItemValue;
   product?: DetailsListItemValue;
-  ledger?: {
-    id: string;
-    owner?: DetailsListItemValue;
-  };
+  owner?: DetailsListItemValue;
   vendor?: DetailsListItemValue;
-  attributes?: {
-    dueDate?: string;
-    baseCurrency?: string;
+  dueDate?: string;
+  priceSumary?: {
+    totalPP?: string;
+    currency?: string;
   };
-  stats?: {
-    all?: number;
+  processingSummary: {
+    total?: number;
     ready?: number;
-    ignored?: number;
     split?: number;
     error?: number;
     skipped?: number;
@@ -116,5 +113,7 @@ export interface JournalDetails {
   };
   assignee?: DetailsListItemValue;
   charges?: DetailsListItemValue;
+  ledgers?: DetailsListItemValue;
+  sellers?: DetailsListItemValue;
   audit: Audit;
 }
