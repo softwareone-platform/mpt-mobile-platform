@@ -70,27 +70,27 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         />
         <ListItemWithLabelAndText
           title={t('details.allCharges')}
-          subtitle={data.processingSummary?.total?.toString()}
+          subtitle={data.processing?.total?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.readyCharges')}
-          subtitle={data.processingSummary?.ready?.toString()}
+          subtitle={data.processing?.ready?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.ignoredCharges')}
-          subtitle={data.processingSummary?.ignored?.toString()}
+          subtitle={data.processing?.ignored?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.splitCharges')}
-          subtitle={data.processingSummary?.split?.toString()}
+          subtitle={data.processing?.split?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.errorCharges')}
-          subtitle={data.processingSummary?.error?.toString()}
+          subtitle={data.processing?.error?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.skippedCharges')}
-          subtitle={data.processingSummary?.skipped?.toString()}
+          subtitle={data.processing?.skipped?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.pp')}

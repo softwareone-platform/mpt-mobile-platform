@@ -96,11 +96,11 @@ export interface JournalDetails {
   owner?: DetailsListItemValue;
   vendor?: DetailsListItemValue;
   dueDate?: string;
-  priceSumary?: {
-    totalPP?: string;
+  price?: {
     currency?: string;
+    totalPP?: number;
   };
-  processingSummary: {
+  processing: {
     total?: number;
     ready?: number;
     ignored?: number;
@@ -108,13 +108,6 @@ export interface JournalDetails {
     error?: number;
     skipped?: number;
   };
-  price?: {
-    currency?: string;
-    totalPP?: number;
-  };
   assignee?: DetailsListItemValue;
-  charges?: DetailsListItemValue;
-  ledgers?: DetailsListItemValue;
-  sellers?: DetailsListItemValue;
   audit: Audit;
 }
