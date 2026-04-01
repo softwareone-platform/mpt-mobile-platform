@@ -1,46 +1,16 @@
-import type { SpotlightItem } from '@/types/api';
-import type {
-  SpotlightTemplateName,
-  SpotlightCategoryName,
-  SpotlightCategory,
-} from '@/types/spotlight';
+import type { SpotlightItem, SpotlightItemWithDetails } from '@/types/api';
+import type { SpotlightTemplateName, SpotlightCategory } from '@/types/spotlight';
 
 export const categories: Array<SpotlightCategory> = [
   {
     name: 'orders',
     templates: ['savedOrdersClient', 'queryingOrders'],
-    detailsScreenName: 'orderDetails',
-    listScreenName: 'orders',
   },
   {
     name: 'subscriptions',
     templates: ['renewingSubscriptions', 'expiringSubscriptions'],
-    detailsScreenName: 'subscriptionDetails',
-    listScreenName: 'subscriptions',
   },
 ];
-
-export const duplicateCategories: Array<SpotlightCategory> = [
-  {
-    name: 'orders',
-    templates: ['savedOrdersClient'],
-    detailsScreenName: 'orderDetails',
-    listScreenName: 'orders',
-  },
-  {
-    name: 'subscriptions',
-    templates: ['savedOrdersClient'],
-    detailsScreenName: 'subscriptionDetails',
-    listScreenName: 'subscriptions',
-  },
-];
-
-export const categoryLookup: Record<SpotlightTemplateName, SpotlightCategoryName> = {
-  savedOrdersClient: 'orders',
-  queryingOrders: 'orders',
-  renewingSubscriptions: 'subscriptions',
-  expiringSubscriptions: 'subscriptions',
-} as Record<SpotlightTemplateName, SpotlightCategoryName>;
 
 export const spotlightItem1: SpotlightItem = {
   id: '1',
@@ -146,15 +116,45 @@ export const spotlightDataZeroTotal: SpotlightItem[] = [
 
 export const spotlightDataEmpty: SpotlightItem[] = [];
 
-export const groupedSpotlightData: Record<string, SpotlightItem[]> = {
-  orders: [spotlightItem1, spotlightItem3],
-  subscriptions: [spotlightItem2],
+export const groupedSpotlightData: Record<string, SpotlightItemWithDetails[]> = {
+  orders: [
+    {
+      ...spotlightItem1,
+      listScreenName: 'orders',
+      detailsScreenName: 'orderDetails',
+    },
+    {
+      ...spotlightItem3,
+      listScreenName: 'orders',
+      detailsScreenName: 'orderDetails',
+    },
+  ],
+  subscriptions: [
+    {
+      ...spotlightItem2,
+      listScreenName: 'subscriptions',
+      detailsScreenName: 'subscriptionDetails',
+    },
+  ],
 };
 
-export const groupedSpotlightDataSingleItemPerCategory: Record<string, SpotlightItem[]> = {
-  orders: [spotlightItem1],
-  subscriptions: [spotlightItem2],
-};
+export const groupedSpotlightDataSingleItemPerCategory: Record<string, SpotlightItemWithDetails[]> =
+  {
+    orders: [
+      {
+        ...spotlightItem1,
+        listScreenName: 'orders',
+        detailsScreenName: 'orderDetails',
+      },
+    ],
+    subscriptions: [
+      {
+        ...spotlightItem2,
+        listScreenName: 'subscriptions',
+        detailsScreenName: 'subscriptionDetails',
+      },
+    ],
+  };
 
 /**
  * Generates a large array of spotlight items for testing - 100 in total, equally split between two categories

@@ -2,46 +2,17 @@ import type {
   SpotlightCategory,
   SpotlightCategoryName,
   SpotlightTemplateName,
+  SpotlightTemplateConfig,
 } from '../types/spotlight';
 
 import { PAST, FUTURE, calculateRelativeDate } from './formatting';
 
 import type { SpotlightItem, SpotlightItemWithDetails } from '@/types/api';
 
-/**
- * Map of categories that should be merged into another category for display.
- * Items retain their individual navigation properties (detailsScreenName, listScreenName).
- */
-const CATEGORY_MERGE_MAP: Partial<Record<SpotlightCategoryName, string>> = {
-  allUsers: 'users',
-};
-
 const DAYS_AGO_REGEX = /\{(\d+) days ago\}/i;
 const DAYS_FROM_NOW_REGEX = /\{(\d+) days from now\}/i;
 const LIMIT_IN_QUERY_REGEX = /&limit=\d+$/;
 const CURRENT_USER_REGEX = /\{current user\}/gi;
-
-/**
- * Build a lookup object, that maps spotlight template names to category names
- * @param categories - array of category objects
- * @returns lookup object
- */
-export const buildCategoryLookup = (
-  categories: Array<SpotlightCategory>,
-): Record<SpotlightTemplateName, SpotlightCategoryName> => {
-  const lookup: Record<SpotlightTemplateName, SpotlightCategoryName> = {} as Record<
-    SpotlightTemplateName,
-    SpotlightCategoryName
-  >;
-
-  categories.forEach((category) => {
-    category.templates.forEach((template) => {
-      lookup[template] = category.name;
-    });
-  });
-
-  return lookup;
-};
 
 /**
  * Group spotlight items by category
@@ -51,11 +22,11 @@ export const buildCategoryLookup = (
  */
 export const groupSpotlightData = (
   spotlightData: SpotlightItem[],
-  templateLookup: Record<SpotlightTemplateName, SpotlightCategoryName>,
-): Record<SpotlightCategoryName, SpotlightItem[]> => {
-  const groupedData: Record<SpotlightCategoryName, SpotlightItem[]> = {} as Record<
+  templateLookup: Record<SpotlightTemplateName, SpotlightTemplateConfig>,
+): Record<SpotlightCategoryName, SpotlightItemWithDetails[]> => {
+  const groupedData: Record<SpotlightCategoryName, SpotlightItemWithDetails[]> = {} as Record<
     SpotlightCategoryName,
-    SpotlightItem[]
+    SpotlightItemWithDetails[]
   >;
 
   spotlightData.forEach((item) => {
@@ -70,7 +41,7 @@ export const groupSpotlightData = (
     }
 
     const categoryName: SpotlightCategoryName | undefined =
-      templateLookup[template as SpotlightTemplateName];
+      templateLookup[template as SpotlightTemplateName]?.category;
 
     if (categoryName === undefined || categoryName === null) {
       return;
@@ -80,7 +51,11 @@ export const groupSpotlightData = (
       groupedData[categoryName] = [];
     }
 
-    groupedData[categoryName].push(item);
+    groupedData[categoryName].push({
+      ...item,
+      listScreenName: templateLookup[template as SpotlightTemplateName].listScreenName,
+      detailsScreenName: templateLookup[template as SpotlightTemplateName].detailsScreenName,
+    });
   });
 
   return groupedData;
@@ -93,49 +68,31 @@ export const groupSpotlightData = (
  * @returns spotlight data ordered same as categories object order
  */
 export const orderSpotlightData = (
-  groupedData: Record<SpotlightCategoryName, SpotlightItem[]>,
+  groupedData: Record<SpotlightCategoryName, SpotlightItemWithDetails[]>,
   categories: Array<SpotlightCategory>,
 ): Record<string, SpotlightItemWithDetails[]> => {
   const orderedData: Record<string, SpotlightItemWithDetails[]> = {};
 
   categories.forEach((category) => {
     const items = groupedData[category.name];
+    if (!items || items.length === 0) return;
 
-    if (items && items.length > 0) {
-      orderedData[category.name] = items.map((item) => ({
-        ...item,
-        detailsScreenName: category.detailsScreenName,
-        listScreenName: category.listScreenName,
-        // stackRootName: category.stackRootName,
-      }));
+    const orderedItems: SpotlightItemWithDetails[] = [];
+
+    category.templates.forEach((template) => {
+      const matchingItem = items.find((item) => item.query?.template === template);
+
+      if (matchingItem) {
+        orderedItems.push(matchingItem);
+      }
+    });
+
+    if (orderedItems.length > 0) {
+      orderedData[category.name] = orderedItems;
     }
   });
 
   return orderedData;
-};
-
-/**
- * Merge categories that should be displayed together under a single filter chip.
- * Items retain their individual navigation properties (detailsScreenName, listScreenName).
- * @param orderedData - ordered spotlight data by category
- * @returns merged spotlight data
- */
-export const mergeCategories = (
-  orderedData: Record<string, SpotlightItemWithDetails[]>,
-): Record<string, SpotlightItemWithDetails[]> => {
-  const mergedData: Record<string, SpotlightItemWithDetails[]> = {};
-
-  Object.entries(orderedData).forEach(([key, items]) => {
-    const targetKey = CATEGORY_MERGE_MAP[key as SpotlightCategoryName] ?? key;
-
-    if (mergedData[targetKey]) {
-      mergedData[targetKey] = [...mergedData[targetKey], ...items];
-    } else {
-      mergedData[targetKey] = [...items];
-    }
-  });
-
-  return mergedData;
 };
 
 /**
@@ -147,13 +104,12 @@ export const mergeCategories = (
 export const arrangeSpotlightData = (
   spotlightData: SpotlightItem[],
   categories: Array<SpotlightCategory>,
+  templateLookup: Record<SpotlightTemplateName, SpotlightTemplateConfig>,
 ): Record<string, SpotlightItemWithDetails[]> => {
-  const templateLookup = buildCategoryLookup(categories);
   const groupedData = groupSpotlightData(spotlightData, templateLookup);
   const orderedData = orderSpotlightData(groupedData, categories);
-  const mergedData = mergeCategories(orderedData);
 
-  return mergedData;
+  return orderedData;
 };
 
 /**
