@@ -6,6 +6,7 @@ import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import GroupAvatar from '@/components/avatar/GroupAvatar';
 import { listItemStyle, listItemChatStyle, linkStyle, Color } from '@/styles';
 import type { ListItemChatProps } from '@/types/chat';
+import { stripMarkdown } from '@/utils/stripMarkdown';
 
 const ListItemChat = ({
   id,
@@ -76,7 +77,7 @@ const ListItemChat = ({
               )}
             </View>
             <Text style={styles.subtitle} numberOfLines={1}>
-              {hasMessage ? messageLatest?.trim() : t('common.message.noMessages')}
+              {hasMessage ? stripMarkdown(messageLatest ?? '') : t('common.message.noMessages')}
             </Text>
           </View>
           <View style={styles.statusColumn}>
