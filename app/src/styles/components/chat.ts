@@ -19,9 +19,10 @@ const chatTextCommon: TextStyle = {
 };
 
 const textContainerCommon: ViewStyle = {
-  padding: Spacing.spacing2,
+  paddingVertical: Spacing.spacing1,
+  paddingHorizontal: Spacing.spacing2,
   borderRadius: BorderRadius.sm,
-  marginBottom: Spacing.spacing2,
+  marginBottom: Spacing.spacing1,
   gap: Spacing.spacing1,
   maxWidth: '100%',
 };
@@ -131,7 +132,7 @@ export const chatLinkPreviewStyle = {
     paddingHorizontal: Spacing.spacing1,
     borderRadius: BorderRadius.sm,
     backgroundColor: Color.gray.gray1,
-    marginBottom: Spacing.spacing1,
+    marginBottom: Spacing.spacingSmall2,
   },
   icon: {
     width: 20,
