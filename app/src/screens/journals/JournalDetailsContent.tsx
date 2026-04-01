@@ -1,12 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
-import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import { cardStyle, Spacing } from '@/styles';
@@ -76,6 +75,10 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         <ListItemWithLabelAndText
           title={t('details.readyCharges')}
           subtitle={data.processingSummary?.ready?.toString()}
+        />
+        <ListItemWithLabelAndText
+          title={t('details.ignoredCharges')}
+          subtitle={data.processingSummary?.ignored?.toString()}
         />
         <ListItemWithLabelAndText
           title={t('details.splitCharges')}

@@ -103,6 +103,7 @@ export interface JournalDetails {
   processingSummary: {
     total?: number;
     ready?: number;
+    ignored?: number;
     split?: number;
     error?: number;
     skipped?: number;

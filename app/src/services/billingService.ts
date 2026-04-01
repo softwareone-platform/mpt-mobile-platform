@@ -105,10 +105,7 @@ export function useBillingApi() {
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<ListItemNoImage>> => {
-      const endpoint =
-        `${JOURNALS_LIST_API_ENDPOINT}` +
-        `&offset=${offset}` +
-        `&limit=${limit}`;
+      const endpoint = `${JOURNALS_LIST_API_ENDPOINT}` + `&offset=${offset}` + `&limit=${limit}`;
 
       return api.get<PaginatedResponse<ListItemNoImage>>(endpoint);
     },
@@ -117,7 +114,7 @@ export function useBillingApi() {
 
   const getJournalDetails = useCallback(
     async (journalId: string): Promise<JournalDetails> => {
-      const endpoint = `/v1/billing/journals/${journalId}?select=seller.address.country,audit,ledger.owner`;
+      const endpoint = `/v1/billing/journals/${journalId}?select=audit.created.at,audit.updated.at,owner.address.country,audit`;
 
       return api.get<JournalDetails>(endpoint);
     },

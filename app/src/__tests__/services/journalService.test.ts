@@ -1,9 +1,17 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import {
+  mockJournalId1,
+  mockJournalId2,
+  mockJournalId3,
+  mockJournalId4,
+  mockJournalResponse1,
+  mockJournalResponse2,
+} from '../__mocks__/services/journal';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE, JOURNALS_LIST_API_ENDPOINT } from '@/constants/api';
 import { useBillingApi } from '@/services/billingService';
 import type { PaginatedResponse, ListItemNoImage } from '@/types/api';
-import { mockJournalId1, mockJournalId2, mockJournalId3, mockJournalId4, mockJournalResponse1, mockJournalResponse2 } from '../__mocks__/services/journal';
 
 const mockGet = jest.fn();
 
@@ -41,9 +49,7 @@ describe('useBillingApi - Journals', () => {
     });
 
     const expectedUrl =
-      `${JOURNALS_LIST_API_ENDPOINT}`
-      + `&offset=${DEFAULT_OFFSET}` 
-      + `&limit=${DEFAULT_PAGE_SIZE}`;
+      `${JOURNALS_LIST_API_ENDPOINT}` + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -80,10 +86,7 @@ describe('useBillingApi - Journals', () => {
 
     const mockResponse1: PaginatedResponse<ListItemNoImage> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
-      data: [
-       mockJournalResponse1,
-       mockJournalResponse2,
-      ],
+      data: [mockJournalResponse1, mockJournalResponse2],
     };
 
     const mockResponse2: PaginatedResponse<ListItemNoImage> = {
@@ -110,22 +113,15 @@ describe('useBillingApi - Journals', () => {
 
     expect(res1).toBeDefined();
     expect(res1!.data.length).toBe(2);
-    expect(res1!.data.map((item) => item.id)).toEqual([
-      mockJournalId1,
-      mockJournalId2,
-    ]);
-
-    expect(res1!.data.map((item) => item.name)).toEqual([
-      mockJournalId3,
-      mockJournalId4,
-    ]);
+    expect(res1!.data.map((item) => item.id)).toEqual([mockJournalId1, mockJournalId2]);
+    expect(res1!.data.map((item) => item.name)).toEqual(['Journal One', 'Journal Two longer name']);
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
     expect(res2!.data.map((item) => item.status)).toEqual(['Validating', 'Completed']);
   });
 
-  it('returns journals with correct structure', async () => {
+  it('returns journals with correct structure for list view', async () => {
     const api = setup();
     const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
@@ -135,9 +131,7 @@ describe('useBillingApi - Journals', () => {
           total: 1,
         },
       },
-      data: [
-        mockJournalResponse1,
-      ],
+      data: [mockJournalResponse1],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse);

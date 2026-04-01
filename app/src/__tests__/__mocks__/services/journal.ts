@@ -12,5 +12,5 @@ export const mockJournalResponse1 = {
 export const mockJournalResponse2 = {
   id: mockJournalId2,
   name: 'Journal Two longer name',
-  status: 'Validated'
+  status: 'Validated',
 };
