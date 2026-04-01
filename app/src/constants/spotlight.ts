@@ -18,11 +18,6 @@ export const SUBSCRIPTION_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'expiringSubscriptionsOfMyClients',
 ];
 
-export const USERS_ALL_SPOTLIGHTS: Array<SpotlightTemplateName> = [
-  'pendingInvitesOfMyClients',
-  'expiredInvitesOfMyClients',
-];
-
 export const USERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'pendingInvites',
   'pendingInvitesOfMyClients',

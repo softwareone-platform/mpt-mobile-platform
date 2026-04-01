@@ -36,11 +36,6 @@ export type SpotlightCategoryName =
   | 'journals'
   | 'buyers';
 
-export type SpotlightTemplate = {
-  templateName: SpotlightTemplateName;
-  config: SpotlightTemplateConfig;
-};
-
 export type SpotlightCategory = {
   name: SpotlightCategoryName;
   templates: SpotlightTemplateName[];
