@@ -16,9 +16,9 @@ const ChatMessageContent = ({ content, color, fontSize, lineHeight }: ChatMessag
 
   const html = useMemo(() => {
     const raw = marked(content) as string;
-    return raw.replace(/<ul>([\s\S]*?)<\/ul>/g, (match, content) => {
-      if (!/<input[^>]*type="checkbox"/.test(content)) return match;
-      return content
+    return raw.replace(/<ul>([\s\S]*?)<\/ul>/g, (match, inner) => {
+      if (!/<input[^>]*type="checkbox"/.test(inner)) return match;
+      return inner
         .replace(/<li>\s*<input[^>]*checked[^>]*>([\s\S]*?)<\/li>/g, '<p>☑ $1</p>')
         .replace(/<li>\s*<input[^>]*type="checkbox"[^>]*>([\s\S]*?)<\/li>/g, '<p>☐ $1</p>');
     });
@@ -37,8 +37,11 @@ const ChatMessageContent = ({ content, color, fontSize, lineHeight }: ChatMessag
     em: { color, fontStyle: 'italic' },
     del: { color, textDecorationLine: 'line-through' },
     u: { color, textDecorationLine: 'underline' },
-    sub: { color, fontSize: fontSize * 0.75 },
-    sup: { color, fontSize: fontSize * 0.75 },
+    // True vertical offset for sup/sub is not achievable in React Native inline
+    // text (broken under New Architecture on iOS per RN #53092).
+    // Rendering as smaller text is the best consistent option.
+    sub: { color, fontSize: fontSize * 0.6 },
+    sup: { color, fontSize: fontSize * 0.6 },
     h1: { color, fontSize: fontSize + 8, fontWeight: '700', marginTop: 0, marginBottom: 4 },
     h2: { color, fontSize: fontSize + 6, fontWeight: '700', marginTop: 0, marginBottom: 4 },
     h3: { color, fontSize: fontSize + 4, fontWeight: '600', marginTop: 0, marginBottom: 4 },
