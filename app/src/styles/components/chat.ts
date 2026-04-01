@@ -131,6 +131,7 @@ export const chatLinkPreviewStyle = {
     paddingHorizontal: Spacing.spacing1,
     borderRadius: BorderRadius.sm,
     backgroundColor: Color.gray.gray1,
+    marginBottom: Spacing.spacing1,
   },
   icon: {
     width: 20,
