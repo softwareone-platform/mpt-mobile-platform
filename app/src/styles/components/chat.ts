@@ -23,6 +23,7 @@ const textContainerCommon: ViewStyle = {
   borderRadius: BorderRadius.sm,
   marginBottom: Spacing.spacing2,
   gap: Spacing.spacing1,
+  maxWidth: '100%',
 };
 
 const infoCommon: ViewStyle = {
@@ -92,7 +93,6 @@ export const chatMessageStyle = {
   other: {
     container: {
       ...containerCommon,
-      paddingRight: AVATAR_OFFSET_HORIZONTAL,
     },
     messageWrapper: {
       ...messageWrapperCommon,
