@@ -1,4 +1,4 @@
-import { parseMarkdownToHtml } from '@/utils/chat';
+import { parseMarkdownToHtml, stripLinkMarkdown } from '@/utils/chat';
 
 describe('parseMarkdownToHtml', () => {
   describe('plain markdown', () => {
@@ -62,5 +62,35 @@ describe('parseMarkdownToHtml', () => {
       expect(result).toContain('☐');
       expect(result).not.toContain('<input');
     });
+  });
+});
+
+describe('stripLinkMarkdown', () => {
+  it('replaces link markdown with the label text for a matching uri', () => {
+    const result = stripLinkMarkdown('See [docs](https://example.com) for details', ['https://example.com']);
+
+    expect(result).toBe('See docs for details');
+  });
+
+  it('does not remove image markdown even when the uri matches', () => {
+    const result = stripLinkMarkdown('![alt](https://example.com/image.png)', ['https://example.com/image.png']);
+
+    expect(result).toBe('![alt](https://example.com/image.png)');
+  });
+
+  it('removes only the uri syntax and preserves both label and adjacent image markdown', () => {
+    const content = '[docs](https://example.com) ![photo](https://example.com/image.png)';
+
+    const result = stripLinkMarkdown(content, ['https://example.com']);
+
+    expect(result).toContain('![photo](https://example.com/image.png)');
+    expect(result).toContain('docs');
+    expect(result).not.toContain('(https://example.com)');
+  });
+
+  it('returns trimmed label text when all link syntax is stripped', () => {
+    const result = stripLinkMarkdown('  [docs](https://example.com)  ', ['https://example.com']);
+
+    expect(result).toBe('docs');
   });
 });

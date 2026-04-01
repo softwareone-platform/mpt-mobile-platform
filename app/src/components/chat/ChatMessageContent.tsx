@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, Linking, StyleSheet, View, useWindowDimensions } from 'react-native';
 import type { ImageStyle, LayoutChangeEvent } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import type { CustomBlockRenderer, MixedStyleDeclaration } from 'react-native-render-html';
@@ -49,9 +49,16 @@ const ImageRenderer: CustomBlockRenderer = function ImageRenderer({ tnode }) {
 
 const renderers = { img: ImageRenderer };
 
+const handleLinkPress = (_event: unknown, href: string) => {
+  void Linking.openURL(href);
+};
+
+const renderersProps = { a: { onPress: handleLinkPress } };
+
 interface ChatMessageContentProps {
   content: string;
   color: string;
+  linkColor: string;
   fontSize: number;
   lineHeight: number;
 }
@@ -59,6 +66,7 @@ interface ChatMessageContentProps {
 const ChatMessageContent: React.FC<ChatMessageContentProps> = ({
   content,
   color,
+  linkColor,
   fontSize,
   lineHeight,
 }) => {
@@ -82,7 +90,7 @@ const ChatMessageContent: React.FC<ChatMessageContentProps> = ({
   const tagsStyles: Record<string, MixedStyleDeclaration> = useMemo(
     () => ({
       p: { marginTop: 0, marginBottom: 0 },
-      a: { color },
+      a: { color: linkColor },
       strong: { color, fontWeight: chatMarkdownTypography.headingBoldWeight },
       em: { color, fontStyle: 'italic' },
       del: { color, textDecorationLine: 'line-through' },
@@ -121,7 +129,7 @@ const ChatMessageContent: React.FC<ChatMessageContentProps> = ({
         marginBottom: chatMarkdownSpacing.headingMarginBottom,
       },
     }),
-    [color, fontSize],
+    [color, linkColor, fontSize],
   );
 
   return (
@@ -132,6 +140,7 @@ const ChatMessageContent: React.FC<ChatMessageContentProps> = ({
         baseStyle={baseStyle}
         tagsStyles={tagsStyles}
         renderers={renderers}
+        renderersProps={renderersProps}
       />
     </View>
   );

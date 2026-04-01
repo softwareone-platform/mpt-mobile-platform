@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 
 import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import ChatMessageContent from '@/components/chat/ChatMessageContent';
+import ChatMessageLinkPreview from '@/components/chat/ChatMessageLinkPreview';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { chatMessageStyle } from '@/styles/components';
 import { Color, Typography } from '@/styles/tokens';
@@ -39,7 +40,7 @@ const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
   const avatarId = message.identity.id;
   const avatarPath = message.identity.icon;
   const senderName = message.sender?.identity?.name ?? message.identity.name;
-
+  const linkColor = isOwn ? Color.brand.white : Color.brand.primary;
   return (
     <View style={styles.container}>
       {!isOwn && (
@@ -71,9 +72,13 @@ const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
           <ChatMessageContent
             content={message.content}
             color={styles.text.color as string}
+            linkColor={linkColor}
             fontSize={Typography.fontSize.font2}
             lineHeight={Typography.lineHeight.height3}
           />
+          {message.links.map((link) => (
+            <ChatMessageLinkPreview key={link.id} link={link} />
+          ))}
         </View>
       </View>
     </View>

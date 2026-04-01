@@ -144,3 +144,12 @@ export const parseMarkdownToHtml = (content: string): string => {
       .replace(/<li>\s*<input[^>]*type="checkbox"[^>]*>([\s\S]*?)<\/li>/g, '<p>☐ $1</p>');
   });
 };
+
+export const stripLinkMarkdown = (content: string, uris: string[]): string => {
+  let result = content;
+  for (const uri of uris) {
+    const escapedUri = uri.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(`(?<!!)\\[([^\\]]*)\\]\\(${escapedUri}[^)]*\\)`, 'g'), '$1');
+  }
+  return result.trim();
+};

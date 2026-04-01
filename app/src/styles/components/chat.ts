@@ -22,6 +22,7 @@ const textContainerCommon: ViewStyle = {
   padding: Spacing.spacing2,
   borderRadius: BorderRadius.sm,
   marginBottom: Spacing.spacing2,
+  gap: Spacing.spacing1,
 };
 
 const infoCommon: ViewStyle = {
@@ -91,6 +92,7 @@ export const chatMessageStyle = {
   other: {
     container: {
       ...containerCommon,
+      paddingRight: AVATAR_OFFSET_HORIZONTAL,
     },
     messageWrapper: {
       ...messageWrapperCommon,
@@ -118,6 +120,34 @@ export const chatMarkdownSpacing = {
 export const chatMarkdownTypography = {
   headingBoldWeight: Typography.fontWeight.bold,
   headingSemiboldWeight: Typography.fontWeight.semibold,
+} as const;
+
+export const chatLinkPreviewStyle = {
+  container: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: Spacing.spacing1,
+    paddingVertical: Spacing.spacingSmall6,
+    paddingHorizontal: Spacing.spacing1,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Color.gray.gray1,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    borderRadius: BorderRadius.xs,
+  },
+  name: {
+    flexShrink: 1,
+    fontSize: Typography.fontSize.font1,
+    color: Color.brand.type,
+    fontWeight: Typography.fontWeight.bold,
+  },
+  url: {
+    flexShrink: 1,
+    fontSize: Typography.fontSize.font1,
+    color: Color.gray.gray4,
+  },
 } as const;
 
 const wizardHeaderButtonCommon = {
