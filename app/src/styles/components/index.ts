@@ -22,8 +22,8 @@ export {
   chatStyle,
   chatMessageStyle,
   createChatWizardStyle,
-  chatMarkdownSpacing,
-  chatMarkdownTypography,
+  chatMarkdownStyle,
+  getChatMarkdownTagStyles,
   chatLinkPreviewStyle,
 } from './chat';
 export { bottomSheetStyle } from './bottomSheet';

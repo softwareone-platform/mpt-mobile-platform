@@ -1,5 +1,6 @@
-import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, Text, TouchableOpacity, View } from 'react-native';
 
+import { logger } from '@/services/loggerService';
 import { chatLinkPreviewStyle } from '@/styles/components';
 import type { MessageLink } from '@/types/chat';
 
@@ -9,19 +10,25 @@ interface ChatMessageLinkPreviewProps {
 
 const ChatMessageLinkPreview: React.FC<ChatMessageLinkPreviewProps> = ({ link }) => {
   const handlePress = () => {
-    if (!link.uri) return;
-    void Linking.openURL(link.uri);
+    if (!link.uri?.trim()) return;
+    void Linking.openURL(link.uri).catch(() => {
+      logger.warn('Failed to open link', { operation: 'ChatMessageLinkPreview' });
+    });
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress} disabled={!link.uri}>
-      {!!link.icon && <Image source={{ uri: link.icon }} style={styles.icon} />}
-      <View style={styles.textColumn}>
-        <Text style={styles.name} numberOfLines={1}>
+    <TouchableOpacity
+      style={chatLinkPreviewStyle.container}
+      onPress={handlePress}
+      disabled={!link.uri?.trim()}
+    >
+      {!!link.icon && <Image source={{ uri: link.icon }} style={chatLinkPreviewStyle.icon} />}
+      <View style={chatLinkPreviewStyle.textColumn}>
+        <Text style={chatLinkPreviewStyle.name} numberOfLines={1}>
           {link.name}
         </Text>
         {link.name !== link.uri && (
-          <Text style={styles.url} numberOfLines={1}>
+          <Text style={chatLinkPreviewStyle.url} numberOfLines={1}>
             {link.uri}
           </Text>
         )}
@@ -29,15 +36,5 @@ const ChatMessageLinkPreview: React.FC<ChatMessageLinkPreviewProps> = ({ link })
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: chatLinkPreviewStyle.container,
-  icon: chatLinkPreviewStyle.icon,
-  textColumn: {
-    flexShrink: 1,
-  },
-  name: chatLinkPreviewStyle.name,
-  url: chatLinkPreviewStyle.url,
-});
 
 export default ChatMessageLinkPreview;
