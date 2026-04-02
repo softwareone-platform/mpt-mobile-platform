@@ -1,14 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet } from 'react-native';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
-import { cardStyle, Spacing } from '@/styles';
 import type { JournalDetails } from '@/types/billing';
 import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
@@ -106,11 +104,5 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  navigationCard: {
-    ...cardStyle.containerRounded,
-    marginBottom: Spacing.spacing2,
-  },
-});
 
 export default JournalDetailsContent;

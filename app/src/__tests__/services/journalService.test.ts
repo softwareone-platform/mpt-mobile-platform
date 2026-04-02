@@ -3,8 +3,6 @@ import { renderHook, act } from '@testing-library/react-native';
 import {
   mockJournalId1,
   mockJournalId2,
-  mockJournalId3,
-  mockJournalId4,
   mockJournalResponse1,
   mockJournalResponse2,
 } from '../__mocks__/services/journal';
