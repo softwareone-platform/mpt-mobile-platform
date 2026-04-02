@@ -1,4 +1,5 @@
 import type { ViewStyle, TextStyle } from 'react-native';
+import type { MixedStyleDeclaration } from 'react-native-render-html';
 
 import { BorderRadius, Color, Spacing, Typography } from '../tokens';
 
@@ -19,9 +20,12 @@ const chatTextCommon: TextStyle = {
 };
 
 const textContainerCommon: ViewStyle = {
-  padding: Spacing.spacing2,
+  paddingVertical: Spacing.spacing1,
+  paddingHorizontal: Spacing.spacing2,
   borderRadius: BorderRadius.sm,
-  marginBottom: Spacing.spacing2,
+  marginBottom: Spacing.spacing1,
+  gap: Spacing.spacingSmall4,
+  maxWidth: '100%',
 };
 
 const infoCommon: ViewStyle = {
@@ -66,6 +70,7 @@ export const chatMessageStyle = {
   infoText: {
     color: Color.gray.gray4,
   },
+  iconColor: Color.brand.type,
   own: {
     container: {
       ...containerCommon,
@@ -87,6 +92,8 @@ export const chatMessageStyle = {
     info: {
       ...infoCommon,
     },
+    textColor: Color.brand.white,
+    linkColor: Color.brand.white,
   },
   other: {
     container: {
@@ -107,6 +114,89 @@ export const chatMessageStyle = {
     info: {
       ...infoCommon,
     },
+    textColor: Color.brand.type,
+    linkColor: Color.brand.primary,
+  },
+} as const;
+
+export const chatMarkdownStyle = {
+  image: {
+    width: '100%',
+    marginTop: Spacing.spacingSmall4,
+    marginBottom: Spacing.spacingSmall4,
+  },
+  baseText: {
+    fontSize: Typography.fontSize.font2,
+    lineHeight: Typography.lineHeight.height3,
+  },
+  headingMarginBottom: Spacing.spacingSmall4,
+  headingBoldWeight: Typography.fontWeight.bold,
+  headingSemiboldWeight: Typography.fontWeight.semibold,
+} as const;
+
+export const chatMarkdownTagStyles: Record<string, MixedStyleDeclaration> = {
+  p: { marginTop: 0, marginBottom: 0 },
+  strong: { fontWeight: chatMarkdownStyle.headingBoldWeight },
+  em: { fontStyle: 'italic' },
+  del: { textDecorationLine: 'line-through' },
+  u: { textDecorationLine: 'underline' },
+  sub: { fontSize: Typography.fontSize.font1 },
+  sup: { fontSize: Typography.fontSize.font1 },
+  h1: {
+    fontSize: Typography.fontSize.font6,
+    fontWeight: chatMarkdownStyle.headingBoldWeight,
+    marginTop: 0,
+    marginBottom: chatMarkdownStyle.headingMarginBottom,
+  },
+  h2: {
+    fontSize: Typography.fontSize.font5,
+    fontWeight: chatMarkdownStyle.headingBoldWeight,
+    marginTop: 0,
+    marginBottom: chatMarkdownStyle.headingMarginBottom,
+  },
+  h3: {
+    fontSize: Typography.fontSize.font4,
+    fontWeight: chatMarkdownStyle.headingSemiboldWeight,
+    marginTop: 0,
+    marginBottom: chatMarkdownStyle.headingMarginBottom,
+  },
+  h4: {
+    fontSize: Typography.fontSize.font3,
+    fontWeight: chatMarkdownStyle.headingSemiboldWeight,
+    marginTop: 0,
+    marginBottom: chatMarkdownStyle.headingMarginBottom,
+  },
+};
+
+export const chatLinkPreviewStyle = {
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.spacing1,
+    paddingVertical: Spacing.spacingSmall6,
+    paddingHorizontal: Spacing.spacing1,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Color.gray.gray1,
+    marginBottom: Spacing.spacingSmall2,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    borderRadius: BorderRadius.xs,
+  },
+  textColumn: {
+    flexShrink: 1,
+  },
+  name: {
+    flexShrink: 1,
+    fontSize: Typography.fontSize.font1,
+    color: Color.brand.type,
+    fontWeight: Typography.fontWeight.bold,
+  },
+  url: {
+    flexShrink: 1,
+    fontSize: Typography.fontSize.font1,
+    color: Color.gray.gray4,
   },
 } as const;
 

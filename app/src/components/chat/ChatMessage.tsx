@@ -2,9 +2,10 @@ import { memo, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
+import ChatMessageContent from '@/components/chat/ChatMessageContent';
+import ChatMessageLinkPreview from '@/components/chat/ChatMessageLinkPreview';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { chatMessageStyle } from '@/styles/components';
-import { Color } from '@/styles/tokens';
 import type { Message, MessageType } from '@/types/chat';
 import { formatDateForChat, getLocalTime } from '@/utils/formatting';
 
@@ -62,12 +63,21 @@ const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
           {messageDate !== messageTime && <Text style={styles.infoText}>{messageDate}</Text>}
           <Text style={styles.infoText}>{messageTime}</Text>
           <Text>
-            {isOwn && <OutlinedIcon name="more-horiz" size={16} color={Color.brand.type} />}
+            {isOwn && (
+              <OutlinedIcon name="more-horiz" size={16} color={chatMessageStyle.iconColor} />
+            )}
           </Text>
         </View>
         {/* TODO: add sending indicator (message._optimistic) and failed state with retry (message._failed) */}
         <View style={styles.textContainer}>
-          <Text style={styles.text}>{message.content}</Text>
+          <ChatMessageContent
+            content={message.content}
+            color={chatMessageStyle[type].textColor}
+            linkColor={chatMessageStyle[type].linkColor}
+          />
+          {message.links.map((link) => (
+            <ChatMessageLinkPreview key={link.id} link={link} />
+          ))}
         </View>
       </View>
     </View>
