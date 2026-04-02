@@ -119,12 +119,6 @@ export const chatMessageStyle = {
   },
 } as const;
 
-const MARKDOWN_SUBTEXT_FONT_RATIO = 0.6;
-const MARKDOWN_H1_FONT_INCREMENT = 8;
-const MARKDOWN_H2_FONT_INCREMENT = 6;
-const MARKDOWN_H3_FONT_INCREMENT = 4;
-const MARKDOWN_H4_FONT_INCREMENT = 2;
-
 export const chatMarkdownStyle = {
   image: {
     width: '100%',
@@ -148,32 +142,32 @@ export const getChatMarkdownTagStyles = (
   em: { color, fontStyle: 'italic' },
   del: { color, textDecorationLine: 'line-through' },
   u: { color, textDecorationLine: 'underline' },
-  sub: { color, fontSize: chatMarkdownStyle.fontSize * MARKDOWN_SUBTEXT_FONT_RATIO },
-  sup: { color, fontSize: chatMarkdownStyle.fontSize * MARKDOWN_SUBTEXT_FONT_RATIO },
+  sub: { color, fontSize: Typography.fontSize.font1 },
+  sup: { color, fontSize: Typography.fontSize.font1 },
   h1: {
     color,
-    fontSize: chatMarkdownStyle.fontSize + MARKDOWN_H1_FONT_INCREMENT,
+    fontSize: Typography.fontSize.font6,
     fontWeight: chatMarkdownStyle.headingBoldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
   h2: {
     color,
-    fontSize: chatMarkdownStyle.fontSize + MARKDOWN_H2_FONT_INCREMENT,
+    fontSize: Typography.fontSize.font5,
     fontWeight: chatMarkdownStyle.headingBoldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
   h3: {
     color,
-    fontSize: chatMarkdownStyle.fontSize + MARKDOWN_H3_FONT_INCREMENT,
+    fontSize: Typography.fontSize.font4,
     fontWeight: chatMarkdownStyle.headingSemiboldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
   h4: {
     color,
-    fontSize: chatMarkdownStyle.fontSize + MARKDOWN_H4_FONT_INCREMENT,
+    fontSize: Typography.fontSize.font3,
     fontWeight: chatMarkdownStyle.headingSemiboldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,

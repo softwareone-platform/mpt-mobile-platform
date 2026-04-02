@@ -1,4 +1,4 @@
-import { parseMarkdownToHtml, stripLinkMarkdown, stripMarkdown } from '@/utils/chat';
+import { parseMarkdownToHtml, stripLinkMarkdown, stripMarkdown, isSafeUri } from '@/utils/chat';
 
 describe('parseMarkdownToHtml', () => {
   describe('plain markdown', () => {
@@ -131,5 +131,39 @@ describe('stripMarkdown', () => {
 
   it('returns plain text unchanged', () => {
     expect(stripMarkdown('just plain text')).toBe('just plain text');
+  });
+});
+
+describe('isSafeUri', () => {
+  it('allows https URIs', () => {
+    expect(isSafeUri('https://example.com')).toBe(true);
+  });
+
+  it('allows http URIs', () => {
+    expect(isSafeUri('http://example.com')).toBe(true);
+  });
+
+  it('blocks javascript: URIs', () => {
+    expect(isSafeUri('javascript:void(0)')).toBe(false);
+  });
+
+  it('blocks data: URIs', () => {
+    expect(isSafeUri('data:text/html,<script>alert(1)</script>')).toBe(false);
+  });
+
+  it('blocks custom scheme URIs', () => {
+    expect(isSafeUri('myapp://open')).toBe(false);
+  });
+
+  it('returns false for empty string', () => {
+    expect(isSafeUri('')).toBe(false);
+  });
+
+  it('returns false for whitespace-only string', () => {
+    expect(isSafeUri('   ')).toBe(false);
+  });
+
+  it('returns false for invalid URIs', () => {
+    expect(isSafeUri('not a uri')).toBe(false);
   });
 });
