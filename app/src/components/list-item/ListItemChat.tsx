@@ -6,7 +6,7 @@ import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import GroupAvatar from '@/components/avatar/GroupAvatar';
 import { listItemStyle, listItemChatStyle, linkStyle, Color } from '@/styles';
 import type { ListItemChatProps } from '@/types/chat';
-import { stripMarkdown } from '@/utils/stripMarkdown';
+import { stripMarkdown } from '@/utils/chat';
 
 const ListItemChat = ({
   id,

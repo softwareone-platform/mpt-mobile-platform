@@ -3,6 +3,7 @@ import { Image, Linking, Text, TouchableOpacity, View } from 'react-native';
 import { logger } from '@/services/loggerService';
 import { chatLinkPreviewStyle } from '@/styles/components';
 import type { MessageLink } from '@/types/chat';
+import { isSafeUri } from '@/utils/chat';
 
 interface ChatMessageLinkPreviewProps {
   link: MessageLink;
@@ -10,8 +11,8 @@ interface ChatMessageLinkPreviewProps {
 
 const ChatMessageLinkPreview: React.FC<ChatMessageLinkPreviewProps> = ({ link }) => {
   const handlePress = () => {
-    if (!link.uri?.trim()) return;
-    void Linking.openURL(link.uri).catch(() => {
+    if (!isSafeUri(link.uri ?? '')) return;
+    void Linking.openURL(link.uri ?? '').catch(() => {
       logger.warn('Failed to open link', { operation: 'ChatMessageLinkPreview' });
     });
   };
@@ -20,7 +21,7 @@ const ChatMessageLinkPreview: React.FC<ChatMessageLinkPreviewProps> = ({ link })
     <TouchableOpacity
       style={chatLinkPreviewStyle.container}
       onPress={handlePress}
-      disabled={!link.uri?.trim()}
+      disabled={!isSafeUri(link.uri ?? '')}
     >
       {!!link.icon && <Image source={{ uri: link.icon }} style={chatLinkPreviewStyle.icon} />}
       <View style={chatLinkPreviewStyle.textColumn}>

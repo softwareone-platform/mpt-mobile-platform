@@ -1,4 +1,4 @@
-import { parseMarkdownToHtml, stripLinkMarkdown } from '@/utils/chat';
+import { parseMarkdownToHtml, stripLinkMarkdown, stripMarkdown } from '@/utils/chat';
 
 describe('parseMarkdownToHtml', () => {
   describe('plain markdown', () => {
@@ -96,5 +96,40 @@ describe('stripLinkMarkdown', () => {
     const result = stripLinkMarkdown('  [docs](https://example.com)  ', ['https://example.com']);
 
     expect(result).toBe('docs');
+  });
+});
+
+describe('stripMarkdown', () => {
+  it('strips bold markdown to plain text', () => {
+    expect(stripMarkdown('**bold**')).toBe('bold');
+  });
+
+  it('strips italic markdown to plain text', () => {
+    expect(stripMarkdown('_italic_')).toBe('italic');
+  });
+
+  it('strips a heading to its text', () => {
+    expect(stripMarkdown('# Title')).toBe('Title');
+  });
+
+  it('strips a link to its label', () => {
+    expect(stripMarkdown('[click here](https://example.com)')).toBe('click here');
+  });
+
+  it('collapses multiple spaces into one', () => {
+    const result = stripMarkdown('foo   bar');
+    expect(result).toBe('foo bar');
+  });
+
+  it('trims surrounding whitespace', () => {
+    expect(stripMarkdown('  hello  ')).toBe('hello');
+  });
+
+  it('returns empty string for empty input', () => {
+    expect(stripMarkdown('')).toBe('');
+  });
+
+  it('returns plain text unchanged', () => {
+    expect(stripMarkdown('just plain text')).toBe('just plain text');
   });
 });

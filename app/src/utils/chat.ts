@@ -10,6 +10,32 @@ import type {
 } from '@/types/chat';
 import { formatDateForChat } from '@/utils/formatting';
 
+const ALLOWED_URI_SCHEMES = ['https:', 'http:'];
+
+export const isSafeUri = (uri: string): boolean => {
+  if (!uri?.trim()) return false;
+  try {
+    const { protocol } = new URL(uri);
+    return ALLOWED_URI_SCHEMES.includes(protocol);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Converts markdown/HTML content to a plain text string by running it
+ * through the markdown parser and then stripping all HTML tags.
+ * Intended for single-line preview contexts (e.g. chat list subtitles).
+ */
+export const stripMarkdown = (text: string): string => {
+  const html = marked(text) as string;
+  return html
+    .replace(/<\/?(?:sub|sup)>/g, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 export const getAvatarList = (
   participants: ChatParticipant[],
   type: ChatType,

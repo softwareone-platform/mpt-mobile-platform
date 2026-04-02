@@ -6,7 +6,7 @@ import type { CustomBlockRenderer } from 'react-native-render-html';
 
 import { logger } from '@/services/loggerService';
 import { chatMarkdownStyle, getChatMarkdownTagStyles } from '@/styles/components';
-import { parseMarkdownToHtml } from '@/utils/chat';
+import { isSafeUri, parseMarkdownToHtml } from '@/utils/chat';
 
 const DEFAULT_ASPECT_RATIO = 16 / 9;
 
@@ -15,7 +15,7 @@ const ImageRenderer: CustomBlockRenderer = function ImageRenderer({ tnode }) {
   const [aspectRatio, setAspectRatio] = useState(DEFAULT_ASPECT_RATIO);
 
   useEffect(() => {
-    if (!src) return;
+    if (!isSafeUri(src)) return;
     Image.getSize(
       src,
       (width, height) => {
@@ -27,7 +27,7 @@ const ImageRenderer: CustomBlockRenderer = function ImageRenderer({ tnode }) {
     );
   }, [src]);
 
-  if (!src) return null;
+  if (!isSafeUri(src)) return null;
 
   return (
     <Image
@@ -41,7 +41,7 @@ const ImageRenderer: CustomBlockRenderer = function ImageRenderer({ tnode }) {
 const renderers = { img: ImageRenderer };
 
 const handleLinkPress = (_event: unknown, href: string) => {
-  if (!href?.trim()) return;
+  if (!isSafeUri(href)) return;
   void Linking.openURL(href).catch(() => {
     logger.warn('Failed to open link', { operation: 'handleLinkPress' });
   });
