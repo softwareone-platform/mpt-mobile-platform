@@ -106,6 +106,14 @@ export type ListItemChatProps = ListItemCommonProps & {
   isVerified: boolean;
 };
 
+export interface MessageLink {
+  id: string;
+  name: string;
+  icon: string;
+  uri: string;
+  revision: number;
+}
+
 export type Message = {
   id: string;
   revision: number;
@@ -115,7 +123,7 @@ export type Message = {
   content: string;
   visibility: 'Public' | 'Private';
   isDeleted: boolean;
-  links: unknown[];
+  links: MessageLink[];
   audit: Audit;
   _optimistic?: true;
   _failed?: true;

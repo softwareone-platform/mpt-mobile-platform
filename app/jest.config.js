@@ -11,7 +11,7 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './babel.config.js' }],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(expo-secure-store|@react-native-async-storage|react-native-auth0)/)',
+    'node_modules/(?!(expo-secure-store|@react-native-async-storage|react-native-auth0|marked)/)',
   ],
   collectCoverageFrom: [
     'src/**/*.ts',

@@ -1,3 +1,5 @@
+import { marked } from 'marked';
+
 import { MIN_NUMBER_OF_CHAT_AVATARS, MAX_NUMBER_OF_CHAT_AVATARS, EMPTY_STRING } from '@/constants';
 import type {
   ChatParticipant,
@@ -7,6 +9,32 @@ import type {
   ListItemChatProps,
 } from '@/types/chat';
 import { formatDateForChat } from '@/utils/formatting';
+
+const ALLOWED_URI_SCHEMES = ['https:', 'http:'];
+
+export const isSafeUri = (uri: string): boolean => {
+  if (!uri?.trim()) return false;
+  try {
+    const { protocol } = new URL(uri);
+    return ALLOWED_URI_SCHEMES.includes(protocol);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Converts markdown/HTML content to a plain text string by running it
+ * through the markdown parser and then stripping all HTML tags.
+ * Intended for single-line preview contexts (e.g. chat list subtitles).
+ */
+export const stripMarkdown = (text: string): string => {
+  const html = marked(text) as string;
+  return html
+    .replace(/<\/?(?:sub|sup)>/g, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
 
 export const getAvatarList = (
   participants: ChatParticipant[],
@@ -131,4 +159,23 @@ export const mapToChatListItemProps = (
     avatars,
     isVerified: false,
   };
+};
+
+export const parseMarkdownToHtml = (content: string): string => {
+  const raw = marked(content) as string;
+  return raw.replace(/<ul>([\s\S]*?)<\/ul>/g, (match, inner: string) => {
+    if (!/<input[^>]*type="checkbox"/.test(inner)) return match;
+    return inner
+      .replace(/<li>\s*<input[^>]*checked[^>]*>([\s\S]*?)<\/li>/g, '<p>☑ $1</p>')
+      .replace(/<li>\s*<input[^>]*type="checkbox"[^>]*>([\s\S]*?)<\/li>/g, '<p>☐ $1</p>');
+  });
+};
+
+export const stripLinkMarkdown = (content: string, uris: string[]): string => {
+  let result = content;
+  for (const uri of uris) {
+    const escapedUri = uri.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(`(?<!!)\\[([^\\]]*)\\]\\(${escapedUri}[^)]*\\)`, 'g'), '$1');
+  }
+  return result.trim();
 };
