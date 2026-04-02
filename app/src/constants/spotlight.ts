@@ -1,4 +1,8 @@
-import type { SpotlightTemplateName, SpotlightCategory } from '../types/spotlight';
+import type {
+  SpotlightTemplateName,
+  SpotlightCategory,
+  SpotlightTemplateConfig,
+} from '../types/spotlight';
 
 export const ORDERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'savedOrdersClient',
@@ -14,12 +18,12 @@ export const SUBSCRIPTION_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'expiringSubscriptionsOfMyClients',
 ];
 
-export const USERS_ALL_SPOTLIGHTS: Array<SpotlightTemplateName> = [
+export const USERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
+  'pendingInvites',
   'pendingInvitesOfMyClients',
+  'expiredInvites',
   'expiredInvitesOfMyClients',
 ];
-
-export const USERS_SPOTLIGHTS: Array<SpotlightTemplateName> = ['pendingInvites', 'expiredInvites'];
 
 export const INVOICES_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'unpaidInvoices',
@@ -34,7 +38,7 @@ export const ENROLLMENTS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'longRunningEnrollmentsOfMyClients',
 ];
 
-export const JOURNALS_SPOTLIGHTS: Array<SpotlightTemplateName> = ['inProgressJournals'];
+// export const JOURNALS_SPOTLIGHTS: Array<SpotlightTemplateName> = ['inProgressJournals'];
 
 export const BUYERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'mismatchingBuyersClient',
@@ -42,49 +46,109 @@ export const BUYERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'buyersWithBlockedSellerConnectionsOfMyClients',
 ];
 
+const ordersConfig: SpotlightTemplateConfig = {
+  category: 'orders',
+  detailsScreenName: 'orderDetails',
+  listScreenName: 'orders',
+};
+
+const subscriptionsConfig: SpotlightTemplateConfig = {
+  category: 'subscriptions',
+  detailsScreenName: 'subscriptionDetails',
+  listScreenName: 'subscriptions',
+};
+
+const usersConfig: SpotlightTemplateConfig = {
+  category: 'users',
+  detailsScreenName: 'userDetails',
+  listScreenName: 'users',
+};
+
+const allUsersConfig: SpotlightTemplateConfig = {
+  category: 'users',
+  detailsScreenName: 'userDetails',
+  listScreenName: 'allUsers',
+};
+
+const invoicesConfig: SpotlightTemplateConfig = {
+  category: 'invoices',
+  detailsScreenName: 'invoiceDetails',
+  listScreenName: 'invoices',
+};
+
+const enrollmentsConfig: SpotlightTemplateConfig = {
+  category: 'enrollments',
+  detailsScreenName: 'enrollmentDetails',
+  listScreenName: 'enrollments',
+};
+// TODO: add back when Journal screens are ready
+// const journalsConfig: SpotlightTemplateConfig = {
+//   category: 'journals',
+//   detailsScreenName: 'journalDetails',
+//   listScreenName: 'journals',
+// };
+
+const buyersConfig: SpotlightTemplateConfig = {
+  category: 'buyers',
+  detailsScreenName: 'buyerDetails',
+  listScreenName: 'buyers',
+};
+
+export const templateLookup: Record<SpotlightTemplateName, SpotlightTemplateConfig> = {
+  savedOrdersClient: ordersConfig,
+  queryingOrders: ordersConfig,
+  processingOrders: ordersConfig,
+  savedOrdersOperations: ordersConfig,
+  longRunningOrders: ordersConfig,
+  renewingSubscriptions: subscriptionsConfig,
+  expiringSubscriptions: subscriptionsConfig,
+  expiringSubscriptionsOfMyClients: subscriptionsConfig,
+  pendingInvitesOfMyClients: usersConfig,
+  expiredInvitesOfMyClients: usersConfig,
+  pendingInvites: allUsersConfig,
+  expiredInvites: allUsersConfig,
+  unpaidInvoices: invoicesConfig,
+  invoicesPastDue: invoicesConfig,
+  unpaidInvoicesOfMyClients: invoicesConfig,
+  invoicesPastDueOfMyClients: invoicesConfig,
+  queryingEnrollments: enrollmentsConfig,
+  processingEnrollments: enrollmentsConfig,
+  longRunningEnrollmentsOfMyClients: enrollmentsConfig,
+  // TODO: add back when Journal screens are ready
+  // inProgressJournals: journalsConfig,
+  mismatchingBuyersClient: buyersConfig,
+  mismatchingBuyersOfMyClients: buyersConfig,
+  buyersWithBlockedSellerConnectionsOfMyClients: buyersConfig,
+};
+
 export const SPOTLIGHT_CATEGORY: Array<SpotlightCategory> = [
   {
     name: 'orders',
     templates: ORDERS_SPOTLIGHTS,
-    detailsScreenName: 'orderDetails',
-    listScreenName: 'orders',
   },
   {
     name: 'subscriptions',
     templates: SUBSCRIPTION_SPOTLIGHTS,
-    detailsScreenName: 'subscriptionDetails',
-    listScreenName: 'subscriptions',
-  },
-  {
-    name: 'allUsers',
-    templates: USERS_ALL_SPOTLIGHTS,
-    detailsScreenName: 'userDetails',
-    listScreenName: 'allUsers',
   },
   {
     name: 'users',
     templates: USERS_SPOTLIGHTS,
-    detailsScreenName: 'userDetails',
-    listScreenName: 'users',
   },
   {
     name: 'invoices',
     templates: INVOICES_SPOTLIGHTS,
-    detailsScreenName: 'invoiceDetails',
-    listScreenName: 'invoices',
   },
   {
     name: 'enrollments',
     templates: ENROLLMENTS_SPOTLIGHTS,
-    detailsScreenName: 'enrollmentDetails',
-    listScreenName: 'enrollments',
   },
   // TODO: add Journals back when details screen is ready
-  // { name: 'journals', templates: JOURNALS_SPOTLIGHTS, detailsScreenName: 'journalDetails', listScreenName: 'journals', },
+  // {
+  // name: 'journals',
+  // templates: JOURNALS_SPOTLIGHTS,
+  // },
   {
     name: 'buyers',
     templates: BUYERS_SPOTLIGHTS,
-    detailsScreenName: 'buyerDetails',
-    listScreenName: 'buyers',
   },
 ];

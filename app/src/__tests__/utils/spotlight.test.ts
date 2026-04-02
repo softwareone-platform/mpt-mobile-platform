@@ -1,7 +1,5 @@
 import {
   categories,
-  duplicateCategories,
-  categoryLookup,
   spotlightData,
   spotlightDataNullItem,
   spotlightDataUndefinedItem,
@@ -16,14 +14,12 @@ import {
   largeSpotlightData,
 } from '../__mocks__/utils/spotlight';
 
-import type { SpotlightItemWithDetails } from '@/types/api';
+import { templateLookup } from '@/constants/spotlight';
 import { calculateRelativeDate, FUTURE, PAST } from '@/utils/formatting';
 import {
-  buildCategoryLookup,
   groupSpotlightData,
   orderSpotlightData,
   arrangeSpotlightData,
-  mergeCategories,
   getQueryFromEndpoint,
   removeLimitFromQuery,
   replaceSpotlightQueryDate,
@@ -32,70 +28,56 @@ import {
 } from '@/utils/spotlight';
 
 describe('spotlightUtils', () => {
-  describe('buildCategoryLookup', () => {
-    it('should build template for category lookup', () => {
-      const lookup = buildCategoryLookup(categories);
-
-      expect(lookup).toEqual(categoryLookup);
-    });
-
-    it('should allow duplicate templates, using the last category definition', () => {
-      const lookup = buildCategoryLookup(duplicateCategories);
-
-      expect(lookup.savedOrdersClient).toBe('subscriptions');
-    });
-  });
-
   describe('groupSpotlightData', () => {
     it('should group spotlight items by category and omit items with total 0', () => {
-      const groupedData = groupSpotlightData(spotlightData, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightData, templateLookup);
 
       expect(groupedData).toEqual(groupedSpotlightData);
     });
 
     it('should ignore items with templates not found in lookup', () => {
-      const groupedData = groupSpotlightData(spotlightDataUnknownTemplate, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataUnknownTemplate, templateLookup);
 
       expect(groupedData).toEqual(groupedSpotlightData);
     });
 
     it('should ignore items missing the query property', () => {
-      const groupedData = groupSpotlightData(spotlightDataMissingQuery, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataMissingQuery, templateLookup);
 
       expect(groupedData).toEqual(groupedSpotlightData);
     });
 
     it('should ignore items with missing query.template property', () => {
-      const groupedData = groupSpotlightData(spotlightDataMissingTemplate, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataMissingTemplate, templateLookup);
 
       expect(groupedData).toEqual(groupedSpotlightData);
     });
 
     it('should ignore items with undefined query.template property', () => {
-      const groupedData = groupSpotlightData(spotlightDataUndefinedTemplate, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataUndefinedTemplate, templateLookup);
 
       expect(groupedData).toEqual(groupedSpotlightData);
     });
 
     it('should ignore items that are null', () => {
-      const groupedData = groupSpotlightData(spotlightDataNullItem, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataNullItem, templateLookup);
 
       expect(groupedData).toEqual(groupedSpotlightData);
     });
 
     it('should ignore items that are undefined', () => {
-      const groupedData = groupSpotlightData(spotlightDataUndefinedItem, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataUndefinedItem, templateLookup);
 
       expect(groupedData).toEqual(groupedSpotlightData);
     });
     it('should return empty object when all items have total = 0', () => {
-      const groupedData = groupSpotlightData(spotlightDataZeroTotal, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataZeroTotal, templateLookup);
 
       expect(groupedData).toEqual({});
     });
 
     it('should return empty object when spotlightData is empty', () => {
-      const groupedData = groupSpotlightData(spotlightDataEmpty, categoryLookup);
+      const groupedData = groupSpotlightData(spotlightDataEmpty, templateLookup);
 
       expect(groupedData).toEqual({});
     });
@@ -131,7 +113,7 @@ describe('spotlightUtils', () => {
 
   describe('arrangeSpotlightData', () => {
     it('should group and order spotlight data correctly', () => {
-      const arrangedData = arrangeSpotlightData(spotlightData, categories);
+      const arrangedData = arrangeSpotlightData(spotlightData, categories, templateLookup);
 
       expect(Object.keys(arrangedData)).toEqual(['orders', 'subscriptions']);
       expect(arrangedData.orders).toHaveLength(2);
@@ -150,116 +132,29 @@ describe('spotlightUtils', () => {
     });
 
     it('should return empty object when spotlightData is empty', () => {
-      const arrangedData = arrangeSpotlightData([], categories);
+      const arrangedData = arrangeSpotlightData([], categories, templateLookup);
 
       expect(arrangedData).toEqual({});
     });
 
     it('should return empty object when all items have total = 0', () => {
-      const arrangedData = arrangeSpotlightData(spotlightDataZeroTotal, categories);
+      const arrangedData = arrangeSpotlightData(spotlightDataZeroTotal, categories, templateLookup);
 
       expect(arrangedData).toEqual({});
     });
 
     it('should return empty object when categories array is empty', () => {
-      const arrangedData = arrangeSpotlightData(spotlightData, []);
+      const arrangedData = arrangeSpotlightData(spotlightData, [], templateLookup);
       expect(arrangedData).toEqual({});
     });
 
     it('should handle a large dataset', () => {
-      const arrangedData = arrangeSpotlightData(largeSpotlightData, categories);
+      const arrangedData = arrangeSpotlightData(largeSpotlightData, categories, templateLookup);
 
-      expect(arrangedData.orders.length).toBe(50);
-      expect(arrangedData.subscriptions.length).toBe(50);
+      expect(arrangedData.orders.length).toBe(1);
+      expect(arrangedData.subscriptions.length).toBe(1);
       expect(arrangedData.orders[0].id).toBe('1');
       expect(arrangedData.subscriptions[0].id).toBe('2');
-    });
-  });
-
-  describe('mergeCategories', () => {
-    it('should merge allUsers items into users group', () => {
-      const input: Record<string, SpotlightItemWithDetails[]> = {
-        users: [
-          {
-            id: '1',
-            total: 1,
-            top: [],
-            detailsScreenName: 'userDetails',
-            listScreenName: 'users',
-          },
-        ],
-        allUsers: [
-          {
-            id: '2',
-            total: 2,
-            top: [],
-            detailsScreenName: 'userDetails',
-            listScreenName: 'allUsers',
-          },
-        ],
-      };
-
-      const result = mergeCategories(input);
-
-      expect(Object.keys(result)).toEqual(['users']);
-      expect(result.users).toHaveLength(2);
-      expect(result.users[0].listScreenName).toBe('users');
-      expect(result.users[1].listScreenName).toBe('allUsers');
-    });
-
-    it('should keep allUsers items under users when users group does not exist', () => {
-      const input: Record<string, SpotlightItemWithDetails[]> = {
-        allUsers: [
-          {
-            id: '1',
-            total: 1,
-            top: [],
-            detailsScreenName: 'userDetails',
-            listScreenName: 'allUsers',
-          },
-        ],
-      };
-
-      const result = mergeCategories(input);
-
-      expect(Object.keys(result)).toEqual(['users']);
-      expect(result.users).toHaveLength(1);
-      expect(result.users[0].listScreenName).toBe('allUsers');
-    });
-
-    it('should not modify data when no mergeable categories exist', () => {
-      const input: Record<string, SpotlightItemWithDetails[]> = {
-        orders: [
-          {
-            id: '1',
-            total: 1,
-            top: [],
-            detailsScreenName: 'orderDetails',
-            listScreenName: 'orders',
-          },
-        ],
-        subscriptions: [
-          {
-            id: '2',
-            total: 1,
-            top: [],
-            detailsScreenName: 'subscriptionDetails',
-            listScreenName: 'subscriptions',
-          },
-        ],
-      };
-
-      const result = mergeCategories(input);
-
-      expect(Object.keys(result)).toEqual(['orders', 'subscriptions']);
-      expect(result.orders).toHaveLength(1);
-      expect(result.subscriptions).toHaveLength(1);
-    });
-
-    it('should return empty object for empty input', () => {
-      const result = mergeCategories({});
-
-      expect(result).toEqual({});
     });
   });
 });

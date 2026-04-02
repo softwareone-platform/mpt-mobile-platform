@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useUserData } from './useUserData';
 
-import { SPOTLIGHT_CATEGORY } from '@/constants/spotlight';
+import { SPOTLIGHT_CATEGORY, templateLookup } from '@/constants/spotlight';
 import { useAccountApi } from '@/services/accountService';
 import { arrangeSpotlightData } from '@/utils/spotlight';
 
@@ -16,7 +16,7 @@ export const useSpotlightData = (userId: string | undefined) => {
     queryFn: async () => {
       const { data } = await getSpotlightData();
 
-      return arrangeSpotlightData(data, SPOTLIGHT_CATEGORY);
+      return arrangeSpotlightData(data, SPOTLIGHT_CATEGORY, templateLookup);
     },
     enabled: !!currentAccountId,
   });
