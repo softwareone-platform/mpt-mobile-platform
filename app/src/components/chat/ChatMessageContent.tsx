@@ -5,7 +5,7 @@ import RenderHtml from 'react-native-render-html';
 import type { CustomBlockRenderer } from 'react-native-render-html';
 
 import { logger } from '@/services/loggerService';
-import { chatMarkdownStyle, getChatMarkdownTagStyles } from '@/styles/components';
+import { chatMarkdownStyle, chatMarkdownTagStyles } from '@/styles/components';
 import { isSafeUri, parseMarkdownToHtml } from '@/utils/chat';
 
 const DEFAULT_ASPECT_RATIO = 16 / 9;
@@ -68,16 +68,25 @@ const ChatMessageContent: React.FC<ChatMessageContentProps> = ({ content, color,
 
   const html = useMemo(() => parseMarkdownToHtml(content), [content]);
 
-  const baseStyle = useMemo(
-    () => ({
-      color,
-      fontSize: chatMarkdownStyle.fontSize,
-      lineHeight: chatMarkdownStyle.lineHeight,
-    }),
-    [color],
-  );
+  const baseStyle = useMemo(() => ({ ...chatMarkdownStyle.baseText, color }), [color]);
 
-  const tagsStyles = useMemo(() => getChatMarkdownTagStyles(color, linkColor), [color, linkColor]);
+  const tagsStyles = useMemo(
+    () => ({
+      ...chatMarkdownTagStyles,
+      a: { color: linkColor },
+      strong: { ...chatMarkdownTagStyles.strong, color },
+      em: { ...chatMarkdownTagStyles.em, color },
+      del: { ...chatMarkdownTagStyles.del, color },
+      u: { ...chatMarkdownTagStyles.u, color },
+      sub: { ...chatMarkdownTagStyles.sub, color },
+      sup: { ...chatMarkdownTagStyles.sup, color },
+      h1: { ...chatMarkdownTagStyles.h1, color },
+      h2: { ...chatMarkdownTagStyles.h2, color },
+      h3: { ...chatMarkdownTagStyles.h3, color },
+      h4: { ...chatMarkdownTagStyles.h4, color },
+    }),
+    [color, linkColor],
+  );
 
   return (
     <View onLayout={onLayout} style={styles.container}>

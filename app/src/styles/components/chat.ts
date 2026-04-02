@@ -125,54 +125,48 @@ export const chatMarkdownStyle = {
     marginTop: Spacing.spacingSmall4,
     marginBottom: Spacing.spacingSmall4,
   },
-  fontSize: Typography.fontSize.font2,
-  lineHeight: Typography.lineHeight.height3,
+  baseText: {
+    fontSize: Typography.fontSize.font2,
+    lineHeight: Typography.lineHeight.height3,
+  },
   headingMarginBottom: Spacing.spacingSmall4,
   headingBoldWeight: Typography.fontWeight.bold,
   headingSemiboldWeight: Typography.fontWeight.semibold,
 } as const;
 
-export const getChatMarkdownTagStyles = (
-  color: string,
-  linkColor: string,
-): Record<string, MixedStyleDeclaration> => ({
+export const chatMarkdownTagStyles: Record<string, MixedStyleDeclaration> = {
   p: { marginTop: 0, marginBottom: 0 },
-  a: { color: linkColor },
-  strong: { color, fontWeight: chatMarkdownStyle.headingBoldWeight },
-  em: { color, fontStyle: 'italic' },
-  del: { color, textDecorationLine: 'line-through' },
-  u: { color, textDecorationLine: 'underline' },
-  sub: { color, fontSize: Typography.fontSize.font1 },
-  sup: { color, fontSize: Typography.fontSize.font1 },
+  strong: { fontWeight: chatMarkdownStyle.headingBoldWeight },
+  em: { fontStyle: 'italic' },
+  del: { textDecorationLine: 'line-through' },
+  u: { textDecorationLine: 'underline' },
+  sub: { fontSize: Typography.fontSize.font1 },
+  sup: { fontSize: Typography.fontSize.font1 },
   h1: {
-    color,
     fontSize: Typography.fontSize.font6,
     fontWeight: chatMarkdownStyle.headingBoldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
   h2: {
-    color,
     fontSize: Typography.fontSize.font5,
     fontWeight: chatMarkdownStyle.headingBoldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
   h3: {
-    color,
     fontSize: Typography.fontSize.font4,
     fontWeight: chatMarkdownStyle.headingSemiboldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
   h4: {
-    color,
     fontSize: Typography.fontSize.font3,
     fontWeight: chatMarkdownStyle.headingSemiboldWeight,
     marginTop: 0,
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
-});
+};
 
 export const chatLinkPreviewStyle = {
   container: {

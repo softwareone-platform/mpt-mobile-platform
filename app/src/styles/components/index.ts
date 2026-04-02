@@ -23,7 +23,7 @@ export {
   chatMessageStyle,
   createChatWizardStyle,
   chatMarkdownStyle,
-  getChatMarkdownTagStyles,
+  chatMarkdownTagStyles,
   chatLinkPreviewStyle,
 } from './chat';
 export { bottomSheetStyle } from './bottomSheet';
