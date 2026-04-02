@@ -87,18 +87,18 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         roles: ['Client', 'Operations'],
       },
       {
-        name: 'journals',
-        icon: 'menu-book',
-        component: JournalsScreen,
-        modules: ['billing'],
-        roles: ['Vendor', 'Operations'],
-      },
-      {
         name: 'invoices',
         icon: 'receipt-long',
         component: InvoicesScreen,
         modules: ['billing'],
         roles: ['Client', 'Operations'],
+      },
+      {
+        name: 'journals',
+        icon: 'menu-book',
+        component: JournalsScreen,
+        modules: ['billing'],
+        roles: ['Vendor', 'Operations'],
       },
       {
         name: 'statements',
