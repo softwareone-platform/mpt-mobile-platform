@@ -44,8 +44,8 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         onPress={
           canNavigateTo('seller', accountType)
             ? () => {
-              navigation.navigate('sellerDetails', { id: data.owner?.id });
-            }
+                navigation.navigate('sellerDetails', { id: data.owner?.id });
+              }
             : undefined
         }
       />
@@ -55,16 +55,13 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         onPress={
           canNavigateTo('vendorAccount', accountType)
             ? () => {
-              navigation.navigate('accountDetails', { id: data.vendor?.id, type: 'vendor' });
-            }
+                navigation.navigate('accountDetails', { id: data.vendor?.id, type: 'vendor' });
+              }
             : undefined
         }
       />
       <ListItemWithLabelAndText title={t('details.dueDate')} subtitle={dueDate} />
-      <ListItemWithLabelAndText
-        title={t('details.baseCurrency')}
-        subtitle={data.price?.currency}
-      />
+      <ListItemWithLabelAndText title={t('details.baseCurrency')} subtitle={data.price?.currency} />
       <ListItemWithLabelAndText
         title={t('details.allCharges')}
         subtitle={data.processing?.total?.toString()}
