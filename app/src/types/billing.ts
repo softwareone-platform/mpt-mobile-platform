@@ -100,7 +100,7 @@ export interface JournalDetails {
     currency?: string;
     totalPP?: number;
   };
-  processing: {
+  processing?: {
     total?: number;
     ready?: number;
     ignored?: number;

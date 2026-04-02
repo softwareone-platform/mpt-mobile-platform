@@ -26,81 +26,79 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
   const totalPP = formatNumber(data.price?.totalPP, 2, language) || EMPTY_VALUE;
 
   return (
-    <>
-      <CardWithHeader title={t('details.title')}>
-        <ListItemWithLabelAndText
-          title={t('details.authorization')}
-          subtitle={data.authorization?.name}
-        />
-        <DetailsListItem
-          label={t('details.product')}
-          data={data.product}
-          onPress={() => {
-            navigation.navigate('productDetails', { id: data.product?.id });
-          }}
-        />
-        <DetailsListItem
-          label={t('details.owner')}
-          data={data.owner}
-          onPress={
-            canNavigateTo('seller', accountType)
-              ? () => {
-                  navigation.navigate('sellerDetails', { id: data.owner?.id });
-                }
-              : undefined
-          }
-        />
-        <DetailsListItem
-          label={t('details.vendor')}
-          data={data.vendor}
-          onPress={
-            canNavigateTo('vendorAccount', accountType)
-              ? () => {
-                  navigation.navigate('accountDetails', { id: data.vendor?.id, type: 'vendor' });
-                }
-              : undefined
-          }
-        />
-        <ListItemWithLabelAndText title={t('details.dueDate')} subtitle={dueDate} />
-        <ListItemWithLabelAndText
-          title={t('details.baseCurrency')}
-          subtitle={data.price?.currency}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.allCharges')}
-          subtitle={data.processing?.total?.toString()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.readyCharges')}
-          subtitle={data.processing?.ready?.toString()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.ignoredCharges')}
-          subtitle={data.processing?.ignored?.toString()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.splitCharges')}
-          subtitle={data.processing?.split?.toString()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.errorCharges')}
-          subtitle={data.processing?.error?.toString()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.skippedCharges')}
-          subtitle={data.processing?.skipped?.toString()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.pp')}
-          subtitle={`${data.price?.currency ?? ''} ${totalPP}`.trim()}
-        />
-        <ListItemWithLabelAndText
-          title={t('details.assignee')}
-          subtitle={data.assignee?.name}
-          isLast={true}
-        />
-      </CardWithHeader>
-    </>
+    <CardWithHeader title={t('details.title')}>
+      <ListItemWithLabelAndText
+        title={t('details.authorization')}
+        subtitle={data.authorization?.name}
+      />
+      <DetailsListItem
+        label={t('details.product')}
+        data={data.product}
+        onPress={() => {
+          navigation.navigate('productDetails', { id: data.product?.id });
+        }}
+      />
+      <DetailsListItem
+        label={t('details.owner')}
+        data={data.owner}
+        onPress={
+          canNavigateTo('seller', accountType)
+            ? () => {
+              navigation.navigate('sellerDetails', { id: data.owner?.id });
+            }
+            : undefined
+        }
+      />
+      <DetailsListItem
+        label={t('details.vendor')}
+        data={data.vendor}
+        onPress={
+          canNavigateTo('vendorAccount', accountType)
+            ? () => {
+              navigation.navigate('accountDetails', { id: data.vendor?.id, type: 'vendor' });
+            }
+            : undefined
+        }
+      />
+      <ListItemWithLabelAndText title={t('details.dueDate')} subtitle={dueDate} />
+      <ListItemWithLabelAndText
+        title={t('details.baseCurrency')}
+        subtitle={data.price?.currency}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.allCharges')}
+        subtitle={data.processing?.total?.toString()}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.readyCharges')}
+        subtitle={data.processing?.ready?.toString()}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.ignoredCharges')}
+        subtitle={data.processing?.ignored?.toString()}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.splitCharges')}
+        subtitle={data.processing?.split?.toString()}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.errorCharges')}
+        subtitle={data.processing?.error?.toString()}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.skippedCharges')}
+        subtitle={data.processing?.skipped?.toString()}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.pp')}
+        subtitle={`${data.price?.currency ?? ''} ${totalPP}`.trim()}
+      />
+      <ListItemWithLabelAndText
+        title={t('details.assignee')}
+        subtitle={data.assignee?.name}
+        isLast={true}
+      />
+    </CardWithHeader>
   );
 };
 
