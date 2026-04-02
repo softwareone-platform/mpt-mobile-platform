@@ -24,7 +24,7 @@ const textContainerCommon: ViewStyle = {
   paddingHorizontal: Spacing.spacing2,
   borderRadius: BorderRadius.sm,
   marginBottom: Spacing.spacing1,
-  gap: Spacing.spacingSmall6,
+  gap: Spacing.spacingSmall4,
   maxWidth: '100%',
 };
 
