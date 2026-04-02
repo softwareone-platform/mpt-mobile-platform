@@ -12,7 +12,6 @@ interface JournalsContextValue {
   journalsError: boolean;
   isUnauthorised: boolean;
   fetchJournals: () => void;
-  selectedJournalId?: string;
 }
 
 const JournalsContext = createContext<JournalsContextValue | undefined>(undefined);
