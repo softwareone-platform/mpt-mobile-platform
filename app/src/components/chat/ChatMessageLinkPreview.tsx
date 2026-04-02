@@ -9,11 +9,12 @@ interface ChatMessageLinkPreviewProps {
 
 const ChatMessageLinkPreview: React.FC<ChatMessageLinkPreviewProps> = ({ link }) => {
   const handlePress = () => {
+    if (!link.uri) return;
     void Linking.openURL(link.uri);
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.container} onPress={handlePress} disabled={!link.uri}>
       {!!link.icon && <Image source={{ uri: link.icon }} style={styles.icon} />}
       <View style={styles.textColumn}>
         <Text style={styles.name} numberOfLines={1}>

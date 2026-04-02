@@ -50,6 +50,7 @@ const ImageRenderer: CustomBlockRenderer = function ImageRenderer({ tnode }) {
 const renderers = { img: ImageRenderer };
 
 const handleLinkPress = (_event: unknown, href: string) => {
+  if (!href) return;
   void Linking.openURL(href);
 };
 
