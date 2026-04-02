@@ -104,5 +104,4 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
   );
 };
 
-
 export default JournalDetailsContent;
