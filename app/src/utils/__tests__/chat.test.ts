@@ -67,13 +67,17 @@ describe('parseMarkdownToHtml', () => {
 
 describe('stripLinkMarkdown', () => {
   it('replaces link markdown with the label text for a matching uri', () => {
-    const result = stripLinkMarkdown('See [docs](https://example.com) for details', ['https://example.com']);
+    const result = stripLinkMarkdown('See [docs](https://example.com) for details', [
+      'https://example.com',
+    ]);
 
     expect(result).toBe('See docs for details');
   });
 
   it('does not remove image markdown even when the uri matches', () => {
-    const result = stripLinkMarkdown('![alt](https://example.com/image.png)', ['https://example.com/image.png']);
+    const result = stripLinkMarkdown('![alt](https://example.com/image.png)', [
+      'https://example.com/image.png',
+    ]);
 
     expect(result).toBe('![alt](https://example.com/image.png)');
   });
