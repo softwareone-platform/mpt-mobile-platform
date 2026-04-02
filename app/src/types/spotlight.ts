@@ -22,8 +22,9 @@ export type SpotlightTemplateName =
   | 'invoicesPastDueOfMyClients'
   | 'queryingEnrollments'
   | 'processingEnrollments'
-  | 'longRunningEnrollmentsOfMyClients'
-  | 'inProgressJournals';
+  | 'longRunningEnrollmentsOfMyClients';
+// TODO: add back when Journal screens are ready
+// | 'inProgressJournals';
 
 export type SpotlightCategoryName =
   | 'orders'
@@ -38,6 +39,10 @@ export type SpotlightCategoryName =
 export type SpotlightCategory = {
   name: SpotlightCategoryName;
   templates: SpotlightTemplateName[];
+};
+
+export type SpotlightTemplateConfig = {
+  category: SpotlightCategoryName;
   detailsScreenName: keyof AppScreensParamList;
   listScreenName: MainTabRouteName | SecondaryTabRouteName;
 };

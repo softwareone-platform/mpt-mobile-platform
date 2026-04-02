@@ -13,6 +13,7 @@
   "createChatWizard": {
     "title": "Create chat",
     "next": "Next",
+    "create": "Create",
     "cancel": "Cancel",
     "chatType": "Chat type",
     "groupChat": "Group chat",
