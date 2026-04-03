@@ -11,6 +11,8 @@ export { default as ProgramsScreen } from './programs/ProgramsScreen';
 export { default as EnrollmentsScreen } from './enrollments/EnrollmentsScreen';
 export { default as LicenseesScreen } from './licensees/LicenseesScreen';
 export { default as BuyersScreen } from './buyers/BuyersScreen';
+export { default as ClientsScreen } from './clients/ClientsScreen';
+export { default as VendorsScreen } from './vendors/VendorsScreen';
 export { default as ProductsScreen } from './products/ProductsScreen';
 export { default as CreditMemoDetailsScreen } from './credit-memos/CreditMemoDetailsScreen';
 export { default as JournalDetailsScreen } from './journals/JournalDetailsScreen';

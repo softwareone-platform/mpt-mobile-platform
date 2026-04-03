@@ -124,9 +124,9 @@ export function useAccountApi() {
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<ListItemFull>> => {
       const endpoint =
-        `/v1/accounts/users/${userId}/accounts` +
+        `/v1/accounts/accounts` +
         `?select=-*,id,name,status,icon` +
-        '&eq(invitation.status,%22Active%22)' +
+        '&and(ilike(name,%22*client*%22),eq(type,%22Client%22))' +
         '&order=name' +
         `&offset=${offset}` +
         `&limit=${limit}`;
@@ -143,7 +143,7 @@ export function useAccountApi() {
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<ListItemFull>> => {
       const endpoint =
-        `/v1/accounts/users/${userId}/accounts` +
+        `/v1/accounts/accounts` +
         `?select=-*,id,name,status,icon` +
         '&eq(type,%22Vendor%22)' +
         '&order=name' +
@@ -166,6 +166,7 @@ export function useAccountApi() {
       switchAccount,
       getAccountData,
       getClients,
+      getVendors,
     }),
     [
       getUserData,
@@ -177,6 +178,7 @@ export function useAccountApi() {
       switchAccount,
       getAccountData,
       getClients,
+      getVendors,
     ],
   );
 }
