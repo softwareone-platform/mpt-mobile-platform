@@ -97,6 +97,7 @@
     },
     "authorization": "Authorization",
     "charges": "Charges",
+    "allCharges": "All charges",
     "errorCharges": "Error charges",
     "ignoredCharges": "Ignored charges",
     "readyCharges": "Ready charges",
