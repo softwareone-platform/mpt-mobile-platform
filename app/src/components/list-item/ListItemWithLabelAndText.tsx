@@ -5,7 +5,7 @@ import { listItemStyle } from '@/styles';
 
 type Props = {
   title: string;
-  subtitle?: string;
+  subtitle?: string | number;
   isLast?: boolean;
   testID?: string;
 };
@@ -18,7 +18,7 @@ const ListItemWithLabelAndText = ({ title, subtitle, isLast, testID }: Props) =>
           {title}
         </Text>
         <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
-          {subtitle ? subtitle : EMPTY_VALUE}
+          {subtitle !== undefined && subtitle !== null ? String(subtitle) : EMPTY_VALUE}
         </Text>
       </View>
     </View>
