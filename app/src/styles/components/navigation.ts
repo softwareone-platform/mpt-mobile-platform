@@ -72,6 +72,9 @@ export const navigationStyle = {
     rightIconWrapper: {
       marginRight: Spacing.spacing2,
     },
+    leftIconWrapper: {
+      marginLeft: Spacing.spacing2,
+    },
     rightIconColorPrimary: Color.brand.primary,
     rightIconColorSecondary: Color.gray.gray4,
   },
