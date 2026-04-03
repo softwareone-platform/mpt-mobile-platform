@@ -61,7 +61,7 @@ export const inputWithIconStyle = {
 export const inputSearchStyle = {
   containerMain: {
     flexDirection: 'row',
-    gap: 16,
+    gap: Spacing.spacing2,
   },
   searchWrapper: {
     flexGrow: 1,
