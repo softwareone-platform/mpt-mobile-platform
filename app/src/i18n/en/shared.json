@@ -6,7 +6,8 @@
     "noMessages": "No messages"
   },
   "action": {
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "cancel": "Cancel"
   },
   "status": "Status",
   "legal": {

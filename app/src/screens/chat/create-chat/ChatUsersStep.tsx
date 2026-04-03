@@ -22,6 +22,7 @@ const ChatUsersStep = ({ selectedIds, onToggleParticipant }: ChatUserStepProps) 
         onToggle={() => onToggleParticipant(item.id)}
       />
     )}
+    showCancel={false}
   />
 );
 

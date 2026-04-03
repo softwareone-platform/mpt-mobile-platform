@@ -2,7 +2,7 @@
  * Central export for shared component styles
  */
 export { buttonStyle } from './button';
-export { inputStyle, inputWithIconStyle } from './input';
+export { inputStyle, inputWithIconStyle, inputSearchStyle } from './input';
 export { authLayoutStyle } from './authLayout';
 export { cardStyle } from './card';
 export { screenStyle, spacingStyle, commonStyle } from './common';

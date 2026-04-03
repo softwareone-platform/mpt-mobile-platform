@@ -97,13 +97,13 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
       <View style={styles.headerRow}>
         <View style={styles.headerSide}>
           <TouchableOpacity onPress={handleClose}>
-            <Text style={styles.headerTextCancel}>{t('createChatWizard.cancel')}</Text>
+            <Text style={styles.headerTextCancel}>{t('createChatWizard.close')}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{t('createChatWizard.title')}</Text>
         </View>
-        <View style={styles.headerSide}>
+        <View style={[styles.headerSide, styles.headerSideRight]}>
           {step > 1 && (
             <TouchableOpacity
               onPress={handleNext}
@@ -162,6 +162,7 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
 const styles = StyleSheet.create({
   headerRow: createChatWizardStyle.headerRow,
   headerSide: createChatWizardStyle.headerSide,
+  headerSideRight: createChatWizardStyle.headerSideRight,
   headerCenter: createChatWizardStyle.headerCenter,
   headerTitle: createChatWizardStyle.headerTitle,
   headerTextCancel: createChatWizardStyle.headerTextCancel,
