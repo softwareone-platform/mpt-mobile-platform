@@ -15,11 +15,12 @@ import { TestIDs } from '@/utils/testID';
 type ContactsListBaseProps = {
   renderItem: (contact: Contact, isFirst: boolean, isLast: boolean) => React.ReactElement | null;
   header?: ReactNode;
+  showCancel?: boolean;
 };
 
-const ContactsListBase = ({ renderItem, header }: ContactsListBaseProps) => {
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+const ContactsListBase = ({ renderItem, header, showCancel }: ContactsListBaseProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const { t } = useTranslation();
   const { userData } = useAccount();
@@ -40,12 +41,13 @@ const ContactsListBase = ({ renderItem, header }: ContactsListBaseProps) => {
         <SearchInput
           placeholder={t('createChatWizard.searchPlaceholder')}
           onChangeText={setSearchQuery}
-          onFocus={() => setIsSearchFocused(true)}
-          onBlur={() => setIsSearchFocused(false)}
+          isSearchMode={isSearchMode}
+          showCancel={showCancel}
+          onSearchModeChange={setIsSearchMode}
           testID={TestIDs.CREATE_CHAT_CONTACT_SEARCH}
         />
       </View>
-      {header && !isSearchFocused && !searchQuery && header}
+      {header && !isSearchMode && !searchQuery && header}
       <FlatList
         data={contacts}
         keyExtractor={(item) => item.id}

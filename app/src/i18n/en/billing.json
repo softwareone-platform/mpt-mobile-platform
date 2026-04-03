@@ -8,6 +8,15 @@
     "emptyStateTitle": "No credit memo details",
     "emptyStateDescription": "No credit memo details found."
   },
+  "journalsScreen": {
+    "emptyStateTitle": "No journals",
+    "emptyStateDescription": "No journals found."
+  },
+  "journalDetailsScreen": {
+    "title": "Journal",
+    "emptyStateTitle": "No journal details",
+    "emptyStateDescription": "No journal details found."
+  },
   "invoicesScreen": {
     "emptyStateTitle": "No invoices",
     "emptyStateDescription": "No invoices found."

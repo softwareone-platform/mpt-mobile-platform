@@ -54,6 +54,7 @@ const ChatTypeStep = ({ onSelectChatType, onSelectParticipant, isLoading }: Chat
           disabled={isLoading}
         />
       )}
+      showCancel={true}
     />
   );
 };

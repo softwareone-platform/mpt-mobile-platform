@@ -95,6 +95,13 @@
       "issued": "Issued",
       "generating": "Generating"
     },
+    "authorization": "Authorization",
+    "allCharges": "All charges",
+    "errorCharges": "Error charges",
+    "ignoredCharges": "Ignored charges",
+    "readyCharges": "Ready charges",
+    "skippedCharges": "Skipped charges",
+    "splitCharges": "Split charges",
     "website": "Website",
     "eligibility": "Eligibility",
     "eligibilityValue": {

@@ -86,3 +86,28 @@ export interface StatementDetails extends CommonBillingDetails {
   };
   audit: Audit;
 }
+
+export interface JournalDetails {
+  id: string;
+  name: string;
+  status?: string;
+  authorization?: DetailsListItemValue;
+  product?: DetailsListItemValue;
+  owner?: DetailsListItemValue;
+  vendor?: DetailsListItemValue;
+  dueDate?: string;
+  price?: {
+    currency?: string;
+    totalPP?: number;
+  };
+  processing?: {
+    total?: number;
+    ready?: number;
+    ignored?: number;
+    split?: number;
+    error?: number;
+    skipped?: number;
+  };
+  assignee?: DetailsListItemValue;
+  audit: Audit;
+}

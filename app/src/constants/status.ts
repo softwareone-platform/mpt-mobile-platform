@@ -54,4 +54,5 @@ export const statusList = {
   Update: 'info',
   Updating: 'info',
   Validating: 'info',
+  Validated: 'warning',
 } as const satisfies Record<string, Status>;
