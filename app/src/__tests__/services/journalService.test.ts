@@ -7,7 +7,7 @@ import {
   mockJournalResponse2,
 } from '../__mocks__/services/journal';
 
-import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE, JOURNALS_LIST_API_ENDPOINT } from '@/constants/api';
+import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useBillingApi } from '@/services/billingService';
 import type { PaginatedResponse, ListItemNoImage } from '@/types/api';
 
@@ -20,6 +20,12 @@ jest.mock('@/hooks/useApi', () => ({
 }));
 
 const setup = () => renderHook(() => useBillingApi()).result.current;
+
+const expectedUrlBase =
+  `/v1/billing/journals` +
+  `?select=-*,id,name,status` +
+  `&ne(status,%22Deleted%22)` +
+  `&order=-audit.created.at`;
 
 describe('useBillingApi - Journals', () => {
   beforeEach(() => {
@@ -47,7 +53,7 @@ describe('useBillingApi - Journals', () => {
     });
 
     const expectedUrl =
-      `${JOURNALS_LIST_API_ENDPOINT}` + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);
@@ -73,7 +79,7 @@ describe('useBillingApi - Journals', () => {
       res = await api.getJournals(50, 25);
     });
 
-    const expectedUrl = JOURNALS_LIST_API_ENDPOINT + `&offset=50` + `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockResponse);

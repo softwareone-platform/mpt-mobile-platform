@@ -16,9 +16,3 @@ export const SIGNALR_RECONNECT_DELAY_MS = 5000;
 export const SIGNALR_SERVER_TIMEOUT_MS = 30000;
 export const SIGNALR_KEEP_ALIVE_INTERVAL_MS = 15000;
 export const SIGNALR_HUB_PATH = '/v1/notifications/signalrNotificationHub';
-
-export const JOURNALS_LIST_API_ENDPOINT =
-  `/v1/billing/journals` +
-  `?select=-*,id,name,status` +
-  `&ne(status,%22Deleted%22)` +
-  `&order=-audit.created.at`;
