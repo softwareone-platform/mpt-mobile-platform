@@ -21,6 +21,7 @@ export type ListItemWithStatusProps = ListItemCommonProps & {
   avatars?: AvatarItem[];
   leftElement?: React.ReactNode;
   rightElement?: React.ReactNode;
+  disabled?: boolean;
 };
 
 export type ListItemConfig = {

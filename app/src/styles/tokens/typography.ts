@@ -14,6 +14,9 @@ export const Typography = {
     font7: 32,
     font8: 40,
   },
+  fontSizeSmall: {
+    font11: 11,
+  },
   fontWeight: {
     regular: '400' as const,
     medium: '500' as const,

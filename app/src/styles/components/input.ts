@@ -19,34 +19,6 @@ export const inputStyle = {
     paddingHorizontal: Spacing.spacing2,
     paddingVertical: Spacing.spacing2,
   },
-  search: {
-    height: 36,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Color.fills.tertiary,
-    paddingLeft: ICON_OFFSET_HORIZONTAL,
-    paddingRight: ICON_OFFSET_HORIZONTAL,
-    fontSize: Typography.fontSize.font3,
-  },
-  searchIconColor: Color.gray.gray4,
-  searchTextPlaceholderColor: Color.gray.gray3,
-  leftIcon: {
-    position: 'absolute',
-    left: 8,
-    top: 8,
-  },
-  rightIcon: {
-    position: 'absolute',
-    right: 8,
-    top: 10,
-  },
-  text: {
-    fontSize: Typography.fontSize.font3,
-    color: Color.brand.type,
-    fontWeight: Typography.fontWeight.regular,
-  },
-  placeholder: {
-    color: Color.gray.gray3,
-  },
   authContainer: {
     marginBottom: Spacing.spacing2,
   },
@@ -83,5 +55,49 @@ export const inputWithIconStyle = {
   input: {
     paddingLeft: Spacing.spacing2,
     flexShrink: 1,
+  },
+} as const;
+
+export const inputSearchStyle = {
+  containerMain: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  searchWrapper: {
+    flexGrow: 1,
+  },
+  search: {
+    borderRadius: BorderRadius.md,
+    backgroundColor: Color.fills.tertiary,
+    paddingLeft: ICON_OFFSET_HORIZONTAL,
+    paddingRight: ICON_OFFSET_HORIZONTAL,
+    paddingVertical: Spacing.spacing1,
+    fontSize: Typography.fontSize.font3,
+  },
+  searchIconColor: Color.gray.gray4,
+  placeholderTextColor: Color.gray.gray3,
+  leftIcon: {
+    position: 'absolute',
+    left: 8,
+    top: 6,
+  },
+  rightIcon: {
+    position: 'absolute',
+    right: 8,
+    top: 6,
+  },
+  text: {
+    fontSize: Typography.fontSize.font3,
+    color: Color.brand.type,
+    fontWeight: Typography.fontWeight.regular,
+  },
+  cancel: {
+    justifyContent: 'center',
+  },
+  cancelText: {
+    fontSize: Typography.fontSize.font3,
+  },
+  cancelTextDisabled: {
+    color: Color.gray.gray4,
   },
 } as const;
