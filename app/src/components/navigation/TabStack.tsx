@@ -41,9 +41,9 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
         options={{
           title: t(`navigation.tabs.${tab.name}`),
           // never show back button on tab root
-          headerLeft: () => null,
+          headerLeft: () => <CreateChatButton />,
           ...(isChatTab && {
-            headerRight: () => <CreateChatButton />,
+            headerRight: () => <AccountToolbarButton />,
           }),
         }}
       />

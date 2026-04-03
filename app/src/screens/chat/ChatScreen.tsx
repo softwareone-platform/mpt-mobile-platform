@@ -46,7 +46,7 @@ const ChatScreenContent = () => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => <CreateChatButton onPress={() => setCreateChatVisible(true)} />,
+      headerLeft: () => <CreateChatButton onPress={() => setCreateChatVisible(true)} />,
     });
   }, [navigation, setCreateChatVisible]);
 
