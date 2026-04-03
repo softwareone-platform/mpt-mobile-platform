@@ -13,6 +13,8 @@ import type {
   SubscriptionItem,
   SpotlightData,
   AccountDetails,
+  ListItemFull,
+  PaginatedResponse,
 } from '@/types/api';
 
 export function useAccountApi() {
@@ -115,6 +117,44 @@ export function useAccountApi() {
     [api],
   );
 
+  const getClients = useCallback(
+    async (
+      userId: string,
+      offset: number = DEFAULT_OFFSET,
+      limit: number = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedResponse<ListItemFull>> => {
+      const endpoint =
+        `/v1/accounts/users/${userId}/accounts` +
+        `?select=-*,id,name,status,icon` +
+        '&eq(invitation.status,%22Active%22)' +
+        '&order=name' +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
+
+      return api.get<PaginatedResponse<ListItemFull>>(endpoint);
+    },
+    [api],
+  );
+
+  const getVendors = useCallback(
+    async (
+      userId: string,
+      offset: number = DEFAULT_OFFSET,
+      limit: number = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedResponse<ListItemFull>> => {
+      const endpoint =
+        `/v1/accounts/users/${userId}/accounts` +
+        `?select=-*,id,name,status,icon` +
+        '&eq(type,%22Vendor%22)' +
+        '&order=name' +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
+
+      return api.get<PaginatedResponse<ListItemFull>>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getUserData,
@@ -125,6 +165,7 @@ export function useAccountApi() {
       getSubscriptionsData,
       switchAccount,
       getAccountData,
+      getClients,
     }),
     [
       getUserData,
@@ -135,6 +176,7 @@ export function useAccountApi() {
       getSubscriptionsData,
       switchAccount,
       getAccountData,
+      getClients,
     ],
   );
 }
