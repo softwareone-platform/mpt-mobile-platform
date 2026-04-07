@@ -2,13 +2,33 @@
 
 The mobile companion for [SoftwareONE Marketplace](https://portal.platform.softwareone.com/home) — manage your cloud subscriptions, orders, invoices, and agreements on the go. Built with React Native and Expo for iOS and Android.
 
-## 🌟 Highlights
+## Overview
 
-- **Passwordless sign-in** — Email + OTP, no passwords to remember
-- **Your whole Marketplace in your pocket** — Orders, subscriptions, agreements, invoices, credit memos, statements, programs, and more
-- **Spotlight dashboard** — See what matters at a glance
-- **Multi-account switching** — Jump between accounts without signing out
-- **Cross-platform** — One codebase, native experience on both iOS and Android
+The SoftwareONE Marketplace Mobile App is a native iOS and Android companion to the SoftwareONE Marketplace web portal, giving enterprise users full visibility and control over their cloud subscription lifecycle — anytime, anywhere.
+
+### The Challenge
+
+Enterprise teams managing cloud subscriptions, invoices, and vendor relationships through the SoftwareONE Marketplace needed a way to stay on top of critical tasks without being tied to a desktop. Overdue invoices, expiring subscriptions, pending orders, and user approvals required immediate attention — but the web portal alone couldn't provide the on-the-go accessibility that modern business demands.
+
+### The Solution
+
+We built a cross-platform mobile application (single codebase, native performance on iOS & Android) that brings the full power of the Marketplace to users' pockets. Key capabilities include:
+
+- **Spotlight Dashboard** — A personalized task hub surfacing real-time alerts: overdue invoices, expiring subscriptions, pending orders, and user invitations requiring action.
+- **Subscription & Order Management** — Browse, review, and track cloud subscriptions, orders, products, and agreements on the go.
+- **Billing & Finance** — Access invoices, credit memos, statements, and journal entries with full document detail.
+- **Integrated Chat** — Communicate directly with support and marketplace participants without leaving the app.
+- **Administration** — Manage users, buyers, sellers, licensees, programs, and enrollments from a single interface.
+- **Multi-Account Switching** — Instantly switch between accounts without re-authenticating — critical for resellers and partners managing multiple organizations.
+- **Passwordless Authentication** — Secure, frictionless login via email and one-time code (Auth0).
+
+### Technology
+
+Built with **React Native** (New Architecture) and **Expo**, the app delivers native performance from a single TypeScript codebase. Real-time updates are powered by **SignalR**, server state by **TanStack React Query**, and analytics by **Azure Application Insights**. The codebase enforces strict quality gates (≥ 80% test coverage, automated linting, E2E testing with Appium) and ships through CI/CD pipelines to both app stores.
+
+### Impact
+
+The app empowers enterprise teams — resellers, finance, administrators, and support staff — to act on time-sensitive tasks the moment they arise, reducing response times and improving operational efficiency across the SoftwareONE partner ecosystem.
 
 ## ⬇️ Getting Started
 
@@ -30,50 +50,9 @@ npm run ios       # or: npm run android
 
 That's it. The app should launch in your simulator.
 
-> **Using private `@swo` packages?** Run `npm install -g vsts-npm-auth && vsts-npm-auth -config .npmrc` first.
-
 > **Changed `.env` values?** Clear the Metro cache with `npx expo start --clear`, then rebuild.
 
-## 🚀 Usage
-
-Once running, sign in with your SoftwareONE email. You'll receive a one-time code — enter it and you're in.
-
-From there you can browse your Spotlight dashboard, view and search orders, subscriptions, agreements, invoices, and more — everything you'd find on the [web portal](https://portal.platform.softwareone.com/home), optimized for mobile.
-
-## 🏗️ Project Structure
-
-All source code lives under `app/src/`:
-
-```
-app/src/
-├── components/       # Reusable UI components
-├── screens/          # Screen components (one per route)
-├── services/         # API and business logic
-├── hooks/            # Custom hooks and query hooks
-├── context/          # React Context providers
-├── styles/           # Design tokens and component styles
-├── i18n/             # Internationalization
-├── types/            # TypeScript definitions
-├── config/           # App configuration and feature flags
-├── lib/              # Core libraries (API client, token provider)
-├── constants/        # App-wide constants
-└── utils/            # Utility functions
-```
-
-## 🛠️ Tech Stack
-
-| | |
-|---|---|
-| **Framework** | React Native 0.81 · Expo SDK 54 · React 19 (New Architecture) |
-| **Language** | TypeScript 5.9 (strict mode) |
-| **Navigation** | React Navigation v7 |
-| **State** | React Context + TanStack React Query |
-| **Auth** | Auth0 (passwordless OTP) |
-| **API** | Axios |
-| **i18n** | i18next |
-| **Testing** | Jest · Appium (E2E) |
-
-## 📋 Development Scripts
+##  Development Scripts
 
 Run from the **repository root**. npm commands run from `app/`.
 
@@ -131,14 +110,18 @@ Found a bug or have an idea? [Open an issue](../../issues) — we'd love to hear
 |-------|------|
 | Coding conventions | [CONVENTIONS.md](CONVENTIONS.md) |
 | Design system | [app/src/styles/README.md](app/src/styles/README.md) |
+| Logging | [documents/LOGGING.md](documents/LOGGING.md) |
 | iOS local build | [documents/LOCAL_BUILD_IOS.md](documents/LOCAL_BUILD_IOS.md) |
 | Android local build | [documents/LOCAL_BUILD_ANDROID.md](documents/LOCAL_BUILD_ANDROID.md) |
-| Logging | [documents/LOGGING.md](documents/LOGGING.md) |
 | E2E testing (iOS) | [documents/APPIUM_IOS_TESTING.md](documents/APPIUM_IOS_TESTING.md) |
 | E2E testing (Android) | [documents/APPIUM_ANDROID_TESTING.md](documents/APPIUM_ANDROID_TESTING.md) |
+| E2E testing (Android on Windows) | [documents/APPIUM_ANDROID_TESTING_WINDOWS.md](documents/APPIUM_ANDROID_TESTING_WINDOWS.md) |
 | Writing E2E tests | [documents/EXTENDING_TEST_FRAMEWORK.md](documents/EXTENDING_TEST_FRAMEWORK.md) |
+| Test element identification | [documents/TEST_ELEMENT_IDENTIFICATION_STRATEGY.md](documents/TEST_ELEMENT_IDENTIFICATION_STRATEGY.md) |
+| Zscaler Android emulator setup | [documents/ZSCALER_ANDROID_EMULATOR_SETUP.md](documents/ZSCALER_ANDROID_EMULATOR_SETUP.md) |
 | Deployment guide (test/QA/prod) | [.github/DEPLOYMENT_GUIDE.md](.github/DEPLOYMENT_GUIDE.md) |
 | TestFlight setup | [.github/TESTFLIGHT_SETUP.md](.github/TESTFLIGHT_SETUP.md) |
+| Copilot review setup | [.github/COPILOT_REVIEW_SETUP.md](.github/COPILOT_REVIEW_SETUP.md) |
 
 ## ⚖️ License
 
