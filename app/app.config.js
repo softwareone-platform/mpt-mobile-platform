@@ -31,6 +31,7 @@ export default {
       ],
       './plugins/withNetworkSecurityConfig',
       './plugins/withAppStoreIcon',
+      'expo-font',
     ],
     splash: {
       image: './assets/splash-icon.png',
