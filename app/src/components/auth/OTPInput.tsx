@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, TextInput, TextInputProps, TouchableOpacity, Text } from 'react-native';
 
 import { AUTH_CONSTANTS } from '@/constants';
+import { logger } from '@/services/loggerService';
 import { otpInputStyle } from '@/styles/components';
 
 interface OTPInputProps extends Omit<TextInputProps, 'value' | 'onChangeText'> {
@@ -67,10 +68,14 @@ const OTPInput: React.FC<OTPInputProps> = ({
 
   const handleLongPress = async () => {
     focusInput();
-    const text = await Clipboard.getStringAsync();
-    const sanitized = sanitizeNumericInput(text, length);
-    if (sanitized.length > 0) {
-      onChangeText(sanitized);
+    try {
+      const text = await Clipboard.getStringAsync();
+      const sanitized = sanitizeNumericInput(text, length);
+      if (sanitized.length > 0) {
+        onChangeText(sanitized);
+      }
+    } catch (error) {
+      logger.warn('Clipboard access failed', { error: String(error) });
     }
   };
 
