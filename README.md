@@ -2,6 +2,8 @@
 
 The mobile companion for [SoftwareONE Marketplace](https://portal.platform.softwareone.com/home) — manage your cloud subscriptions, orders, invoices, and agreements on the go. Built with React Native and Expo for iOS and Android.
 
+![App screenshot](documents/images.png)
+
 ## Overview
 
 The SoftwareONE Marketplace Mobile App is a native iOS and Android companion to the SoftwareONE Marketplace web portal, giving enterprise users full visibility and control over their cloud subscription lifecycle — anytime, anywhere.
