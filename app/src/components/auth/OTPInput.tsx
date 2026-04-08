@@ -1,7 +1,9 @@
+import * as Clipboard from 'expo-clipboard';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, TextInput, TextInputProps, TouchableOpacity, Text } from 'react-native';
 
 import { AUTH_CONSTANTS } from '@/constants';
+import { logger } from '@/services/loggerService';
 import { otpInputStyle } from '@/styles/components';
 
 interface OTPInputProps extends Omit<TextInputProps, 'value' | 'onChangeText'> {
@@ -64,6 +66,19 @@ const OTPInput: React.FC<OTPInputProps> = ({
     inputRef.current?.focus();
   };
 
+  const handleLongPress = async () => {
+    focusInput();
+    try {
+      const text = await Clipboard.getStringAsync();
+      const sanitized = sanitizeNumericInput(text, length);
+      if (sanitized.length > 0) {
+        onChangeText(sanitized);
+      }
+    } catch (error) {
+      logger.warn('Clipboard access failed', { error: String(error) });
+    }
+  };
+
   const handleInputFocus = () => {
     setFocused(true);
     if (error && value.length > 0) {
@@ -95,6 +110,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
           isLastInFirstGroup && otpInputStyle.digitContainerGroupGap,
         ]}
         onPress={focusInput}
+        onLongPress={handleLongPress}
         activeOpacity={0.8}
       >
         <Text style={createDigitTextStyles(isFilled)}>{getDigitDisplay(digit, isActive)}</Text>
