@@ -118,7 +118,7 @@ export function useBillingApi() {
     [api],
   );
 
-  const getJournalDetails = useCallback(
+  const getJournalData = useCallback(
     async (journalId: string): Promise<JournalDetails> => {
       const endpoint = `/v1/billing/journals/${journalId}?select=audit.created.at,audit.updated.at,owner.address.country,audit`;
 
@@ -136,7 +136,7 @@ export function useBillingApi() {
       getStatements,
       getStatementData,
       getJournals,
-      getJournalDetails,
+      getJournalData,
     }),
     [
       getCreditMemos,
@@ -146,7 +146,7 @@ export function useBillingApi() {
       getStatements,
       getStatementData,
       getJournals,
-      getJournalDetails,
+      getJournalData,
     ],
   );
 }
