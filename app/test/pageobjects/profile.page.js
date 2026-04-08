@@ -1,8 +1,8 @@
 const { $, $$ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
+const { TIMEOUT, REGEX } = require('./utils/constants');
 const { getSelector, selectors, isIOS } = require('./utils/selectors');
-const { TIMEOUT } = require('./utils/constants');
 
 class ProfilePage extends BasePage {
   constructor() {
@@ -64,7 +64,8 @@ class ProfilePage extends BasePage {
     return $(
       getSelector({
         ios: '~profile-user-item',
-        android: '//*[@resource-id="profile-user-item"]//android.widget.TextView[contains(@text, "USR-")]',
+        android:
+          '//*[@resource-id="profile-user-item"]//android.widget.TextView[contains(@text, "USR-")]',
       }),
     );
   }
@@ -127,13 +128,13 @@ class ProfilePage extends BasePage {
       favourites: this.tabFavourites,
       recent: this.tabRecent,
     };
-    
+
     const tab = tabSelectors[tabName];
     if (!tab) {
       console.warn(`Unknown tab name: ${tabName}`);
       return false;
     }
-    
+
     try {
       if (isIOS()) {
         // On iOS, check for 'Selected' trait in the accessibility traits (case-insensitive)
@@ -160,7 +161,7 @@ class ProfilePage extends BasePage {
       favourites: this.tabFavourites,
       recent: this.tabRecent,
     };
-    
+
     const tab = tabSelectors[tabName];
     if (!tab) {
       console.warn(`Unknown tab name: ${tabName}`);
@@ -187,7 +188,7 @@ class ProfilePage extends BasePage {
       const accountItem = await this.firstAccountItem;
       return await accountItem.isDisplayed();
     } catch (error) {
-      console.debug(`Error checking for accounts: ${error.message}`);
+      console.info(`Error checking for accounts: ${error.message}`);
       return false;
     }
   }
@@ -284,11 +285,11 @@ class ProfilePage extends BasePage {
   async getAccountNameAtIndex(index) {
     const accountItem = this.getAccountItemByIndex(index);
     await accountItem.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
-    
+
     // Get the label/name attribute which contains "AccountName, ACC-XXXX-XXXX"
     // iOS uses 'label' attribute, Android uses 'content-desc' or we need to get child TextView
     const isIOS = driver.capabilities.platformName?.toLowerCase() === 'ios';
-    
+
     if (isIOS) {
       // iOS: Extract name from label attribute (format: "AccountName, ACC-XXXX-XXXX, ...")
       const label = await accountItem.getAttribute('label');
@@ -309,22 +310,18 @@ class ProfilePage extends BasePage {
 
   async getCurrentUserName() {
     const text = await this.getText(this.currentUserName);
-    // On iOS, label format is "Name, USR-XXXX-XXXX, " - extract the name part
-    if (text && text.includes('USR-')) {
-      const match = text.match(/^([^,]+),\s*USR-/);
-      return match ? match[1].trim() : text;
+    const userId = text ? text.match(REGEX.USER_ID)?.[0] : null;
+
+    if (text && userId) {
+      return text.split(`, ${userId}`)[0].trim();
     }
+
     return text;
   }
 
   async getCurrentUserId() {
     const text = await this.getText(this.currentUserId);
-    // On iOS, label format is "Name, USR-XXXX-XXXX, " - extract the USR-XXXX-XXXX part
-    if (text && text.includes('USR-')) {
-      const match = text.match(/USR-\d{4}-\d{4}/);
-      return match ? match[0] : text;
-    }
-    return text;
+    return text ? text.match(REGEX.USER_ID)?.[0] || text : text;
   }
 
   async scrollToAccount(index) {

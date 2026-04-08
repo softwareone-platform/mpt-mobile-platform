@@ -13,14 +13,23 @@ describe('User Details Page', () => {
   let apiAvailable = false;
   let testUserId = null;
   let apiUserData = null;
+  let usersMenuAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Users page via More menu (same as users.e2e.js)
     await usersPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
+
+    usersMenuAvailable = await morePage.usersMenuItem.isDisplayed().catch(() => false);
+    if (!usersMenuAvailable) {
+      console.info('⚠️ Users menu item not available for this user - skipping User Details tests');
+      return;
+    }
+
     await morePage.usersMenuItem.click();
     await usersPage.waitForScreenReady();
 
