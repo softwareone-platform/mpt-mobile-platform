@@ -149,3 +149,10 @@ export interface NavigationPermission {
 }
 
 export type NavigationMapper = Record<string, NavigationPermission>;
+
+export type NavigationItemBaseProps = {
+  isLast?: boolean;
+  isDisabled?: boolean;
+  onPress?: () => void;
+  testID?: string;
+};

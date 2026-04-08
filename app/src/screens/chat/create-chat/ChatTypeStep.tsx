@@ -1,3 +1,4 @@
+import { OutlinedIcons } from '@assets/icons';
 import { useTranslation } from 'react-i18next';
 
 import ContactsListBase from './ContactsListBase';
@@ -11,7 +12,7 @@ import { TestIDs } from '@/utils/testID';
 type ChatSelectionItem = {
   name: string;
   type: ChatType;
-  icon: string;
+  icon: keyof typeof OutlinedIcons;
 };
 
 type ChatTypeStepProps = {
@@ -54,6 +55,7 @@ const ChatTypeStep = ({ onSelectChatType, onSelectParticipant, isLoading }: Chat
           disabled={isLoading}
         />
       )}
+      showCancel={true}
     />
   );
 };

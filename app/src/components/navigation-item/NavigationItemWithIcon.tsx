@@ -1,17 +1,14 @@
 import { OutlinedIcons } from '@assets/icons';
-import { MaterialIcons } from '@expo/vector-icons';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
+import NavigationItemBase from '@/components/navigation-item/NavigationItemBase';
+import NavigationItemLabel from '@/components/navigation-item/NavigationItemLabel';
 import { navigationStyle } from '@/styles';
+import type { NavigationItemBaseProps } from '@/types/navigation';
 
-type NavigationItemWithIconProps = {
+type NavigationItemWithIconProps = NavigationItemBaseProps & {
   title: string;
-  icon: string;
-  isLast?: boolean;
-  isDisabled?: boolean;
-  onPress?: () => void;
-  testID?: string;
+  icon: keyof typeof OutlinedIcons;
 };
 
 const NavigationItemWithIcon = ({
@@ -22,15 +19,9 @@ const NavigationItemWithIcon = ({
   onPress,
   testID = '',
 }: NavigationItemWithIconProps) => (
-  <TouchableOpacity
-    testID={testID}
-    style={[styles.navigationItem, isLast && styles.lastItem]}
-    activeOpacity={0.7}
-    disabled={isDisabled}
-    onPress={onPress}
-  >
+  <NavigationItemBase isLast={isLast} isDisabled={isDisabled} onPress={onPress} testID={testID}>
     <OutlinedIcon
-      name={icon as keyof typeof OutlinedIcons}
+      name={icon}
       color={
         isDisabled
           ? navigationStyle.secondary.iconColorDisabled
@@ -38,27 +29,8 @@ const NavigationItemWithIcon = ({
       }
       size={24}
     />
-
-    <View style={styles.labelContainer}>
-      <Text style={[styles.label, isDisabled && styles.labelDisabled]}>{title}</Text>
-
-      {!isDisabled && (
-        <MaterialIcons
-          name="chevron-right"
-          size={22}
-          color={navigationStyle.secondary.chevronColor}
-        />
-      )}
-    </View>
-  </TouchableOpacity>
+    <NavigationItemLabel title={title} isDisabled={isDisabled} />
+  </NavigationItemBase>
 );
-
-const styles = StyleSheet.create({
-  navigationItem: navigationStyle.secondary.navigationItem,
-  label: navigationStyle.secondary.label,
-  labelDisabled: navigationStyle.secondary.labelDisabled,
-  labelContainer: navigationStyle.secondary.labelContainer,
-  lastItem: navigationStyle.secondary.lastItem,
-});
 
 export default NavigationItemWithIcon;

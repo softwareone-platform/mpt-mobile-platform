@@ -25,7 +25,7 @@ const CreateChatButton = ({ onPress }: CreateChatButtonProps) => {
 };
 
 const styles = StyleSheet.create({
-  topBarIconWrapper: navigationStyle.header.rightIconWrapper,
+  topBarIconWrapper: navigationStyle.header.leftIconWrapper,
 });
 
 export default CreateChatButton;

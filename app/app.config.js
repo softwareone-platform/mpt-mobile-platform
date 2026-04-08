@@ -31,6 +31,7 @@ export default {
       ],
       './plugins/withNetworkSecurityConfig',
       './plugins/withAppStoreIcon',
+      'expo-font',
     ],
     splash: {
       image: './assets/splash-icon.png',
@@ -40,7 +41,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: bundleId,
-      buildNumber: '24',
+      buildNumber: '25',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },

@@ -23,7 +23,7 @@ const textContainerCommon: ViewStyle = {
   paddingVertical: Spacing.spacing1,
   paddingHorizontal: Spacing.spacing2,
   borderRadius: BorderRadius.sm,
-  marginBottom: Spacing.spacing1,
+  marginBottom: Spacing.spacing2,
   gap: Spacing.spacingSmall4,
   maxWidth: '100%',
 };
@@ -69,6 +69,7 @@ export const chatMessageStyle = {
   },
   infoText: {
     color: Color.gray.gray4,
+    fontSize: Typography.fontSize.font1,
   },
   iconColor: Color.brand.type,
   own: {
@@ -140,8 +141,12 @@ export const chatMarkdownTagStyles: Record<string, MixedStyleDeclaration> = {
   em: { fontStyle: 'italic' },
   del: { textDecorationLine: 'line-through' },
   u: { textDecorationLine: 'underline' },
-  sub: { fontSize: Typography.fontSize.font1 },
-  sup: { fontSize: Typography.fontSize.font1 },
+  sub: {
+    fontSize: Typography.fontSizeSmall.font11,
+  },
+  sup: {
+    fontSize: Typography.fontSizeSmall.font11,
+  },
   h1: {
     fontSize: Typography.fontSize.font6,
     fontWeight: chatMarkdownStyle.headingBoldWeight,
@@ -213,6 +218,9 @@ export const createChatWizardStyle = {
   },
   headerSide: {
     minWidth: 60,
+  },
+  headerSideRight: {
+    alignItems: 'flex-end',
   },
   headerCenter: {
     flex: 1,

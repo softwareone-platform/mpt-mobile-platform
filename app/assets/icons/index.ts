@@ -13,6 +13,7 @@ import BalanceOutlined from './balance';
 import CategoryOutlined from './category';
 import ChatBubbleOutlined from './chat-bubble';
 import ChecklistRtlOutlined from './checklist-rtl';
+import CloseOutlined from './close';
 import ContactsOutlined from './contacts';
 import CreditCardOutlined from './credit-card';
 import DocumentScannerOutlined from './document-scanner';
@@ -68,6 +69,7 @@ export const OutlinedIcons = {
   category: CategoryOutlined,
   'chat-bubble': ChatBubbleOutlined,
   'checklist-rtl': ChecklistRtlOutlined,
+  close: CloseOutlined,
   contacts: ContactsOutlined,
   'credit-card': CreditCardOutlined,
   'document-scanner': DocumentScannerOutlined,
