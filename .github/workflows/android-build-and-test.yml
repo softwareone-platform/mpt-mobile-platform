@@ -106,6 +106,7 @@ jobs:
     if: ${{ inputs.artifact-url == '' && github.event.inputs.artifact-url == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment: ${{ inputs.environment || 'test' }}
     permissions:
       contents: write  # Required for creating releases
       actions: read    # Required for artifact operations
