@@ -14,11 +14,11 @@ class VerifyPage extends BasePage {
   }
 
   get verifyTitle() {
-    return $(selectors.byText('Verify your identity'));
+    return $(selectors.byResourceId('otp-title-text'));
   }
 
   get verificationCodeMessage() {
-    return $(selectors.byContainsText('We have sent a verification code to'));
+    return $(selectors.byResourceId('otp-message-text'));
   }
 
   // OTP input fields (6 digits)

@@ -533,14 +533,15 @@ runs:
         DEVICE_UDID: ${{ inputs.device_uuid }}
       run: |
         echo "Capturing simulator logs..."
-        xcrun simctl spawn "$DEVICE_UDID" log collect --output simulator.log || true
+        mkdir -p simulator-logs
+        xcrun simctl diagnose "$DEVICE_UDID" --output simulator-logs || true
         
     - name: Upload simulator logs
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: simulator-logs-${{ github.run_number }}
-        path: simulator.log
+        path: simulator-logs/
         retention-days: 7
         if-no-files-found: ignore
         
