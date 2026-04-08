@@ -133,9 +133,9 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
           echo "Reading Appium version from app/package.json"
-          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v).replace(/^[^0-9]*/,''));")
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v));")
           echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
-          echo "Detected Appium version: $APP_VER"
+          echo "Detected Appium version spec: $APP_VER"
 
       - name: Select Xcode version
         run: |
@@ -503,9 +503,9 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
           echo "Reading Appium version from app/package.json"
-          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v).replace(/^[^0-9]*/,''));")
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v));")
           echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
-          echo "Detected Appium version: $APP_VER"
+          echo "Detected Appium version spec: $APP_VER"
         
       # Install phase using composite action template
       - name: Install iOS App
