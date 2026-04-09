@@ -4,9 +4,16 @@ import { useTranslation } from 'react-i18next';
 
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import type { CommonBillingDetails } from '@/types/common';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
-const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) => {
+type Props = {
+  data: CommonBillingDetails;
+  accountType?: AccountType;
+};
+
+const CommonBillingDetailsSection = ({ data, accountType }: Props) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -44,12 +51,16 @@ const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) =
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.vendor?.id,
-            type: 'vendor',
-          });
-        }}
+        onPress={
+          canNavigateTo('vendorAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.vendor?.id,
+                  type: 'vendor',
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.product`)}
