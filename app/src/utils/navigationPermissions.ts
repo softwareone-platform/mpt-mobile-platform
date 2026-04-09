@@ -7,7 +7,7 @@ const navigationPermissions: Record<NavigationTarget, (accountType: AccountType)
   clientAccount: (type) => type !== 'Vendor',
   buyer: (type) => type !== 'Vendor',
   seller: (type) => type !== 'Vendor',
-  licensee: (type) => type === 'Client',
+  licensee: (type) => type !== 'Vendor',
 };
 
 export const canNavigateTo = (target: NavigationTarget, accountType?: AccountType): boolean => {
