@@ -233,60 +233,18 @@ runs:
           exit 1
         fi
         
-        # CI-specific: Reset simulator state for clean XCUITest connection
-        echo "🔄 Resetting simulator state for XCUITest..."
-        xcrun simctl shutdown "$DEVICE_UDID" || true
-        sleep 3
+        # Terminate any running instance of the app for a clean test start.
+        # NOTE: We deliberately do NOT reboot the simulator here. The ios-install
+        # action already booted it and verified readiness. Rebooting causes
+        # bootstatus to never report ready on macOS 26 / iOS 26.x, which leaves
+        # system services (Keychain, securityd) in an unreliable state. This broke
+        # session-persistence tests because expo-secure-store writes to Keychain
+        # silently failed after the reboot.
+        echo "🔄 Terminating any running app instance..."
+        xcrun simctl terminate "$DEVICE_UDID" "$APP_BUNDLE_ID" 2>/dev/null || true
+        sleep 2
         
-        echo "🚀 Booting simulator with fresh state..."
-        xcrun simctl boot "$DEVICE_UDID"
-        
-        # Wait for simulator to be fully ready - use multiple readiness indicators
-        echo "⏳ Waiting for simulator to be fully operational..."
-        WAIT_COUNT=0
-        MAX_WAIT=30
-        BOOT_READY=false
-        
-        while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-          # Check if simulator is booted (primary indicator)
-          SIMULATOR_STATUS=$(xcrun simctl list devices | grep "$DEVICE_UDID" | head -1 || echo "Not found")
-          if echo "$SIMULATOR_STATUS" | grep -q "(Booted)"; then
-            echo "✅ Simulator is booted"
-            
-            # Try boot status check with timeout - if it hangs, skip it
-            echo "🔍 Checking boot status readiness (with timeout)..."
-            if timeout 5 xcrun simctl bootstatus "$DEVICE_UDID" 2>/dev/null | grep -q "Boot status is ready" 2>/dev/null; then
-              echo "✅ Simulator boot status is ready"
-              BOOT_READY=true
-              break
-            elif [ $? -eq 124 ]; then
-              echo "⚠️ Boot status check timed out (5s), but simulator is booted - proceeding"
-              BOOT_READY=true
-              break
-            else
-              echo "📱 Simulator booted but boot status not ready yet, waiting..."
-            fi
-          else
-            echo "⏳ Simulator not yet booted, waiting... (${WAIT_COUNT}/${MAX_WAIT})"
-          fi
-          
-          sleep 2
-          WAIT_COUNT=$((WAIT_COUNT + 1))
-        done
-        
-        if [ "$BOOT_READY" = false ]; then
-          if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
-            echo "⚠️ WARNING: Simulator readiness check timed out, but proceeding anyway"
-          else
-            echo "⚠️ WARNING: Could not verify simulator readiness, but proceeding anyway"
-          fi
-        fi
-        
-        # Additional delay for UI services to stabilize
-        echo "⏳ Allowing UI services to stabilize..."
-        sleep 5
-        
-        # CI-specific: Ensure Simulator UI is visible for WebDriverAgent
+        # Ensure Simulator UI is visible for WebDriverAgent
         echo "📺 Ensuring Simulator UI is visible for WebDriverAgent..."
         open -a Simulator.app --args -CurrentDeviceUDID "$DEVICE_UDID" || true
         sleep 3
@@ -299,7 +257,7 @@ runs:
           echo "⚠️ WARNING: Simulator UI may not be visible"
         fi
         
-        # Verify app is still installed after reset
+        # Verify app is still installed
         if xcrun simctl listapps "$DEVICE_UDID" 2>/dev/null | grep -q "$APP_BUNDLE_ID"; then
           echo "✅ App is installed and ready"
         else
