@@ -3,16 +3,18 @@ import { View, Text, StyleSheet } from 'react-native';
 import { navigationStyle } from '@/styles';
 
 interface NavigationGroupCardProps {
-  title: string;
+  title?: string;
   children: React.ReactNode;
 }
 
 const NavigationGroupCard = ({ title, children }: NavigationGroupCardProps) => {
   return (
     <View style={styles.container}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardHeaderText}>{title}</Text>
-      </View>
+      {title && (
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardHeaderText}>{title}</Text>
+        </View>
+      )}
       {children}
     </View>
   );

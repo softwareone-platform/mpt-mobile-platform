@@ -36,6 +36,7 @@ export const navigationStyle = {
     navigationItem: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: Spacing.spacing2,
       ...separatorStyle.bottomBorder1,
     },
     label: {
@@ -49,9 +50,7 @@ export const navigationStyle = {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-
       flex: 1,
-      marginLeft: Spacing.spacing2,
       paddingVertical: Spacing.spacing2,
     },
     lastItem: {

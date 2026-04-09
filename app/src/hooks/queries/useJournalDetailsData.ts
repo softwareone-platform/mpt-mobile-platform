@@ -9,7 +9,7 @@ export const useJournalDetailsData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
 ) => {
-  const { getJournalDetails } = useBillingApi();
+  const { getJournalData } = useBillingApi();
 
   const query = useQuery<JournalDetails, Error>({
     queryKey: ['journalDetails', journalId, userId, currentAccountId],
@@ -17,7 +17,7 @@ export const useJournalDetailsData = (
       if (!journalId) {
         throw new Error('Journal ID is required');
       }
-      return getJournalDetails(journalId);
+      return getJournalData(journalId);
     },
     enabled: !!journalId && !!userId && !!currentAccountId,
   });
