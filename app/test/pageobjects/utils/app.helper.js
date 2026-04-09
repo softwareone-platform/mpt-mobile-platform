@@ -64,7 +64,7 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY, expectedState = '
         .isDisplayed()
         .catch(() => false);
       
-      if (homeVisible && (expectedState === 'either' || expectedState === 'home')) {
+      if (homeVisible) {
         const found = new Date();
         console.info(`✅ [${found.toISOString()}] App ready - home page detected after ${iteration} iterations (${found - waitStart}ms)`);
         return 'home';
@@ -74,7 +74,7 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY, expectedState = '
         .isDisplayed()
         .catch(() => false);
       
-      if (welcomeVisible && (expectedState === 'either' || expectedState === 'welcome')) {
+      if (welcomeVisible) {
         const found = new Date();
         console.info(`✅ [${found.toISOString()}] App ready - welcome page detected after ${iteration} iterations (${found - waitStart}ms)`);
         return 'welcome';
@@ -91,6 +91,13 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY, expectedState = '
   
   const timedOut = new Date();
   console.warn(`⚠️ [${timedOut.toISOString()}] App ready check timed out after ${timedOut - waitStart}ms, proceeding anyway`);
+  try {
+    const pageSource = await browser.getPageSource();
+    const truncated = pageSource.length > 2000 ? pageSource.substring(0, 2000) + '...(truncated)' : pageSource;
+    console.warn(`📄 Page source at timeout:\n${truncated}`);
+  } catch (e) {
+    console.warn(`⚠️ Could not capture page source: ${e.message}`);
+  }
   return 'unknown';
 }
 

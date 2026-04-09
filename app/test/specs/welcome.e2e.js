@@ -179,13 +179,26 @@ describe('Welcome page of application', () => {
     // Restart the app
     const beforeRestart = new Date();
     console.info(`🔄 [${beforeRestart.toISOString()}] Calling restartApp()...`);
-    await restartApp({
+    const detectedState = await restartApp({
       timeout: TIMEOUT.AUTH_FLOW_WAIT,
-      expectedState: 'home',
-      settleBeforeTerminateMs: PAUSE.OTP_POLL_INTERVAL,
+      expectedState: 'either',
+      settleBeforeTerminateMs: PAUSE.AUTH_FLOW_POLL,
     });
     const afterRestart = new Date();
-    console.info(`✅ [${afterRestart.toISOString()}] restartApp() completed in ${(afterRestart - beforeRestart) / 1000}s`);
+    console.info(`✅ [${afterRestart.toISOString()}] restartApp() completed in ${(afterRestart - beforeRestart) / 1000}s, detected state: ${detectedState}`);
+
+    // Fail fast with clear message if session was lost
+    if (detectedState === 'welcome') {
+      throw new Error(
+        'Session was not preserved after app restart: app landed on welcome/login screen instead of home. ' +
+        `Settle time before terminate was ${PAUSE.AUTH_FLOW_POLL}ms.`,
+      );
+    }
+    if (detectedState === 'unknown') {
+      throw new Error(
+        'App did not reach a known state after restart (neither home nor welcome detected within timeout).',
+      );
+    }
 
     // Verify user is still logged in by checking for home page elements
     const beforeCheck = new Date();
