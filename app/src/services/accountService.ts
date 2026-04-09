@@ -119,14 +119,13 @@ export function useAccountApi() {
 
   const getClients = useCallback(
     async (
-      userId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<ListItemFull>> => {
       const endpoint =
         `/v1/accounts/accounts` +
         `?select=-*,id,name,status,icon` +
-        '&and(ilike(name,%22*client*%22),eq(type,%22Client%22))' +
+        '&eq(type,%22Client%22)' +
         '&order=name' +
         `&offset=${offset}` +
         `&limit=${limit}`;
@@ -138,7 +137,6 @@ export function useAccountApi() {
 
   const getVendors = useCallback(
     async (
-      userId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<ListItemFull>> => {
