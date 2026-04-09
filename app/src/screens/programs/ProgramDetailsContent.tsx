@@ -18,26 +18,30 @@ const ProgramDetailsContent = ({ data }: { data: ProgramDetails }) => {
   const { userData } = useAccount();
   const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
+  const isVendor = accountType === 'Vendor';
+
   const eligibility = data.eligibility.partner
     ? t('details.eligibilityValue.partner')
     : t('details.eligibilityValue.client');
 
   return (
     <CardWithHeader title={t(`details.title`)}>
-      <DetailsListItem
-        label={t(`details.vendor`)}
-        data={data.vendor}
-        onPress={
-          canNavigateTo('vendorAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', {
-                  id: data.vendor?.id,
-                  type: 'vendor',
-                });
-              }
-            : undefined
-        }
-      />
+      {!isVendor && (
+        <DetailsListItem
+          label={t(`details.vendor`)}
+          data={data.vendor}
+          onPress={
+            canNavigateTo('vendorAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.vendor?.id,
+                    type: 'vendor',
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
       <ListItemWithLabelAndText title={t(`details.name`)} subtitle={data.name} />
 
       <ListItemWithLabelAndText title={t(`details.website`)} subtitle={data.website} />
