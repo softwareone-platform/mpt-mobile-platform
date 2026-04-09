@@ -22,30 +22,42 @@ const CommonBillingDetailsSection = ({ data, accountType }: Props) => {
       <DetailsListItem
         label={t(`details.client`)}
         data={data.client}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.client?.id,
-            type: 'client',
-          });
-        }}
+        onPress={
+          canNavigateTo('clientAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.client?.id,
+                  type: 'client',
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.buyer`)}
         data={data.buyer}
-        onPress={() => {
-          navigation.navigate('buyerDetails', {
-            id: data.buyer?.id,
-          });
-        }}
+        onPress={
+          canNavigateTo('buyer', accountType)
+            ? () => {
+                navigation.navigate('buyerDetails', {
+                  id: data.buyer?.id,
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.licensee`)}
         data={data.licensee}
-        onPress={() => {
-          navigation.navigate('licenseeDetails', {
-            id: data.licensee?.id,
-          });
-        }}
+        onPress={
+          canNavigateTo('licensee', accountType)
+            ? () => {
+                navigation.navigate('licenseeDetails', {
+                  id: data.licensee?.id,
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.vendor`)}
@@ -83,11 +95,15 @@ const CommonBillingDetailsSection = ({ data, accountType }: Props) => {
       <DetailsListItem
         label={t(`details.seller`)}
         data={data.seller}
-        onPress={() => {
-          navigation.navigate('sellerDetails', {
-            id: data.seller?.id,
-          });
-        }}
+        onPress={
+          canNavigateTo('seller', accountType)
+            ? () => {
+                navigation.navigate('sellerDetails', {
+                  id: data.seller?.id,
+                });
+              }
+            : undefined
+        }
       />
     </>
   );
