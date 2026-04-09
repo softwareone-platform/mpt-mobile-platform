@@ -1,7 +1,7 @@
 const { expect } = require('@wdio/globals');
 
 const homePage = require('../pageobjects/spotlights.page');
-const { restartApp } = require('../pageobjects/utils/app.helper');
+const { restartApp, waitForAppReady } = require('../pageobjects/utils/app.helper');
 const { AIRTABLE_EMAIL, ensureLoggedOut } = require('../pageobjects/utils/auth.helper');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const verifyPage = require('../pageobjects/verify.page');
