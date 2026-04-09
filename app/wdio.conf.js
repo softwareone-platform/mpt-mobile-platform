@@ -4,47 +4,12 @@ const { execFileSync } = require('child_process');
 const dotenv = require('dotenv');
 const semver = require('semver');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
+const { WDIO_DEFAULTS } = require('./test/config/wdio-defaults');
 
 // Load .env file if it exists (for local development and Windows batch execution)
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const SCREENSHOT_FOLDER = '../screenshots';
-
-const WDIO_DEFAULTS = {
-    FALLBACK_PORTAL_VERSION: '4.0.0',
-    APPIUM_HOST: 'localhost',
-    APPIUM_PORT: 4723,
-    PLATFORM_IOS: 'iOS',
-    PLATFORM_ANDROID: 'Android',
-    IOS_DEVICE_NAME: 'iPhone 16',
-    IOS_PLATFORM_VERSION: '26.0',
-    IOS_AUTOMATION_NAME: 'XCUITest',
-    IOS_BUNDLE_ID: 'com.softwareone.marketplaceMobile',
-    IOS_DERIVED_DATA_PATH: '/tmp/wda-derived-data',
-    ANDROID_DEVICE_NAME: 'Pixel 8',
-    ANDROID_PLATFORM_VERSION: '14',
-    ANDROID_AUTOMATION_NAME: 'UiAutomator2',
-    ANDROID_APP_PACKAGE: 'com.softwareone.marketplaceMobile',
-    ANDROID_APP_ACTIVITY: '.MainActivity',
-    APPIUM_NEW_COMMAND_TIMEOUT: 900,
-    APPIUM_WDA_TIMEOUT: 240000,
-    APPIUM_WDA_STARTUP_RETRIES: 4,
-    APPIUM_WDA_STARTUP_RETRY_INTERVAL: 30000,
-    WAITFOR_TIMEOUT: 30000,
-    CONNECTION_RETRY_TIMEOUT: 300000,
-    CONNECTION_RETRY_COUNT: 3,
-    REPORTER_SYNC_TIMEOUT: 10000,
-    REPORTER_SYNC_INTERVAL: 500,
-    MOCHA_TIMEOUT: 600000,
-    API_FETCH_TIMEOUT: 15000,
-    REPORT_PORTAL_CALL_TIMEOUT: 5000,
-    REPORT_PORTAL_PROJECT: 'default_personal',
-    REPORT_PORTAL_LAUNCH_NAME: 'Appium Tests Launch',
-    REPORT_PORTAL_LAUNCH_DESCRIPTION: 'Appium tests against ReactNative Marketplace Mobile App',
-    REPORT_PORTAL_MODE: 'DEFAULT',
-    REPORT_PORTAL_UUID_OUTPUT: 'stdout',
-    REPORT_PORTAL_ENDPOINT: 'http://localhost:8080',
-};
 
 // ============================================================================
 // Feature Flag Discovery
@@ -485,6 +450,10 @@ exports.config = {
             './test/specs/orders.e2e.js',
             './test/specs/order-details.e2e.js',
         ],
+        products: [
+            './test/specs/products.e2e.js',
+            './test/specs/product-details.e2e.js',
+        ],
         subscriptions: [
             './test/specs/subscriptions.e2e.js',
             './test/specs/subscription-details.e2e.js',
@@ -494,7 +463,7 @@ exports.config = {
             './test/specs/agreement-details.e2e.js',
         ],
         programs: [
-            './test/specs/programs.e2e.js',,
+            './test/specs/programs.e2e.js',
         ],
         enrollments: [
             './test/specs/enrollments.e2e.js',
@@ -523,6 +492,8 @@ exports.config = {
         ],
         // Feature flag validation tests
         featureFlags: ['./test/specs/feature-flags.e2e.js'],
+        // Experimental tests — known CI limitations, run separately and allowed to fail
+        experimental: ['./test/specs/session-restart.e2e.js'],
     },
     //
     // ============
