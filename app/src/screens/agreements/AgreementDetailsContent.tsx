@@ -22,6 +22,9 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const { userData } = useAccount();
   const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
+  const isVendor = accountType === 'Vendor';
+  const isClient = accountType === 'Client';
+  const isOperations = accountType === 'Operations';
   const hasBillingCurrencyData = data.price?.billingCurrency;
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
   const labelYear = `${data.price?.currency}/${t('details.year')}`;
@@ -44,20 +47,22 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
 
   return (
     <CardWithHeader title={t(`details.title`)}>
-      <DetailsListItem
-        label={t(`details.vendor`)}
-        data={data.vendor}
-        onPress={
-          canNavigateTo('vendorAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', {
-                  id: data.vendor?.id,
-                  type: 'vendor',
-                });
-              }
-            : undefined
-        }
-      />
+      {!isVendor && (
+        <DetailsListItem
+          label={t(`details.vendor`)}
+          data={data.vendor}
+          onPress={
+            canNavigateTo('vendorAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.vendor?.id,
+                    type: 'vendor',
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
       <DetailsListItem
         label={t(`details.product`)}
         data={data.product}
@@ -67,34 +72,57 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
           });
         }}
       />
+      {!isOperations && (
+        <DetailsListItem
+          label={t(`details.licensee`)}
+          data={data.licensee}
+          onPress={
+            canNavigateTo('licensee', accountType)
+              ? () => {
+                  navigation.navigate('licenseeDetails', { id: data.licensee?.id });
+                }
+              : undefined
+          }
+        />
+      )}
       <ListItemWithLabelAndText
         title={t(`details.resaleLicensee`)}
         subtitle={data.licensee?.eligibility?.partner === undefined ? '' : labelResaleLicensee}
       />
-      <DetailsListItem
-        label={t(`details.client`)}
-        data={data.client}
-        onPress={
-          canNavigateTo('clientAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', {
-                  id: data.client?.id,
-                  type: 'client',
-                });
-              }
-            : undefined
-        }
-      />
-      <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
-      <ListItemWithLabelAndText
-        title={t(`details.averageYield`)}
-        subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
-      />
-      <ListItemWithLabelAndText
-        title={t(`details.defaultYield`)}
-        subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
-      />
-      <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
+      {!isClient && (
+        <DetailsListItem
+          label={t(`details.client`)}
+          data={data.client}
+          onPress={
+            canNavigateTo('clientAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.client?.id,
+                    type: 'client',
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
+      {!isClient && (
+        <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
+      )}
+      {isOperations && (
+        <ListItemWithLabelAndText
+          title={t(`details.averageYield`)}
+          subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
+        />
+      )}
+      {isOperations && (
+        <ListItemWithLabelAndText
+          title={t(`details.defaultYield`)}
+          subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
+        />
+      )}
+      {!isVendor && (
+        <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
+      )}
 
       {/* TODO: remove conditional logic once billingCurrency is stable in API response */}
       <ListItemWithLabelAndText

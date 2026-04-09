@@ -1,12 +1,13 @@
 import type { AccountType } from '@/types/common';
 
-export type NavigationTarget = 'vendorAccount' | 'clientAccount' | 'buyer' | 'seller';
+export type NavigationTarget = 'vendorAccount' | 'clientAccount' | 'buyer' | 'seller' | 'licensee';
 
 const navigationPermissions: Record<NavigationTarget, (accountType: AccountType) => boolean> = {
   vendorAccount: (type) => type === 'Operations',
   clientAccount: (type) => type !== 'Vendor',
   buyer: (type) => type !== 'Vendor',
   seller: (type) => type !== 'Vendor',
+  licensee: (type) => type === 'Client',
 };
 
 export const canNavigateTo = (target: NavigationTarget, accountType?: AccountType): boolean => {
