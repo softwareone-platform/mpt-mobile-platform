@@ -6,6 +6,16 @@ jest.mock('@/services/loggerService', () => ({
   },
 }));
 
+import {
+  mockClientItem1,
+  mockClientItem2,
+  mockClientId1,
+  mockClientId2,
+  mockClientId3,
+  mockClientId4,
+  mockClientItem3,
+  mockClientItem4,
+} from '../__mocks__/services/client';
 import { mockNetworkError } from '../__mocks__/services/common';
 import {
   mockVendorId1,
@@ -17,17 +27,6 @@ import {
   mockVendorItem3,
   mockVendorItem4,
 } from '../__mocks__/services/vendor';
-
-import { 
-  mockClientItem1,
-  mockClientItem2,
-  mockClientId1,
-  mockClientId2,
-  mockClientId3,
-  mockClientId4,
-  mockClientItem3,
-  mockClientItem4
-} from '../__mocks__/services/client';
 
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAccountApi } from '@/services/accountService';
@@ -290,15 +289,15 @@ describe('useAccountApi - getClients', () => {
   it('getClients - calls with default offset and limit', async () => {
     const api = setup();
     const mockEmptyResponse: PaginatedResponse<ListItemFull> = {
-        $meta: {
-          pagination: {
-            offset: DEFAULT_OFFSET,
-            limit: DEFAULT_PAGE_SIZE,
-            total: 0,
-          },
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 0,
         },
-        data: [],
-      };
+      },
+      data: [],
+    };
     mockGet.mockResolvedValueOnce(mockEmptyResponse);
 
     let res;
@@ -306,8 +305,8 @@ describe('useAccountApi - getClients', () => {
       res = await api.getClients();
     });
 
-     const expectedUrl =
-          expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+    const expectedUrl =
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockEmptyResponse);
@@ -333,10 +332,7 @@ describe('useAccountApi - getClients', () => {
       res = await api.getClients(50, 25);
     });
 
-    const expectedUrl =
-      expectedUrlBase +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockClientsMultipleResponse);
@@ -345,20 +341,14 @@ describe('useAccountApi - getClients', () => {
   it('getClients - handles multiple calls correctly', async () => {
     const api = setup();
 
-     const mockResponse1: PaginatedResponse<ListItemFull> = {
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
-      data: [
-        mockClientItem1 as ListItemFull,
-        mockClientItem2 as ListItemFull,
-      ],
+      data: [mockClientItem1 as ListItemFull, mockClientItem2 as ListItemFull],
     };
 
     const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
-      data: [
-        mockClientItem3 as ListItemFull,
-        mockClientItem4 as ListItemFull,
-      ],
+      data: [mockClientItem3 as ListItemFull, mockClientItem4 as ListItemFull],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
@@ -436,12 +426,12 @@ describe('useAccountApi - getVendors', () => {
     jest.clearAllMocks();
   });
 
-  const expectedUrlBase = 
+  const expectedUrlBase =
     `/v1/accounts/accounts` +
     `?select=-*,id,name,status,icon` +
     '&eq(type,%22Vendor%22)' +
     `&order=name`;
-   
+
   it('calls getVendors with default offset and limit', async () => {
     const api = setup();
 
@@ -464,7 +454,7 @@ describe('useAccountApi - getVendors', () => {
     });
 
     const expectedUrl =
-          expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockEmptyResponse);
@@ -490,10 +480,7 @@ describe('useAccountApi - getVendors', () => {
       res = await api.getVendors(50, 25);
     });
 
-    const expectedUrl =
-      expectedUrlBase +
-      `&offset=50` +
-      `&limit=25`;
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
     expect(res).toEqual(mockVendorsMultipleResponse);
@@ -504,18 +491,12 @@ describe('useAccountApi - getVendors', () => {
 
     const mockResponse1: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
-      data: [
-        mockVendorItem1 as ListItemFull,
-        mockVendorItem2 as ListItemFull,
-      ],
+      data: [mockVendorItem1 as ListItemFull, mockVendorItem2 as ListItemFull],
     };
 
     const mockResponse2: PaginatedResponse<ListItemFull> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
-      data: [
-        mockVendorItem3 as ListItemFull,
-        mockVendorItem4 as ListItemFull,
-      ],
+      data: [mockVendorItem3 as ListItemFull, mockVendorItem4 as ListItemFull],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
@@ -532,7 +513,7 @@ describe('useAccountApi - getVendors', () => {
       res2 = await api.getVendors(2, 2);
     });
 
-    expect(res1!.data.map((item) => item.id)).toEqual([mockVendorId1,  mockVendorId2]);
+    expect(res1!.data.map((item) => item.id)).toEqual([mockVendorId1, mockVendorId2]);
     expect(res1!.data.map((item) => item.name)).toEqual([
       mockVendorItem1.name,
       mockVendorItem2.name,
@@ -540,7 +521,7 @@ describe('useAccountApi - getVendors', () => {
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
-    expect(res2!.data.map((item) => item.id)).toEqual([ mockVendorId3,  mockVendorId4]);
+    expect(res2!.data.map((item) => item.id)).toEqual([mockVendorId3, mockVendorId4]);
     expect(res2!.data.map((item) => item.name)).toEqual([
       mockVendorItem3.name,
       mockVendorItem4.name,

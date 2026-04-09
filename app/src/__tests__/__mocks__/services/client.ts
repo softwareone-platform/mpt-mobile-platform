@@ -18,16 +18,15 @@ export const mockClientItem2 = {
 };
 
 export const mockClientItem3 = {
-    id: mockClientId3,
-    name: 'Another Licensee Corp',
-    status: 'Active',
-    icon: '/path/to/premium-icon.png',
+  id: mockClientId3,
+  name: 'Another Licensee Corp',
+  status: 'Active',
+  icon: '/path/to/premium-icon.png',
 };
 
 export const mockClientItem4 = {
-    id: mockClientId4,
-    name: 'Fourth Client Inc',
-    status: 'Enabled',
-    icon: '/path/to/standard-icon.png',
+  id: mockClientId4,
+  name: 'Fourth Client Inc',
+  status: 'Enabled',
+  icon: '/path/to/standard-icon.png',
 };
-  
