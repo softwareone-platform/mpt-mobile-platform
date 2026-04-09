@@ -3,8 +3,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import DetailsListItem from '@/components/list-item/DetailsListItem';
-import type { CommonBillingDetails } from '@/types/common';
-import type { AccountType } from '@/types/common';
+import type { AccountType, CommonBillingDetails } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { canNavigateTo } from '@/utils/navigationPermissions';
 
