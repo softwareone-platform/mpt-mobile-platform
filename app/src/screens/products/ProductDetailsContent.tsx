@@ -7,20 +7,16 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
-import { useAccount } from '@/context/AccountContext';
+import { useAccountType } from '@/hooks/useAccountType';
 import { cardStyle } from '@/styles/components';
 import type { ProductData } from '@/types/admin';
 import type { RootStackParamList } from '@/types/navigation';
 
 const ProductDetailsContent = ({ data }: { data: ProductData }) => {
   const { t } = useTranslation();
-  const { userData } = useAccount();
+  const { isOperations, isVendor } = useAccountType();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-
-  const accountType = userData?.currentAccount?.type;
-  const isOperations = accountType === 'Operations';
-  const isVendor = accountType === 'Vendor';
 
   const handleVendorPress = () => {
     if (data.vendor?.id) {

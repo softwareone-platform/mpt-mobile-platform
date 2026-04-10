@@ -6,8 +6,7 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
-import { useAccount } from '@/context/AccountContext';
-import type { AccountType } from '@/types/common';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { RootStackParamList } from '@/types/navigation';
 import type { OrderDetails } from '@/types/order';
 import { formatPercentage } from '@/utils/formatting';
@@ -18,12 +17,7 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
-
-  const isVendor = accountType === 'Vendor';
-  const isClient = accountType === 'Client';
-  const isOperations = accountType === 'Operations';
+  const { accountType, isVendor, isClient, isOperations } = useAccountType();
 
   const labelUp = t('details.up');
   const labelDown = t('details.down');
