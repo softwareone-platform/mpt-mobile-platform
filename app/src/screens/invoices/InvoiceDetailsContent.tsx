@@ -30,7 +30,7 @@ const InvoiceDetailsContent = ({ data }: { data: InvoiceDetails }) => {
 
   return (
     <CardWithHeader title={t(`details.title`)}>
-      <CommonBillingDetailsSection data={data} />
+      <CommonBillingDetailsSection data={data} accountType={accountType} />
 
       <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
       <ListItemWithLabelAndText

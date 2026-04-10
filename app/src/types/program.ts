@@ -29,6 +29,7 @@ export interface EnrollmentDetails extends Enrollment {
   program?: DetailsListItemValue;
   certificate?: DetailsListItemValue;
   buyer?: DetailsListItemValue;
+  licensee?: DetailsListItemValue;
   assignee?: DetailsListItemValue;
   eligibility: {
     client: boolean;
@@ -41,6 +42,7 @@ export interface CertificateDetails extends DetailsListItemValue {
   program?: DetailsListItemValue;
   vendor?: DetailsListItemValue;
   buyer?: DetailsListItemValue;
+  licensee?: DetailsListItemValue;
   eligibility: {
     client: boolean;
     partner: boolean;

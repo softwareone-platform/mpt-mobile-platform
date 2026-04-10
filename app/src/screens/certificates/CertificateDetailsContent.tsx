@@ -21,11 +21,13 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
   const { userData } = useAccount();
   const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
+  const isVendor = accountType === 'Vendor';
+
   const eligibility = data.eligibility.partner
     ? t('details.eligibilityValue.partner')
     : t('details.eligibilityValue.client');
 
-  const expiration = formatDateForLocale(data?.expirationDate, language);
+  const expiration = formatDateForLocale(data?.expirationDate, language) || undefined;
 
   return (
     <CardWithHeader title={t(`details.title`)}>
@@ -38,34 +40,51 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
           });
         }}
       />
-      <DetailsListItem
-        label={t(`details.vendor`)}
-        data={data.vendor}
-        onPress={
-          canNavigateTo('vendorAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', {
-                  id: data.vendor?.id,
-                  type: 'vendor',
-                });
-              }
-            : undefined
-        }
-      />
-      {/* TODO: certificant can be also a Licensee */}
-      <DetailsListItem
-        label={t(`details.certificant`)}
-        data={data.buyer}
-        onPress={
-          canNavigateTo('buyer', accountType)
-            ? () => {
-                navigation.navigate('buyerDetails', {
-                  id: data.buyer?.id,
-                });
-              }
-            : undefined
-        }
-      />
+      {!isVendor && (
+        <DetailsListItem
+          label={t(`details.vendor`)}
+          data={data.vendor}
+          onPress={
+            canNavigateTo('vendorAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.vendor?.id,
+                    type: 'vendor',
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
+      {data.applicableTo === 'Licensee' ? (
+        <DetailsListItem
+          label={t(`details.certificant`)}
+          data={data.licensee}
+          onPress={
+            canNavigateTo('licensee', accountType)
+              ? () => {
+                  navigation.navigate('licenseeDetails', {
+                    id: data.licensee?.id,
+                  });
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <DetailsListItem
+          label={t(`details.certificant`)}
+          data={data.buyer}
+          onPress={
+            canNavigateTo('buyer', accountType)
+              ? () => {
+                  navigation.navigate('buyerDetails', {
+                    id: data.buyer?.id,
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
       <ListItemWithLabelAndText title={t('details.eligibility')} subtitle={eligibility} />
       <ListItemWithLabelAndText
         title={t('details.applicableTo')}

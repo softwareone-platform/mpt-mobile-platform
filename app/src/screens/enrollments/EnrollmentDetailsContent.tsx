@@ -5,13 +5,18 @@ import { useTranslation } from 'react-i18next';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import { useAccount } from '@/context/AccountContext';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { EnrollmentDetails } from '@/types/program';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
 const EnrollmentDetailsContent = ({ data }: { data: EnrollmentDetails }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   const eligibility = data.eligibility.partner
     ? t('details.eligibilityValue.partner')
@@ -37,15 +42,31 @@ const EnrollmentDetailsContent = ({ data }: { data: EnrollmentDetails }) => {
           });
         }}
       />
-      <DetailsListItem
-        label={t(`details.certificant`)}
-        data={data.buyer}
-        onPress={() => {
-          navigation.navigate('buyerDetails', {
-            id: data.buyer?.id,
-          });
-        }}
-      />
+      {data.applicableTo === 'Licensee' ? (
+        <DetailsListItem
+          label={t(`details.certificant`)}
+          data={data.licensee}
+          onPress={
+            canNavigateTo('licensee', accountType)
+              ? () => {
+                  navigation.navigate('licenseeDetails', {
+                    id: data.licensee?.id,
+                  });
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <DetailsListItem
+          label={t(`details.certificant`)}
+          data={data.buyer}
+          onPress={() => {
+            navigation.navigate('buyerDetails', {
+              id: data.buyer?.id,
+            });
+          }}
+        />
+      )}
       <ListItemWithLabelAndText title={t('details.eligibility')} subtitle={eligibility} />
       <ListItemWithLabelAndText
         title={t('details.applicableTo')}

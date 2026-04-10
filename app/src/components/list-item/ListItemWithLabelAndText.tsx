@@ -17,8 +17,8 @@ const ListItemWithLabelAndText = ({ title, subtitle, isLast, testID }: Props) =>
         <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
           {title}
         </Text>
-        <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
-          {subtitle !== undefined && subtitle !== null ? String(subtitle) : EMPTY_VALUE}
+        <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail" selectable>
+          {subtitle !== undefined && subtitle !== null ? subtitle : EMPTY_VALUE}
         </Text>
       </View>
     </View>

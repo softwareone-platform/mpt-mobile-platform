@@ -5,6 +5,9 @@ import {
   mockJournalId2,
   mockJournalResponse1,
   mockJournalResponse2,
+  mockJournalData,
+  expectedUrl1,
+  expectedUrl2,
 } from '../__mocks__/services/journal';
 
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
@@ -32,7 +35,7 @@ describe('useBillingApi - Journals', () => {
     jest.clearAllMocks();
   });
 
-  it('calls getJournals with default offset and limit', async () => {
+  it('getJournals - calls with default offset and limit', async () => {
     const api = setup();
     const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
@@ -59,7 +62,7 @@ describe('useBillingApi - Journals', () => {
     expect(res).toEqual(mockResponse);
   });
 
-  it('calls getJournals with custom offset and limit', async () => {
+  it('getJournals - calls with custom offset and limit', async () => {
     const api = setup();
     const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
@@ -85,7 +88,7 @@ describe('useBillingApi - Journals', () => {
     expect(res).toEqual(mockResponse);
   });
 
-  it('handles multiple calls correctly', async () => {
+  it('getJournals - handles multiple calls correctly', async () => {
     const api = setup();
 
     const mockResponse1: PaginatedResponse<ListItemNoImage> = {
@@ -125,7 +128,7 @@ describe('useBillingApi - Journals', () => {
     expect(res2!.data.map((item) => item.status)).toEqual(['Validating', 'Completed']);
   });
 
-  it('returns journals with correct structure for list view', async () => {
+  it('getJournals - returns journals with correct structure for list view', async () => {
     const api = setup();
     const mockResponse: PaginatedResponse<ListItemNoImage> = {
       $meta: {
@@ -153,12 +156,60 @@ describe('useBillingApi - Journals', () => {
     });
   });
 
-  it('handles API errors correctly', async () => {
+  it('getJournals - handles API errors correctly', async () => {
     const api = setup();
     const mockError = new Error('Network error');
 
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getJournals()).rejects.toThrow('Network error');
+  });
+
+  it('getJournalData - calls with correct endpoint and returns data required for details view', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockJournalData);
+
+    await act(async () => {
+      res = await api.getJournalData(mockJournalId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl1);
+    expect(res).toEqual(mockJournalData);
+  });
+
+  it('getJournalData - handles API errors correctly', async () => {
+    const api = setup();
+    const mockError = new Error('Network error');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getJournalData(mockJournalId1)).rejects.toThrow('Network error');
+  });
+
+  it('getJournalData - handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockJournalResponse1);
+    mockGet.mockResolvedValueOnce(mockJournalResponse2);
+
+    await act(async () => {
+      res1 = await api.getJournalData(mockJournalId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getJournalData(mockJournalId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedUrl1);
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedUrl2);
+
+    expect(res1).toEqual(mockJournalResponse1);
+    expect(res2).toEqual(mockJournalResponse2);
   });
 });
