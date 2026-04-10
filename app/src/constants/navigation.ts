@@ -31,6 +31,7 @@ import {
   CertificateDetailsScreen,
   ChatScreen,
   ChatConversationScreen,
+  CertificatesScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -151,6 +152,20 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
     title: 'program',
     items: [
       {
+        name: 'certificates',
+        icon: 'workspace-premium',
+        component: CertificatesScreen,
+        modules: ['catalog-management'],
+        roles: ['Client'],
+      },
+      {
+        name: 'certificates',
+        icon: 'workspace-premium',
+        component: CertificatesScreen,
+        modules: ['new-marketplace'],
+        roles: ['Vendor', 'Operations'],
+      },
+      {
         name: 'enrollments',
         icon: 'badge',
         component: EnrollmentsScreen,
@@ -201,6 +216,7 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'allUsers', component: UsersScreen },
   { name: 'programs', component: ProgramsScreen },
   { name: 'enrollments', component: EnrollmentsScreen },
+  { name: 'certificates', component: CertificatesScreen },
   { name: 'licensees', component: LicenseesScreen },
   { name: 'buyers', component: BuyersScreen },
   { name: 'allBuyers', component: BuyersScreen },
