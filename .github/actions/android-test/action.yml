@@ -159,17 +159,18 @@ runs:
         echo "Appium version (local):"
         ./app/node_modules/.bin/appium --version
 
-    - name: Verify local Appium version matches requested
+    - name: Verify local Appium version satisfies requested range
       shell: bash
       run: |
         REQUESTED="${{ inputs.appium_version }}"
-        REQUESTED_CLEAN=$(echo "$REQUESTED" | sed -E 's/^[^0-9]*//')
         INSTALLED=$(./app/node_modules/.bin/appium --version 2>/dev/null | head -1 | tr -d '\r')
-        echo "Requested: $REQUESTED_CLEAN, Local installed: $INSTALLED"
-        if [ -n "$REQUESTED_CLEAN" ] && ! echo "$INSTALLED" | grep -q "^${REQUESTED_CLEAN}"; then
-          echo "❌ Local Appium ($INSTALLED) does not match requested ($REQUESTED_CLEAN)"
-          echo "Hint: ensure app/package.json devDependency for appium matches expected version and run npm ci"
-          exit 1
+        echo "Requested range: $REQUESTED, Local installed: $INSTALLED"
+        if [ -n "$REQUESTED" ]; then
+          if ! node -e "const semver=require('./app/node_modules/semver'); const requested=process.argv[1]; const installed=process.argv[2]; if (!semver.valid(installed)) { console.error('Invalid installed Appium version: ' + installed); process.exit(2); } if (!semver.validRange(requested)) { console.error('Invalid requested Appium range: ' + requested); process.exit(3); } process.exit(semver.satisfies(installed, requested, { includePrerelease: true }) ? 0 : 1);" "$REQUESTED" "$INSTALLED"; then
+            echo "❌ Local Appium ($INSTALLED) does not satisfy requested range ($REQUESTED)"
+            echo "Hint: ensure app/package.json appium version and lockfile are in sync, then run npm ci"
+            exit 1
+          fi
         fi
         echo "✅ Local Appium version verification passed"
 

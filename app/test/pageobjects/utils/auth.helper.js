@@ -100,8 +100,36 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
   const afterOTPRequest = new Date();
   console.info(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`);
 
-  // Wait for navigation to verify screen
-  await verifyPage.verifyTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
+  // Wait for either OTP verification screen or direct authenticated navigation.
+  await browser.waitUntil(
+    async () => {
+      const onVerifyTitle = await verifyPage.verifyTitle.isDisplayed().catch(() => false);
+      const onVerifyMessage = await verifyPage.verificationCodeMessage
+        .isDisplayed()
+        .catch(() => false);
+      const onHome = await homePage.filterAll.isDisplayed().catch(() => false);
+      const onHomeHeader = await homePage.spotlightHeader.isDisplayed().catch(() => false);
+      const onHomeEmpty = await homePage.emptyState.isDisplayed().catch(() => false);
+
+      return onVerifyTitle || onVerifyMessage || onHome || onHomeHeader || onHomeEmpty;
+    },
+    {
+      timeout: TIMEOUT.AUTH_FLOW_WAIT,
+      interval: PAUSE.POLL_INTERVAL,
+      timeoutMsg: 'Neither verification screen nor home page became visible after continue',
+    },
+  );
+
+  const landedOnHome =
+    (await homePage.filterAll.isDisplayed().catch(() => false)) ||
+    (await homePage.spotlightHeader.isDisplayed().catch(() => false)) ||
+    (await homePage.emptyState.isDisplayed().catch(() => false));
+
+  if (landedOnHome) {
+    console.info('✓ Login completed successfully (no OTP challenge required)');
+    return;
+  }
+
   console.info('✓ Navigated to verification screen');
 
   // Wait for OTP to arrive via Airtable
