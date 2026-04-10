@@ -189,14 +189,17 @@ describe('useCertificateApi - getCertificates', () => {
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
-    expect(res2!.data.map((item) => item.id)).toEqual(['CER-1234-7564-3475', 'CER-1234-7564-3474']);
+    expect(res2!.data.map((item) => item.id)).toEqual([
+      mockCertificateListItem3.id,
+      mockCertificateListItem4.id,
+    ]);
     expect(res2!.data.map((item) => item.name)).toEqual([
       mockCertificateListItem3.name,
       mockCertificateListItem4.name,
     ]);
     expect(res2!.data.map((item) => item.status)).toEqual([
       mockCertificateListItem3.status,
-      mockCertificateListItem3.status,
+      mockCertificateListItem4.status,
     ]);
   });
 
@@ -223,9 +226,9 @@ describe('useCertificateApi - getCertificates', () => {
 
     expect(res).toEqual(mockResponse);
     expect(res!.data[0]).toMatchObject({
-      id: 'CER-1234-7564-3481',
-      name: 'Test Certificate',
-      status: 'Active',
+      id: mockCertificateListItem1.id,
+      name: mockCertificateListItem1.name,
+      status: mockCertificateListItem1.status,
     });
   });
 
