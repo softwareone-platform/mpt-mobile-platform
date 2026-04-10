@@ -3,10 +3,16 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import DetailsListItem from '@/components/list-item/DetailsListItem';
-import type { CommonBillingDetails } from '@/types/common';
+import type { AccountType, CommonBillingDetails } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
+import { canNavigateTo } from '@/utils/navigationPermissions';
 
-const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) => {
+type Props = {
+  data: CommonBillingDetails;
+  accountType?: AccountType;
+};
+
+const CommonBillingDetailsSection = ({ data, accountType }: Props) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -16,40 +22,56 @@ const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) =
       <DetailsListItem
         label={t(`details.client`)}
         data={data.client}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.client?.id,
-            type: 'client',
-          });
-        }}
+        onPress={
+          canNavigateTo('clientAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.client?.id,
+                  type: 'client',
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.buyer`)}
         data={data.buyer}
-        onPress={() => {
-          navigation.navigate('buyerDetails', {
-            id: data.buyer?.id,
-          });
-        }}
+        onPress={
+          canNavigateTo('buyer', accountType)
+            ? () => {
+                navigation.navigate('buyerDetails', {
+                  id: data.buyer?.id,
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.licensee`)}
         data={data.licensee}
-        onPress={() => {
-          navigation.navigate('licenseeDetails', {
-            id: data.licensee?.id,
-          });
-        }}
+        onPress={
+          canNavigateTo('licensee', accountType)
+            ? () => {
+                navigation.navigate('licenseeDetails', {
+                  id: data.licensee?.id,
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.vendor`)}
         data={data.vendor}
-        onPress={() => {
-          navigation.navigate('accountDetails', {
-            id: data.vendor?.id,
-            type: 'vendor',
-          });
-        }}
+        onPress={
+          canNavigateTo('vendorAccount', accountType)
+            ? () => {
+                navigation.navigate('accountDetails', {
+                  id: data.vendor?.id,
+                  type: 'vendor',
+                });
+              }
+            : undefined
+        }
       />
       <DetailsListItem
         label={t(`details.product`)}
@@ -73,11 +95,15 @@ const CommonBillingDetailsSection = ({ data }: { data: CommonBillingDetails }) =
       <DetailsListItem
         label={t(`details.seller`)}
         data={data.seller}
-        onPress={() => {
-          navigation.navigate('sellerDetails', {
-            id: data.seller?.id,
-          });
-        }}
+        onPress={
+          canNavigateTo('seller', accountType)
+            ? () => {
+                navigation.navigate('sellerDetails', {
+                  id: data.seller?.id,
+                });
+              }
+            : undefined
+        }
       />
     </>
   );

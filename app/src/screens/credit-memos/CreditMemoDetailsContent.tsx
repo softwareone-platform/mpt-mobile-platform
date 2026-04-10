@@ -5,14 +5,18 @@ import CommonBillingDetailsSection from '../billing/CommonBillingDetailsSection'
 import CardWithHeader from '@/components/card/CardWithHeader';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
+import { useAccount } from '@/context/AccountContext';
 import type { CreditMemoDetails } from '@/types/billing';
+import type { AccountType } from '@/types/common';
 
 const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
   const { t } = useTranslation();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
   return (
     <CardWithHeader title={t(`details.title`)}>
-      <CommonBillingDetailsSection data={data} />
+      <CommonBillingDetailsSection data={data} accountType={accountType} />
 
       <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
       <ListItemWithLabelAndText title={t(`details.documentId`)} subtitle={data.documentNo} />

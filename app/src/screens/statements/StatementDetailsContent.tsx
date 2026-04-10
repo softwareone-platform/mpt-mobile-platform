@@ -24,6 +24,8 @@ const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
   const { userData } = useAccount();
   const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
+  const isClient = accountType === 'Client';
+
   const totalPP = formatNumber(data.price.totalPP, 2, language) || EMPTY_VALUE;
   const totalSP = formatNumber(data.price.totalSP, 2, language) || EMPTY_VALUE;
   const formattedMarkup = `${formatPercentage(data.price.markup, 2) || EMPTY_VALUE} ${t('details.up')}`;
@@ -32,31 +34,39 @@ const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
   return (
     <>
       <CardWithHeader title={t(`details.title`)}>
-        <CommonBillingDetailsSection data={data} />
+        <CommonBillingDetailsSection data={data} accountType={accountType} />
 
-        <DetailsListItem
-          label={t(`details.owner`)}
-          data={data.ledger?.owner}
-          onPress={
-            canNavigateTo('seller', accountType)
-              ? () => {
-                  navigation.navigate('sellerDetails', {
-                    id: data.ledger?.owner?.id,
-                  });
-                }
-              : undefined
-          }
-        />
-        <ListItemWithLabelAndText title={t(`details.source`)} subtitle={data.ledger?.id} />
+        {!isClient && (
+          <DetailsListItem
+            label={t(`details.owner`)}
+            data={data.ledger?.owner}
+            onPress={
+              canNavigateTo('seller', accountType)
+                ? () => {
+                    navigation.navigate('sellerDetails', {
+                      id: data.ledger?.owner?.id,
+                    });
+                  }
+                : undefined
+            }
+          />
+        )}
+        {!isClient && (
+          <ListItemWithLabelAndText title={t(`details.source`)} subtitle={data.ledger?.id} />
+        )}
         <ListItemWithLabelAndText title={t(`details.statementType`)} subtitle={data.type} />
-        <ListItemWithLabelAndText
-          title={t(`details.pp`)}
-          subtitle={`${data.price.currency.purchase} ${totalPP}`}
-        />
-        <ListItemWithLabelAndText
-          title={t(`details.yield`)}
-          subtitle={`${formattedMarkup}    ${formattedMargin}`}
-        />
+        {!isClient && (
+          <ListItemWithLabelAndText
+            title={t(`details.pp`)}
+            subtitle={`${data.price.currency.purchase} ${totalPP}`}
+          />
+        )}
+        {!isClient && (
+          <ListItemWithLabelAndText
+            title={t(`details.yield`)}
+            subtitle={`${formattedMarkup}    ${formattedMargin}`}
+          />
+        )}
         <ListItemWithLabelAndText
           title={t(`details.sp`)}
           subtitle={`${data.price.currency.sale} ${totalSP}`}

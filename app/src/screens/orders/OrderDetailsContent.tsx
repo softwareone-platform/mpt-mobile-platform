@@ -21,6 +21,10 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const { userData } = useAccount();
   const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
+  const isVendor = accountType === 'Vendor';
+  const isClient = accountType === 'Client';
+  const isOperations = accountType === 'Operations';
+
   const labelUp = t('details.up');
   const labelDown = t('details.down');
   const labelResaleLicensee = data.licensee?.eligibility?.partner
@@ -55,49 +59,69 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
           });
         }}
       />
-      <DetailsListItem
-        label={t(`details.vendor`)}
-        data={data.vendor}
-        onPress={
-          canNavigateTo('vendorAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', {
-                  id: data.vendor?.id,
-                  type: 'vendor',
-                });
-              }
-            : undefined
-        }
-      />
-      <DetailsListItem
-        label={t(`details.client`)}
-        data={data.client}
-        onPress={
-          canNavigateTo('clientAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', {
-                  id: data.client?.id,
-                  type: 'client',
-                });
-              }
-            : undefined
-        }
-      />
+      {!isVendor && (
+        <DetailsListItem
+          label={t(`details.vendor`)}
+          data={data.vendor}
+          onPress={
+            canNavigateTo('vendorAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.vendor?.id,
+                    type: 'vendor',
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
+      {!isClient && (
+        <DetailsListItem
+          label={t(`details.client`)}
+          data={data.client}
+          onPress={
+            canNavigateTo('clientAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.client?.id,
+                    type: 'client',
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
       <ListItemWithLabelAndText
-        title={t(`details.resaleLicensee`)}
+        title={t(`details.resale`)}
         subtitle={data.licensee?.eligibility?.partner === undefined ? '' : labelResaleLicensee}
       />
-      <ListItemWithLabelAndText
-        title={t(`details.averageYield`)}
-        subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
-      />
-      <ListItemWithLabelAndText
-        title={t(`details.defaultYield`)}
-        subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
-      />
+      {isOperations && (
+        <ListItemWithLabelAndText
+          title={t(`details.averageYield`)}
+          subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
+        />
+      )}
+      {isOperations && (
+        <ListItemWithLabelAndText
+          title={t(`details.defaultYield`)}
+          subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
+        />
+      )}
 
       <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
-      <DetailsListItem label={t(`details.assignee`)} data={data.assignee} isLast={true} />
+      <DetailsListItem
+        label={t(`details.assignee`)}
+        data={data.assignee}
+        isLast={true}
+        // TODO: navigate to token details when token screen is available
+        onPress={
+          data.assignee?.id?.startsWith('TKN')
+            ? undefined
+            : () => {
+                navigation.navigate('userDetails', { id: data.assignee?.id });
+              }
+        }
+      />
     </CardWithHeader>
   );
 };
