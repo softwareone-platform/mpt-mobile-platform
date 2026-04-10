@@ -1,4 +1,4 @@
-import type { Address } from './common';
+import type { AccountType, Address } from './common';
 import type { AppScreensParamList, MainTabRouteName, SecondaryTabRouteName } from './navigation';
 
 export enum HttpMethod {
@@ -60,7 +60,7 @@ export interface UserData {
   currentAccount?: {
     id?: string;
     name?: string;
-    type?: string;
+    type?: AccountType;
     icon?: string;
   };
   data?: { [key: string]: unknown }[];

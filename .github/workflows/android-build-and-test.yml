@@ -106,6 +106,7 @@ jobs:
     if: ${{ inputs.artifact-url == '' && github.event.inputs.artifact-url == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment: ${{ inputs.environment || 'test' }}
     permissions:
       contents: write  # Required for creating releases
       actions: read    # Required for artifact operations
@@ -131,9 +132,9 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
           echo "Reading Appium version from app/package.json"
-          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v).replace(/^[^0-9]*/,''));")
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v));")
           echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
-          echo "Detected Appium version: $APP_VER"
+          echo "Detected Appium version spec: $APP_VER"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -180,7 +181,7 @@ jobs:
           cat > .env <<EOF
           # Auth0 Configuration (Test Environment)
           AUTH0_DOMAIN=login-test.pyracloud.com
-          AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID_TEST }}
+          AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
           AUTH0_AUDIENCE=https://api-test.pyracloud.com/
           AUTH0_SCOPE=openid profile email offline_access
           AUTH0_API_URL=https://api.s1.show/public/
@@ -235,7 +236,7 @@ jobs:
           if [ -n "$MISSING_VARS" ]; then
             echo ""
             echo "❌ ERROR: Missing required environment variables:$MISSING_VARS"
-            echo "Please ensure the AUTH0_CLIENT_ID_TEST secret is configured in GitHub repository settings."
+            echo "Please ensure the AUTH0_CLIENT_ID secret is configured in GitHub repository settings."
             exit 1
           fi
           
@@ -504,9 +505,9 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
           echo "Reading Appium version from app/package.json"
-          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v).replace(/^[^0-9]*/,''));")
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v));")
           echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
-          echo "Detected Appium version: $APP_VER"
+          echo "Detected Appium version spec: $APP_VER"
 
       # Install phase using composite action
       - name: Install Android App
