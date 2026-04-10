@@ -101,17 +101,10 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
         title={t(`details.terms`)}
         subtitle={t(`details.period.${data.terms.period}`)}
       />
-      {data.autoRenew ? (
-        <ListItemWithLabelAndText
-          title={t(`details.renewalDate`)}
-          subtitle={formattedCommitmentDate}
-        />
-      ) : (
-        <ListItemWithLabelAndText
-          title={t(`details.expiration`)}
-          subtitle={formattedCommitmentDate}
-        />
-      )}
+      <ListItemWithLabelAndText
+        title={t(data.autoRenew ? `details.renewalDate` : `details.expiration`)}
+        subtitle={formattedCommitmentDate}
+      />
       <ListItemWithLabelAndText title={t(`details.autoRenewal`)} subtitle={autoRenewLabel} />
       <ListItemWithLabelAndText
         title={t(`details.billingModel`)}
