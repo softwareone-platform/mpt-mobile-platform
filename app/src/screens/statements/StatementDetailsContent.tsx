@@ -8,9 +8,8 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
-import { useAccount } from '@/context/AccountContext';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { StatementDetails } from '@/types/billing';
-import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage, formatDateForLocale, getTime } from '@/utils/formatting';
 import { canNavigateTo } from '@/utils/navigationPermissions';
@@ -21,10 +20,7 @@ const StatementDetailsContent = ({ data }: { data: StatementDetails }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
-
-  const isClient = accountType === 'Client';
+  const { accountType, isClient } = useAccountType();
 
   const totalPP = formatNumber(data.price.totalPP, 2, language) || EMPTY_VALUE;
   const totalSP = formatNumber(data.price.totalSP, 2, language) || EMPTY_VALUE;

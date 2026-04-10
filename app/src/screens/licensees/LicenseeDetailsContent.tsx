@@ -6,9 +6,8 @@ import AddressCard from '@/components/address/AddressCard';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
-import { useAccount } from '@/context/AccountContext';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { LicenseeData } from '@/types/admin';
-import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { canNavigateTo } from '@/utils/navigationPermissions';
 
@@ -16,8 +15,7 @@ const LicenseeDetailsContent = ({ data }: { data: LicenseeData }) => {
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
+  const { accountType } = useAccountType();
 
   const labelResaleLicensee = data.eligibility?.partner ? t(`details.yes`) : t(`details.no`);
 

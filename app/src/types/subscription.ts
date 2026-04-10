@@ -33,7 +33,9 @@ export interface SubscriptionData {
   agreement?: DetailsListItemValue & {
     client?: DetailsListItemValue;
   };
+  licensee?: DetailsListItemValue;
   commitmentDate: string;
+  autoRenew?: boolean;
   terms: {
     model: Model;
     period: Period;
