@@ -33,6 +33,8 @@ export type SecondaryTabsParamList = {
   licensees: ScreenParams;
   buyers: ScreenParams;
   allBuyers: ScreenParams;
+  clients: ScreenParams;
+  vendors: ScreenParams;
   products: ScreenParams;
   orders: ScreenParams;
 };

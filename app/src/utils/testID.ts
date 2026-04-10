@@ -236,6 +236,16 @@ export const TestIDs = {
   BUYER_DETAILS_HEADER_TITLE: 'buyer-details-header-title',
   BUYER_DETAILS_HEADER_STATUS: 'buyer-details-header-status',
 
+  // Clients Screen
+  CLIENTS_LOADING_INDICATOR: 'clients-loading-indicator',
+  CLIENTS_ERROR_STATE: 'clients-error-state',
+  CLIENTS_EMPTY_STATE: 'clients-empty-state',
+
+  // Vendors Screen
+  VENDORS_LOADING_INDICATOR: 'vendors-loading-indicator',
+  VENDORS_ERROR_STATE: 'vendors-error-state',
+  VENDORS_EMPTY_STATE: 'vendors-empty-state',
+
   // Account Details Screen
   ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
   ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',
