@@ -1,6 +1,7 @@
 const homePage = require('../spotlights.page');
 const verifyPage = require('../verify.page');
 const welcomePage = require('../welcome.page');
+const footerPage = require('../base/footer.page');
 const headingPage = require('../base/heading.page');
 const profilePage = require('../profile.page');
 const userSettingsPage = require('../user-settings.page');
@@ -39,6 +40,26 @@ async function isLoggedIn() {
     const isProfileVisible = await profilePage.profileHeaderTitle.isDisplayed().catch(() => false);
     if (isProfileVisible) {
       console.info('✓ User is already logged in (profile page detected)');
+      return true;
+    }
+
+    // Check for authenticated shell markers that are visible across many pages
+    const hasAnyFooterTab =
+      (await footerPage.spotlightsTab.isDisplayed().catch(() => false)) ||
+      (await footerPage.chatTab.isDisplayed().catch(() => false)) ||
+      (await footerPage.subscriptionsTab.isDisplayed().catch(() => false)) ||
+      (await footerPage.moreTab.isDisplayed().catch(() => false));
+
+    if (hasAnyFooterTab) {
+      console.info('✓ User is already logged in (footer navigation detected)');
+      return true;
+    }
+
+    const isAccountButtonVisible = await headingPage.navAccountButton
+      .isDisplayed()
+      .catch(() => false);
+    if (isAccountButtonVisible) {
+      console.info('✓ User is already logged in (header account button detected)');
       return true;
     }
 

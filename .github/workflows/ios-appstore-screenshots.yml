@@ -1,0 +1,147 @@
+name: iOS App Store Screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact-url:
+        description: 'Pre-built iOS app bundle URL (required)'
+        required: true
+        type: string
+      device-name:
+        description: 'iOS simulator device name'
+        required: false
+        type: string
+        default: 'iPhone 16e'
+      platform-version:
+        description: 'iOS simulator platform version'
+        required: false
+        type: string
+        default: '26.0'
+
+env:
+  DEFAULT_APPIUM_VERSION: '3.1.1'
+
+jobs:
+  capture-screenshots:
+    name: Capture App Store Screenshots
+    runs-on: macos-26
+    timeout-minutes: 60
+    environment: test
+    permissions:
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read Appium version from package.json
+        id: appium-version
+        env:
+          DEFAULT_APPIUM_VERSION: ${{ env.DEFAULT_APPIUM_VERSION }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          APP_VER=$(node -e "const p=require(process.env.GITHUB_WORKSPACE + '/app/package.json'); const v=(p.devDependencies&&p.devDependencies.appium)||(p.dependencies&&p.dependencies.appium)||process.env.DEFAULT_APPIUM_VERSION; console.log(String(v));")
+          echo "appium_version=$APP_VER" >> $GITHUB_OUTPUT
+
+      - name: Install iOS App
+        id: install-ios
+        uses: ./.github/actions/ios-install
+        with:
+          download_url: ${{ inputs.artifact-url }}
+          ios_version: ${{ inputs.platform-version }}
+          device_name: ${{ inputs.device-name }}
+
+      - name: Set clean status bar for screenshots
+        shell: bash
+        run: |
+          xcrun simctl status_bar "${{ steps.install-ios.outputs.device_udid }}" override \
+            --time "9:41" \
+            --batteryState charged \
+            --batteryLevel 100 \
+            --wifiBars 3 \
+            --cellularBars 4 \
+            --cellularMode active \
+            --operatorName ""
+
+      - name: Run screenshot suite
+        uses: ./.github/actions/ios-test
+        with:
+          device_uuid: ${{ steps.install-ios.outputs.device_udid }}
+          ios_version: ${{ inputs.platform-version }}
+          device_name: ${{ inputs.device-name }}
+          node_version: '20'
+          appium_version: ${{ steps.appium-version.outputs.appium_version }}
+          app_bundle_id: ${{ steps.install-ios.outputs.bundle_id }}
+          airtable_email: ${{ secrets.AIRTABLE_EMAIL }}
+          airtable_api_token: ${{ secrets.AIRTABLE_API_TOKEN }}
+          airtable_base_id: ${{ secrets.AIRTABLE_BASE_ID }}
+          airtable_table_name: ${{ secrets.AIRTABLE_TABLE_NAME }}
+          airtable_from_email: ${{ secrets.AIRTABLE_FROM_EMAIL }}
+          api_base_url: ${{ vars.API_BASE_URL || '' }}
+          api_ops_token: ${{ secrets.API_OPS_TOKEN || '' }}
+          report_portal_api_key: ${{ secrets.REPORT_PORTAL_API_KEY || '' }}
+          report_portal_endpoint: ${{ vars.REPORT_PORTAL_ENDPOINT }}
+          report_portal_project: ${{ vars.REPORT_PORTAL_PROJECT }}
+          report_portal_launch_name: 'iOS Screenshots - ${{ github.run_number }}'
+          test_suite: screenshots
+
+      - name: Package screenshots zip
+        if: always()
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SCREENSHOT_DIR="appstore-screenshots"
+          JOURNEY_FILE="app/test/config/screenshot-journey.json"
+          OUTPUT_ZIP="appstore-screenshots-${{ github.run_number }}.zip"
+
+          if [ ! -d "$SCREENSHOT_DIR" ]; then
+            echo "Screenshot directory not found: $SCREENSHOT_DIR"
+            exit 1
+          fi
+
+          cp "$JOURNEY_FILE" "$SCREENSHOT_DIR/screenshot-journey.json"
+
+          (
+            cd "$SCREENSHOT_DIR"
+            zip -r "../$OUTPUT_ZIP" .
+          )
+
+          echo "zip_path=$OUTPUT_ZIP" >> $GITHUB_OUTPUT
+
+      - name: Upload screenshots zip artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appstore-screenshots-${{ inputs.device-name }}-${{ github.run_number }}
+          path: ${{ steps.package.outputs.zip_path }}
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Clear status bar override
+        if: always()
+        shell: bash
+        run: |
+          xcrun simctl status_bar "${{ steps.install-ios.outputs.device_udid }}" clear || true
+
+      - name: Screenshot summary
+        if: always()
+        shell: bash
+        run: |
+          SCREENSHOT_DIR="appstore-screenshots"
+          echo "## App Store Screenshot Capture" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Device:** ${{ inputs.device-name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**iOS Version:** ${{ inputs.platform-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d "$SCREENSHOT_DIR" ]; then
+            COUNT=$(find "$SCREENSHOT_DIR" -name "*.png" | wc -l | tr -d ' ')
+            echo "**Screenshots Captured:** $COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Files" >> $GITHUB_STEP_SUMMARY
+            find "$SCREENSHOT_DIR" -name "*.png" -maxdepth 1 -type f | sed 's#^#- #' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No screenshots directory found." >> $GITHUB_STEP_SUMMARY
+          fi
