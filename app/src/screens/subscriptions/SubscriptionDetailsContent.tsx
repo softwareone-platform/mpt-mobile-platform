@@ -114,16 +114,16 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
         <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
       )}
       {isOperations && (
-        <ListItemWithLabelAndText
-          title={t(`details.averageYield`)}
-          subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
-        />
-      )}
-      {isOperations && (
-        <ListItemWithLabelAndText
-          title={t(`details.defaultYield`)}
-          subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
-        />
+        <>
+          <ListItemWithLabelAndText
+            title={t(`details.averageYield`)}
+            subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
+          />
+          <ListItemWithLabelAndText
+            title={t(`details.defaultYield`)}
+            subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
+          />
+        </>
       )}
       {!isVendor && (
         <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
