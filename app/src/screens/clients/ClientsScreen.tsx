@@ -10,15 +10,8 @@ import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const ClientsScreenContent = () => {
-  const {
-    clients,
-    isClientsLoading,
-    isClientsError,
-    isClientsFetchingNext,
-    hasMoreClients,
-    isUnauthorised,
-    fetchClientsNextPage,
-  } = useClients();
+  const { items, isLoading, isError, isFetchingNext, hasMore, isUnauthorised, fetchNextPage } =
+    useClients();
 
   const { t } = useTranslation();
 
@@ -26,9 +19,9 @@ const ClientsScreenContent = () => {
 
   return (
     <StatusMessage
-      isLoading={isClientsLoading}
-      isError={!!isClientsError}
-      isEmpty={clients.length === 0}
+      isLoading={isLoading}
+      isError={!!isError}
+      isEmpty={items.length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.CLIENTS_LOADING_INDICATOR}
       errorTestId={TestIDs.CLIENTS_ERROR_STATE}
@@ -37,10 +30,10 @@ const ClientsScreenContent = () => {
       emptyDescription={t('clientsScreen.emptyStateDescription')}
     >
       <ListView
-        data={clients}
-        isFetchingNext={isClientsFetchingNext}
-        hasMore={hasMoreClients}
-        fetchNext={fetchClientsNextPage}
+        data={items}
+        isFetchingNext={isFetchingNext}
+        hasMore={hasMore}
+        fetchNext={fetchNextPage}
         config={listItemConfigFull}
         onItemPress={(id) => {
           navigation.navigate('accountDetails', {
