@@ -4,6 +4,7 @@
  */
 
 const { PAUSE, TIMEOUT } = require('./constants');
+const { getSelector } = require('./selectors');
 
 const APP_ID = 'com.softwareone.marketplaceMobile';
 
@@ -48,55 +49,80 @@ async function activateApp() {
 async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY, expectedState = 'either') {
   const waitStart = new Date();
   console.info(
-    `⏳ [${waitStart.toISOString()}] waitForAppReady() started (timeout: ${timeout}ms, expectedState: ${expectedState})`,
+    `⏳ [waitForAppReady] Started (timeout: ${timeout}ms, expectedState: ${expectedState})`,
   );
   
   const startTime = Date.now();
   const pollInterval = PAUSE.POLL_INTERVAL;
   let iteration = 0;
+
+  // Use testID-based selectors instead of generic XPath text matching
+  const homeSelector = getSelector({
+    ios: '~spotlight-filter-all',
+    android: '//*[@resource-id="spotlight-filter-all"]',
+  });
+  const homeEmptySelector = getSelector({
+    ios: '~spotlight-empty-state',
+    android: '//*[@resource-id="spotlight-empty-state"]',
+  });
+  const welcomeSelector = getSelector({
+    ios: '~welcome-title-text',
+    android: '//*[@resource-id="welcome-title-text"]',
+  });
+  const welcomeInputSelector = getSelector({
+    ios: '~welcome-email-input',
+    android: '//*[@resource-id="welcome-email-input"]',
+  });
   
   while (Date.now() - startTime < timeout) {
     iteration++;
     const iterStart = new Date();
     try {
-      // Check for either home page (logged in) or welcome page (logged out)
-      const homeVisible = await $('//*[contains(@name, "Spotlight") or contains(@text, "Spotlight")]')
-        .isDisplayed()
-        .catch(() => false);
-      
+      const homeVisible = await $(homeSelector).isDisplayed().catch(() => false);
       if (homeVisible) {
         const found = new Date();
-        console.info(`✅ [${found.toISOString()}] App ready - home page detected after ${iteration} iterations (${found - waitStart}ms)`);
+        console.info(`✅ [waitForAppReady] Home page detected (spotlight-filter-all) after ${iteration} iterations (${found - waitStart}ms)`);
+        return 'home';
+      }
+
+      const homeEmptyVisible = await $(homeEmptySelector).isDisplayed().catch(() => false);
+      if (homeEmptyVisible) {
+        const found = new Date();
+        console.info(`✅ [waitForAppReady] Home page detected (spotlight-empty-state) after ${iteration} iterations (${found - waitStart}ms)`);
         return 'home';
       }
       
-      const welcomeVisible = await $('//*[@name="Welcome" or @text="Welcome"]')
-        .isDisplayed()
-        .catch(() => false);
-      
+      const welcomeVisible = await $(welcomeSelector).isDisplayed().catch(() => false);
       if (welcomeVisible) {
         const found = new Date();
-        console.info(`✅ [${found.toISOString()}] App ready - welcome page detected after ${iteration} iterations (${found - waitStart}ms)`);
+        console.info(`✅ [waitForAppReady] Welcome page detected (welcome-title-text) after ${iteration} iterations (${found - waitStart}ms)`);
+        return 'welcome';
+      }
+
+      const welcomeInputVisible = await $(welcomeInputSelector).isDisplayed().catch(() => false);
+      if (welcomeInputVisible) {
+        const found = new Date();
+        console.info(`✅ [waitForAppReady] Welcome page detected (welcome-email-input) after ${iteration} iterations (${found - waitStart}ms)`);
         return 'welcome';
       }
       
       const iterEnd = new Date();
-      console.info(`   ⏳ [${iterEnd.toISOString()}] waitForAppReady iteration ${iteration}: neither home nor welcome visible (check took ${iterEnd - iterStart}ms)`);
+      console.info(`   ⏳ [waitForAppReady] Iteration ${iteration}: no known page detected (check took ${iterEnd - iterStart}ms)`);
       await browser.pause(pollInterval);
     } catch (e) {
-      console.info(`   ⚠️ waitForAppReady iteration ${iteration} error: ${e.message}`);
+      console.info(`   ⚠️ [waitForAppReady] Iteration ${iteration} error: ${e.message}`);
       await browser.pause(pollInterval);
     }
   }
   
   const timedOut = new Date();
-  console.warn(`⚠️ [${timedOut.toISOString()}] App ready check timed out after ${timedOut - waitStart}ms, proceeding anyway`);
+  console.warn(`⚠️ [waitForAppReady] Timed out after ${timedOut - waitStart}ms (${iteration} iterations)`);
   try {
     const pageSource = await browser.getPageSource();
     const truncated = pageSource.length > 2000 ? pageSource.substring(0, 2000) + '...(truncated)' : pageSource;
-    console.warn(`📄 Page source at timeout:\n${truncated}`);
+    console.warn(`📄 [waitForAppReady] Page source at timeout:\n${truncated}`);
   } catch (e) {
-    console.warn(`⚠️ Could not capture page source: ${e.message}`);
+    console.warn(`⚠️ [waitForAppReady] Could not capture page source: ${e.message}`);
   }
   return 'unknown';
 }

@@ -27,16 +27,18 @@ async function isOnHomePage() {
  */
 async function ensureHomePage(options = {}) {
   const { resetFilters = true } = options;
+  console.info(`📍 [ensureHomePage] Starting (resetFilters: ${resetFilters})`);
 
   // First check if we're logged in at all
   const loggedIn = await isLoggedIn();
   if (!loggedIn) {
-    throw new Error('User is not logged in. Please ensure authentication before navigating.');
+    throw new Error('[ensureHomePage] User is not logged in. Please ensure authentication before navigating.');
   }
 
   // Check if already on home page (spotlight filter OR empty state visible)
   const isHomeVisible = await isOnHomePage();
   if (isHomeVisible) {
+    console.info('✓ [ensureHomePage] Already on home page');
     // Only reset filters if requested and filters exist
     if (resetFilters) {
       await homePage.resetFilterScrollPosition().catch(() => {});
@@ -44,6 +46,8 @@ async function ensureHomePage(options = {}) {
     }
     return;
   }
+
+  console.info('ℹ [ensureHomePage] Not on home page, starting back-navigation recovery');
 
   // Navigate back to a page with footer visible
   for (let i = 0; i < RETRY.MAX_BACK_ATTEMPTS; i++) {
