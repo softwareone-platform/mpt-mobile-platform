@@ -9,6 +9,7 @@ export { default as StatementsScreen } from './statements/StatementsScreen';
 export { default as UsersScreen } from './users/UsersScreen';
 export { default as ProgramsScreen } from './programs/ProgramsScreen';
 export { default as EnrollmentsScreen } from './enrollments/EnrollmentsScreen';
+export { default as CertificatesScreen } from './certificates/CertificatesScreen';
 export { default as LicenseesScreen } from './licensees/LicenseesScreen';
 export { default as BuyersScreen } from './buyers/BuyersScreen';
 export { default as ClientsScreen } from './clients/ClientsScreen';

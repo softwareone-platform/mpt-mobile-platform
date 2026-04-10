@@ -205,6 +205,11 @@ export const TestIDs = {
   ENROLLMENT_DETAILS_HEADER_TITLE: 'enrollment-details-header-title',
   ENROLLMENT_DETAILS_HEADER_STATUS: 'enrollment-details-header-status',
 
+  // Certificates Screen
+  CERTIFICATES_LOADING_INDICATOR: 'certificates-loading-indicator',
+  CERTIFICATES_ERROR_STATE: 'certificates-error-state',
+  CERTIFICATES_EMPTY_STATE: 'certificates-empty-state',
+
   // Certificate Details Screen
   CERTIFICATE_DETAILS_LOADING_INDICATOR: 'certificate-details-loading-indicator',
   CERTIFICATE_DETAILS_ERROR_STATE: 'certificate-details-error-state',

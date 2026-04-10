@@ -30,6 +30,7 @@ export type SecondaryTabsParamList = {
   allUsers: ScreenParams;
   programs: ScreenParams;
   enrollments: ScreenParams;
+  certificates: ScreenParams;
   licensees: ScreenParams;
   buyers: ScreenParams;
   allBuyers: ScreenParams;
