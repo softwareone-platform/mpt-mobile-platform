@@ -1,8 +1,8 @@
+import type { InfiniteData } from '@tanstack/react-query';
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import type { PaginatedResponse } from '@/types/api';
-import type { InfiniteData } from '@tanstack/react-query';
 
 /**
  * Return type from paginated query hooks (useClientsData, useVendorsData, etc.)
