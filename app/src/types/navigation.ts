@@ -155,7 +155,7 @@ export type NavigationItemBaseProps = {
   testID?: string;
 };
 
-export type SubListItem = {
+export interface SubListItem {
   name: MainTabRouteName | SecondaryTabRouteName;
   roles: AccountType[];
-};
+}
