@@ -22,6 +22,8 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
   const { userData } = useAccount();
   const accountType = userData?.currentAccount?.type as AccountType | undefined;
 
+  const isOperations = accountType === 'Operations';
+
   const dueDate = formatDateForLocale(data.dueDate, language);
   const totalPP = formatNumber(data.price?.totalPP, 2, language) || EMPTY_VALUE;
 
@@ -49,17 +51,19 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
             : undefined
         }
       />
-      <DetailsListItem
-        label={t('details.vendor')}
-        data={data.vendor}
-        onPress={
-          canNavigateTo('vendorAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', { id: data.vendor?.id, type: 'vendor' });
-              }
-            : undefined
-        }
-      />
+      {isOperations && (
+        <DetailsListItem
+          label={t('details.vendor')}
+          data={data.vendor}
+          onPress={
+            canNavigateTo('vendorAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', { id: data.vendor?.id, type: 'vendor' });
+                }
+              : undefined
+          }
+        />
+      )}
       <ListItemWithLabelAndText title={t('details.dueDate')} subtitle={dueDate} />
       <ListItemWithLabelAndText title={t('details.baseCurrency')} subtitle={data.price?.currency} />
       <ListItemWithLabelAndText title={t('details.allCharges')} subtitle={data.processing?.total} />
@@ -67,10 +71,12 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         title={t('details.readyCharges')}
         subtitle={data.processing?.ready}
       />
-      <ListItemWithLabelAndText
-        title={t('details.ignoredCharges')}
-        subtitle={data.processing?.ignored}
-      />
+      {isOperations && (
+        <ListItemWithLabelAndText
+          title={t('details.ignoredCharges')}
+          subtitle={data.processing?.ignored}
+        />
+      )}
       <ListItemWithLabelAndText
         title={t('details.splitCharges')}
         subtitle={data.processing?.split}
@@ -79,18 +85,23 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
         title={t('details.errorCharges')}
         subtitle={data.processing?.error}
       />
-      <ListItemWithLabelAndText
-        title={t('details.skippedCharges')}
-        subtitle={data.processing?.skipped}
-      />
+      {isOperations && (
+        <ListItemWithLabelAndText
+          title={t('details.skippedCharges')}
+          subtitle={data.processing?.skipped}
+        />
+      )}
       <ListItemWithLabelAndText
         title={t('details.pp')}
         subtitle={`${data.price?.currency ?? ''} ${totalPP}`.trim()}
       />
-      <ListItemWithLabelAndText
-        title={t('details.assignee')}
-        subtitle={data.assignee?.name}
+      <DetailsListItem
+        label={t('details.assignee')}
+        data={data.assignee}
         isLast={true}
+        onPress={() => {
+          navigation.navigate('userDetails', { id: data.assignee?.id });
+        }}
       />
     </CardWithHeader>
   );

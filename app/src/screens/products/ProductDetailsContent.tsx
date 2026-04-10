@@ -50,7 +50,9 @@ const ProductDetailsContent = ({ data }: { data: ProductData }) => {
       </CardWithHeader>
       <CardWithHeader title={t(`details.description`)}>
         <View style={cardStyle.body}>
-          <Text style={cardStyle.bodyText}>{data.shortDescription || EMPTY_VALUE}</Text>
+          <Text style={cardStyle.bodyText} selectable>
+            {data.shortDescription || EMPTY_VALUE}
+          </Text>
         </View>
       </CardWithHeader>
     </>

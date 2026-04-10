@@ -8,7 +8,7 @@ export interface AgreementData {
   vendor?: DetailsListItemValue;
   product?: DetailsListItemValue;
   client?: DetailsListItemValue;
-  licensee?: {
+  licensee?: DetailsListItemValue & {
     eligibility?: {
       partner: boolean;
     };
