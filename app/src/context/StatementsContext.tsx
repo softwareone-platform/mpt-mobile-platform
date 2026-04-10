@@ -14,9 +14,14 @@ interface StatementsContextValue {
   fetchStatements: () => void;
 }
 
+interface StatementProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
 const StatementsContext = createContext<StatementsContextValue | undefined>(undefined);
 
-export const StatementsProvider = ({ children }: { children: ReactNode }) => {
+export const StatementsProvider = ({ children, query }: StatementProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const StatementsProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useStatementsData(userId, currentAccountId);
+  } = useStatementsData(userId, currentAccountId, query);
 
   const statements = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

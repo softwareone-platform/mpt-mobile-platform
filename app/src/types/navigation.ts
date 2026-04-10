@@ -154,3 +154,8 @@ export type NavigationItemBaseProps = {
   onPress?: () => void;
   testID?: string;
 };
+
+export type SubListItem = {
+  name: MainTabRouteName | SecondaryTabRouteName;
+  roles: AccountType[];
+};
