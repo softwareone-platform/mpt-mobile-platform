@@ -9,10 +9,9 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import NavigationItem from '@/components/navigation-item/NavigationItem';
 import { EMPTY_VALUE } from '@/constants/common';
 import { agreementsSubList } from '@/constants/subListsNavigation';
-import { useAccount } from '@/context/AccountContext';
+import { useAccountType } from '@/hooks/useAccountType';
 import { useSubListNavigation } from '@/hooks/useSubListNavigation';
 import type { AgreementData } from '@/types/agreement';
-import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
@@ -23,14 +22,10 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
+  const { accountType, isVendor, isClient, isOperations } = useAccountType();
 
   const { navigateToSubListItem } = useSubListNavigation();
 
-  const isVendor = accountType === 'Vendor';
-  const isClient = accountType === 'Client';
-  const isOperations = accountType === 'Operations';
   const hasBillingCurrencyData = data.price?.billingCurrency;
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
   const labelYear = `${data.price?.currency}/${t('details.year')}`;

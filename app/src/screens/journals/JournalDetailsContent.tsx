@@ -6,9 +6,8 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
-import { useAccount } from '@/context/AccountContext';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { JournalDetails } from '@/types/billing';
-import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatDateForLocale, formatNumber } from '@/utils/formatting';
 import { canNavigateTo } from '@/utils/navigationPermissions';
@@ -19,10 +18,7 @@ const JournalDetailsContent = ({ data }: { data: JournalDetails }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
-
-  const isOperations = accountType === 'Operations';
+  const { accountType, isOperations } = useAccountType();
 
   const dueDate = formatDateForLocale(data.dueDate, language);
   const totalPP = formatNumber(data.price?.totalPP, 2, language) || EMPTY_VALUE;

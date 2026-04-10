@@ -5,16 +5,15 @@ import { useTranslation } from 'react-i18next';
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigFull } from '@/config/list';
-import { useAccount } from '@/context/AccountContext';
 import { useBuyers, BuyersProvider } from '@/context/BuyersContext';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type BuyersScreenRouteProp = RouteProp<RootStackParamList, 'buyers'>;
 
 const BuyersScreenContent = () => {
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type;
+  const { isVendor } = useAccountType();
 
   const {
     buyers,
@@ -30,7 +29,7 @@ const BuyersScreenContent = () => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-  if (accountType === 'Vendor') {
+  if (isVendor) {
     return (
       <StatusMessage
         isLoading={false}

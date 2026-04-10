@@ -6,8 +6,7 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
-import { useAccount } from '@/context/AccountContext';
-import type { AccountType } from '@/types/common';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { RootStackParamList } from '@/types/navigation';
 import type { SubscriptionData } from '@/types/subscription';
 import { formatNumber, formatPercentage, formatDateForLocale } from '@/utils/formatting';
@@ -19,8 +18,7 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
+  const { accountType, isClient, isVendor, isOperations } = useAccountType();
 
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
   const labelYear = `${data.price?.currency}/${t('details.year')}`;
@@ -38,8 +36,10 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
   const defaultMargin = calculateMarginWithMarkup(data.price?.defaultMarkup || 0);
   const formattedDefaultMargin = `${formatPercentage(defaultMargin, 2) || EMPTY_VALUE} ${labelDown}`;
 
-  const formattedRenewalDate =
-    formatDateForLocale(data.commitmentDate, i18n.language) || EMPTY_VALUE;
+  const formattedCommitmentDate =
+    formatDateForLocale(data.commitmentDate, i18n.language) || undefined;
+  const autoRenewLabel =
+    data.autoRenew === undefined ? undefined : t(data.autoRenew ? 'details.yes' : 'details.no');
 
   return (
     <CardWithHeader title={t(`details.title`)}>
@@ -62,39 +62,66 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
           });
         }}
       />
-      <DetailsListItem
-        label={t(`details.client`)}
-        data={data.agreement?.client}
-        onPress={
-          canNavigateTo('clientAccount', accountType)
-            ? () => {
-                navigation.navigate('accountDetails', {
-                  id: data.agreement?.client?.id,
-                  type: 'client',
-                });
-              }
-            : undefined
-        }
-      />
+      {isOperations && (
+        <DetailsListItem
+          label={t(`details.client`)}
+          data={data.agreement?.client}
+          onPress={
+            canNavigateTo('clientAccount', accountType)
+              ? () => {
+                  navigation.navigate('accountDetails', {
+                    id: data.agreement?.client?.id,
+                    type: 'client',
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
+      {(isClient || isVendor) && (
+        <DetailsListItem
+          label={t(`details.licensee`)}
+          data={data.licensee}
+          onPress={
+            canNavigateTo('licensee', accountType)
+              ? () => {
+                  navigation.navigate('licenseeDetails', { id: data.licensee?.id });
+                }
+              : undefined
+          }
+        />
+      )}
       <ListItemWithLabelAndText
         title={t(`details.terms`)}
         subtitle={t(`details.period.${data.terms.period}`)}
       />
-      <ListItemWithLabelAndText title={t(`details.renewalDate`)} subtitle={formattedRenewalDate} />
+      <ListItemWithLabelAndText
+        title={t(data.autoRenew ? `details.renewalDate` : `details.expiration`)}
+        subtitle={formattedCommitmentDate}
+      />
+      <ListItemWithLabelAndText title={t(`details.autoRenewal`)} subtitle={autoRenewLabel} />
       <ListItemWithLabelAndText
         title={t(`details.billingModel`)}
         subtitle={t(`details.model.${data.terms.model}`)}
       />
-      <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
-      <ListItemWithLabelAndText
-        title={t(`details.averageYield`)}
-        subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
-      />
-      <ListItemWithLabelAndText
-        title={t(`details.defaultYield`)}
-        subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
-      />
-      <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
+      {!isClient && (
+        <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
+      )}
+      {isOperations && (
+        <>
+          <ListItemWithLabelAndText
+            title={t(`details.averageYield`)}
+            subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
+          />
+          <ListItemWithLabelAndText
+            title={t(`details.defaultYield`)}
+            subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
+          />
+        </>
+      )}
+      {!isVendor && (
+        <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
+      )}
       <ListItemWithLabelAndText
         title={t(`details.currency`)}
         subtitle={data.price?.currency}
