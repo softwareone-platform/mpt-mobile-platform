@@ -42,12 +42,8 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
   const isVendor = accountType === 'Vendor';
   const isOperations = accountType === 'Operations';
 
-  const formattedRenewalDate =
-    formatDateForLocale(data.commitmentDate, i18n.language) || EMPTY_VALUE;
-  const formattedRenewalDate =
+  const formattedCommitmentDate =
     formatDateForLocale(data.commitmentDate, i18n.language) || undefined;
-  const formattedExpirationDate =
-    formatDateForLocale(data.expirationDate, i18n.language) || undefined;
   const autoRenewLabel =
     data.autoRenew === undefined ? undefined : t(data.autoRenew ? 'details.yes' : 'details.no');
 
@@ -108,18 +104,15 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
       {data.autoRenew ? (
         <ListItemWithLabelAndText
           title={t(`details.renewalDate`)}
-          subtitle={formattedRenewalDate}
+          subtitle={formattedCommitmentDate}
         />
       ) : (
         <ListItemWithLabelAndText
           title={t(`details.expiration`)}
-          subtitle={formattedExpirationDate}
+          subtitle={formattedCommitmentDate}
         />
       )}
-      <ListItemWithLabelAndText
-        title={t(`details.autoRenewal`)}
-        subtitle={autoRenewLabel}
-      />
+      <ListItemWithLabelAndText title={t(`details.autoRenewal`)} subtitle={autoRenewLabel} />
       <ListItemWithLabelAndText
         title={t(`details.billingModel`)}
         subtitle={t(`details.model.${data.terms.model}`)}
