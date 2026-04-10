@@ -87,11 +87,11 @@ describe('useCertificateApi - getCertificates', () => {
     jest.clearAllMocks();
   });
 
-  const expectedUrlBase = 
-  `/v1/program/certificates` +
-  `?select=-*,id,name,status` +
-  `&ne(status,%22Deleted%22)` +
-  `&order=name`;
+  const expectedUrlBase =
+    `/v1/program/certificates` +
+    `?select=-*,id,name,status` +
+    `&ne(status,%22Deleted%22)` +
+    `&order=name`;
 
   it('calls getCertificates with default offset and limit', async () => {
     const api = setup();
@@ -105,7 +105,8 @@ describe('useCertificateApi - getCertificates', () => {
       },
       data: [],
     };
-    const expectedUrl = expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+    const expectedUrl =
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
 
     mockGet.mockResolvedValueOnce(mockResponse);
 
@@ -149,18 +150,12 @@ describe('useCertificateApi - getCertificates', () => {
 
     const mockResponse1: PaginatedResponse<ListItemNoImage> = {
       $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
-      data: [
-        mockCertificateListItem1,
-        mockCertificateListItem2,
-      ],
+      data: [mockCertificateListItem1, mockCertificateListItem2],
     };
 
     const mockResponse2: PaginatedResponse<ListItemNoImage> = {
       $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
-      data: [
-        mockCertificateListItem3,
-        mockCertificateListItem4,
-      ],
+      data: [mockCertificateListItem3, mockCertificateListItem4],
     };
 
     mockGet.mockResolvedValueOnce(mockResponse1);
@@ -179,15 +174,30 @@ describe('useCertificateApi - getCertificates', () => {
 
     expect(res1).toBeDefined();
     expect(res1!.data.length).toBe(2);
-    expect(res1!.data.map((item) => item.id)).toEqual([mockCertificateListItem1.id, mockCertificateListItem2.id]);
-    expect(res1!.data.map((item) => item.name)).toEqual([mockCertificateListItem1.name, mockCertificateListItem2.name]);
-    expect(res1!.data.map((item) => item.status)).toEqual([mockCertificateListItem1.status, mockCertificateListItem2.status]);
+    expect(res1!.data.map((item) => item.id)).toEqual([
+      mockCertificateListItem1.id,
+      mockCertificateListItem2.id,
+    ]);
+    expect(res1!.data.map((item) => item.name)).toEqual([
+      mockCertificateListItem1.name,
+      mockCertificateListItem2.name,
+    ]);
+    expect(res1!.data.map((item) => item.status)).toEqual([
+      mockCertificateListItem1.status,
+      mockCertificateListItem2.status,
+    ]);
 
     expect(res2).toBeDefined();
     expect(res2!.data.length).toBe(2);
     expect(res2!.data.map((item) => item.id)).toEqual(['CER-1234-7564-3475', 'CER-1234-7564-3474']);
-    expect(res2!.data.map((item) => item.name)).toEqual([mockCertificateListItem3.name, mockCertificateListItem4.name]);
-    expect(res2!.data.map((item) => item.status)).toEqual([mockCertificateListItem3.status, mockCertificateListItem3.status]);
+    expect(res2!.data.map((item) => item.name)).toEqual([
+      mockCertificateListItem3.name,
+      mockCertificateListItem4.name,
+    ]);
+    expect(res2!.data.map((item) => item.status)).toEqual([
+      mockCertificateListItem3.status,
+      mockCertificateListItem3.status,
+    ]);
   });
 
   it('returns correct certificate data structure for list view', async () => {
