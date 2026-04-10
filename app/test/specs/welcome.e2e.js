@@ -62,17 +62,42 @@ describe('Welcome page of application', () => {
     const enteredValue = await welcomePage.emailInput.getAttribute(isAndroid() ? 'text' : 'value');
     expect(enteredValue).toBe(testEmail);
 
-    // Record timestamp before requesting OTP to avoid picking up old emails
-    const beforeOTPRequest = new Date();
-    console.info(`🕐 Timestamp BEFORE OTP request: ${beforeOTPRequest.toISOString()}`);
+    // Submit email with retry logic — Auth0 passwordless API can transiently fail
+    const maxSendRetries = 3;
+    let beforeOTPRequest = new Date();
+    let afterOTPRequest;
 
-    // Click continue to trigger OTP request
-    await welcomePage.click(welcomePage.continueButton);
-    const afterOTPRequest = new Date();
-    console.info(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`);
+    for (let attempt = 1; attempt <= maxSendRetries; attempt++) {
+      beforeOTPRequest = new Date();
+      console.info(`📧 Attempt ${attempt}/${maxSendRetries}: Sending authentication email...`);
+      console.info(`🕐 Timestamp BEFORE OTP request: ${beforeOTPRequest.toISOString()}`);
 
-    // Wait for navigation to verify screen
-    await expect(verifyPage.verifyTitle).toBeDisplayed();
+      await welcomePage.click(welcomePage.continueButton);
+      afterOTPRequest = new Date();
+      console.info(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`);
+
+      try {
+        await verifyPage.verifyTitle.waitForDisplayed({ timeout: 15000 });
+        console.info(`✅ OTP screen displayed on attempt ${attempt}`);
+        break;
+      } catch {
+        const pageSource = await browser.getPageSource();
+        if (pageSource.includes('Failed to send authentication email')) {
+          console.warn(`⚠️ Auth0 email send failed on attempt ${attempt}/${maxSendRetries}`);
+          if (attempt < maxSendRetries) {
+            console.info('🔄 Waiting 5s before retry...');
+            await browser.pause(5000);
+          } else {
+            throw new Error(
+              `Auth0 failed to send authentication email after ${maxSendRetries} attempts`,
+            );
+          }
+        } else {
+          throw new Error('OTP screen not displayed and no known Auth0 error found on page');
+        }
+      }
+    }
+
     await expect(verifyPage.verificationCodeMessage).toBeDisplayed();
 
     let result = null;
