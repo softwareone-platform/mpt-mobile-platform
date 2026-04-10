@@ -1,5 +1,4 @@
 import { renderHook, act } from '@testing-library/react-native';
-
 jest.mock('@/services/loggerService', () => ({
   logger: {
     warn: jest.fn(),
@@ -7,9 +6,32 @@ jest.mock('@/services/loggerService', () => ({
   },
 }));
 
+import {
+  mockClientItem1,
+  mockClientItem2,
+  mockClientId1,
+  mockClientId2,
+  mockClientId3,
+  mockClientId4,
+  mockClientItem3,
+  mockClientItem4,
+} from '../__mocks__/services/client';
+import { mockNetworkError } from '../__mocks__/services/common';
+import {
+  mockVendorId1,
+  mockVendorId2,
+  mockVendorId3,
+  mockVendorId4,
+  mockVendorItem1,
+  mockVendorItem2,
+  mockVendorItem3,
+  mockVendorItem4,
+} from '../__mocks__/services/vendor';
+
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAccountApi } from '@/services/accountService';
 import { logger } from '@/services/loggerService';
+import type { PaginatedResponse, ListItemFull } from '@/types/api';
 
 const mockGet = jest.fn();
 const mockPut = jest.fn();
@@ -250,5 +272,296 @@ describe('useAccountApi', () => {
     ).rejects.toThrow('API failure');
 
     expect(mockGet).toHaveBeenCalledWith('/v1/accounts/accounts/acc-999?select=audit,groups');
+  });
+});
+
+describe('useAccountApi - getClients', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const expectedUrlBase =
+    `/v1/accounts/accounts` +
+    `?select=-*,id,name,status,icon` +
+    '&eq(type,%22Client%22)' +
+    '&order=name';
+
+  it('getClients - calls with default offset and limit', async () => {
+    const api = setup();
+    const mockEmptyResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 0,
+        },
+      },
+      data: [],
+    };
+    mockGet.mockResolvedValueOnce(mockEmptyResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getClients();
+    });
+
+    const expectedUrl =
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockEmptyResponse);
+  });
+
+  it('getClients - calls with custom offset and limit', async () => {
+    const api = setup();
+
+    const mockClientsMultipleResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 2,
+        },
+      },
+      data: [mockClientItem1, mockClientItem2],
+    };
+    mockGet.mockResolvedValueOnce(mockClientsMultipleResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getClients(50, 25);
+    });
+
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockClientsMultipleResponse);
+  });
+
+  it('getClients - handles multiple calls correctly', async () => {
+    const api = setup();
+
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
+      data: [mockClientItem1 as ListItemFull, mockClientItem2 as ListItemFull],
+    };
+
+    const mockResponse2: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
+      data: [mockClientItem3 as ListItemFull, mockClientItem4 as ListItemFull],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse1);
+    mockGet.mockResolvedValueOnce(mockResponse2);
+
+    let res1: PaginatedResponse<ListItemFull> | undefined;
+    let res2: PaginatedResponse<ListItemFull> | undefined;
+
+    await act(async () => {
+      res1 = await api.getClients(0, 2);
+    });
+
+    await act(async () => {
+      res2 = await api.getClients(2, 2);
+    });
+
+    expect(res1).toBeDefined();
+    expect(res1!.data.length).toBe(2);
+    expect(res1!.data.map((item) => item.id)).toEqual([mockClientId1, mockClientId2]);
+    expect(res1!.data.map((item) => item.name)).toEqual([
+      mockClientItem1.name,
+      mockClientItem2.name,
+    ]);
+
+    expect(res2).toBeDefined();
+    expect(res2!.data.length).toBe(2);
+    expect(res2!.data.map((item) => item.id)).toEqual([mockClientId3, mockClientId4]);
+    expect(res2!.data.map((item) => item.name)).toEqual([
+      mockClientItem3.name,
+      mockClientItem4.name,
+    ]);
+  });
+
+  it('getClients - returns correct client data structure', async () => {
+    const api = setup();
+
+    const mockResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          total: 1,
+        },
+      },
+      data: [mockClientItem1],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getClients();
+    });
+
+    expect(res).toEqual(mockResponse);
+    expect(res!.data[0]).toMatchObject({
+      id: mockClientItem1.id,
+      name: mockClientItem1.name,
+      status: mockClientItem1.status,
+      icon: mockClientItem1.icon,
+    });
+  });
+
+  it('getClients - handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getClients()).rejects.toThrow('Network error');
+  });
+});
+
+describe('useAccountApi - getVendors', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const expectedUrlBase =
+    `/v1/accounts/accounts` +
+    `?select=-*,id,name,status,icon` +
+    '&eq(type,%22Vendor%22)' +
+    `&order=name`;
+
+  it('calls getVendors with default offset and limit', async () => {
+    const api = setup();
+
+    const mockEmptyResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 0,
+        },
+      },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockEmptyResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getVendors();
+    });
+
+    const expectedUrl =
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockEmptyResponse);
+  });
+
+  it('calls getVendors with custom offset and limit', async () => {
+    const api = setup();
+
+    const mockVendorsMultipleResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 2,
+        },
+      },
+      data: [mockVendorItem1, mockVendorItem2],
+    };
+    mockGet.mockResolvedValueOnce(mockVendorsMultipleResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getVendors(50, 25);
+    });
+
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockVendorsMultipleResponse);
+  });
+
+  it('handles multiple calls correctly', async () => {
+    const api = setup();
+
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
+      data: [mockVendorItem1 as ListItemFull, mockVendorItem2 as ListItemFull],
+    };
+
+    const mockResponse2: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
+      data: [mockVendorItem3 as ListItemFull, mockVendorItem4 as ListItemFull],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse1);
+    mockGet.mockResolvedValueOnce(mockResponse2);
+
+    let res1: PaginatedResponse<ListItemFull> | undefined;
+    let res2: PaginatedResponse<ListItemFull> | undefined;
+
+    await act(async () => {
+      res1 = await api.getVendors(0, 2);
+    });
+
+    await act(async () => {
+      res2 = await api.getVendors(2, 2);
+    });
+
+    expect(res1!.data.map((item) => item.id)).toEqual([mockVendorId1, mockVendorId2]);
+    expect(res1!.data.map((item) => item.name)).toEqual([
+      mockVendorItem1.name,
+      mockVendorItem2.name,
+    ]);
+
+    expect(res2).toBeDefined();
+    expect(res2!.data.length).toBe(2);
+    expect(res2!.data.map((item) => item.id)).toEqual([mockVendorId3, mockVendorId4]);
+    expect(res2!.data.map((item) => item.name)).toEqual([
+      mockVendorItem3.name,
+      mockVendorItem4.name,
+    ]);
+  });
+
+  it('returns correct vendor data structure', async () => {
+    const api = setup();
+
+    const mockSingleResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          total: 1,
+        },
+      },
+      data: [mockVendorItem1],
+    };
+    mockGet.mockResolvedValueOnce(mockSingleResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getVendors();
+    });
+
+    expect(res).toEqual(mockSingleResponse);
+    expect(res!.data[0]).toMatchObject({
+      id: mockVendorItem1.id,
+      name: mockVendorItem1.name,
+      status: mockVendorItem1.status,
+      icon: mockVendorItem1.icon,
+    });
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getVendors()).rejects.toThrow('Network error');
   });
 });
