@@ -5,14 +5,12 @@ import CommonBillingDetailsSection from '../billing/CommonBillingDetailsSection'
 import CardWithHeader from '@/components/card/CardWithHeader';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
-import { useAccount } from '@/context/AccountContext';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { CreditMemoDetails } from '@/types/billing';
-import type { AccountType } from '@/types/common';
 
 const CreditMemoDetailsContent = ({ data }: { data: CreditMemoDetails }) => {
   const { t } = useTranslation();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
+  const { accountType } = useAccountType();
 
   return (
     <CardWithHeader title={t(`details.title`)}>

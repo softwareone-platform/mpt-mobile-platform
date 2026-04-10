@@ -5,8 +5,7 @@ import { useTranslation } from 'react-i18next';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
-import { useAccount } from '@/context/AccountContext';
-import type { AccountType } from '@/types/common';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { RootStackParamList } from '@/types/navigation';
 import type { CertificateDetails } from '@/types/program';
 import { formatDateForLocale } from '@/utils/formatting';
@@ -18,10 +17,7 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
-
-  const isVendor = accountType === 'Vendor';
+  const { accountType, isVendor } = useAccountType();
 
   const eligibility = data.eligibility.partner
     ? t('details.eligibilityValue.partner')

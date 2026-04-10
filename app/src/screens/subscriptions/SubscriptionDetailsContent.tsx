@@ -6,8 +6,7 @@ import CardWithHeader from '@/components/card/CardWithHeader';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import { EMPTY_VALUE } from '@/constants/common';
-import { useAccount } from '@/context/AccountContext';
-import type { AccountType } from '@/types/common';
+import { useAccountType } from '@/hooks/useAccountType';
 import type { RootStackParamList } from '@/types/navigation';
 import type { SubscriptionData } from '@/types/subscription';
 import { formatNumber, formatPercentage, formatDateForLocale } from '@/utils/formatting';
@@ -19,8 +18,7 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
   const language = i18n.language;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type as AccountType | undefined;
+  const { accountType, isClient, isVendor, isOperations } = useAccountType();
 
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
   const labelYear = `${data.price?.currency}/${t('details.year')}`;
@@ -37,10 +35,6 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
   const formattedDefaultMarkup = `${formatPercentage(data.price?.defaultMarkup, 2) || EMPTY_VALUE} ${labelUp}`;
   const defaultMargin = calculateMarginWithMarkup(data.price?.defaultMarkup || 0);
   const formattedDefaultMargin = `${formatPercentage(defaultMargin, 2) || EMPTY_VALUE} ${labelDown}`;
-
-  const isClient = accountType === 'Client';
-  const isVendor = accountType === 'Vendor';
-  const isOperations = accountType === 'Operations';
 
   const formattedCommitmentDate =
     formatDateForLocale(data.commitmentDate, i18n.language) || undefined;
