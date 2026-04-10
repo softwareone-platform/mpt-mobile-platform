@@ -10,7 +10,7 @@ export const useVendorsData = (
 
   return usePaginatedQuery<ListItemFull>({
     queryKey: ['vendors', userId, currentAccountId],
-    queryFn: (offset, limit) => getVendors(userId!, offset, limit),
+    queryFn: (offset, limit) => getVendors(offset, limit),
     enabled: !!userId && !!currentAccountId,
   });
 };

@@ -10,7 +10,7 @@ export const useClientsData = (
 
   return usePaginatedQuery<ListItemFull>({
     queryKey: ['clients', userId, currentAccountId],
-    queryFn: (offset, limit) => getClients(userId!, offset, limit),
+    queryFn: (offset, limit) => getClients(offset, limit),
     enabled: !!userId && !!currentAccountId,
   });
 };

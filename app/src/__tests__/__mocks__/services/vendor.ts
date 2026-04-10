@@ -26,7 +26,7 @@ export const mockVendorItem3 = {
 
 export const mockVendorItem4 = {
   id: mockVendorId4,
-  name: 'Ahother Test Vendor Corp',
+  name: 'Another Test Vendor Corp',
   status: 'Enabled',
   icon: '/v1/accounts/accounts/ACC-9876-5432-0004/icon',
 };
