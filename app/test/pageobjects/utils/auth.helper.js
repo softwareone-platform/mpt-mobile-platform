@@ -114,7 +114,7 @@ async function loginWithOTP(email = AIRTABLE_EMAIL) {
       return onVerifyTitle || onVerifyMessage || onHome || onHomeHeader || onHomeEmpty;
     },
     {
-      timeout: TIMEOUT.ELEMENT_DISPLAYED,
+      timeout: TIMEOUT.AUTH_FLOW_WAIT,
       interval: PAUSE.POLL_INTERVAL,
       timeoutMsg: 'Neither verification screen nor home page became visible after continue',
     },

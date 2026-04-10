@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,8 @@ import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useStatements, StatementsProvider } from '@/context/StatementsContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type StatementsScreenRouteProp = RouteProp<RootStackParamList, 'statements'>;
 
 const StatementsScreenContent = () => {
   const {
@@ -52,10 +54,16 @@ const StatementsScreenContent = () => {
   );
 };
 
-const StatementsScreen = () => (
-  <StatementsProvider>
-    <StatementsScreenContent />
-  </StatementsProvider>
-);
+const StatementsScreen = () => {
+  const route = useRoute<StatementsScreenRouteProp>();
+
+  const query = route.params?.query;
+
+  return (
+    <StatementsProvider query={query}>
+      <StatementsScreenContent />
+    </StatementsProvider>
+  );
+};
 
 export default StatementsScreen;

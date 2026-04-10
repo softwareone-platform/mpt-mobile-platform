@@ -45,6 +45,7 @@
     "country": "Country",
     "email": "Email",
     "expiration": "Expiration",
+    "autoRenewal": "Auto-renewal",
     "singleSignOn": "Single sign on",
     "id": "ID",
     "firstName": "First name",

@@ -662,9 +662,15 @@ exports.config = {
                 .toISOString()
                 .replace(/[^0-9]/g, '')
                 .slice(0, -5)
-            const sanitizedPrefix = prefix ? prefix.replace(/ /g, '-') + '_' : '';
-            const sanitizedParent = (test.parent || '').replace(/ /g, '-');
-            const sanitizedTitle = test.title.replace(/ /g, '-');
+            const sanitizeForFileName = (value) => String(value || '')
+                .trim()
+                .replace(/["<>|*?\r\n:]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+            const sanitizedPrefix = prefix ? sanitizeForFileName(prefix) + '_' : '';
+            const sanitizedParent = sanitizeForFileName(test.parent || '');
+            const sanitizedTitle = sanitizeForFileName(test.title || 'untitled-test');
             const fileName = `${timestamp}_${sanitizedPrefix}${sanitizedParent ? sanitizedParent + '_' : ''}${sanitizedTitle}.png`
             const filePath = path.resolve(__dirname, SCREENSHOT_FOLDER, fileName)
             
