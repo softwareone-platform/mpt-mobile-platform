@@ -10,15 +10,8 @@ import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const CertificatesScreenContent = () => {
-  const {
-    certificates,
-    isCertificatesLoading,
-    isCertificatesError,
-    isCertificatesFetchingNext,
-    hasMoreCertificates,
-    isUnauthorised,
-    fetchCertificatesNextPage,
-  } = useCertificates();
+  const { items, isLoading, isError, isFetchingNext, hasMore, isUnauthorised, fetchNextPage } =
+    useCertificates();
 
   const { t } = useTranslation();
 
@@ -26,9 +19,9 @@ const CertificatesScreenContent = () => {
 
   return (
     <StatusMessage
-      isLoading={isCertificatesLoading}
-      isError={!!isCertificatesError}
-      isEmpty={certificates.length === 0}
+      isLoading={isLoading}
+      isError={!!isError}
+      isEmpty={items.length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.CERTIFICATES_LOADING_INDICATOR}
       errorTestId={TestIDs.CERTIFICATES_ERROR_STATE}
@@ -37,10 +30,10 @@ const CertificatesScreenContent = () => {
       emptyDescription={t('certificatesScreen.emptyStateDescription')}
     >
       <ListView
-        data={certificates}
-        isFetchingNext={isCertificatesFetchingNext}
-        hasMore={hasMoreCertificates}
-        fetchNext={fetchCertificatesNextPage}
+        data={items}
+        isFetchingNext={isFetchingNext}
+        hasMore={hasMore}
+        fetchNext={fetchNextPage}
         config={listItemConfigNoImage}
         onItemPress={(id) => {
           navigation.navigate('certificateDetails', { id });
