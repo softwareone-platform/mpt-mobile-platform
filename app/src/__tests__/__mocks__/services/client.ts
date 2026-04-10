@@ -7,26 +7,26 @@ export const mockClientItem1 = {
   id: mockClientId1,
   name: 'Acme Client Corp',
   status: 'Active',
-  icon: 'https://example.com/acme-icon.png',
+  icon: '/v1/accounts/accounts/ACC-1234-5678-0001/icon',
 };
 
 export const mockClientItem2 = {
   id: mockClientId2,
   name: 'Beta Client Inc',
   status: 'Active',
-  icon: 'https://example.com/beta-icon.png',
+  icon: '/v1/accounts/accounts/ACC-1234-5678-0002/icon',
 };
 
 export const mockClientItem3 = {
   id: mockClientId3,
   name: 'Another Licensee Corp',
   status: 'Active',
-  icon: '/path/to/premium-icon.png',
+  icon: '/v1/accounts/accounts/ACC-1234-5678-0003/icon',
 };
 
 export const mockClientItem4 = {
   id: mockClientId4,
   name: 'Fourth Client Inc',
   status: 'Enabled',
-  icon: '/path/to/standard-icon.png',
+  icon: '/v1/accounts/accounts/ACC-1234-5678-0004/icon',
 };

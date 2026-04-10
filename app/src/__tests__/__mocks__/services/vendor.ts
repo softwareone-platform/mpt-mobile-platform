@@ -7,26 +7,26 @@ export const mockVendorItem1 = {
   id: mockVendorId1,
   name: 'Alpha Vendor Ltd',
   status: 'Active',
-  icon: 'https://example.com/alpha-icon.png',
+  icon: '/v1/accounts/accounts/ACC-9876-5432-0001/icon',
 };
 
 export const mockVendorItem2 = {
   id: mockVendorId2,
   name: 'Beta Vendor Corp',
   status: 'Inactive',
-  icon: 'https://example.com/omega-icon.png',
+  icon: '/v1/accounts/accounts/ACC-9876-5432-0002/icon',
 };
 
 export const mockVendorItem3 = {
   id: mockVendorId3,
   name: 'Third Vendor Corp',
   status: 'Active',
-  icon: 'https://example.com/third-icon.png',
+  icon: '/v1/accounts/accounts/ACC-9876-5432-0003/icon',
 };
 
 export const mockVendorItem4 = {
   id: mockVendorId4,
   name: 'Ahother Test Vendor Corp',
   status: 'Enabled',
-  icon: 'https://example.com/icon4.png',
+  icon: '/v1/accounts/accounts/ACC-9876-5432-0004/icon',
 };
