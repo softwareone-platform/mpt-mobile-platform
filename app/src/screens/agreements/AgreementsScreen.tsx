@@ -9,7 +9,7 @@ import { useAgreements, AgreementsProvider } from '@/context/AgreementsContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type AgreementsScreenRouteProp = RouteProp<RootStackParamList, 'enrollments'>;
+type AgreementsScreenRouteProp = RouteProp<RootStackParamList, 'agreements'>;
 
 const AgreementsScreenContent = () => {
   const {
