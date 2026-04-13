@@ -2,12 +2,13 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import Tabs, { TabData } from '@/components/tabs/Tabs';
+import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { useAccount } from '@/context/AccountContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { cardStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
@@ -25,7 +26,14 @@ const ProfileScreen = () => {
   const [selectedTab, setSelectedTab] =
     useState<keyof FormattedUserAccounts>(DEFAULT_ACCOUNT_FILTER);
 
-  const { userData, userAccountsData, switchAccount } = useAccount();
+  const {
+    userData,
+    userAccountsData,
+    switchAccount,
+    accountsFetchingNext,
+    hasMoreAccounts,
+    fetchNextAccounts,
+  } = useAccount();
   const { isEnabled } = useFeatureFlags();
 
   const lastUserDataRef = useRef(userData);
@@ -118,20 +126,34 @@ const ProfileScreen = () => {
               />
             </View>
           ) : (
-            accountsToDisplay.map((account, index) => (
-              <ListItemWithImage
-                key={account.id}
-                testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${account.id}`}
-                id={account.id}
-                imagePath={account.icon}
-                title={account.name}
-                subtitle={account.id}
-                isLast={index === accountsToDisplay.length - 1}
-                isSelected={account.id === selectedAccountId}
-                isUpdatingSelection={isSwitching && account.id === selectedAccountId}
-                onPress={() => handleSwitchAccount(account.id)}
-              />
-            ))
+            <FlatList
+              data={accountsToDisplay}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              renderItem={({ item, index }) => (
+                <ListItemWithImage
+                  key={item.id}
+                  testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${item.id}`}
+                  id={item.id}
+                  imagePath={item.icon}
+                  title={item.name}
+                  subtitle={item.id}
+                  isLast={index === accountsToDisplay.length - 1}
+                  isSelected={item.id === selectedAccountId}
+                  isUpdatingSelection={isSwitching && item.id === selectedAccountId}
+                  onPress={() => handleSwitchAccount(item.id)}
+                />
+              )}
+              onEndReached={() => {
+                if (selectedTab === 'all' && hasMoreAccounts && !accountsFetchingNext) {
+                  fetchNextAccounts();
+                }
+              }}
+              onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
+              ListFooterComponent={
+                selectedTab === 'all' && accountsFetchingNext ? <ActivityIndicator /> : null
+              }
+            />
           )}
         </View>
       </View>
