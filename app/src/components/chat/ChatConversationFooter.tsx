@@ -16,14 +16,6 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
 
   return (
     <View style={styles.inputContainer}>
-      <View style={styles.iconContainer}>
-        <OutlinedIcon
-          name={'attach-file' as keyof typeof OutlinedIcons}
-          color={Color.brand.primary}
-          size={24}
-        />
-      </View>
-
       <View style={styles.textInputWrapper}>
         <TextInput
           placeholder={t('chat.messageInputPlaceholder')}
@@ -55,7 +47,6 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
 
 const styles = StyleSheet.create({
   textInputWrapper: chatStyle.textInputWrapper,
-  iconContainer: chatStyle.iconContainer,
   inputContainer: chatStyle.inputContainer,
   input: {
     ...inputStyle.container,

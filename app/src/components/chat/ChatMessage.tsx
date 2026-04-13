@@ -4,7 +4,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import ChatMessageContent from '@/components/chat/ChatMessageContent';
 import ChatMessageLinkPreview from '@/components/chat/ChatMessageLinkPreview';
-import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { chatMessageStyle } from '@/styles/components';
 import type { Message, MessageType } from '@/types/chat';
 import { formatDateForChat, getLocalTime } from '@/utils/formatting';
@@ -62,11 +61,6 @@ const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
           {!isOwn && <Text style={styles.infoText}>{senderName}</Text>}
           {messageDate !== messageTime && <Text style={styles.infoText}>{messageDate}</Text>}
           <Text style={styles.infoText}>{messageTime}</Text>
-          <Text>
-            {isOwn && (
-              <OutlinedIcon name="more-horiz" size={16} color={chatMessageStyle.iconColor} />
-            )}
-          </Text>
         </View>
         {/* TODO: add sending indicator (message._optimistic) and failed state with retry (message._failed) */}
         <View style={styles.textContainer}>
