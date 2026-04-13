@@ -4,9 +4,13 @@ import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 
 import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import GroupAvatar from '@/components/avatar/GroupAvatar';
-import { listItemStyle, listItemChatStyle, linkStyle, Color } from '@/styles';
+import OutlinedIcon from '@/components/common/OutlinedIcon';
+import { DEFAULT_CHAT_AVTAR_SIZE } from '@/constants/icons';
+import { listItemStyle, listItemChatStyle, linkStyle, Color, iconStyle, Spacing } from '@/styles';
 import type { ListItemChatProps } from '@/types/chat';
 import { stripMarkdown } from '@/utils/chat';
+
+const HELPDESK_ICON_SIZE = DEFAULT_CHAT_AVTAR_SIZE - 2 * Spacing.spacingSmall10;
 
 const ListItemChat = ({
   id,
@@ -51,6 +55,10 @@ const ListItemChat = ({
             }}
             variant="medium"
           />
+        ) : type === 'Case' ? (
+          <View style={styles.helpdeskAvatar}>
+            <OutlinedIcon name="headset-mic" size={HELPDESK_ICON_SIZE} color={iconStyle.iconColorPrimary} />
+          </View>
         ) : (
           <GroupAvatar avatars={avatars || []} />
         )}
@@ -96,6 +104,13 @@ const styles = StyleSheet.create({
   container: {
     ...listItemStyle.container,
     ...listItemStyle.listItemDynamic.container,
+  },
+  helpdeskAvatar: {
+    ...iconStyle.backgroundContainer,
+    width: DEFAULT_CHAT_AVTAR_SIZE,
+    height: DEFAULT_CHAT_AVTAR_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   lastItem: listItemStyle.lastItem,
   firstItemDynamic: listItemStyle.listItemDynamic.firstItem,
