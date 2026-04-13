@@ -106,6 +106,13 @@ export type ListItemChatProps = ListItemCommonProps & {
   isVerified: boolean;
 };
 
+export type CaseItem = {
+  id: string;
+  chat: {
+    id: string;
+  };
+};
+
 export interface MessageLink {
   id: string;
   name: string;

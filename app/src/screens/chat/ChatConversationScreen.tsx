@@ -8,21 +8,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  View,
 } from 'react-native';
 
 import ChatConversationFooter from '@/components/chat/ChatConversationFooter';
 import ChatMessage from '@/components/chat/ChatMessage';
 import StatusMessage from '@/components/common/EmptyStateHelper';
+import OutlinedIcon from '@/components/common/OutlinedIcon';
 import DetailsHeader from '@/components/details/DetailsHeader';
 import { EMPTY_VALUE } from '@/constants/common';
+import { HELPDESK_AVATAR_SIZE, HELPDESK_ICON_SIZE } from '@/constants/icons';
 import { useAccount } from '@/context/AccountContext';
 import { useMessages, MessagesProvider } from '@/context/MessagesContext';
+import { useCaseData } from '@/hooks/queries/useCaseData';
 import { useChatData } from '@/hooks/queries/useChatData';
 import { useMarkAsRead } from '@/hooks/useMarkAsRead';
 import { useMyParticipant } from '@/hooks/useMyParticipant';
 import { useSendMessage } from '@/hooks/useSendMessage';
 import { useParticipantApi } from '@/services/participantService';
-import { screenStyle } from '@/styles';
+import { screenStyle, iconStyle } from '@/styles';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { mapToChatListItemProps } from '@/utils/chat';
@@ -55,6 +59,7 @@ const ChatConversationScreenContent = () => {
   } = useMessages();
 
   const { data: chatData } = useChatData(chatId);
+  const { data: caseData } = useCaseData(chatId, chatData?.type === 'Case');
   const myParticipant = useMyParticipant(chatData, currentUserId);
   const { saveParticipant } = useParticipantApi(chatId ?? '');
 
@@ -148,11 +153,24 @@ const ChatConversationScreenContent = () => {
       <DetailsHeader
         id={otherParticipant?.identity.id ?? chatId ?? ''}
         title={chatProps?.title ?? EMPTY_VALUE}
-        subtitle={chatId ?? ''}
+        subtitle={
+          chatData?.type === 'Case' && caseData?.id ? `${chatId} | ${caseData.id}` : (chatId ?? '')
+        }
         statusText=""
         imagePath={otherParticipant?.identity.icon ?? ''}
         avatars={chatProps?.avatars}
         variant="chat"
+        customAvatar={
+          chatData?.type === 'Case' ? (
+            <View style={styles.helpdeskAvatar}>
+              <OutlinedIcon
+                name="headset-mic"
+                size={HELPDESK_ICON_SIZE}
+                color={iconStyle.iconColorPrimary}
+              />
+            </View>
+          ) : undefined
+        }
       />
       <StatusMessage
         isLoading={messagesLoading}
@@ -213,6 +231,13 @@ const styles = StyleSheet.create({
   },
   invisible: {
     opacity: 0,
+  },
+  helpdeskAvatar: {
+    ...iconStyle.backgroundContainer,
+    width: HELPDESK_AVATAR_SIZE,
+    height: HELPDESK_AVATAR_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
