@@ -171,14 +171,14 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         name: 'certificates',
         icon: 'workspace-premium',
         component: CertificatesScreen,
-        modules: ['catalog-management'],
+        modules: ['new-marketplace'],
         roles: ['Client'],
       },
       {
         name: 'certificates',
         icon: 'workspace-premium',
         component: CertificatesScreen,
-        modules: ['new-marketplace'],
+        modules: ['catalog-management'],
         roles: ['Vendor', 'Operations'],
       },
       {
