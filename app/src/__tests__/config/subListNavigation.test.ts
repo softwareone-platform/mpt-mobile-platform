@@ -10,7 +10,7 @@ describe('subListsNavigation (queries only)', () => {
       expect(result).toHaveLength(3);
 
       expect(result.map((item) => item.query)).toEqual([
-        `&agreement.id="${id}"&filter(group.buyers)`,
+        `&eq(agreement.id,"${id}")&filter(group.buyers)`,
         `&eq(agreement.id,"${id}")&order=-audit.created.at`,
         `&eq(agreement.id,"${id}")&order=-audit.created.at`,
       ]);
