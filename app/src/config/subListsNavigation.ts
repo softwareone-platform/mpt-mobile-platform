@@ -7,7 +7,7 @@ export const getAgreementsSubList = (id: string): SubListItem[] => {
     {
       name: 'subscriptions',
       roles: ['Client', 'Operations'],
-      query: `&agreement.id="${id}"&filter(group.buyers)`,
+      query: `&eq(agreement.id,"${id}")&filter(group.buyers)`,
     },
     {
       name: 'invoices',

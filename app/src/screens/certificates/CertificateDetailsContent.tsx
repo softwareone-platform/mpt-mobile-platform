@@ -111,7 +111,6 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
               title={t(`navigation.tabs.${item.name}`)}
               isLast={index === filteredSubList.length - 1}
               onPress={() => {
-                // const query = formatQueryWithId(item.query, data.id);
                 navigateToSubListItem(item);
               }}
             />
