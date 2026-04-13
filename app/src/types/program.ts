@@ -39,6 +39,7 @@ export interface EnrollmentDetails extends Enrollment {
 }
 
 export interface CertificateDetails extends DetailsListItemValue {
+  id: string;
   program?: DetailsListItemValue;
   vendor?: DetailsListItemValue;
   buyer?: DetailsListItemValue;

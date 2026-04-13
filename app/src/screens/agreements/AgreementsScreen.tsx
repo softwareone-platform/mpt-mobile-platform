@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,8 @@ import { listItemConfigNoImage } from '@/config/list';
 import { useAgreements, AgreementsProvider } from '@/context/AgreementsContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type AgreementsScreenRouteProp = RouteProp<RootStackParamList, 'enrollments'>;
 
 const AgreementsScreenContent = () => {
   const {
@@ -52,10 +54,16 @@ const AgreementsScreenContent = () => {
   );
 };
 
-const AgreementsScreen = () => (
-  <AgreementsProvider>
-    <AgreementsScreenContent />
-  </AgreementsProvider>
-);
+const AgreementsScreen = () => {
+  const route = useRoute<AgreementsScreenRouteProp>();
+
+  const query = route.params?.query;
+
+  return (
+    <AgreementsProvider query={query}>
+      <AgreementsScreenContent />
+    </AgreementsProvider>
+  );
+};
 
 export default AgreementsScreen;
