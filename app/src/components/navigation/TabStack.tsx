@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 
 import AccountToolbarButton from './AccountToolbarButton';
-import ChatMoreButton from './ChatMoreButton';
 import CreateChatButton from './CreateChatButton';
 import SecondaryTabs from './SecondaryTabs';
 
@@ -57,9 +56,6 @@ const TabStack = ({ tab }: { tab: MainTabItem }) => {
               component={item.component}
               options={{
                 title: t(`navigation.tabs.${item.name}`),
-                ...(isChatTab && {
-                  headerRight: () => <ChatMoreButton />,
-                }),
               }}
             />
           ),

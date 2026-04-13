@@ -7,6 +7,14 @@
     "emptyStateTitle": "No buyer details",
     "emptyStateDescription": "No buyer details found."
   },
+  "clientsScreen": {
+    "emptyStateTitle": "No clients",
+    "emptyStateDescription": "No clients found."
+  },
+  "vendorsScreen": {
+    "emptyStateTitle": "No vendors",
+    "emptyStateDescription": "No vendors found."
+  },
   "sellerDetailsScreen": {
     "emptyStateTitle": "No seller details",
     "emptyStateDescription": "No seller details found."

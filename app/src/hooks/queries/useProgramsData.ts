@@ -1,7 +1,8 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
+import { useCertificateApi } from '@/services/certificateService';
 import { useEnrollmentApi } from '@/services/enrollmentService';
 import { useProgramApi } from '@/services/programService';
-import type { ListItemFull, ListItemNoImageNoSubtitle } from '@/types/api';
+import type { ListItemFull, ListItemNoImage, ListItemNoImageNoSubtitle } from '@/types/api';
 
 export const useProgramsData = (
   userId: string | undefined,
@@ -26,6 +27,19 @@ export const useEnrollmentsData = (
   return usePaginatedQuery<ListItemNoImageNoSubtitle>({
     queryKey: ['enrollments', userId, currentAccountId, query],
     queryFn: (offset, limit) => getEnrollments(offset, limit, query),
+    enabled: !!userId && !!currentAccountId,
+  });
+};
+
+export const useCertificatesData = (
+  userId: string | undefined,
+  currentAccountId: string | undefined,
+) => {
+  const { getCertificates } = useCertificateApi();
+
+  return usePaginatedQuery<ListItemNoImage>({
+    queryKey: ['certificates', userId, currentAccountId],
+    queryFn: (offset, limit) => getCertificates(offset, limit),
     enabled: !!userId && !!currentAccountId,
   });
 };
