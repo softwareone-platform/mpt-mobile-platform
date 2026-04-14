@@ -156,6 +156,51 @@ function uploadAAB(token, editId, aabPath) {
 
 // ── Commands ───────────────────────────────────────────────────────────────────
 
+async function runEditFlow(token, aabPath, releaseStatus) {
+  // Create edit
+  process.stderr.write('Creating edit...\n');
+  const edit = await apiRequest(token, 'POST', `${BASE}/edits`, JSON.stringify({ expiryTimeSeconds: '600' }));
+  const editId = edit.id;
+  process.stderr.write(`Edit created: ${editId}\n`);
+
+  try {
+    // Upload AAB
+    const bundle = await uploadAAB(token, editId, aabPath);
+    const versionCode = bundle.versionCode;
+    process.stderr.write(`Bundle uploaded: versionCode ${versionCode}, sha256 ${bundle.sha256 || 'n/a'}\n`);
+
+    // Assign to track
+    process.stderr.write(`Assigning to ${track} track (status: ${releaseStatus})...\n`);
+    await apiRequest(
+      token,
+      'PUT',
+      `${BASE}/edits/${editId}/tracks/${track}`,
+      JSON.stringify({
+        track,
+        releases: [{ versionCodes: [versionCode.toString()], status: releaseStatus }],
+      }),
+    );
+    process.stderr.write(`Assigned to ${track} track\n`);
+
+    // Commit edit
+    process.stderr.write('Committing edit...\n');
+    const committed = await apiRequest(token, 'POST', `${BASE}/edits/${editId}:commit`);
+    process.stderr.write(`Edit committed: ${committed.id || editId}\n`);
+
+    return versionCode;
+  } catch (err) {
+    // Clean up the edit on failure
+    process.stderr.write(`Error during edit — deleting edit ${editId}...\n`);
+    try {
+      await apiRequest(token, 'DELETE', `${BASE}/edits/${editId}`);
+      process.stderr.write('Edit deleted\n');
+    } catch {
+      process.stderr.write('Could not delete edit (may expire automatically)\n');
+    }
+    throw err;
+  }
+}
+
 async function cmdUpload(aabPath) {
   if (!fs.existsSync(aabPath)) {
     throw new Error(`AAB file not found: ${aabPath}`);
@@ -165,76 +210,26 @@ async function cmdUpload(aabPath) {
   process.stderr.write(`Track:   ${track}\n`);
   process.stderr.write(`AAB:     ${aabPath}\n\n`);
 
-  // Step 1 — Authenticate
   process.stderr.write('Authenticating with Google Play...\n');
   const token = await getAccessToken();
-  process.stderr.write('Authenticated\n');
+  process.stderr.write('Authenticated\n\n');
 
-  // Step 2 — Create edit
-  process.stderr.write('Creating edit...\n');
-  const edit = await apiRequest(token, 'POST', `${BASE}/edits`, JSON.stringify({ expiryTimeSeconds: '600' }));
-  const editId = edit.id;
-  process.stderr.write(`Edit created: ${editId}\n`);
-
+  let versionCode;
   try {
-    // Step 3 — Upload AAB
-    const bundle = await uploadAAB(token, editId, aabPath);
-    const versionCode = bundle.versionCode;
-    process.stderr.write(`Bundle uploaded: versionCode ${versionCode}, sha256 ${bundle.sha256 || 'n/a'}\n`);
-
-    // Step 4 — Assign to track
-    // Try 'completed' first; fall back to 'draft' for apps still in draft state
-    // (Google Play requires org verification before allowing completed releases)
-    let releaseStatus = 'completed';
-    process.stderr.write(`Assigning to ${track} track (status: ${releaseStatus})...\n`);
-    try {
-      await apiRequest(
-        token,
-        'PUT',
-        `${BASE}/edits/${editId}/tracks/${track}`,
-        JSON.stringify({
-          track,
-          releases: [{ versionCodes: [versionCode.toString()], status: releaseStatus }],
-        }),
-      );
-    } catch (err) {
-      if (err.message.includes('draft app')) {
-        releaseStatus = 'draft';
-        process.stderr.write(`App is in draft state, retrying with status: ${releaseStatus}...\n`);
-        await apiRequest(
-          token,
-          'PUT',
-          `${BASE}/edits/${editId}/tracks/${track}`,
-          JSON.stringify({
-            track,
-            releases: [{ versionCodes: [versionCode.toString()], status: releaseStatus }],
-          }),
-        );
-      } else {
-        throw err;
-      }
-    }
-    process.stderr.write(`Assigned to ${track} track (status: ${releaseStatus})\n`);
-
-    // Step 5 — Commit edit
-    process.stderr.write('Committing edit...\n');
-    const committed = await apiRequest(token, 'POST', `${BASE}/edits/${editId}:commit`);
-    process.stderr.write(`Edit committed: ${committed.id || editId}\n\n`);
-    process.stderr.write(`Upload complete. Build is now available on the ${track} testing track.\n`);
-
-    // Output the versionCode to stdout for use by the workflow
-    process.stdout.write(versionCode.toString());
+    // Try with 'completed' status first (normal flow for verified apps)
+    versionCode = await runEditFlow(token, aabPath, 'completed');
   } catch (err) {
-    // Attempt to clean up the edit on failure
-    process.stderr.write(`Upload error — attempting to delete edit ${editId}...\n`);
-    try {
-      await apiRequest(token, 'DELETE', `${BASE}/edits/${editId}`);
-      process.stderr.write('Edit deleted\n');
-    } catch {
-      process.stderr.write('Could not delete edit (may expire automatically)\n');
+    if (err.message.includes('draft app')) {
+      // App hasn't passed org verification yet — Google Play only allows draft releases
+      process.stderr.write('\nApp is in draft state (org verification pending). Retrying with draft status...\n\n');
+      versionCode = await runEditFlow(token, aabPath, 'draft');
+    } else {
+      throw err;
     }
-    throw err;
   }
+
+  process.stderr.write(`\nUpload complete. Build is now available on the ${track} testing track.\n`);
+  process.stdout.write(versionCode.toString());
 }
 
 async function cmdStatus() {
