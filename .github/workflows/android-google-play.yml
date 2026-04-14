@@ -232,25 +232,9 @@ jobs:
           echo "Keystore file created ($FILE_SIZE bytes)"
 
       - name: Configure Gradle release signing
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          KEYSTORE_PATH="${{ github.workspace }}/app/android/app/upload-keystore.jks"
-
           # Inject release signing config into the Expo-generated build.gradle
           node ${{ github.workspace }}/.github/scripts/configure-android-signing.js android/app/build.gradle
-
-          # Write signing properties to gradle.properties
-          {
-            echo "UPLOAD_STORE_FILE=${KEYSTORE_PATH}"
-            echo "UPLOAD_STORE_PASSWORD=${KEYSTORE_PASSWORD}"
-            echo "UPLOAD_KEY_ALIAS=${KEY_ALIAS}"
-            echo "UPLOAD_KEY_PASSWORD=${KEY_PASSWORD}"
-          } >> android/gradle.properties
-
-          echo "Gradle signing properties configured"
 
       - name: Make Gradle wrapper executable
         working-directory: ./app/android
@@ -258,9 +242,18 @@ jobs:
 
       - name: Build Android App Bundle (AAB)
         working-directory: ./app/android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          KEYSTORE_PATH="${{ github.workspace }}/app/android/app/upload-keystore.jks"
           echo "Building release AAB..."
-          ./gradlew bundleRelease --no-daemon --stacktrace
+          ./gradlew bundleRelease --no-daemon --stacktrace \
+            -PUPLOAD_STORE_FILE="$KEYSTORE_PATH" \
+            -PUPLOAD_STORE_PASSWORD="$KEYSTORE_PASSWORD" \
+            -PUPLOAD_KEY_ALIAS="$KEY_ALIAS" \
+            -PUPLOAD_KEY_PASSWORD="$KEY_PASSWORD"
           echo "AAB build completed"
 
       - name: Verify AAB artifact
@@ -405,10 +398,6 @@ jobs:
           rm -f /tmp/google-play-sa.json
           rm -f android/app/upload-keystore.jks
           rm -f .env
-          # Scrub signing properties from gradle.properties
-          if [ -f android/gradle.properties ]; then
-            sed -i '/UPLOAD_STORE_/d' android/gradle.properties 2>/dev/null || true
-          fi
 
       - name: Summary
         if: success()
