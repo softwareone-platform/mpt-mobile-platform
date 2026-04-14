@@ -183,22 +183,38 @@ async function cmdUpload(aabPath) {
     process.stderr.write(`Bundle uploaded: versionCode ${versionCode}, sha256 ${bundle.sha256 || 'n/a'}\n`);
 
     // Step 4 — Assign to track
-    process.stderr.write(`Assigning to ${track} track...\n`);
-    await apiRequest(
-      token,
-      'PUT',
-      `${BASE}/edits/${editId}/tracks/${track}`,
-      JSON.stringify({
-        track,
-        releases: [
-          {
-            versionCodes: [versionCode.toString()],
-            status: 'completed',
-          },
-        ],
-      }),
-    );
-    process.stderr.write(`Assigned to ${track} track\n`);
+    // Try 'completed' first; fall back to 'draft' for apps still in draft state
+    // (Google Play requires org verification before allowing completed releases)
+    let releaseStatus = 'completed';
+    process.stderr.write(`Assigning to ${track} track (status: ${releaseStatus})...\n`);
+    try {
+      await apiRequest(
+        token,
+        'PUT',
+        `${BASE}/edits/${editId}/tracks/${track}`,
+        JSON.stringify({
+          track,
+          releases: [{ versionCodes: [versionCode.toString()], status: releaseStatus }],
+        }),
+      );
+    } catch (err) {
+      if (err.message.includes('draft app')) {
+        releaseStatus = 'draft';
+        process.stderr.write(`App is in draft state, retrying with status: ${releaseStatus}...\n`);
+        await apiRequest(
+          token,
+          'PUT',
+          `${BASE}/edits/${editId}/tracks/${track}`,
+          JSON.stringify({
+            track,
+            releases: [{ versionCodes: [versionCode.toString()], status: releaseStatus }],
+          }),
+        );
+      } else {
+        throw err;
+      }
+    }
+    process.stderr.write(`Assigned to ${track} track (status: ${releaseStatus})\n`);
 
     // Step 5 — Commit edit
     process.stderr.write('Committing edit...\n');
