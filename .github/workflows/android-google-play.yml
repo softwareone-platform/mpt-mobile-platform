@@ -240,45 +240,15 @@ jobs:
           KEYSTORE_PATH="${{ github.workspace }}/app/android/app/upload-keystore.jks"
 
           # Inject release signing config into the Expo-generated build.gradle
-          node -e "
-            const fs = require('fs');
-            const gradlePath = 'android/app/build.gradle';
-            let content = fs.readFileSync(gradlePath, 'utf8');
-
-            // Add release signing config inside signingConfigs block
-            const releaseConfig = \`
-        release {
-            if (project.hasProperty('UPLOAD_STORE_FILE')) {
-                storeFile file(UPLOAD_STORE_FILE)
-                storePassword UPLOAD_STORE_PASSWORD
-                keyAlias UPLOAD_KEY_ALIAS
-                keyPassword UPLOAD_KEY_PASSWORD
-            }
-        }\`;
-
-            // Insert after the opening of signingConfigs {
-            content = content.replace(
-              /(signingConfigs\s*\{)/,
-              '\$1' + releaseConfig
-            );
-
-            // Point release buildType to our release signing config
-            content = content.replace(
-              /(buildTypes\s*\{[\s\S]*?release\s*\{[\s\S]*?)signingConfig\s+signingConfigs\.\w+/,
-              '\$1signingConfig signingConfigs.release'
-            );
-
-            fs.writeFileSync(gradlePath, content);
-            console.log('Release signing config injected into build.gradle');
-          "
+          node ${{ github.workspace }}/.github/scripts/configure-android-signing.js android/app/build.gradle
 
           # Write signing properties to gradle.properties
-          cat >> android/gradle.properties << EOF
-          UPLOAD_STORE_FILE=${KEYSTORE_PATH}
-          UPLOAD_STORE_PASSWORD=${KEYSTORE_PASSWORD}
-          UPLOAD_KEY_ALIAS=${KEY_ALIAS}
-          UPLOAD_KEY_PASSWORD=${KEY_PASSWORD}
-          EOF
+          {
+            echo "UPLOAD_STORE_FILE=${KEYSTORE_PATH}"
+            echo "UPLOAD_STORE_PASSWORD=${KEYSTORE_PASSWORD}"
+            echo "UPLOAD_KEY_ALIAS=${KEY_ALIAS}"
+            echo "UPLOAD_KEY_PASSWORD=${KEY_PASSWORD}"
+          } >> android/gradle.properties
 
           echo "Gradle signing properties configured"
 
