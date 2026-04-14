@@ -11,6 +11,7 @@
  *   GOOGLE_PLAY_SA_JSON_PATH  - Path to the service account JSON key file
  *   PACKAGE_NAME              - Android package name (e.g. com.softwareone.marketplaceMobile)
  *   TRACK                     - Target track: internal (default), alpha, beta, production
+ *   RELEASE_NAME              - Release name (e.g. "1.4.1 (30)") — optional
  *
  * Outputs the uploaded versionCode to stdout. Progress/debug messages go to stderr.
  */
@@ -21,6 +22,7 @@ const fs = require('fs');
 const saJsonPath = process.env.GOOGLE_PLAY_SA_JSON_PATH;
 const packageName = process.env.PACKAGE_NAME;
 const track = process.env.TRACK || 'internal';
+const releaseName = process.env.RELEASE_NAME || '';
 
 if (!saJsonPath || !packageName) {
   process.stderr.write('Error: GOOGLE_PLAY_SA_JSON_PATH and PACKAGE_NAME env vars are required\n');
@@ -177,7 +179,11 @@ async function runEditFlow(token, aabPath, releaseStatus) {
       `${BASE}/edits/${editId}/tracks/${track}`,
       JSON.stringify({
         track,
-        releases: [{ versionCodes: [versionCode.toString()], status: releaseStatus }],
+        releases: [{
+          name: releaseName || `${versionCode}`,
+          versionCodes: [versionCode.toString()],
+          status: releaseStatus,
+        }],
       }),
     );
     process.stderr.write(`Assigned to ${track} track\n`);

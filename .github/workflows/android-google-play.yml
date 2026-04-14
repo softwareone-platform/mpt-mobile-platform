@@ -304,6 +304,7 @@ jobs:
           GOOGLE_PLAY_SA_JSON_PATH: /tmp/google-play-sa.json
           PACKAGE_NAME: ${{ vars.APP_BUNDLE_ID }}
           TRACK: internal
+          RELEASE_NAME: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.version_code }})
         run: |
           AAB_PATH="${{ github.workspace }}/app/${{ steps.find_aab.outputs.aab_path }}"
           echo "Uploading AAB to Google Play internal testing track..."
