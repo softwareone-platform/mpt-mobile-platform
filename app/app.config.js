@@ -59,6 +59,7 @@ export default {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: bundleId,
+      versionCode: 29,
     },
     web: {
       favicon: './assets/favicon.png',
