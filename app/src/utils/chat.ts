@@ -8,6 +8,7 @@ import type {
   ChatType,
   ListItemChatProps,
 } from '@/types/chat';
+import type { AccountType } from '@/types/common';
 import { formatDateForChat } from '@/utils/formatting';
 
 const ALLOWED_URI_SCHEMES = ['https:', 'http:'];
@@ -142,9 +143,14 @@ export const mapToChatListItemProps = (
   chat: ChatItem,
   locale: string,
   userId: string,
+  accountType?: AccountType,
 ): ListItemChatProps => {
   const avatars = getAvatarList(chat.participants ?? [], chat.type, userId);
-  const messageLatest = chat.lastMessage?.content ?? EMPTY_STRING;
+  const isLastMessageHidden =
+    chat.lastMessage?.visibility === 'Private' && accountType !== 'Operations';
+  const messageLatest = isLastMessageHidden
+    ? EMPTY_STRING
+    : (chat.lastMessage?.content ?? EMPTY_STRING);
   const dateOfLastMessage = formatDateForChat(chat.lastMessage?.audit?.created?.at, locale);
   const newMessageCounter = getUnreadCount(chat.participants ?? [], userId);
   const companyName = getCompanyName(chat, userId);

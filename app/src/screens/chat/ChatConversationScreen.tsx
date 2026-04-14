@@ -44,6 +44,7 @@ const ChatConversationScreenContent = () => {
   const scrollToBottomOnContentChangeRef = useRef(false);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
+  const accountType = userData?.currentAccount?.type;
 
   const {
     messages,
@@ -62,8 +63,9 @@ const ChatConversationScreenContent = () => {
   const { saveParticipant } = useParticipantApi(chatId ?? '');
 
   const chatProps = useMemo(
-    () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
-    [chatData, i18n.language, currentUserId],
+    () =>
+      chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId, accountType) : null,
+    [chatData, i18n.language, currentUserId, accountType],
   );
 
   const otherParticipant =
@@ -73,8 +75,13 @@ const ChatConversationScreenContent = () => {
 
   const contentFillsScreen = contentHeight > layoutHeight;
 
+  const visibleMessages = useMemo(
+    () => messages.filter((m) => m.visibility !== 'Private' || accountType === 'Operations'),
+    [messages, accountType],
+  );
+
   useEffect(() => {
-    const newest = messages[0];
+    const newest = visibleMessages[0];
     const currentKey = newest?._localKey ?? newest?.id ?? null;
     const previousKey = previousFirstMessageKeyRef.current;
 
@@ -89,7 +96,7 @@ const ChatConversationScreenContent = () => {
     }
 
     previousFirstMessageKeyRef.current = currentKey;
-  }, [messages, contentFillsScreen]);
+  }, [visibleMessages, contentFillsScreen]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -120,8 +127,8 @@ const ChatConversationScreenContent = () => {
   });
 
   const displayMessages = useMemo(
-    () => (contentFillsScreen ? messages : [...messages].reverse()),
-    [messages, contentFillsScreen],
+    () => (contentFillsScreen ? visibleMessages : [...visibleMessages].reverse()),
+    [visibleMessages, contentFillsScreen],
   );
 
   const contentContainerStyle = useMemo(
@@ -131,7 +138,12 @@ const ChatConversationScreenContent = () => {
 
   const renderMessage = useCallback(
     ({ item }: { item: Message }) => (
-      <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
+      <ChatMessage
+        message={item}
+        currentUserId={currentUserId}
+        locale={i18n.language}
+        isPrivate={item.visibility === 'Private'}
+      />
     ),
     [currentUserId, i18n.language],
   );
@@ -163,7 +175,7 @@ const ChatConversationScreenContent = () => {
       <StatusMessage
         isLoading={messagesLoading}
         isError={messagesError}
-        isEmpty={messages.length === 0}
+        isEmpty={visibleMessages.length === 0}
         isUnauthorised={isUnauthorised}
         loadingTestId={TestIDs.CHAT_CONVERSATION_LOADING_INDICATOR}
         errorTestId={TestIDs.CHAT_CONVERSATION_ERROR_STATE}

@@ -1,10 +1,13 @@
+import { OutlinedIcons } from '@assets/icons';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet } from 'react-native';
 
 import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import ChatMessageContent from '@/components/chat/ChatMessageContent';
 import ChatMessageLinkPreview from '@/components/chat/ChatMessageLinkPreview';
-import { chatMessageStyle } from '@/styles/components';
+import OutlinedIcon from '@/components/common/OutlinedIcon';
+import { chatMessageStyle, chatPrivateMessageStyle } from '@/styles/components';
 import type { Message, MessageType } from '@/types/chat';
 import { formatDateForChat, getLocalTime } from '@/utils/formatting';
 
@@ -12,9 +15,11 @@ type ChatMessageProps = {
   message: Message;
   currentUserId: string;
   locale: string;
+  isPrivate?: boolean;
 };
 
-const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
+const ChatMessage = ({ message, currentUserId, locale, isPrivate }: ChatMessageProps) => {
+  const { t } = useTranslation();
   const isOwn = message.identity.id === currentUserId;
   const type: MessageType = isOwn ? 'own' : 'other';
   const messageDate = formatDateForChat(message.audit?.created?.at, locale);
@@ -26,13 +31,22 @@ const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
         /* eslint-disable react-native/no-unused-styles */
         container: chatMessageStyle[type].container,
         messageWrapper: chatMessageStyle[type].messageWrapper,
-        textContainer: chatMessageStyle[type].textContainer,
-        text: chatMessageStyle[type].text,
+        textContainer: isPrivate
+          ? {
+              ...chatMessageStyle[type].textContainer,
+              ...chatPrivateMessageStyle.textContainerOverride,
+            }
+          : chatMessageStyle[type].textContainer,
+        text: isPrivate
+          ? { ...chatMessageStyle[type].text, color: chatMessageStyle.other.text.color }
+          : chatMessageStyle[type].text,
         info: chatMessageStyle[type].info,
         infoText: chatMessageStyle.infoText,
         avatarWrapper: chatMessageStyle.avatarWrapper,
+        privateIndicator: chatPrivateMessageStyle.indicator,
+        privateIndicatorText: chatPrivateMessageStyle.indicatorText,
       }),
-    [type],
+    [type, isPrivate],
   );
 
   const avatarId = message.identity.id;
@@ -66,12 +80,24 @@ const ChatMessage = ({ message, currentUserId, locale }: ChatMessageProps) => {
         <View style={styles.textContainer}>
           <ChatMessageContent
             content={message.content}
-            color={chatMessageStyle[type].textColor}
-            linkColor={chatMessageStyle[type].linkColor}
+            color={isPrivate ? chatMessageStyle.other.textColor : chatMessageStyle[type].textColor}
+            linkColor={
+              isPrivate ? chatMessageStyle.other.linkColor : chatMessageStyle[type].linkColor
+            }
           />
           {message.links.map((link) => (
             <ChatMessageLinkPreview key={link.id} link={link} />
           ))}
+          {isPrivate && (
+            <View style={styles.privateIndicator}>
+              <OutlinedIcon
+                name={'lock' as keyof typeof OutlinedIcons}
+                color={chatPrivateMessageStyle.indicatorIconColor}
+                size={chatPrivateMessageStyle.indicatorIconSize}
+              />
+              <Text style={styles.privateIndicatorText}>{t('chat.privateMessageIndicator')}</Text>
+            </View>
+          )}
         </View>
       </View>
     </View>

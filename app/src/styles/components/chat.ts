@@ -173,6 +173,35 @@ export const chatMarkdownTagStyles: Record<string, MixedStyleDeclaration> = {
   },
 };
 
+export const chatPrivateMessageStyle = {
+  textContainerOverride: {
+    backgroundColor: Color.brand.white,
+    borderWidth: 1,
+    borderColor: Color.alerts.danger4,
+    gap: Spacing.spacingSmall2,
+    paddingBottom: Spacing.spacing2,
+  },
+  indicator: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    alignSelf: 'flex-start' as const,
+    gap: Spacing.spacingSmall6,
+    marginTop: Spacing.spacingSmall2,
+    paddingVertical: Spacing.spacingSmall2,
+    paddingHorizontal: Spacing.spacing1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Color.alerts.danger4,
+    backgroundColor: Color.alerts.danger1,
+  },
+  indicatorText: {
+    fontSize: Typography.fontSize.font2,
+    color: Color.alerts.danger4,
+  },
+  indicatorIconSize: Typography.fontSize.font3,
+  indicatorIconColor: Color.alerts.danger4,
+} as const;
+
 export const chatLinkPreviewStyle = {
   container: {
     flexDirection: 'row',
