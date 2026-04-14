@@ -189,7 +189,7 @@ export const chatPrivateMessageStyle = {
     marginTop: Spacing.spacingSmall2,
     paddingVertical: Spacing.spacingSmall2,
     paddingHorizontal: Spacing.spacing1,
-    borderRadius: 16,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Color.alerts.danger4,
     backgroundColor: Color.alerts.danger1,
