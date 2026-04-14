@@ -41,10 +41,7 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
     fetchNextPage,
   } = useChatsData(userId, currentAccountId);
 
-  const chats = useMemo(
-    () => data?.pages.flatMap((page) => page.data).filter((chat) => chat.type !== 'Case') ?? [],
-    [data],
-  );
+  const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
   useEffect(() => {
     if (data) {
@@ -52,9 +49,6 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
         pageCount: data.pages.length,
         totalChats: chats.length,
       });
-      if (!chats.length) {
-        logger.debug('[ChatsContext] No chats in response');
-      }
     }
   }, [data, chats]);
 

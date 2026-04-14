@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useContext, useCallback, useState, ReactNode } from 'react';
+import { createContext, useContext, useCallback, useState, ReactNode, useMemo } from 'react';
 
+import { MAX_RECENT_ACCOUNTS } from '@/constants/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
 import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
@@ -9,12 +10,16 @@ import { useUserData } from '@/hooks/queries/useUserData';
 import { authService } from '@/services/authService';
 import { logger } from '@/services/loggerService';
 import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
+import { formatUserAccountsData } from '@/utils/account';
 
 interface AccountContextValue {
   userData: UserData | null;
   isUserDataLoading: boolean;
   isUserDataError: boolean;
   userAccountsData: FormattedUserAccounts;
+  accountsFetchingNext: boolean;
+  hasMoreAccounts: boolean;
+  fetchNextAccounts: () => void;
   spotlightData: Record<string, SpotlightItem[]>;
   isSpotlightError: boolean;
   isSpotlightDataLoading: boolean;
@@ -52,8 +57,17 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const isSpotlightLoading =
     isUserDataLoading || isSpotlightDataLoading || fetchStatus === 'fetching';
 
-  const { data: userAccountsData = { all: [], favourites: [], recent: [] } } =
-    useUserAccountsData(userId);
+  const {
+    data: userAccountsPages,
+    isFetchingNextPage: accountsFetchingNext,
+    hasNextPage: hasMoreAccounts,
+    fetchNextPage: fetchNextAccounts,
+  } = useUserAccountsData(userId);
+
+  const userAccountsData = useMemo(() => {
+    const allAccounts = userAccountsPages?.pages?.flatMap((page) => page.data ?? []) ?? [];
+    return formatUserAccountsData(allAccounts, MAX_RECENT_ACCOUNTS);
+  }, [userAccountsPages]);
 
   const switchAccountMutation = useSwitchAccount(userId);
   const queryClient = useQueryClient();
@@ -93,6 +107,9 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         isUserDataLoading,
         isUserDataError,
         userAccountsData,
+        accountsFetchingNext,
+        hasMoreAccounts: hasMoreAccounts ?? false,
+        fetchNextAccounts,
         spotlightData,
         isSpotlightError,
         isSpotlightDataLoading: isSpotlightLoading,

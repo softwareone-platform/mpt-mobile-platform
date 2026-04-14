@@ -98,6 +98,10 @@ export const getChatTitle = (chat: ChatItem, userId: string): string => {
     return EMPTY_STRING;
   }
 
+  if (chat.type === 'Case') {
+    return chat.name ?? EMPTY_STRING;
+  }
+
   const otherParticipant = chat.participants?.find((p) => p.identity.id !== userId);
   return otherParticipant?.contact?.name ?? otherParticipant?.identity?.name ?? EMPTY_STRING;
 };
