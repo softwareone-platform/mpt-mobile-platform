@@ -1,48 +1,55 @@
-import { getAgreementsSubList, getCertificatesSubList } from '@/config/subListsNavigation';
+import {
+  getAgreementSubList,
+  getCertificateSubList,
+  getAccountSubList,
+} from '@/config/subListsNavigation';
 
-describe('subListsNavigation (queries only)', () => {
+describe('subListsNavigation (queries)', () => {
   const id = 'TEST-ID-123';
 
-  describe('getAgreementsSubList', () => {
+  describe('getAgreementSubList', () => {
     it('generates correct queries', () => {
-      const result = getAgreementsSubList(id);
+      const result = getAgreementSubList(id);
 
-      expect(result).toHaveLength(3);
-
-      expect(result.map((item) => item.query)).toEqual([
+      expect(result.find((i) => i.name === 'subscriptions')?.query).toBe(
         `&eq(agreement.id,"${id}")&filter(group.buyers)`,
-        `&eq(agreement.id,"${id}")&order=-audit.created.at`,
-        `&eq(agreement.id,"${id}")&order=-audit.created.at`,
-      ]);
-    });
+      );
 
-    it('injects id into all queries', () => {
-      const result = getAgreementsSubList(id);
+      expect(result.find((i) => i.name === 'invoices')?.query).toBe(
+        `&eq(agreement.id,"${id}")&order=-audit.created.at`,
+      );
 
-      result.forEach((item) => {
-        expect(item.query).toContain(`"${id}"`);
-      });
+      expect(result.find((i) => i.name === 'statements')?.query).toBe(
+        `&eq(agreement.id,"${id}")&order=-audit.created.at`,
+      );
     });
   });
 
-  describe('getCertificatesSubList', () => {
+  describe('getCertificateSubList', () => {
     it('generates correct queries', () => {
-      const result = getCertificatesSubList(id);
+      const result = getCertificateSubList(id);
 
-      expect(result).toHaveLength(2);
-
-      expect(result.map((item) => item.query)).toEqual([
+      expect(result.find((i) => i.name === 'enrollments')?.query).toBe(
         `&and(eq(certificate.id,"${id}"),ne(status,"Deleted"))`,
+      );
+
+      expect(result.find((i) => i.name === 'agreements')?.query).toBe(
         `&any(certificates,eq(id, "${id}"))`,
-      ]);
+      );
     });
+  });
 
-    it('injects id into all queries', () => {
-      const result = getCertificatesSubList(id);
+  describe('getAccountSubList', () => {
+    it('generates correct queries', () => {
+      const result = getAccountSubList(id);
 
-      result.forEach((item) => {
-        expect(item.query).toContain(`"${id}"`);
-      });
+      expect(result.find((i) => i.name === 'buyers')?.query).toBe(
+        `&and(ne(status,"Deleted"),eq(account.id,"${id}"))&order=name`,
+      );
+
+      expect(result.find((i) => i.name === 'licensees')?.query).toBe(
+        `&eq(account.id,"${id}")&order=name`,
+      );
     });
   });
 });
