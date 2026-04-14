@@ -1,6 +1,6 @@
 import type { SubListItem } from '@/types/navigation';
 
-export const getAgreementsSubList = (id: string): SubListItem[] => {
+export const getAgreementSubList = (id: string): SubListItem[] => {
   const defaultQuery = `&eq(agreement.id,"${id}")&order=-audit.created.at`;
 
   return [
@@ -22,7 +22,7 @@ export const getAgreementsSubList = (id: string): SubListItem[] => {
   ];
 };
 
-export const getCertificatesSubList = (id: string): SubListItem[] => {
+export const getCertificateSubList = (id: string): SubListItem[] => {
   return [
     {
       name: 'enrollments',
@@ -33,6 +33,21 @@ export const getCertificatesSubList = (id: string): SubListItem[] => {
       name: 'agreements',
       roles: ['Client', 'Operations'],
       query: `&any(certificates,eq(id, "${id}"))`,
+    },
+  ];
+};
+
+export const getAccountSubList = (id: string): SubListItem[] => {
+  return [
+    {
+      name: 'buyers',
+      roles: ['Client', 'Operations'],
+      query: `&and(ne(status,"Deleted"),eq(account.id,"${id}"))&order=name`,
+    },
+    {
+      name: 'licensees',
+      roles: ['Client', 'Operations'],
+      query: `&eq(account.id,"${id}")&order=name`,
     },
   ];
 };
