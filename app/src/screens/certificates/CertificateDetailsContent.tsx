@@ -7,7 +7,7 @@ import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import NavigationItem from '@/components/navigation-item/NavigationItem';
-import { getCertificatesSubList } from '@/config/subListsNavigation';
+import { getCertificateSubList } from '@/config/subListsNavigation';
 import { useAccountType } from '@/hooks/useAccountType';
 import { useSubListNavigation } from '@/hooks/useSubListNavigation';
 import type { AccountType } from '@/types/common';
@@ -31,7 +31,7 @@ const CertificateDetailsContent = ({ data }: { data: CertificateDetails }) => {
 
   const expiration = formatDateForLocale(data?.expirationDate, language) || undefined;
 
-  const filteredSubList = getCertificatesSubList(data.id).filter((item) =>
+  const filteredSubList = getCertificateSubList(data.id).filter((item) =>
     item.roles.includes(accountType as AccountType),
   );
 
