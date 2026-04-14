@@ -29,6 +29,10 @@ env:
   NODE_VERSION: '20'
   JAVA_VERSION: '17'
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   deploy-google-play:
     name: Build and Deploy to Google Play
