@@ -49,5 +49,11 @@ export const getAccountSubList = (id: string): SubListItem[] => {
       roles: ['Client', 'Operations'],
       query: `&eq(account.id,"${id}")&order=name`,
     },
+    {
+      name: 'users',
+      roles: ['Client', 'Vendor', 'Operations'],
+      query: '&order=name',
+      accountId: id,
+    },
   ];
 };

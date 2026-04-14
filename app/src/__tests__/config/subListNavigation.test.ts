@@ -50,6 +50,9 @@ describe('subListsNavigation (queries)', () => {
       expect(result.find((i) => i.name === 'licensees')?.query).toBe(
         `&eq(account.id,"${id}")&order=name`,
       );
+
+      expect(result.find((i) => i.name === 'users')?.query).toBe('&order=name');
+      expect(result.find((i) => i.name === 'users')?.accountId).toBe(id);
     });
   });
 });

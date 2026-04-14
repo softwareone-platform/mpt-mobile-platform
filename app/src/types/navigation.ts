@@ -3,7 +3,7 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 import { AccountType } from '@/types/common';
 import { ModuleName } from '@/types/modules';
 
-type ScreenParams = { query?: string } | undefined;
+type ScreenParams = { query?: string; accountId?: string } | undefined;
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -162,4 +162,5 @@ export interface SubListItem {
   name: MainTabRouteName | SecondaryTabRouteName;
   roles: AccountType[];
   query: string;
+  accountId?: string;
 }

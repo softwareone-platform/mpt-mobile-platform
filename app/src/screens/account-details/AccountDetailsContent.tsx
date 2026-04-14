@@ -13,11 +13,14 @@ import type { AccountType } from '@/types/common';
 
 const AccountDetailsContent = ({ data }: { data: AccountDetails }) => {
   const { t } = useTranslation();
-  const { accountType } = useAccountType();
   const { navigateToSubListItem } = useSubListNavigation();
+  const { accountType } = useAccountType();
+  const screenAccountType = data.type;
 
-  const filteredSubList = getAccountSubList(data.id).filter((item) =>
-    item.roles.includes(accountType as AccountType),
+  const filteredSubList = getAccountSubList(data.id).filter(
+    (item) =>
+      item.roles.includes(accountType as AccountType) &&
+      item.roles.includes(screenAccountType as AccountType),
   );
 
   return (
