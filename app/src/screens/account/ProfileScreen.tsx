@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
@@ -12,13 +12,15 @@ import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { useAccount } from '@/context/AccountContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { cardStyle, listItemStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
-import { FormattedUserAccounts } from '@/types/api';
+import { FormattedUserAccounts, UserAccount } from '@/types/api';
 import type { ProfileStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
 export const DEFAULT_ACCOUNT_FILTER = 'all';
+
+const FILTER_KEYS: (keyof FormattedUserAccounts)[] = ['all', 'favourites', 'recent'];
 
 const ProfileScreen = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -48,13 +50,19 @@ const ProfileScreen = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { t } = useTranslation();
 
-  const accountsToDisplay = userAccountsData[selectedTab] || [];
-  const filterKeys = ['all', 'favourites', 'recent'] as (keyof FormattedUserAccounts)[];
+  const accountsToDisplay = useMemo(
+    () => userAccountsData[selectedTab] || [],
+    [userAccountsData, selectedTab],
+  );
 
-  const tabData: TabData[] = filterKeys.map((key) => ({
-    label: t(`profileScreen.tabs.${key}`),
-    value: key,
-  }));
+  const tabData: TabData[] = useMemo(
+    () =>
+      FILTER_KEYS.map((key) => ({
+        label: t(`profileScreen.tabs.${key}`),
+        value: key,
+      })),
+    [t],
+  );
 
   useEffect(() => {
     if (userData?.currentAccount?.id) {
@@ -62,68 +70,77 @@ const ProfileScreen = () => {
     }
   }, [userData]);
 
-  const handleSwitchAccount = async (accountId: string) => {
-    if (accountId === selectedAccountId) return;
+  const handleSwitchAccount = useCallback(
+    async (accountId: string) => {
+      if (accountId === selectedAccountId) return;
 
-    setIsSwitching(true);
-    setSelectedAccountId(accountId);
-    try {
-      await switchAccount(accountId);
-    } finally {
-      setIsSwitching(false);
-    }
-  };
+      setIsSwitching(true);
+      setSelectedAccountId(accountId);
+      try {
+        await switchAccount(accountId);
+      } finally {
+        setIsSwitching(false);
+      }
+    },
+    [selectedAccountId, switchAccount],
+  );
 
-  const listHeader = (
-    <View>
-      <Text testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE} style={styles.sectionHeader}>
-        {t('profileScreen.yourProfile')}
-      </Text>
-      <View style={styles.containerCard}>
-        {displayUserData && (
-          <NavigationItemWithImage
-            testID={TestIDs.PROFILE_USER_ITEM}
-            id={displayUserData.id}
-            imagePath={displayUserData.icon}
-            title={displayUserData.name}
-            subtitle={displayUserData.id}
-            isLast={true}
-            onPress={() =>
-              navigation.navigate('userSettings', {
-                id: displayUserData.id,
-                name: displayUserData.name,
-                icon: displayUserData.icon,
-              })
-            }
+  const listHeader = useMemo(
+    () => (
+      <View>
+        <Text testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE} style={styles.sectionHeader}>
+          {t('profileScreen.yourProfile')}
+        </Text>
+        <View style={styles.containerCard}>
+          {displayUserData && (
+            <NavigationItemWithImage
+              testID={TestIDs.PROFILE_USER_ITEM}
+              id={displayUserData.id}
+              imagePath={displayUserData.icon}
+              title={displayUserData.name}
+              subtitle={displayUserData.id}
+              isLast={true}
+              onPress={() =>
+                navigation.navigate('userSettings', {
+                  id: displayUserData.id,
+                  name: displayUserData.name,
+                  icon: displayUserData.icon,
+                })
+              }
+            />
+          )}
+        </View>
+        <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>
+          {t('profileScreen.switchAccount')}
+        </Text>
+        {isEnabled('FEATURE_ACCOUNT_TABS') && (
+          <Tabs
+            tabs={tabData}
+            value={selectedTab}
+            onChange={(tabValue) => setSelectedTab(tabValue as keyof FormattedUserAccounts)}
+            testID={TestIDs.PROFILE_ACCOUNT_TABS}
+            tabTestIDPrefix={TestIDs.PROFILE_TAB_PREFIX}
           />
         )}
       </View>
-      <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>
-        {t('profileScreen.switchAccount')}
-      </Text>
-      {isEnabled('FEATURE_ACCOUNT_TABS') && (
-        <Tabs
-          tabs={tabData}
-          value={selectedTab}
-          onChange={(tabValue) => setSelectedTab(tabValue as keyof FormattedUserAccounts)}
-          testID={TestIDs.PROFILE_ACCOUNT_TABS}
-          tabTestIDPrefix={TestIDs.PROFILE_TAB_PREFIX}
-        />
-      )}
-    </View>
+    ),
+    [displayUserData, isEnabled, navigation, selectedTab, t, tabData],
   );
 
-  const listEmpty = (
-    <View style={[styles.containerCard, styles.containerCenterContent, styles.paddingVertical4]}>
-      <EmptyState
-        icon={{
-          name: 'how-to-reg',
-          variant: 'outlined',
-        }}
-        title={t(`profileScreen.accountsEmptyState.${selectedTab}.title`)}
-        description={t(`profileScreen.accountsEmptyState.${selectedTab}.description`)}
-      />
-    </View>
+  const listEmpty = useMemo(
+    () => (
+      <View style={[styles.containerCard, styles.containerCenterContent, styles.paddingVertical4]}>
+        <EmptyState
+          icon={{
+            name: 'how-to-reg',
+            variant: 'outlined',
+          }}
+          title={t(`profileScreen.accountsEmptyState.${selectedTab}.title`)}
+          description={t(`profileScreen.accountsEmptyState.${selectedTab}.description`)}
+        />
+      </View>
+    ),
+    [selectedTab, t],
   );
 
   const listFooter =
@@ -131,45 +148,51 @@ const ProfileScreen = () => {
       <ActivityIndicator style={styles.footerSpinner} />
     ) : null;
 
+  const renderItem = useCallback(
+    ({ item, index }: { item: UserAccount; index: number }) => {
+      const isFirst = index === 0;
+      const isLast = index === accountsToDisplay.length - 1;
+      return (
+        <View
+          style={[
+            styles.accountItem,
+            isFirst && styles.accountItemFirst,
+            isLast && styles.accountItemLast,
+          ]}
+        >
+          <ListItemWithImage
+            testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${item.id}`}
+            id={item.id}
+            imagePath={item.icon}
+            title={item.name}
+            subtitle={item.id}
+            isLast={isLast}
+            isSelected={item.id === selectedAccountId}
+            isUpdatingSelection={isSwitching && item.id === selectedAccountId}
+            onPress={() => handleSwitchAccount(item.id)}
+          />
+        </View>
+      );
+    },
+    [accountsToDisplay, selectedAccountId, isSwitching, handleSwitchAccount],
+  );
+
+  const handleEndReached = useCallback(() => {
+    if (selectedTab === 'all' && hasMoreAccounts && !accountsFetchingNext) {
+      fetchNextAccounts();
+    }
+  }, [selectedTab, hasMoreAccounts, accountsFetchingNext, fetchNextAccounts]);
+
   return (
     <FlatList
       style={styles.containerMain}
       data={accountsToDisplay}
       keyExtractor={(item) => item.id}
-      renderItem={({ item, index }) => {
-        const isFirst = index === 0;
-        const isLast = index === accountsToDisplay.length - 1;
-        return (
-          <View
-            style={[
-              styles.accountItem,
-              isFirst && styles.accountItemFirst,
-              isLast && styles.accountItemLast,
-            ]}
-          >
-            <ListItemWithImage
-              key={item.id}
-              testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${item.id}`}
-              id={item.id}
-              imagePath={item.icon}
-              title={item.name}
-              subtitle={item.id}
-              isLast={isLast}
-              isSelected={item.id === selectedAccountId}
-              isUpdatingSelection={isSwitching && item.id === selectedAccountId}
-              onPress={() => handleSwitchAccount(item.id)}
-            />
-          </View>
-        );
-      }}
+      renderItem={renderItem}
       ListHeaderComponent={listHeader}
       ListEmptyComponent={listEmpty}
       ListFooterComponent={listFooter}
-      onEndReached={() => {
-        if (selectedTab === 'all' && hasMoreAccounts && !accountsFetchingNext) {
-          fetchNextAccounts();
-        }
-      }}
+      onEndReached={handleEndReached}
       onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
     />
   );

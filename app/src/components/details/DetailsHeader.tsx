@@ -49,12 +49,13 @@ const DetailsHeader = ({
     <View style={styles.screenHeader}>
       <View style={styles.topRow}>
         <View style={styles.avatarWrapper}>
-          {customAvatar ??
-            (avatars && avatars.length > 0 ? (
-              <GroupAvatar avatars={avatars} size={44} />
-            ) : (
-              <AvatarIcon id={id} imagePath={imagePath} size={44} />
-            ))}
+          {customAvatar !== undefined ? (
+            customAvatar
+          ) : avatars && avatars.length > 0 ? (
+            <GroupAvatar avatars={avatars} size={44} />
+          ) : (
+            <AvatarIcon id={id} imagePath={imagePath} size={44} />
+          )}
         </View>
         <View style={styles.textWrapper}>
           {hasSubtitle && (

@@ -10,4 +10,4 @@ export const MIN_NUMBER_OF_CHAT_AVATARS = 1;
 export const MAX_NUMBER_OF_CHAT_AVATARS = 3;
 export const DEFAULT_AVATAR_IMAGE_SHIFT = 0;
 export const HELPDESK_AVATAR_SIZE = 44;
-export const HELPDESK_ICON_SIZE = HELPDESK_AVATAR_SIZE - 2 * Spacing.spacingSmall10;
+export const HELPDESK_AVATAR_ICON_PADDING = Spacing.spacingSmall10;
