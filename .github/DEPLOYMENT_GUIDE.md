@@ -1,21 +1,34 @@
 # Deployment Guide — Test, QA & Production
 
-This document explains how builds are promoted through environments (test → QA → prod) using the **iOS TestFlight Deployment** workflow.
+This document explains how builds are promoted through environments (test → QA → prod) using the deployment workflows for both **iOS** and **Android**.
 
 ## Key Concepts
 
 | Concept | Description |
 |---------|-------------|
-| **Source of truth for version** | `app/app.config.js` — `version` and `buildNumber` fields |
-| **Deployment workflow** | `.github/workflows/ios-testflight.yml` — manual dispatch only |
+| **Source of truth for version** | `app/app.config.js` — `version`, `ios.buildNumber`, and `android.versionCode` fields |
+| **iOS deployment workflow** | `.github/workflows/ios-testflight.yml` — manual dispatch only |
+| **Android deployment workflow** | `.github/workflows/android-google-play.yml` — manual dispatch only |
 | **Version bump types** | `none`, `build`, `patch`, `minor`, `major` |
 | **Environments** | `test`, `qa`, `prod` — each with its own secrets/variables |
-| **Git tags** | Created automatically on every successful deployment (e.g. `v1.4.1-build8-test`) |
+| **iOS git tags** | e.g. `v1.4.1-build8-test` |
+| **Android git tags** | e.g. `v1.4.1-vc8-test-android` |
 | **Chore PR** | Auto-created when version is bumped, to sync `app.config.js` back to `main` |
 
-## How the Workflow Works
+### Platform-Specific Build Counters
 
-The TestFlight workflow (`ios-testflight.yml`) is triggered manually from the **Actions** tab. You select:
+Both platforms share the `version` field (e.g. `1.4.1`) but maintain independent build counters:
+
+| Platform | Field | Type | Bumped by |
+|----------|-------|------|-----------|
+| iOS | `ios.buildNumber` | string | `ios-testflight.yml` |
+| Android | `android.versionCode` | integer | `android-google-play.yml` |
+
+Each workflow only modifies its own counter, so iOS and Android deployments don't conflict.
+
+## How the Workflows Work
+
+Both workflows are triggered manually from the **Actions** tab. You select:
 
 1. **Version bump type** — determines how the version/build number changes
 2. **Target environment** — `test`, `qa`, or `prod`
@@ -25,8 +38,8 @@ On every run the workflow:
 1. Checks out the selected ref (branch or tag)
 2. Runs tests
 3. Bumps the version in `app.config.js` (unless `none`)
-4. Builds, signs, and uploads the IPA to TestFlight
-5. Tags the **build commit** (e.g. `v1.4.1-build8-qa`)
+4. Builds, signs, and uploads the app (IPA to TestFlight / AAB to Google Play internal testing)
+5. Tags the **build commit** (iOS: `v1.4.1-build8-qa` / Android: `v1.4.1-vc8-qa-android`)
 6. Creates a chore PR to merge the version bump back to `main` (only when bump ≠ `none`)
 
 ---
@@ -34,6 +47,8 @@ On every run the workflow:
 ## Option A: Sequential Deployment (Recommended)
 
 Deploy from `main` branch, promoting through environments sequentially. The version bump PR is merged between the first deployment and subsequent ones.
+
+> The flow below applies identically to both iOS (TestFlight) and Android (Google Play). The only difference is the workflow you trigger and the tag/counter names.
 
 ### Flow Diagram
 
@@ -45,15 +60,15 @@ Deploy from `main` branch, promoting through environments sequentially. The vers
    │  │   Trigger: main branch                                   │
    │  │   Version bump: build / patch / minor / major            │
    │  │                                                          │
-   │  │   → Builds & uploads to TestFlight (test)                │
-   │  │   → Creates git tag: v1.5.0-build1-test                  │
-   │  │   → Creates chore PR: "bump version to 1.5.0 build 1"   │
+   │  │   iOS  → TestFlight (test), tag: v1.5.0-build1-test     │
+   │  │   Android → Google Play (test), tag: v1.5.0-vc1-test-android
+   │  │   → Creates chore PR to bump version                     │
    │  └──────────────────────────────────────────────────────────┘
    │
    │  ┌──────────────────────────────────────────────────────────┐
    │  │ Step 2: Merge the chore PR                               │
    │  │                                                          │
-   │  │   main now has version 1.5.0 build 1 in app.config.js   │
+   │  │   main now has the bumped version in app.config.js       │
    │  └──────────────────────────────────────────────────────────┘
    │
    ▼
@@ -64,8 +79,8 @@ Deploy from `main` branch, promoting through environments sequentially. The vers
    │  │   Trigger: main branch                                   │
    │  │   Version bump: none  ← important!                       │
    │  │                                                          │
-   │  │   → Builds & uploads to TestFlight (qa)                  │
-   │  │   → Creates git tag: v1.5.0-build1-qa                    │
+   │  │   iOS  → TestFlight (qa), tag: v1.5.0-build1-qa         │
+   │  │   Android → Google Play (qa), tag: v1.5.0-vc1-qa-android│
    │  │   → No chore PR (bump = none)                            │
    │  └──────────────────────────────────────────────────────────┘
    │
@@ -74,8 +89,8 @@ Deploy from `main` branch, promoting through environments sequentially. The vers
    │  │   Trigger: main branch                                   │
    │  │   Version bump: none  ← important!                       │
    │  │                                                          │
-   │  │   → Builds & uploads to TestFlight (prod)                │
-   │  │   → Creates git tag: v1.5.0-build1-prod                  │
+   │  │   iOS  → TestFlight (prod), tag: v1.5.0-build1-prod     │
+   │  │   Android → Google Play (prod), tag: v1.5.0-vc1-prod-android
    │  │   → No chore PR (bump = none)                            │
    │  └──────────────────────────────────────────────────────────┘
 ```
@@ -84,24 +99,29 @@ Deploy from `main` branch, promoting through environments sequentially. The vers
 
 #### 1. Deploy to Test (with version bump)
 
-1. Go to **Actions** → **iOS TestFlight Deployment** → **Run workflow**
-2. Select branch: `main`
-3. Version bump: choose `build`, `patch`, `minor`, or `major`
-4. Environment: `test`
-5. Click **Run workflow**
+1. Go to **Actions** → Select the deployment workflow:
+   - **iOS TestFlight Deployment** for iOS
+   - **Android Google Play Deployment** for Android
+2. Click **Run workflow**
+3. Select branch: `main`
+4. Version bump: choose `build`, `patch`, `minor`, or `major`
+5. Environment: `test`
+6. Click **Run workflow**
 
 After success:
-- The build is uploaded to TestFlight under the **test** environment
-- A git tag like `v1.5.0-build1-test` is created on the build commit
-- A chore PR is opened: `chore: bump version to 1.5.0 build 1`
+- The build is uploaded to TestFlight / Google Play internal testing under the **test** environment
+- A git tag is created on the build commit
+- A chore PR is opened to sync the version back to `main`
 
 #### 2. Merge the Chore PR
 
 Review and merge the auto-generated PR. This updates `app.config.js` on `main` so the source code version matches what was deployed.
 
+> **Multi-platform note:** If deploying both iOS and Android, each creates its own chore PR (one for `buildNumber`, one for `versionCode`). Merge them in sequence — they modify different fields so there should be no conflict.
+
 #### 3. Deploy to QA (no version bump)
 
-1. Go to **Actions** → **iOS TestFlight Deployment** → **Run workflow**
+1. Go to **Actions** → Select the deployment workflow
 2. Select branch: `main` (now contains the merged version bump)
 3. Version bump: **`none`**
 4. Environment: `qa`
@@ -237,32 +257,41 @@ When deploying from a tag with a version bump, the workflow creates a new chore 
 
 ## Git Tags
 
-Every successful deployment creates a tag in the format:
+Every successful deployment creates a tag on the **build commit** (the commit that was checked out for the build), not on `main` after the chore PR merge.
+
+### iOS Tag Format
 
 ```
 v{version}-build{buildNumber}-{environment}
 ```
 
-Examples:
-- `v1.5.0-build1-test`
-- `v1.5.0-build1-qa`
-- `v1.5.0-build1-prod`
+Examples: `v1.5.0-build1-test`, `v1.5.0-build1-qa`, `v1.5.0-build1-prod`
 
-Tags are placed on the **build commit** (the commit that was checked out for the build), not on `main` after the chore PR merge.
+### Android Tag Format
 
-To list all deployment tags:
+```
+v{version}-vc{versionCode}-{environment}-android
+```
+
+Examples: `v1.5.0-vc1-test-android`, `v1.5.0-vc1-qa-android`, `v1.5.0-vc1-prod-android`
+
+### Listing Tags
 
 ```bash
-git tag -l "v*-build*"
+git tag -l "v*-build*"               # iOS deployment tags
+git tag -l "v*-android"              # Android deployment tags
+git tag -l "v*"                      # All deployment tags
 ```
 
 ---
 
 ## End-to-End Example
 
+### iOS Example
+
 Starting from version `1.4.1 build 7` in `app.config.js` on `main`:
 
-### Using Option A
+#### Using Option A
 
 ```
 1. Deploy to test:   main, bump=patch  → builds 1.4.2 build 1, tag: v1.4.2-build1-test, chore PR opened
@@ -273,7 +302,7 @@ Starting from version `1.4.1 build 7` in `app.config.js` on `main`:
 Result: all environments have 1.4.2 (1), one chore PR merged.
 ```
 
-### Using Option B
+#### Using Option B
 
 ```
 1. Deploy to test:   main, bump=patch  → builds 1.4.2 build 1, tag: v1.4.2-build1-test, chore PR opened
@@ -283,6 +312,36 @@ Result: all environments have 1.4.2 (1), one chore PR merged.
 
 Result: all environments have 1.4.2 (1), one chore PR merged, two duplicate PRs closed.
 ```
+
+### Android Example
+
+Starting from version `1.4.1 versionCode 29` in `app.config.js` on `main`:
+
+#### Using Option A
+
+```
+1. Deploy to test:   main, bump=patch  → builds 1.4.2 vc 1, tag: v1.4.2-vc1-test-android, chore PR opened
+2. Merge chore PR:   main now has 1.4.2 versionCode 1
+3. Deploy to QA:     main, bump=none   → builds 1.4.2 vc 1, tag: v1.4.2-vc1-qa-android
+4. Deploy to prod:   main, bump=none   → builds 1.4.2 vc 1, tag: v1.4.2-vc1-prod-android
+
+Result: all environments have 1.4.2 (vc 1), one chore PR merged.
+```
+
+### Multi-Platform Release
+
+To release both iOS and Android with the same version:
+
+```
+1. iOS: Deploy to test,   bump=patch  → 1.4.2 build 1,  merge chore PR
+2. Android: Deploy to test, bump=patch  → 1.4.2 vc 1,    merge chore PR
+3. iOS: Deploy to QA,     bump=none   → 1.4.2 build 1
+4. Android: Deploy to QA,   bump=none   → 1.4.2 vc 1
+5. iOS: Deploy to prod,   bump=none   → 1.4.2 build 1
+6. Android: Deploy to prod,  bump=none   → 1.4.2 vc 1
+```
+
+Both platforms end up with version `1.4.2` across all environments.
 
 ---
 
@@ -316,6 +375,8 @@ Result: all environments have 1.4.2 (1), one chore PR merged, two duplicate PRs 
 
 ## Related Documentation
 
-- [TestFlight Setup Checklist](.github/TESTFLIGHT_SETUP.md) — secrets, certificates, and first-time setup
-- [iOS TestFlight Workflow](.github/workflows/ios-testflight.yml) — the workflow source
+- [TestFlight Setup Checklist](.github/TESTFLIGHT_SETUP.md) — iOS secrets, certificates, and first-time setup
+- [Google Play Setup Checklist](.github/GOOGLE_PLAY_SETUP.md) — Android signing, service account, and first-time setup
+- [iOS TestFlight Workflow](.github/workflows/ios-testflight.yml) — the iOS workflow source
+- [Android Google Play Workflow](.github/workflows/android-google-play.yml) — the Android workflow source
 - [CONVENTIONS.md](CONVENTIONS.md) — commit and PR naming conventions

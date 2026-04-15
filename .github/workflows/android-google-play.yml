@@ -1,0 +1,418 @@
+name: Android Google Play Deployment
+run-name: "Android Google Play Deployment → ${{ inputs.environment }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: false
+        default: 'build'
+        type: choice
+        options:
+          - none
+          - build
+          - patch
+          - minor
+          - major
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - qa
+          - prod
+
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '17'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-google-play:
+    name: Build and Deploy to Google Play
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Environment provides: Auth0 config, Android signing keys, Google Play credentials, app bundle ID
+    # Each environment (test/qa/prod) maps to a separate app on Google Play
+    environment:
+      name: ${{ inputs.environment }}
+      url: https://play.google.com/console/
+
+    defaults:
+      run:
+        working-directory: ./app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Save build commit SHA
+        id: build_commit
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "Build commit: $(git rev-parse HEAD)"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            ./app/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        id: gradle-cache
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ./app/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Setup environment variables
+        env:
+          SECRET_AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          SECRET_APP_INSIGHTS: ${{ secrets.APPLICATION_INSIGHTS_CONNECTION_STRING }}
+          SECRET_REVIEW_CLIENT_ID: ${{ secrets.REVIEW_ENV_AUTH0_CLIENT_ID }}
+        run: |
+          # Auth0 config from environment variables and secrets
+          # Secrets are passed via step env to avoid expanding in the run block
+          cat > .env << EOF
+          AUTH0_DOMAIN=${{ vars.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID=${SECRET_AUTH0_CLIENT_ID}
+          AUTH0_AUDIENCE=${{ vars.AUTH0_AUDIENCE }}
+          AUTH0_SCOPE=${{ vars.AUTH0_SCOPE }}
+          AUTH0_API_URL=${{ vars.AUTH0_API_URL }}
+          AUTH0_OTP_DIGITS=${{ vars.AUTH0_OTP_DIGITS }}
+          AUTH0_SCHEME=${{ vars.AUTH0_SCHEME }}
+          APP_BUNDLE_ID=${{ vars.APP_BUNDLE_ID }}
+          APP_ENVIRONMENT=${{ inputs.environment }}
+          APPLICATION_INSIGHTS_CONNECTION_STRING=${SECRET_APP_INSIGHTS}
+          REVIEW_ENV_AUTH0_DOMAIN=${{ vars.REVIEW_ENV_AUTH0_DOMAIN }}
+          REVIEW_ENV_AUTH0_CLIENT_ID=${SECRET_REVIEW_CLIENT_ID}
+          REVIEW_ENV_AUTH0_AUDIENCE=${{ vars.REVIEW_ENV_AUTH0_AUDIENCE }}
+          REVIEW_ENV_AUTH0_API_URL=${{ vars.REVIEW_ENV_AUTH0_API_URL }}
+          REVIEWER_EMAILS=${{ vars.REVIEWER_EMAILS }}
+          LOG_LEVEL=${{ vars.LOG_LEVEL }}
+          TEMPORARY_AUTH0_TOKEN=
+          EOF
+          echo "Environment variables configured for ${{ inputs.environment }} environment"
+
+          # Verify critical variables are set
+          if [ -z "${{ vars.AUTH0_DOMAIN }}" ]; then
+            echo "::error::AUTH0_DOMAIN is not set in ${{ inputs.environment }} environment"
+            exit 1
+          fi
+          if [ -z "${SECRET_AUTH0_CLIENT_ID}" ]; then
+            echo "::error::AUTH0_CLIENT_ID secret is not set in ${{ inputs.environment }} environment"
+            exit 1
+          fi
+          echo "Auth0 configuration validated"
+
+      - name: Increment version code
+        id: version
+        run: |
+          # Read current version and versionCode from app.config.js
+          cat > read_config.mjs << 'SCRIPT'
+          import config from './app.config.js';
+          console.log(JSON.stringify({
+            version: config.expo.version,
+            versionCode: config.expo.android?.versionCode || 1
+          }));
+          SCRIPT
+          CONFIG_JSON=$(node read_config.mjs)
+          rm read_config.mjs
+
+          CURRENT_VERSION=$(echo $CONFIG_JSON | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")
+          CURRENT_VC=$(echo $CONFIG_JSON | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).versionCode")
+
+          echo "Current version: $CURRENT_VERSION"
+          echo "Current versionCode: $CURRENT_VC"
+
+          VERSION_BUMP="${{ inputs.version_bump }}"
+          if [ -z "$VERSION_BUMP" ]; then
+            VERSION_BUMP="build"
+          fi
+
+          case "$VERSION_BUMP" in
+            major)
+              NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1+1".0.0"}')
+              NEW_VC=1
+              ;;
+            minor)
+              NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2+1".0"}')
+              NEW_VC=1
+              ;;
+            patch)
+              NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
+              NEW_VC=1
+              ;;
+            none)
+              NEW_VERSION=$CURRENT_VERSION
+              NEW_VC=$CURRENT_VC
+              ;;
+            build|*)
+              NEW_VERSION=$CURRENT_VERSION
+              NEW_VC=$((CURRENT_VC + 1))
+              ;;
+          esac
+
+          echo "New version: $NEW_VERSION"
+          echo "New versionCode: $NEW_VC"
+
+          # Update version and versionCode in app.config.js
+          # version uses quotes (string), versionCode is a bare integer
+          node -e "
+            const fs = require('fs');
+            let content = fs.readFileSync('app.config.js', 'utf8');
+            content = content.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$NEW_VERSION'\");
+            content = content.replace(/versionCode: \d+/, 'versionCode: $NEW_VC');
+            fs.writeFileSync('app.config.js', content);
+          "
+
+          echo "Updated app.config.js with version $NEW_VERSION and versionCode $NEW_VC"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_code=$NEW_VC" >> $GITHUB_OUTPUT
+
+      - name: Configure build environment
+        run: |
+          # Remove expo-dev-client for production builds to avoid Expo Dev Client UI
+          echo "Removing expo-dev-client for release build..."
+          npm uninstall expo-dev-client
+          echo "expo-dev-client removed"
+
+      - name: Prebuild Android native project
+        run: |
+          echo "Generating native Android project with Expo..."
+          npx expo prebuild --platform android --clean
+          echo "Native Android project generated"
+
+      - name: Setup Android signing keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+
+          if [ ! -f android/app/upload-keystore.jks ]; then
+            echo "::error::Failed to create keystore file"
+            exit 1
+          fi
+
+          FILE_SIZE=$(stat -c%s android/app/upload-keystore.jks 2>/dev/null || stat -f%z android/app/upload-keystore.jks 2>/dev/null)
+          echo "Keystore file created ($FILE_SIZE bytes)"
+
+      - name: Configure Gradle release signing
+        run: |
+          # Inject release signing config into the Expo-generated build.gradle
+          node ${{ github.workspace }}/.github/scripts/configure-android-signing.js android/app/build.gradle
+
+      - name: Make Gradle wrapper executable
+        working-directory: ./app/android
+        run: chmod +x ./gradlew
+
+      - name: Build Android App Bundle (AAB)
+        working-directory: ./app/android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          KEYSTORE_PATH="${{ github.workspace }}/app/android/app/upload-keystore.jks"
+          echo "Building release AAB..."
+          ./gradlew bundleRelease --no-daemon --stacktrace \
+            -PUPLOAD_STORE_FILE="$KEYSTORE_PATH" \
+            -PUPLOAD_STORE_PASSWORD="$KEYSTORE_PASSWORD" \
+            -PUPLOAD_KEY_ALIAS="$KEY_ALIAS" \
+            -PUPLOAD_KEY_PASSWORD="$KEY_PASSWORD"
+          echo "AAB build completed"
+
+      - name: Verify AAB artifact
+        id: find_aab
+        run: |
+          AAB_PATH=$(find android/app/build/outputs/bundle/release -name "*.aab" -type f | head -n 1)
+
+          if [ -z "$AAB_PATH" ]; then
+            echo "::error::AAB not found in expected location"
+            find android/app/build -name "*.aab" -type f || true
+            exit 1
+          fi
+
+          FILE_SIZE=$(stat -c%s "$AAB_PATH" 2>/dev/null || stat -f%z "$AAB_PATH" 2>/dev/null)
+          echo "AAB: $AAB_PATH ($FILE_SIZE bytes)"
+
+          if [ "$FILE_SIZE" -lt 1000000 ]; then
+            echo "::error::AAB suspiciously small: $FILE_SIZE bytes"
+            exit 1
+          fi
+
+          echo "aab_path=$AAB_PATH" >> $GITHUB_OUTPUT
+          echo "AAB verified"
+
+      - name: Setup Google Play service account
+        run: |
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}" | base64 -d > /tmp/google-play-sa.json
+
+          if [ ! -f /tmp/google-play-sa.json ]; then
+            echo "::error::Failed to create service account file"
+            exit 1
+          fi
+
+          # Validate it's valid JSON with the expected fields
+          node -e "
+            const sa = JSON.parse(require('fs').readFileSync('/tmp/google-play-sa.json', 'utf8'));
+            if (!sa.client_email || !sa.private_key) {
+              console.error('Service account JSON is missing client_email or private_key');
+              process.exit(1);
+            }
+            console.log('Service account: ' + sa.client_email);
+          "
+
+      - name: Upload to Google Play Internal Testing
+        id: upload
+        working-directory: .
+        env:
+          GOOGLE_PLAY_SA_JSON_PATH: /tmp/google-play-sa.json
+          PACKAGE_NAME: ${{ vars.APP_BUNDLE_ID }}
+          TRACK: internal
+          RELEASE_NAME: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.version_code }})
+        run: |
+          AAB_PATH="${{ github.workspace }}/app/${{ steps.find_aab.outputs.aab_path }}"
+          echo "Uploading AAB to Google Play internal testing track..."
+
+          UPLOADED_VC=$(node .github/scripts/google-play-upload.js upload "$AAB_PATH")
+
+          echo "uploaded_version_code=$UPLOADED_VC" >> $GITHUB_OUTPUT
+          echo "Upload complete: versionCode $UPLOADED_VC"
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-google-play-${{ steps.version.outputs.version }}-vc${{ steps.version.outputs.version_code }}
+          path: app/${{ steps.find_aab.outputs.aab_path }}
+          retention-days: 30
+
+      - name: Create version bump PR
+        if: success() && inputs.version_bump != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VC="${{ steps.version.outputs.version_code }}"
+          BRANCH_NAME="chore/android-version-bump-${VERSION}-vc${VC}"
+
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Always create version bump PR from main branch
+          # This ensures the PR only contains version changes, even when deploying from a feature branch
+          git fetch origin main
+          git checkout -f main
+          git reset --hard origin/main
+
+          # Apply version bump to main branch
+          node -e "
+            const fs = require('fs');
+            let content = fs.readFileSync('app.config.js', 'utf8');
+            content = content.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$VERSION'\");
+            content = content.replace(/versionCode: \d+/, 'versionCode: $VC');
+            fs.writeFileSync('app.config.js', content);
+          "
+
+          # Create a new branch for the version bump
+          git checkout -b "$BRANCH_NAME"
+          git add app.config.js
+          git commit -m "chore: bump android version to ${VERSION} versionCode ${VC} [skip ci]"
+          git push origin "$BRANCH_NAME"
+
+          # Create PR
+          gh pr create \
+            --title "chore: bump android version to ${VERSION} versionCode ${VC}" \
+            --body "$(cat <<EOF
+          ## Version Bump (Android)
+
+          This PR was automatically created by the Android Google Play deployment workflow.
+
+          - **Version:** ${VERSION}
+          - **Version Code:** ${VC}
+          - **Environment:** ${{ inputs.environment }}
+
+          ### Changes
+          - Updated version/versionCode in \`app/app.config.js\`
+
+          This PR should be merged to keep the version numbers in sync with Google Play.
+          EOF
+          )" \
+            --base main \
+            --head "$BRANCH_NAME"
+
+          echo "PR created for version bump"
+
+      - name: Create release tag
+        if: success()
+        run: |
+          TAG="v${{ steps.version.outputs.version }}-vc${{ steps.version.outputs.version_code }}-${{ inputs.environment }}-android"
+          BUILD_COMMIT="${{ steps.build_commit.outputs.sha }}"
+
+          # Check if tag already exists
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::warning::Tag $TAG already exists, skipping tag creation"
+          else
+            git tag -a "$TAG" "$BUILD_COMMIT" -m "Google Play release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.version_code }} (${{ inputs.environment }})"
+            git push origin "$TAG"
+            echo "Created tag $TAG on commit $BUILD_COMMIT"
+          fi
+
+      - name: Clean up sensitive files
+        if: always()
+        run: |
+          rm -f /tmp/google-play-sa.json
+          rm -f android/app/upload-keystore.jks
+          rm -f .env
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "## Android Google Play Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version Code:** ${{ steps.version.outputs.version_code }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** ${{ vars.APP_BUNDLE_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Track:** Internal Testing" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Open the [Google Play Console](https://play.google.com/console/) and verify the build" >> $GITHUB_STEP_SUMMARY
+          echo "2. Add internal testers if not already configured" >> $GITHUB_STEP_SUMMARY
+          echo "3. Merge the version bump PR to sync version numbers" >> $GITHUB_STEP_SUMMARY
+          echo "4. Promote to QA/prod when ready (use bump=none)" >> $GITHUB_STEP_SUMMARY
