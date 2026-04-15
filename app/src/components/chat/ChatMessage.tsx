@@ -7,7 +7,7 @@ import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import ChatMessageContent from '@/components/chat/ChatMessageContent';
 import ChatMessageLinkPreview from '@/components/chat/ChatMessageLinkPreview';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { chatMessageStyle, chatPrivateMessageStyle } from '@/styles/components';
+import { chatMessageStyle } from '@/styles/components';
 import type { Message, MessageType } from '@/types/chat';
 import { formatDateForChat, getLocalTime } from '@/utils/formatting';
 
@@ -21,7 +21,8 @@ type ChatMessageProps = {
 const ChatMessage = ({ message, currentUserId, locale, isPrivate }: ChatMessageProps) => {
   const { t } = useTranslation();
   const isOwn = message.identity.id === currentUserId;
-  const type: MessageType = isOwn ? 'own' : 'other';
+  const baseType: MessageType = isOwn ? 'own' : 'other';
+  const contentType = isPrivate ? 'private' : baseType;
   const messageDate = formatDateForChat(message.audit?.created?.at, locale);
   const messageTime = getLocalTime(message.audit?.created?.at || '');
 
@@ -29,24 +30,17 @@ const ChatMessage = ({ message, currentUserId, locale, isPrivate }: ChatMessageP
     () =>
       StyleSheet.create({
         /* eslint-disable react-native/no-unused-styles */
-        container: chatMessageStyle[type].container,
-        messageWrapper: chatMessageStyle[type].messageWrapper,
-        textContainer: isPrivate
-          ? {
-              ...chatMessageStyle[type].textContainer,
-              ...chatPrivateMessageStyle.textContainerOverride,
-            }
-          : chatMessageStyle[type].textContainer,
-        text: isPrivate
-          ? { ...chatMessageStyle[type].text, color: chatMessageStyle.other.text.color }
-          : chatMessageStyle[type].text,
-        info: chatMessageStyle[type].info,
+        container: chatMessageStyle[baseType].container,
+        messageWrapper: chatMessageStyle[baseType].messageWrapper,
+        textContainer: chatMessageStyle[contentType].textContainer,
+        text: chatMessageStyle[contentType].text,
+        info: chatMessageStyle[baseType].info,
         infoText: chatMessageStyle.infoText,
         avatarWrapper: chatMessageStyle.avatarWrapper,
-        privateIndicator: chatPrivateMessageStyle.indicator,
-        privateIndicatorText: chatPrivateMessageStyle.indicatorText,
+        privateIndicator: chatMessageStyle.privateIndicator,
+        privateIndicatorText: chatMessageStyle.privateIndicatorText,
       }),
-    [type, isPrivate],
+    [baseType, contentType],
   );
 
   const avatarId = message.identity.id;
@@ -80,10 +74,8 @@ const ChatMessage = ({ message, currentUserId, locale, isPrivate }: ChatMessageP
         <View style={styles.textContainer}>
           <ChatMessageContent
             content={message.content}
-            color={isPrivate ? chatMessageStyle.other.textColor : chatMessageStyle[type].textColor}
-            linkColor={
-              isPrivate ? chatMessageStyle.other.linkColor : chatMessageStyle[type].linkColor
-            }
+            color={chatMessageStyle[contentType].textColor}
+            linkColor={chatMessageStyle[contentType].linkColor}
           />
           {message.links.map((link) => (
             <ChatMessageLinkPreview key={link.id} link={link} />
@@ -92,8 +84,8 @@ const ChatMessage = ({ message, currentUserId, locale, isPrivate }: ChatMessageP
             <View style={styles.privateIndicator}>
               <OutlinedIcon
                 name={'lock' as keyof typeof OutlinedIcons}
-                color={chatPrivateMessageStyle.indicatorIconColor}
-                size={chatPrivateMessageStyle.indicatorIconSize}
+                color={chatMessageStyle.privateIndicatorIconColor}
+                size={chatMessageStyle.privateIndicatorIconSize}
               />
               <Text style={styles.privateIndicatorText}>{t('chat.privateMessageIndicator')}</Text>
             </View>

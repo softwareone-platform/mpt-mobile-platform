@@ -118,6 +118,44 @@ export const chatMessageStyle = {
     textColor: Color.brand.type,
     linkColor: Color.brand.primary,
   },
+  private: {
+    textContainer: {
+      ...textContainerCommon,
+      backgroundColor: Color.brand.white,
+      borderWidth: 1,
+      borderColor: Color.alerts.danger4,
+      gap: Spacing.spacingSmall2,
+      paddingBottom: Spacing.spacing2,
+    },
+    text: {
+      ...chatTextCommon,
+      color: Color.brand.type,
+    },
+    info: {
+      ...infoCommon,
+    },
+    textColor: Color.brand.type,
+    linkColor: Color.brand.primary,
+  },
+  privateIndicator: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    alignSelf: 'flex-start' as const,
+    gap: Spacing.spacingSmall6,
+    marginTop: Spacing.spacingSmall2,
+    paddingVertical: Spacing.spacingSmall2,
+    paddingHorizontal: Spacing.spacing1,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Color.alerts.danger4,
+    backgroundColor: Color.alerts.danger1,
+  },
+  privateIndicatorText: {
+    fontSize: Typography.fontSize.font2,
+    color: Color.alerts.danger4,
+  },
+  privateIndicatorIconSize: Typography.fontSize.font3,
+  privateIndicatorIconColor: Color.alerts.danger4,
 } as const;
 
 export const chatMarkdownStyle = {
@@ -172,35 +210,6 @@ export const chatMarkdownTagStyles: Record<string, MixedStyleDeclaration> = {
     marginBottom: chatMarkdownStyle.headingMarginBottom,
   },
 };
-
-export const chatPrivateMessageStyle = {
-  textContainerOverride: {
-    backgroundColor: Color.brand.white,
-    borderWidth: 1,
-    borderColor: Color.alerts.danger4,
-    gap: Spacing.spacingSmall2,
-    paddingBottom: Spacing.spacing2,
-  },
-  indicator: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    alignSelf: 'flex-start' as const,
-    gap: Spacing.spacingSmall6,
-    marginTop: Spacing.spacingSmall2,
-    paddingVertical: Spacing.spacingSmall2,
-    paddingHorizontal: Spacing.spacing1,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Color.alerts.danger4,
-    backgroundColor: Color.alerts.danger1,
-  },
-  indicatorText: {
-    fontSize: Typography.fontSize.font2,
-    color: Color.alerts.danger4,
-  },
-  indicatorIconSize: Typography.fontSize.font3,
-  indicatorIconColor: Color.alerts.danger4,
-} as const;
 
 export const chatLinkPreviewStyle = {
   container: {

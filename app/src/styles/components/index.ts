@@ -21,7 +21,6 @@ export { badgeStyle } from './badge';
 export {
   chatStyle,
   chatMessageStyle,
-  chatPrivateMessageStyle,
   createChatWizardStyle,
   chatMarkdownStyle,
   chatMarkdownTagStyles,
