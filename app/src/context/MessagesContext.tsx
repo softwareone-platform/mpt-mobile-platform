@@ -16,6 +16,7 @@ import { useMessagesData } from '@/hooks/queries/useMessagesData';
 import { logger } from '@/services/loggerService';
 import type { Message } from '@/types/chat';
 import type { EntitySubscription, ServerNotification } from '@/types/signalr';
+import { isMessageHiddenForAccount } from '@/utils/chat';
 
 interface MessagesContextValue {
   messages: Message[];
@@ -148,7 +149,7 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
         return;
       }
 
-      if (message.visibility === 'Private' && accountType !== 'Operations') {
+      if (isMessageHiddenForAccount(message.visibility, accountType)) {
         return;
       }
 

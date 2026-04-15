@@ -9,6 +9,10 @@ import type {
   ListItemChatProps,
 } from '@/types/chat';
 import type { AccountType } from '@/types/common';
+export const isMessageHiddenForAccount = (
+  visibility: string | undefined,
+  accountType: AccountType | undefined,
+): boolean => visibility === 'Private' && accountType !== 'Operations';
 import { formatDateForChat } from '@/utils/formatting';
 
 const ALLOWED_URI_SCHEMES = ['https:', 'http:'];
@@ -146,8 +150,7 @@ export const mapToChatListItemProps = (
   accountType?: AccountType,
 ): ListItemChatProps => {
   const avatars = getAvatarList(chat.participants ?? [], chat.type, userId);
-  const isLastMessageHidden =
-    chat.lastMessage?.visibility === 'Private' && accountType !== 'Operations';
+  const isLastMessageHidden = isMessageHiddenForAccount(chat.lastMessage?.visibility, accountType);
   const messageLatest = isLastMessageHidden
     ? EMPTY_STRING
     : (chat.lastMessage?.content ?? EMPTY_STRING);

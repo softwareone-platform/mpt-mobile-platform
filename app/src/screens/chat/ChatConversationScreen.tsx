@@ -27,7 +27,7 @@ import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
-import { mapToChatListItemProps } from '@/utils/chat';
+import { isMessageHiddenForAccount, mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
 const KEYBOARD_VERTICAL_OFFSET = 100;
@@ -76,7 +76,7 @@ const ChatConversationScreenContent = () => {
   const contentFillsScreen = contentHeight > layoutHeight;
 
   const visibleMessages = useMemo(
-    () => messages.filter((m) => m.visibility !== 'Private' || accountType === 'Operations'),
+    () => messages.filter((m) => !isMessageHiddenForAccount(m.visibility, accountType)),
     [messages, accountType],
   );
 
@@ -142,10 +142,10 @@ const ChatConversationScreenContent = () => {
         message={item}
         currentUserId={currentUserId}
         locale={i18n.language}
-        isPrivate={item.visibility === 'Private'}
+        isPrivate={item.visibility === 'Private' && accountType === 'Operations'}
       />
     ),
-    [currentUserId, i18n.language],
+    [currentUserId, i18n.language, accountType],
   );
 
   const onBeforeSend = useCallback(() => {
