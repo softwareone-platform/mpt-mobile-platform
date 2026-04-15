@@ -33,6 +33,8 @@ import { mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
 const LOAD_MORE_THRESHOLD = 0.5;
+// Fallback for iOS 16+ where keyboardWillShow reports duration=0 (spring animation)
+const KEYBOARD_ANIMATION_DURATION_MS = 280;
 
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
@@ -101,7 +103,7 @@ const ChatConversationScreenContent = () => {
     const onShow = Keyboard.addListener('keyboardWillShow', (e) => {
       Animated.timing(keyboardPadding, {
         toValue: e.endCoordinates.height,
-        duration: e.duration > 0 ? e.duration : 280,
+        duration: e.duration > 0 ? e.duration : KEYBOARD_ANIMATION_DURATION_MS,
         easing: Easing.out(Easing.exp),
         useNativeDriver: false,
       }).start();
