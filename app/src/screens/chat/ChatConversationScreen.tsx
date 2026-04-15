@@ -27,6 +27,7 @@ import { useMyParticipant } from '@/hooks/useMyParticipant';
 import { useSendMessage } from '@/hooks/useSendMessage';
 import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
+import { MESSAGE_VISIBILITY } from '@/types/chat';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { isMessageHiddenForAccount, mapToChatListItemProps } from '@/utils/chat';
@@ -179,7 +180,7 @@ const ChatConversationScreenContent = () => {
         message={item}
         currentUserId={currentUserId}
         locale={i18n.language}
-        isPrivate={item.visibility === 'Private' && accountType === 'Operations'}
+        isPrivate={item.visibility === MESSAGE_VISIBILITY.Private && accountType === 'Operations'}
       />
     ),
     [currentUserId, i18n.language, accountType],

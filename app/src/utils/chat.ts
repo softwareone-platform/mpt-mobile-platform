@@ -1,6 +1,7 @@
 import { marked } from 'marked';
 
 import { MIN_NUMBER_OF_CHAT_AVATARS, MAX_NUMBER_OF_CHAT_AVATARS, EMPTY_STRING } from '@/constants';
+import { MESSAGE_VISIBILITY } from '@/types/chat';
 import type {
   ChatParticipant,
   AvatarItem,
@@ -9,11 +10,12 @@ import type {
   ListItemChatProps,
 } from '@/types/chat';
 import type { AccountType } from '@/types/common';
-export const isMessageHiddenForAccount = (
-  visibility: string | undefined,
-  accountType: AccountType | undefined,
-): boolean => visibility === 'Private' && accountType !== 'Operations';
 import { formatDateForChat } from '@/utils/formatting';
+
+export const isMessageHiddenForAccount = (
+  visibility: MessageVisibility | undefined,
+  accountType: AccountType | undefined,
+): boolean => visibility === MESSAGE_VISIBILITY.Private && accountType !== 'Operations';
 
 const ALLOWED_URI_SCHEMES = ['https:', 'http:'];
 
