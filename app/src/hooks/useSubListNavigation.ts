@@ -17,6 +17,7 @@ export const useSubListNavigation = () => {
       } else {
         navigation.navigate(item.name, {
           query: item.query,
+          accountId: item.accountId,
         });
       }
     },
