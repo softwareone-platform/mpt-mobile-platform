@@ -280,6 +280,47 @@ describe('mapToChatListItemProps', () => {
     const props: ListItemChatProps = mapToChatListItemProps(channelChat, 'en-US', userId);
     expect(props.companyName).toBe('Acme Corp');
   });
+
+  it('hides private last message content for non-Operations users', () => {
+    const chatWithPrivateLastMessage: ChatItem = {
+      ...baseChat,
+      lastMessage: { ...baseChat.lastMessage!, visibility: 'Private' },
+    };
+    const props = mapToChatListItemProps(chatWithPrivateLastMessage, 'en-US', userId, 'Client');
+    expect(props.messageLatest).toBe('');
+  });
+
+  it('hides private last message content when accountType is undefined', () => {
+    const chatWithPrivateLastMessage: ChatItem = {
+      ...baseChat,
+      lastMessage: { ...baseChat.lastMessage!, visibility: 'Private' },
+    };
+    const props = mapToChatListItemProps(chatWithPrivateLastMessage, 'en-US', userId);
+    expect(props.messageLatest).toBe('');
+  });
+
+  it('shows private last message content for Operations users', () => {
+    const chatWithPrivateLastMessage: ChatItem = {
+      ...baseChat,
+      lastMessage: { ...baseChat.lastMessage!, visibility: 'Private' },
+    };
+    const props = mapToChatListItemProps(chatWithPrivateLastMessage, 'en-US', userId, 'Operations');
+    expect(props.messageLatest).toBe('Hello');
+  });
+
+  it('shows public last message content for all account types', () => {
+    const chatWithPublicLastMessage: ChatItem = {
+      ...baseChat,
+      lastMessage: { ...baseChat.lastMessage!, visibility: 'Public' },
+    };
+    expect(
+      mapToChatListItemProps(chatWithPublicLastMessage, 'en-US', userId, 'Client').messageLatest,
+    ).toBe('Hello');
+    expect(
+      mapToChatListItemProps(chatWithPublicLastMessage, 'en-US', userId, 'Operations')
+        .messageLatest,
+    ).toBe('Hello');
+  });
 });
 
 describe('getDirectChatParticipant', () => {

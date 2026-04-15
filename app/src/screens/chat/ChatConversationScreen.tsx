@@ -27,9 +27,10 @@ import { useMyParticipant } from '@/hooks/useMyParticipant';
 import { useSendMessage } from '@/hooks/useSendMessage';
 import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
+import { MESSAGE_VISIBILITY } from '@/types/chat';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
-import { mapToChatListItemProps } from '@/utils/chat';
+import { isMessageHiddenForAccount, mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
 const LOAD_MORE_THRESHOLD = 0.5;
@@ -48,6 +49,7 @@ const ChatConversationScreenContent = () => {
   const scrollToBottomOnContentChangeRef = useRef(false);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
+  const accountType = userData?.currentAccount?.type;
 
   const {
     messages,
@@ -66,8 +68,9 @@ const ChatConversationScreenContent = () => {
   const { saveParticipant } = useParticipantApi(chatId ?? '');
 
   const chatProps = useMemo(
-    () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
-    [chatData, i18n.language, currentUserId],
+    () =>
+      chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId, accountType) : null,
+    [chatData, i18n.language, currentUserId, accountType],
   );
 
   const otherParticipant =
@@ -77,8 +80,13 @@ const ChatConversationScreenContent = () => {
 
   const contentFillsScreen = contentHeight > layoutHeight;
 
+  const visibleMessages = useMemo(
+    () => messages.filter((m) => !isMessageHiddenForAccount(m.visibility, accountType)),
+    [messages, accountType],
+  );
+
   useEffect(() => {
-    const newest = messages[0];
+    const newest = visibleMessages[0];
     const currentKey = newest?._localKey ?? newest?.id ?? null;
     const previousKey = previousFirstMessageKeyRef.current;
 
@@ -93,7 +101,7 @@ const ChatConversationScreenContent = () => {
     }
 
     previousFirstMessageKeyRef.current = currentKey;
-  }, [messages, contentFillsScreen]);
+  }, [visibleMessages, contentFillsScreen]);
 
   // TODO: Android uses windowSoftInputMode="adjustResize" (AndroidManifest.xml) which resizes
   // the app window natively — verify keyboard avoidance still works correctly on Android.
@@ -157,8 +165,8 @@ const ChatConversationScreenContent = () => {
   });
 
   const displayMessages = useMemo(
-    () => (contentFillsScreen ? messages : [...messages].reverse()),
-    [messages, contentFillsScreen],
+    () => (contentFillsScreen ? visibleMessages : [...visibleMessages].reverse()),
+    [visibleMessages, contentFillsScreen],
   );
 
   const contentContainerStyle = useMemo(
@@ -168,9 +176,14 @@ const ChatConversationScreenContent = () => {
 
   const renderMessage = useCallback(
     ({ item }: { item: Message }) => (
-      <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
+      <ChatMessage
+        message={item}
+        currentUserId={currentUserId}
+        locale={i18n.language}
+        isPrivate={item.visibility === MESSAGE_VISIBILITY.Private && accountType === 'Operations'}
+      />
     ),
-    [currentUserId, i18n.language],
+    [currentUserId, i18n.language, accountType],
   );
 
   const onBeforeSend = useCallback(() => {
@@ -196,7 +209,7 @@ const ChatConversationScreenContent = () => {
       <StatusMessage
         isLoading={messagesLoading}
         isError={messagesError}
-        isEmpty={messages.length === 0}
+        isEmpty={visibleMessages.length === 0}
         isUnauthorised={isUnauthorised}
         loadingTestId={TestIDs.CHAT_CONVERSATION_LOADING_INDICATOR}
         errorTestId={TestIDs.CHAT_CONVERSATION_ERROR_STATE}
