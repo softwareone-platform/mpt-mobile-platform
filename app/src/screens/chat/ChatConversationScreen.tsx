@@ -108,12 +108,16 @@ const ChatConversationScreenContent = () => {
     });
 
     const onHide = Keyboard.addListener('keyboardWillHide', (e) => {
-      Animated.timing(keyboardPadding, {
-        toValue: 0,
-        duration: e.duration > 0 ? e.duration : 280,
-        easing: Easing.in(Easing.exp),
-        useNativeDriver: false,
-      }).start();
+      if (e.duration === 0) {
+        keyboardPadding.setValue(0);
+      } else {
+        Animated.timing(keyboardPadding, {
+          toValue: 0,
+          duration: e.duration,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: false,
+        }).start();
+      }
     });
 
     return () => {
