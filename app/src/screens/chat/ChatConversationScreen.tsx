@@ -4,8 +4,10 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   StyleSheet,
 } from 'react-native';
@@ -30,14 +32,16 @@ import type { RootStackParamList } from '@/types/navigation';
 import { isMessageHiddenForAccount, mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
-const KEYBOARD_VERTICAL_OFFSET = 100;
 const LOAD_MORE_THRESHOLD = 0.5;
+// Fallback for iOS 16+ where keyboardWillShow reports duration=0 (spring animation)
+const KEYBOARD_ANIMATION_DURATION_MS = 280;
 
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const [contentHeight, setContentHeight] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
   const [layoutReady, setLayoutReady] = useState(false);
+  const keyboardPadding = useRef(new Animated.Value(0)).current;
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageKeyRef = useRef<string | null>(null);
@@ -98,6 +102,39 @@ const ChatConversationScreenContent = () => {
     previousFirstMessageKeyRef.current = currentKey;
   }, [visibleMessages, contentFillsScreen]);
 
+  // TODO: Android uses windowSoftInputMode="adjustResize" (AndroidManifest.xml) which resizes
+  // the app window natively — verify keyboard avoidance still works correctly on Android.
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    const onShow = Keyboard.addListener('keyboardWillShow', (e) => {
+      Animated.timing(keyboardPadding, {
+        toValue: e.endCoordinates.height,
+        duration: e.duration > 0 ? e.duration : KEYBOARD_ANIMATION_DURATION_MS,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const onHide = Keyboard.addListener('keyboardWillHide', (e) => {
+      if (e.duration === 0) {
+        keyboardPadding.setValue(0);
+      } else {
+        Animated.timing(keyboardPadding, {
+          toValue: 0,
+          duration: e.duration,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: false,
+        }).start();
+      }
+    });
+
+    return () => {
+      onShow.remove();
+      onHide.remove();
+    };
+  }, [keyboardPadding]);
+
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
       fetchMessages();
@@ -155,11 +192,7 @@ const ChatConversationScreenContent = () => {
   const sendMessage = useSendMessage({ chatId, inputText, setInputText, onBeforeSend });
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
-    >
+    <Animated.View style={[styles.container, { paddingBottom: keyboardPadding }]}>
       <DetailsHeader
         id={otherParticipant?.identity.id ?? chatId ?? ''}
         title={chatProps?.title ?? EMPTY_VALUE}
@@ -208,7 +241,7 @@ const ChatConversationScreenContent = () => {
         />
       </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
-    </KeyboardAvoidingView>
+    </Animated.View>
   );
 };
 
