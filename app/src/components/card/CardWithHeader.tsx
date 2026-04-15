@@ -6,12 +6,13 @@ import { cardStyle, Spacing } from '@/styles';
 interface CardProps {
   title: string;
   children: React.ReactNode;
+  testID?: string;
 }
 
-const CardWithHeader = ({ title, children }: CardProps) => {
+const CardWithHeader = ({ title, children, testID }: CardProps) => {
   return (
     <View style={styles.containerCard}>
-      <CardHeader title={title} />
+      <CardHeader title={title} testID={testID} />
 
       {children}
     </View>

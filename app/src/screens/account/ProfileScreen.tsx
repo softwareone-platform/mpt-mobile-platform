@@ -90,7 +90,10 @@ const ProfileScreen = () => {
   const listHeader = useMemo(
     () => (
       <View>
-        <CardWithHeader title={t('profileScreen.userProfile')}>
+        <CardWithHeader
+          title={t('profileScreen.userProfile')}
+          testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE}
+        >
           {displayUserData && (
             <NavigationItemWithImage
               testID={TestIDs.PROFILE_USER_ITEM}
