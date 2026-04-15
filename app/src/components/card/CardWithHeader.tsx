@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
+import CardHeader from '@/components/card/CardHeader';
 import { cardStyle, Spacing } from '@/styles';
 
 interface CardProps {
@@ -10,9 +11,7 @@ interface CardProps {
 const CardWithHeader = ({ title, children }: CardProps) => {
   return (
     <View style={styles.containerCard}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardHeaderText}>{title}</Text>
-      </View>
+      <CardHeader title={title} />
 
       {children}
     </View>
@@ -24,8 +23,6 @@ const styles = StyleSheet.create({
     ...cardStyle.containerRounded,
     marginBottom: Spacing.spacing2,
   },
-  cardHeader: cardStyle.header,
-  cardHeaderText: cardStyle.headerText,
 });
 
 export default CardWithHeader;

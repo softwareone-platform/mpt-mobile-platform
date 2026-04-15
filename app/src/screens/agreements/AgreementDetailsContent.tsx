@@ -7,7 +7,7 @@ import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import NavigationItem from '@/components/navigation-item/NavigationItem';
-import { getAgreementsSubList } from '@/config/subListsNavigation';
+import { getAgreementSubList } from '@/config/subListsNavigation';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccountType } from '@/hooks/useAccountType';
 import { useSubListNavigation } from '@/hooks/useSubListNavigation';
@@ -47,7 +47,7 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const defaultMargin = calculateMarginWithMarkup(data.price?.defaultMarkup || 0);
   const formattedDefaultMargin = `${formatPercentage(defaultMargin, 2) || EMPTY_VALUE} ${labelDown}`;
 
-  const filteredSubList = getAgreementsSubList(data.id).filter((item) =>
+  const filteredSubList = getAgreementSubList(data.id).filter((item) =>
     item.roles.includes(accountType as AccountType),
   );
 
