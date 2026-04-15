@@ -2,8 +2,10 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
+import CardHeader from '@/components/card/CardHeader';
+import CardWithHeader from '@/components/card/CardWithHeader';
 import EmptyState from '@/components/common/EmptyState';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
@@ -88,10 +90,10 @@ const ProfileScreen = () => {
   const listHeader = useMemo(
     () => (
       <View>
-        <Text testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE} style={styles.sectionHeader}>
-          {t('profileScreen.yourProfile')}
-        </Text>
-        <View style={styles.containerCard}>
+        <CardWithHeader
+          title={t('profileScreen.userProfile')}
+          testID={TestIDs.PROFILE_SECTION_YOUR_PROFILE}
+        >
           {displayUserData && (
             <NavigationItemWithImage
               testID={TestIDs.PROFILE_USER_ITEM}
@@ -109,10 +111,7 @@ const ProfileScreen = () => {
               }
             />
           )}
-        </View>
-        <Text testID={TestIDs.PROFILE_SECTION_SWITCH_ACCOUNT} style={styles.sectionHeader}>
-          {t('profileScreen.switchAccount')}
-        </Text>
+        </CardWithHeader>
         {isEnabled('FEATURE_ACCOUNT_TABS') && (
           <Tabs
             tabs={tabData}
@@ -122,6 +121,7 @@ const ProfileScreen = () => {
             tabTestIDPrefix={TestIDs.PROFILE_TAB_PREFIX}
           />
         )}
+        <CardHeader title={t('profileScreen.switchAccount')} />
       </View>
     ),
     [displayUserData, isEnabled, navigation, selectedTab, t, tabData],
@@ -150,16 +150,9 @@ const ProfileScreen = () => {
 
   const renderItem = useCallback(
     ({ item, index }: { item: UserAccount; index: number }) => {
-      const isFirst = index === 0;
       const isLast = index === accountsToDisplay.length - 1;
       return (
-        <View
-          style={[
-            styles.accountItem,
-            isFirst && styles.accountItemFirst,
-            isLast && styles.accountItemLast,
-          ]}
-        >
+        <View style={[styles.accountItem, isLast && styles.accountItemLast]}>
           <ListItemWithImage
             testID={`${TestIDs.PROFILE_ACCOUNT_ITEM_PREFIX}-${item.id}`}
             id={item.id}
@@ -205,10 +198,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.spacing2,
   },
   containerCenterContent: screenStyle.containerCenterContent,
-  sectionHeader: screenStyle.sectionHeader,
   paddingVertical4: spacingStyle.paddingVertical4,
-  accountItem: listItemStyle.listItemDynamic.container,
-  accountItemFirst: listItemStyle.listItemDynamic.firstItem,
+  accountItem: {
+    ...listItemStyle.listItemDynamic.container,
+    ...listItemStyle.listItemDynamic.contentWrapper,
+  },
   accountItemLast: {
     ...listItemStyle.listItemDynamic.lastItem,
     marginBottom: Spacing.spacing2,

@@ -2,7 +2,7 @@ import { BorderRadius, Color, Spacing, Typography } from '../tokens';
 
 export const tabStyle = {
   container: {
-    backgroundColor: Color.fills.tertiary,
+    backgroundColor: Color.brand.white,
     borderRadius: BorderRadius.round,
     padding: Spacing.spacingSmall4,
     flexDirection: 'row',
@@ -13,21 +13,21 @@ export const tabStyle = {
 export const tabItemStyle = {
   container: {
     flex: 1,
-    paddingVertical: Spacing.spacingSmall4,
-    paddingHorizontal: Spacing.spacing2,
+    paddingVertical: Spacing.spacing1,
+    paddingHorizontal: Spacing.spacingSmall12,
     borderRadius: BorderRadius.round,
     alignItems: 'center',
     justifyContent: 'center',
   },
   itemSelected: {
-    backgroundColor: Color.brand.white,
+    backgroundColor: Color.brand.primary,
   },
   label: {
-    fontSize: Typography.fontSize.font2,
+    fontSize: Typography.fontSize.font3,
     lineHeight: Typography.lineHeight.height2,
-    color: Color.brand.type,
+    color: Color.brand.primary,
   },
   labelSelected: {
-    fontWeight: Typography.fontWeight.semibold,
+    color: Color.brand.white,
   },
 } as const;
