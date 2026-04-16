@@ -109,16 +109,7 @@ const SpotlightScreen = () => {
   const handleNavigate = (section: SpotlightItemWithDetails) => {
     const filter = formatSpotlightQuery(section.query?.filter || '');
 
-    // Nested stacks
-    if (section.listScreenName === 'subscriptions') {
-      navigation.navigate(section.listScreenName, {
-        screen: 'subscriptionsRoot',
-        params: { query: filter },
-      });
-    } else {
-      // All other screens
-      navigation.navigate(section.listScreenName, { query: filter });
-    }
+    navigation.navigate(section.listScreenName, { query: filter });
   };
 
   return (
