@@ -6,10 +6,10 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImage } from '@/config/list';
 import { useSubscriptions, SubscriptionsProvider } from '@/context/SubscriptionsContext';
-import type { RootStackParamList, SubscriptionsStackParamList } from '@/types/navigation';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type SubscriptionsScreenRouteProp = RouteProp<SubscriptionsStackParamList, 'subscriptionsRoot'>;
+type SubscriptionsScreenRouteProp = RouteProp<RootStackParamList, 'subscriptions'>;
 
 const SubscriptionsScreenContent = () => {
   const {

@@ -44,18 +44,16 @@ describe('useSubListNavigation', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to subscriptions with nested params', async () => {
+  it('navigates to subscriptions with query param', async () => {
     const { result } = renderHook(() => useSubListNavigation());
 
     const item = mockSubList[0];
-    const query = '&eq(agreement.id, "123")';
 
     result.current.navigateToSubListItem(item);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('subscriptions', {
-        screen: 'subscriptionsRoot',
-        params: { query },
+        query: item.query,
       });
     });
   });
