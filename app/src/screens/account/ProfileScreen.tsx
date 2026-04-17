@@ -1,3 +1,4 @@
+import { HeaderBackButton } from '@react-navigation/elements';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -71,6 +72,27 @@ const ProfileScreen = () => {
       setSelectedAccountId(userData.currentAccount.id);
     }
   }, [userData]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (!isSwitching) return;
+      e.preventDefault();
+    });
+
+    navigation.setOptions({
+      gestureEnabled: !isSwitching,
+      headerLeft: (props) => (
+        <HeaderBackButton
+          {...props}
+          onPress={isSwitching ? undefined : props.onPress}
+          disabled={isSwitching}
+        />
+      ),
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [navigation, isSwitching]);
 
   const handleSwitchAccount = useCallback(
     async (accountId: string) => {
