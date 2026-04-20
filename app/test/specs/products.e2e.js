@@ -57,13 +57,10 @@ describe('Products Page', () => {
         .isDisplayed()
         .catch(() => false);
       const hasChatTab = await productsPage.footer.chatTab.isDisplayed().catch(() => false);
-      const hasSubscriptionsTab = await productsPage.footer.subscriptionsTab
-        .isDisplayed()
-        .catch(() => false);
       const hasMoreTab = await productsPage.footer.moreTab.isDisplayed().catch(() => false);
 
       const hasPrimaryFooterTabs =
-        hasSpotlightsTab || hasChatTab || hasSubscriptionsTab || hasMoreTab;
+        hasSpotlightsTab || hasChatTab || hasMoreTab;
 
       if (!hasPrimaryFooterTabs) {
         await expect(productsPage.goBackButton).toBeDisplayed();
@@ -72,7 +69,6 @@ describe('Products Page', () => {
 
       await expect(productsPage.footer.spotlightsTab).toBeDisplayed();
       await expect(productsPage.footer.chatTab).toBeDisplayed();
-      await expect(productsPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(productsPage.footer.moreTab).toBeDisplayed();
     });
 

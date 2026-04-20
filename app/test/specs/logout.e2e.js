@@ -18,12 +18,12 @@ describe('Logout Functionality', () => {
   });
 
   describe('Sign Out Flow', () => {
-    it('should display sign out button in User Settings', async () => {
-      // Navigate to Profile page
+    it('should display sign out button in User Profile', async () => {
+      // Navigate to Account page
       await headingPage.navAccountButton.click();
       await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
 
-      // Navigate to User Settings by clicking current user card
+      // Navigate to User Profile by clicking current user card
       await profilePage.currentUserCard.click();
       await userSettingsPage.headerTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
 
@@ -32,7 +32,7 @@ describe('Logout Functionality', () => {
     });
 
     it('should allow user to log out', async () => {
-      // In User Settings
+      // In User Profile
       await userSettingsPage.headerTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
 
       // Click sign out button

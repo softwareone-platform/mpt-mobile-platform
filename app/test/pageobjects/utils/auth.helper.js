@@ -47,7 +47,6 @@ async function isLoggedIn() {
     const hasAnyFooterTab =
       (await footerPage.spotlightsTab.isDisplayed().catch(() => false)) ||
       (await footerPage.chatTab.isDisplayed().catch(() => false)) ||
-      (await footerPage.subscriptionsTab.isDisplayed().catch(() => false)) ||
       (await footerPage.moreTab.isDisplayed().catch(() => false));
 
     if (hasAnyFooterTab) {
@@ -372,12 +371,12 @@ async function ensureLoggedOut() {
     // Navigate to Profile page via account button
     await headingPage.navAccountButton.click();
     await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
-    console.info('✓ Navigated to Profile page');
+    console.info('✓ Navigated to Account page');
 
-    // Navigate to User Settings by clicking current user card
+    // Navigate to User Profile by clicking current user card
     await profilePage.currentUserCard.click();
     await userSettingsPage.headerTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
-    console.info('✓ Navigated to User Settings');
+    console.info('✓ Navigated to User Profile');
 
     // Click sign out button
     await userSettingsPage.signOut();

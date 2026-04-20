@@ -11,7 +11,6 @@ const ordersPage = require('./orders.page');
 const productsPage = require('./products.page');
 const profilePage = require('./profile.page');
 const spotlightsPage = require('./spotlights.page');
-const subscriptionsPage = require('./subscriptions.page');
 const userSettingsPage = require('./user-settings.page');
 const { PAUSE, RETRY, TIMEOUT } = require('./utils/constants');
 const { selectors } = require('./utils/selectors');
@@ -71,7 +70,7 @@ class ScreenshotsPage extends BasePage {
         await morePage.navigateToAgreements();
         return;
       case 'subscriptions':
-        await subscriptionsPage.ensureSubscriptionsPage();
+        await morePage.navigateToSubscriptions();
         return;
       case 'invoices':
         await morePage.navigateToInvoices();

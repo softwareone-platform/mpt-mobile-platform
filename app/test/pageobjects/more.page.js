@@ -134,6 +134,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get subscriptionsMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-subscriptions',
+        android: '//*[@resource-id="nav-menu-subscriptions"]',
+      }),
+    );
+  }
+
   // ========== Helper Methods ==========
 
   /**
@@ -259,6 +268,15 @@ class MorePage extends BasePage {
   async navigateToProducts() {
     await this.ensureMorePage();
     await this.productsMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Subscriptions page
+   */
+  async navigateToSubscriptions() {
+    await this.ensureMorePage();
+    await this.subscriptionsMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 }

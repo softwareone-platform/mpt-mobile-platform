@@ -19,7 +19,7 @@ class UserSettingsPage extends BasePage {
   }
 
   get headerTitle() {
-    return $(selectors.byText('User Settings'));
+    return $(selectors.byText('User Profile'));
   }
 
   // ========== User Info Section ==========
