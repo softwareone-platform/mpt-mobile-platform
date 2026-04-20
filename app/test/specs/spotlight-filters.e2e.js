@@ -2,13 +2,13 @@ const { expect } = require('@wdio/globals');
 
 const spotlightsPage = require('../pageobjects/spotlights.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 const { ensureHomePage } = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 
 /**
  * Spotlight Filter Tests - Optimized Structure
- * 
+ *
  * Tests are grouped by filter position to minimize scrolling:
  * 1. Filter UI Basics - no scrolling needed
  * 2. Left Filters (All, Orders, Subscriptions) - no horizontal scroll
@@ -21,10 +21,10 @@ describe('Spotlight Filter Chips', () => {
   // Section data flags - set once in before() to avoid redundant checks
   let sectionData = {};
   let hasSpotlightsData = false;
-  let apiDataAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await ensureHomePage();
 
@@ -36,11 +36,8 @@ describe('Spotlight Filter Chips', () => {
       return;
     }
 
-    // Use API to check section data availability - more reliable than UI checks
-    // UI checks can fail if cards are below viewport
     try {
       sectionData = await apiClient.getSpotlightDataAvailability();
-      apiDataAvailable = true;
       console.info(`📊 Spotlight section data (from API):`, {
         hasSubscriptions: sectionData.hasSubscriptions,
         hasJournals: sectionData.hasJournals,
@@ -55,7 +52,10 @@ describe('Spotlight Filter Chips', () => {
       console.info(`⚠️ API check failed, falling back to UI checks: ${apiError.message}`);
       // Fallback to UI-based checks if API fails
       sectionData = {
+        hasOrders: await spotlightsPage.isOrdersSectionVisible().catch(() => false),
         hasSubscriptions: await spotlightsPage.isSubscriptionsSectionVisible().catch(() => false),
+        hasUsers: await spotlightsPage.isUsersSectionVisible().catch(() => false),
+        hasInvoices: await spotlightsPage.isInvoicesSectionVisible().catch(() => false),
         hasJournals: await spotlightsPage.isJournalsSectionVisible().catch(() => false),
         hasBuyers: await spotlightsPage.isBuyersSectionVisible().catch(() => false),
         hasEnrollments: await spotlightsPage.isEnrollmentsSectionVisible().catch(() => false),
@@ -91,8 +91,14 @@ describe('Spotlight Filter Chips', () => {
         return;
       }
       await expect(spotlightsPage.filterAll).toBeDisplayed();
-      await expect(spotlightsPage.filterOrders).toBeDisplayed();
-      await expect(spotlightsPage.filterSubscriptions).toBeDisplayed();
+
+      if (sectionData.hasOrders) {
+        await expect(spotlightsPage.filterOrders).toBeDisplayed();
+      }
+
+      if (sectionData.hasSubscriptions) {
+        await expect(spotlightsPage.filterSubscriptions).toBeDisplayed();
+      }
     });
   });
 
@@ -112,21 +118,26 @@ describe('Spotlight Filter Chips', () => {
     });
 
     it('should select Orders filter and show order sections', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data, filters not available');
+      if (!hasSpotlightsData || !sectionData.hasOrders) {
+        console.info('Skipping - no orders data for this user');
         this.skip();
         return;
       }
       await spotlightsPage.selectFilter('orders');
       await browser.pause(PAUSE.NAVIGATION);
 
-      // Verify filter works by checking other sections are hidden
-      // (Orders section visibility depends on user having long-running orders data)
-      const subsVisible = await spotlightsPage.isSubscriptionsSectionVisible();
-      expect(subsVisible).toBe(false);
+      const ordersVisible = await spotlightsPage.isOrdersSectionVisible();
+      expect(ordersVisible).toBe(true);
 
-      const invoicesVisible = await spotlightsPage.isInvoicesSectionVisible();
-      expect(invoicesVisible).toBe(false);
+      if (sectionData.hasSubscriptions) {
+        const subsVisible = await spotlightsPage.isSubscriptionsSectionVisible();
+        expect(subsVisible).toBe(false);
+      }
+
+      if (sectionData.hasInvoices) {
+        const invoicesVisible = await spotlightsPage.isInvoicesSectionVisible();
+        expect(invoicesVisible).toBe(false);
+      }
     });
 
     it('should switch from Orders to Subscriptions filter', async function () {
@@ -177,8 +188,8 @@ describe('Spotlight Filter Chips', () => {
     });
 
     it('should display Users filter after scrolling', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data, filters not available');
+      if (!hasSpotlightsData || !sectionData.hasUsers) {
+        console.info('Skipping - no users data for this user');
         this.skip();
         return;
       }
@@ -186,8 +197,8 @@ describe('Spotlight Filter Chips', () => {
     });
 
     it('should select Users filter and show user sections', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data, filters not available');
+      if (!hasSpotlightsData || !sectionData.hasUsers) {
+        console.info('Skipping - no users data for this user');
         this.skip();
         return;
       }
@@ -196,19 +207,23 @@ describe('Spotlight Filter Chips', () => {
       await spotlightsPage.selectFilter('users');
       await browser.pause(PAUSE.NAVIGATION);
 
-      // Verify filter works by checking subscriptions sections are hidden
-      // Users filter should hide subscription-related content
-      const subsVisible = await spotlightsPage.isSubscriptionsSectionVisible();
-      const invoicesVisible = await spotlightsPage.isInvoicesSectionVisible();
-      
-      // At least one of these should be false if filtering is working
-      const filteringWorks = !subsVisible || !invoicesVisible;
-      expect(filteringWorks).toBe(true);
+      const usersVisible = await spotlightsPage.isUsersSectionVisible();
+      expect(usersVisible).toBe(true);
+
+      if (sectionData.hasSubscriptions) {
+        const subsVisible = await spotlightsPage.isSubscriptionsSectionVisible();
+        expect(subsVisible).toBe(false);
+      }
+
+      if (sectionData.hasInvoices) {
+        const invoicesVisible = await spotlightsPage.isInvoicesSectionVisible();
+        expect(invoicesVisible).toBe(false);
+      }
     });
 
     it('should display Invoices filter', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data, filters not available');
+      if (!hasSpotlightsData || !sectionData.hasInvoices) {
+        console.info('Skipping - no invoices data for this user');
         this.skip();
         return;
       }
@@ -249,16 +264,29 @@ describe('Spotlight Filter Chips', () => {
       if (!hasSpotlightsData) {
         return;
       }
+
+      const rightFilterToReveal = sectionData.hasJournals
+        ? 'journals'
+        : sectionData.hasBuyers
+          ? 'buyers'
+          : sectionData.hasEnrollments
+            ? 'enrollments'
+            : null;
+
+      if (!rightFilterToReveal) {
+        return;
+      }
+
       await ensureHomePage();
       await spotlightsPage.resetFilterScrollPosition().catch(() => {});
       // Scroll to reveal right-side filters
-      await spotlightsPage.scrollToFilter('journals');
+      await spotlightsPage.scrollToFilter(rightFilterToReveal);
       await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
     it('should display Journals filter after scrolling', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data, filters not available');
+      if (!hasSpotlightsData || !sectionData.hasJournals) {
+        console.info('Skipping - no journals data for this user');
         this.skip();
         return;
       }
@@ -282,8 +310,8 @@ describe('Spotlight Filter Chips', () => {
     });
 
     it('should display Buyers filter after scrolling', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data, filters not available');
+      if (!hasSpotlightsData || !sectionData.hasBuyers) {
+        console.info('Skipping - no buyers data for this user');
         this.skip();
         return;
       }
@@ -336,8 +364,8 @@ describe('Spotlight Filter Chips', () => {
     });
 
     it('should show all sections when All filter is reselected after filtering', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data, filters not available');
+      if (!hasSpotlightsData || !sectionData.hasOrders) {
+        console.info('Skipping - no orders data for this user');
         this.skip();
         return;
       }
@@ -346,9 +374,13 @@ describe('Spotlight Filter Chips', () => {
       await spotlightsPage.selectFilter('orders');
       await browser.pause(PAUSE.ANIMATION_SETTLE);
 
-      // Verify filter is applied - subscriptions should be hidden
-      const subsAfterOrdersFilter = await spotlightsPage.isSubscriptionsSectionVisible();
-      expect(subsAfterOrdersFilter).toBe(false);
+      const ordersVisible = await spotlightsPage.isOrdersSectionVisible();
+      expect(ordersVisible).toBe(true);
+
+      if (sectionData.hasSubscriptions) {
+        const subsAfterOrdersFilter = await spotlightsPage.isSubscriptionsSectionVisible();
+        expect(subsAfterOrdersFilter).toBe(false);
+      }
 
       // Reset to all
       await spotlightsPage.resetFilterScrollPosition();

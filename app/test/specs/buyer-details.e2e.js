@@ -1,12 +1,12 @@
 const { expect } = require('@wdio/globals');
 
-const buyersPage = require('../pageobjects/buyers.page');
 const buyerDetailsPage = require('../pageobjects/buyer-details.page');
+const buyersPage = require('../pageobjects/buyers.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, PAUSE, REGEX, DEFAULTS } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT, PAUSE, REGEX, DEFAULTS } = require('../pageobjects/utils/constants');
 
 // E2E tests for Buyer Details Page, modeled after user-details/agreement-details e2e.js
 
@@ -15,14 +15,25 @@ describe('Buyer Details Page', () => {
   let apiAvailable = false;
   let testBuyerId = null;
   let apiBuyerData = null;
+  let buyersMenuAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Buyers page via More menu
     await buyersPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
+
+    buyersMenuAvailable = await morePage.buyersMenuItem.isDisplayed().catch(() => false);
+    if (!buyersMenuAvailable) {
+      console.info(
+        '⚠️ Buyers menu item not available for this user - skipping Buyer Details tests',
+      );
+      return;
+    }
+
     await morePage.buyersMenuItem.click();
     await buyersPage.waitForScreenReady();
 
@@ -44,7 +55,9 @@ describe('Buyer Details Page', () => {
       }
     }
 
-    console.info(`📊 Buyer Details test setup: hasBuyers=${hasBuyersData}, apiAvailable=${apiAvailable}, testBuyerId=${testBuyerId}`);
+    console.info(
+      `📊 Buyer Details test setup: hasBuyers=${hasBuyersData}, apiAvailable=${apiAvailable}, testBuyerId=${testBuyerId}`,
+    );
 
     // Navigate to buyer details page once at the start
     if (hasBuyersData && testBuyerId) {
@@ -205,13 +218,27 @@ describe('Buyer Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.info(`Buyer ID:   UI="${uiDetails.buyerId}" | API="${apiBuyerData.id}"`);
       console.info(`Status:     UI="${uiDetails.status}" | API="${apiBuyerData.status}"`);
-      console.info(`Name:       UI="${uiDetails.name}" | API="${(apiBuyerData.name || '').trim()}"`);
-      console.info(`SCU:        UI="${uiDetails.scuIdentifier}" | API="${apiBuyerData.externalIds?.erpCustomer}"`);
-      console.info(`Address1:   UI="${uiDetails.addressLine1}" | API="${address.addressLine1 || DEFAULTS.DASH_FOR_EMPTY}"`);
-      console.info(`City:       UI="${uiDetails.city}" | API="${address.city || DEFAULTS.DASH_FOR_EMPTY}"`);
-      console.info(`State:      UI="${uiDetails.state}" | API="${address.state || DEFAULTS.DASH_FOR_EMPTY}"`);
-      console.info(`ZIP:        UI="${uiDetails.zip}" | API="${address.postCode || DEFAULTS.DASH_FOR_EMPTY}"`);
-      console.info(`Country:    UI="${uiDetails.country}" | API="${address.country || DEFAULTS.DASH_FOR_EMPTY}"`);
+      console.info(
+        `Name:       UI="${uiDetails.name}" | API="${(apiBuyerData.name || '').trim()}"`,
+      );
+      console.info(
+        `SCU:        UI="${uiDetails.scuIdentifier}" | API="${apiBuyerData.externalIds?.erpCustomer}"`,
+      );
+      console.info(
+        `Address1:   UI="${uiDetails.addressLine1}" | API="${address.addressLine1 || DEFAULTS.DASH_FOR_EMPTY}"`,
+      );
+      console.info(
+        `City:       UI="${uiDetails.city}" | API="${address.city || DEFAULTS.DASH_FOR_EMPTY}"`,
+      );
+      console.info(
+        `State:      UI="${uiDetails.state}" | API="${address.state || DEFAULTS.DASH_FOR_EMPTY}"`,
+      );
+      console.info(
+        `ZIP:        UI="${uiDetails.zip}" | API="${address.postCode || DEFAULTS.DASH_FOR_EMPTY}"`,
+      );
+      console.info(
+        `Country:    UI="${uiDetails.country}" | API="${address.country || DEFAULTS.DASH_FOR_EMPTY}"`,
+      );
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.buyerId).toBe(apiBuyerData.id);
     });

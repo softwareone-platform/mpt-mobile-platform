@@ -37,6 +37,7 @@ const ChatScreenContent = () => {
   const { userData } = useAccount();
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
+  const accountType = userData?.currentAccount?.type;
 
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -91,6 +92,7 @@ const ChatScreenContent = () => {
     >
       <ListViewChat
         userId={userId || ''}
+        accountType={accountType}
         data={chats}
         isFetchingNext={chatsFetchingNext}
         hasMore={hasMoreChats}

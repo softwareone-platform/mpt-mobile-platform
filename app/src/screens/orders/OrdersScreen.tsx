@@ -6,10 +6,10 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useOrders, OrdersProvider } from '@/context/OrdersContext';
-import type { RootStackParamList, OrdersStackParamList } from '@/types/navigation';
+import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-type OrdersScreenRouteProp = RouteProp<OrdersStackParamList, 'ordersRoot'>;
+type OrdersScreenRouteProp = RouteProp<RootStackParamList, 'orders'>;
 
 const OrdersScreenContent = () => {
   const {

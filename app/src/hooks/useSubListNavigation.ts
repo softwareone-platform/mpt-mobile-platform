@@ -9,17 +9,10 @@ export const useSubListNavigation = () => {
 
   const navigateToSubListItem = useCallback(
     (item: SubListItem) => {
-      if (item.name === 'subscriptions') {
-        navigation.navigate('subscriptions', {
-          screen: 'subscriptionsRoot',
-          params: { query: item.query },
-        });
-      } else {
-        navigation.navigate(item.name, {
-          query: item.query,
-          accountId: item.accountId,
-        });
-      }
+      navigation.navigate(item.name, {
+        query: item.query,
+        accountId: item.accountId,
+      });
     },
     [navigation],
   );

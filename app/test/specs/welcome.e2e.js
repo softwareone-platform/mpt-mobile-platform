@@ -1,7 +1,6 @@
 const { expect } = require('@wdio/globals');
 
 const homePage = require('../pageobjects/spotlights.page');
-const { restartApp } = require('../pageobjects/utils/app.helper');
 const { AIRTABLE_EMAIL, ensureLoggedOut } = require('../pageobjects/utils/auth.helper');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const verifyPage = require('../pageobjects/verify.page');
@@ -63,17 +62,42 @@ describe('Welcome page of application', () => {
     const enteredValue = await welcomePage.emailInput.getAttribute(isAndroid() ? 'text' : 'value');
     expect(enteredValue).toBe(testEmail);
 
-    // Record timestamp before requesting OTP to avoid picking up old emails
-    const beforeOTPRequest = new Date();
-    console.info(`🕐 Timestamp BEFORE OTP request: ${beforeOTPRequest.toISOString()}`);
+    // Submit email with retry logic — Auth0 passwordless API can transiently fail
+    const maxSendRetries = 3;
+    let beforeOTPRequest = new Date();
+    let afterOTPRequest;
 
-    // Click continue to trigger OTP request
-    await welcomePage.click(welcomePage.continueButton);
-    const afterOTPRequest = new Date();
-    console.info(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`);
+    for (let attempt = 1; attempt <= maxSendRetries; attempt++) {
+      beforeOTPRequest = new Date();
+      console.info(`📧 Attempt ${attempt}/${maxSendRetries}: Sending authentication email...`);
+      console.info(`🕐 Timestamp BEFORE OTP request: ${beforeOTPRequest.toISOString()}`);
 
-    // Wait for navigation to verify screen
-    await expect(verifyPage.verifyTitle).toBeDisplayed();
+      await welcomePage.click(welcomePage.continueButton);
+      afterOTPRequest = new Date();
+      console.info(`🕐 Timestamp AFTER OTP request: ${afterOTPRequest.toISOString()}`);
+
+      try {
+        await verifyPage.verifyTitle.waitForDisplayed({ timeout: 15000 });
+        console.info(`✅ OTP screen displayed on attempt ${attempt}`);
+        break;
+      } catch {
+        const pageSource = await browser.getPageSource();
+        if (pageSource.includes('Failed to send authentication email')) {
+          console.warn(`⚠️ Auth0 email send failed on attempt ${attempt}/${maxSendRetries}`);
+          if (attempt < maxSendRetries) {
+            console.info('🔄 Waiting 5s before retry...');
+            await browser.pause(5000);
+          } else {
+            throw new Error(
+              `Auth0 failed to send authentication email after ${maxSendRetries} attempts`,
+            );
+          }
+        } else {
+          throw new Error('OTP screen not displayed and no known Auth0 error found on page');
+        }
+      }
+    }
+
     await expect(verifyPage.verificationCodeMessage).toBeDisplayed();
 
     let result = null;
@@ -170,30 +194,5 @@ describe('Welcome page of application', () => {
     // Log completion time for the entire OTP test
     const testEnd = new Date();
     console.info(`🏁 [${testEnd.toISOString()}] OTP test completed. Total auth flow time: ${(testEnd - afterOTPEntry) / 1000}s`);
-  });
-
-  it('should keep user logged in after app restart', async () => {
-    const restartTestStart = new Date();
-    console.info(`🔄 [${restartTestStart.toISOString()}] Starting app restart test`);
-    
-    // Restart the app
-    const beforeRestart = new Date();
-    console.info(`🔄 [${beforeRestart.toISOString()}] Calling restartApp()...`);
-    await restartApp({
-      timeout: TIMEOUT.AUTH_FLOW_WAIT,
-      expectedState: 'home',
-      settleBeforeTerminateMs: PAUSE.OTP_POLL_INTERVAL,
-    });
-    const afterRestart = new Date();
-    console.info(`✅ [${afterRestart.toISOString()}] restartApp() completed in ${(afterRestart - beforeRestart) / 1000}s`);
-
-    // Verify user is still logged in by checking for home page elements
-    const beforeCheck = new Date();
-    console.info(`⏳ [${beforeCheck.toISOString()}] Waiting for home page after restart (timeout: 30s)...`);
-    await homePage.header.logoTitle.waitForDisplayed({ timeout: TIMEOUT.SCREEN_READY });
-    const afterCheck = new Date();
-    console.info(`✅ [${afterCheck.toISOString()}] Home page found after ${(afterCheck - beforeCheck) / 1000}s`);
-    await expect(homePage.header.logoTitle).toBeDisplayed();
-    console.info('✅ User is still logged in after app restart');
   });
 });

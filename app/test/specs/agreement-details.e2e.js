@@ -15,14 +15,25 @@ describe('Agreement Details Page', () => {
   let apiAvailable = false;
   let testAgreementId = null;
   let apiAgreementData = null;
+  let agreementsMenuAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Agreements page via More menu
     await agreementsPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
+
+    agreementsMenuAvailable = await morePage.agreementsMenuItem.isDisplayed().catch(() => false);
+    if (!agreementsMenuAvailable) {
+      console.info(
+        '⚠️ Agreements menu item not available for this user - skipping Agreement Details tests',
+      );
+      return;
+    }
+
     await morePage.agreementsMenuItem.click();
     await agreementsPage.waitForScreenReady();
 
@@ -57,6 +68,10 @@ describe('Agreement Details Page', () => {
   });
 
   beforeEach(async function () {
+    if (!agreementsMenuAvailable || !hasAgreementsData) {
+      this.skip();
+      return;
+    }
     await agreementDetailsPage.scrollToTop(1);
   });
 
