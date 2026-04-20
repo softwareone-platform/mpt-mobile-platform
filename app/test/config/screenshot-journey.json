@@ -1,0 +1,121 @@
+{
+  "metadata": {
+    "description": "App Store screenshot journey - English - TEST environment",
+    "locale": "en",
+    "environment": "test",
+    "version": "1.0.0"
+  },
+  "steps": [
+    {
+      "id": "home-spotlights",
+      "description": "Home page with spotlight cards",
+      "page": "home",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 1000
+        }
+      ],
+      "screenshot": "01_home_spotlights"
+    },
+    {
+      "id": "chat-list",
+      "description": "Chat conversations list",
+      "page": "chat",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 1500
+        }
+      ],
+      "screenshot": "02_chat_list"
+    },
+    {
+      "id": "orders-list",
+      "description": "Orders list page",
+      "page": "orders",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 1000
+        }
+      ],
+      "screenshot": "03_orders_list"
+    },
+    {
+      "id": "order-detail",
+      "description": "Order detail view",
+      "page": "orders",
+      "actions": [
+        {
+          "type": "tapFirstOrder"
+        },
+        {
+          "type": "pause",
+          "duration": 1500
+        }
+      ],
+      "screenshot": "04_order_detail"
+    },
+    {
+      "id": "account-switcher",
+      "description": "Profile page with account switcher and account list",
+      "page": "profile",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 1000
+        }
+      ],
+      "screenshot": "05_account_switcher"
+    },
+    {
+      "id": "user-settings",
+      "description": "User settings page with menu items",
+      "page": "userSettings",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 500
+        }
+      ],
+      "screenshot": "06_user_settings"
+    },
+    {
+      "id": "personal-information",
+      "description": "Personal information page showing user details",
+      "page": "personalInfo",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 500
+        }
+      ],
+      "screenshot": "07_personal_info"
+    },
+    {
+      "id": "subscriptions-list",
+      "description": "Subscriptions list page",
+      "page": "subscriptions",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 1000
+        }
+      ],
+      "screenshot": "08_subscriptions"
+    },
+    {
+      "id": "more-menu",
+      "description": "More menu with all navigation options",
+      "page": "more",
+      "actions": [
+        {
+          "type": "pause",
+          "duration": 500
+        }
+      ],
+      "screenshot": "09_more_menu"
+    }
+  ]
+}

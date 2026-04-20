@@ -663,6 +663,68 @@ class ApiClient {
     return response.data || response;
   }
 
+  // ========== Products Methods ==========
+
+  /**
+   * Get products list for the authenticated user.
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of products to return
+   * @param {number} [options.offset] - Offset for pagination
+    * @param {string} [options.status] - Filter by product status (Published, Unpublished, Pending, Draft)
+    * @param {boolean} [options.excludeDraft] - Exclude products with Draft status (UI behavior)
+    * @param {string} [options.order] - Ordering expression (e.g., 'name')
+    * @param {string} [options.select] - Select projection expression (e.g., '-*,id,name,status,icon')
+   * @returns {Promise<object>} - Products list response
+   */
+  async getProducts(options = {}) {
+    let endpoint = '/public/v1/catalog/products';
+
+    const queryParams = [];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`status=${options.status}`);
+    if (options.excludeDraft) queryParams.push('ne(status,%22Draft%22)');
+    if (options.order) queryParams.push(`order=${encodeURIComponent(options.order)}`);
+    if (options.select) queryParams.push(`select=${encodeURIComponent(options.select)}`);
+
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific product by ID.
+   * @param {string} productId - Product ID in format PRD-XXXX-XXXX
+   * @returns {Promise<object>} - Product details
+   */
+  async getProductById(productId) {
+    if (!productId || !/^PRD-\d{4}-\d{4}$/.test(productId)) {
+      throw new Error(`Invalid productId format: "${productId}". Expected format: PRD-XXXX-XXXX`);
+    }
+
+    return this.get(`/public/v1/catalog/products/${productId}`);
+  }
+
+  /**
+   * Get products count.
+   * @returns {Promise<number>} - Total number of products
+   */
+  async getProductsCount() {
+    const response = await this.getProducts({ limit: 1 });
+    return response?.$meta?.pagination?.total || response?.pagination?.total || response?.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any products.
+   * @returns {Promise<boolean>}
+   */
+  async hasProducts() {
+    const count = await this.getProductsCount();
+    return count > 0;
+  }
+
   // ========== Enrollments Methods ==========
 
   /**

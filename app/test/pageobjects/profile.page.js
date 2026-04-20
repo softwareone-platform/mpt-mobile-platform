@@ -22,8 +22,8 @@ class ProfilePage extends BasePage {
   get profileHeaderTitle() {
     return $(
       getSelector({
-        ios: '~Profile',
-        android: '//android.view.View[@text="Profile"]',
+        ios: '~Account',
+        android: '//android.view.View[@text="Account"]',
       }),
     );
   }

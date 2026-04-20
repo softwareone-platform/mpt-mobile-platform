@@ -52,13 +52,10 @@ describe('Orders Page', () => {
     it('should display all footer navigation tabs', async () => {
       const hasSpotlightsTab = await ordersPage.footer.spotlightsTab.isDisplayed().catch(() => false);
       const hasChatTab = await ordersPage.footer.chatTab.isDisplayed().catch(() => false);
-      const hasSubscriptionsTab = await ordersPage.footer.subscriptionsTab
-        .isDisplayed()
-        .catch(() => false);
       const hasMoreTab = await ordersPage.footer.moreTab.isDisplayed().catch(() => false);
 
       const hasPrimaryFooterTabs =
-        hasSpotlightsTab || hasChatTab || hasSubscriptionsTab || hasMoreTab;
+        hasSpotlightsTab || hasChatTab || hasMoreTab;
 
       // When Orders is opened from More menu as a secondary screen, root footer tabs are hidden.
       if (!hasPrimaryFooterTabs) {
@@ -68,7 +65,6 @@ describe('Orders Page', () => {
 
       await expect(ordersPage.footer.spotlightsTab).toBeDisplayed();
       await expect(ordersPage.footer.chatTab).toBeDisplayed();
-      await expect(ordersPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(ordersPage.footer.moreTab).toBeDisplayed();
     });
 

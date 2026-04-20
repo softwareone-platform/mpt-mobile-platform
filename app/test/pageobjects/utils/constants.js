@@ -166,6 +166,7 @@ const REGEX = {
   USER_ID: /^USR-\d{4}-\d{4}$/,
   USER_ID_FLEX: /^USR-(\d{4}-)+\d{4}$/,
   PROGRAM_ID: /^PRG-\d{4}-\d{4}$/,
+  PRODUCT_ID: /^PRD-\d{4}-\d{4}$/,
   BUYER_ID: /^BUY-\d{4}-\d{4}$/,
   BUYER_ID_FLEX: /^BUY-(\d{4}-?)+\d{4}$/,
   LICENSEE_ID: /^LCE-\d{4}-\d{4}-\d{4}$/,
