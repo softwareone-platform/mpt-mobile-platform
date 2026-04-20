@@ -64,7 +64,7 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY, expectedState = '
         .isDisplayed()
         .catch(() => false);
       
-      if (homeVisible) {
+      if (homeVisible && (expectedState === 'either' || expectedState === 'home')) {
         const found = new Date();
         console.info(`✅ [${found.toISOString()}] App ready - home page detected after ${iteration} iterations (${found - waitStart}ms)`);
         return 'home';
@@ -74,7 +74,7 @@ async function waitForAppReady(timeout = TIMEOUT.SCREEN_READY, expectedState = '
         .isDisplayed()
         .catch(() => false);
       
-      if (welcomeVisible) {
+      if (welcomeVisible && (expectedState === 'either' || expectedState === 'welcome')) {
         const found = new Date();
         console.info(`✅ [${found.toISOString()}] App ready - welcome page detected after ${iteration} iterations (${found - waitStart}ms)`);
         return 'welcome';
