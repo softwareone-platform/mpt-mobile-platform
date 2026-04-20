@@ -113,7 +113,6 @@ describe('Order Details Navigation', () => {
 
       await expect(orderDetailsPage.footer.spotlightsTab).toBeDisplayed();
       await expect(orderDetailsPage.footer.chatTab).toBeDisplayed();
-      await expect(orderDetailsPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(orderDetailsPage.footer.moreTab).toBeDisplayed();
     });
 

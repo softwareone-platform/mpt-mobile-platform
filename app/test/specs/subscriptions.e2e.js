@@ -46,19 +46,18 @@ describe('Subscriptions Page', () => {
     it('should display all footer navigation tabs', async () => {
       await expect(subscriptionsPage.footer.spotlightsTab).toBeDisplayed();
       await expect(subscriptionsPage.footer.chatTab).toBeDisplayed();
-      await expect(subscriptionsPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(subscriptionsPage.footer.moreTab).toBeDisplayed();
     });
 
-    it('should have Subscriptions tab selected', async () => {
-      const subscriptionsTab = subscriptionsPage.footer.subscriptionsTab;
+    it('should have More tab selected', async () => {
+      const moreTab = subscriptionsPage.footer.moreTab;
       if (isAndroid()) {
         // Android uses 'selected' attribute
-        const selected = await subscriptionsTab.getAttribute('selected');
+        const selected = await moreTab.getAttribute('selected');
         expect(selected).toBe('true');
       } else {
         // iOS uses 'value' attribute
-        const value = await subscriptionsTab.getAttribute('value');
+        const value = await moreTab.getAttribute('value');
         expect(value).toBe('1');
       }
     });

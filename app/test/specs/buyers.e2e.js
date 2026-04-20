@@ -114,7 +114,6 @@ describe('Buyers Page', () => {
     it('should display all footer navigation tabs', async () => {
       await expect(buyersPage.footer.spotlightsTab).toBeDisplayed();
       await expect(buyersPage.footer.chatTab).toBeDisplayed();
-      await expect(buyersPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(buyersPage.footer.moreTab).toBeDisplayed();
     });
 

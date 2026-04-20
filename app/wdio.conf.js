@@ -458,6 +458,7 @@ exports.config = {
             './test/specs/subscriptions.e2e.js',
             './test/specs/subscription-details.e2e.js',
         ],
+        screenshots: ['./test/specs/screenshots.e2e.js'],
         agreements: [
             './test/specs/agreements.e2e.js',
             './test/specs/agreement-details.e2e.js',

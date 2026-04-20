@@ -2,6 +2,7 @@ const { selectors } = require('./utils/selectors');
 const { PAUSE, RETRY } = require('./utils/constants');
 
 const ListPage = require('./base/list.page');
+const morePage = require('./more.page');
 
 /**
  * Subscriptions Page - extends ListPage for common list functionality
@@ -119,7 +120,7 @@ class SubscriptionsPage extends ListPage {
 
     // Try to navigate back until footer is visible
     for (let i = 0; i < RETRY.MAX_BACK_ATTEMPTS; i++) {
-      const isFooterVisible = await this.footer.subscriptionsTab.isDisplayed().catch(() => false);
+      const isFooterVisible = await this.footer.moreTab.isDisplayed().catch(() => false);
       if (isFooterVisible) {
         break;
       }
@@ -127,8 +128,8 @@ class SubscriptionsPage extends ListPage {
       await browser.pause(PAUSE.NAVIGATION);
     }
 
-    // Click Subscriptions tab from footer
-    await this.footer.subscriptionsTab.click();
+    // Navigate through More menu to Subscriptions
+    await morePage.navigateToSubscriptions();
     await this.waitForScreenReady();
   }
 
