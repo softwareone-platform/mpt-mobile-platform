@@ -4,7 +4,7 @@ import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import Avatar from './Avatar';
 
 import {
-  DEFAULT_CHAT_AVTAR_SIZE,
+  DEFAULT_CHAT_AVATAR_SIZE,
   MAX_NUMBER_OF_CHAT_AVATARS,
   DEFAULT_AVATAR_IMAGE_SHIFT,
 } from '@/constants';
@@ -16,7 +16,7 @@ interface GroupAvatarProps {
   size?: number;
 }
 
-const GroupAvatar: React.FC<GroupAvatarProps> = ({ avatars, size = DEFAULT_CHAT_AVTAR_SIZE }) => {
+const GroupAvatar: React.FC<GroupAvatarProps> = ({ avatars, size = DEFAULT_CHAT_AVATAR_SIZE }) => {
   const displayedAvatars = avatars.slice(0, MAX_NUMBER_OF_CHAT_AVATARS);
   const avatarCount = displayedAvatars.length;
 

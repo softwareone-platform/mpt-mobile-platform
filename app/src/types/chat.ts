@@ -106,6 +106,13 @@ export type ListItemChatProps = ListItemCommonProps & {
   isVerified: boolean;
 };
 
+export type CaseItem = {
+  id: string;
+  chat: {
+    id: string;
+  };
+};
+
 export interface MessageLink {
   id: string;
   name: string;
@@ -114,6 +121,13 @@ export interface MessageLink {
   revision: number;
 }
 
+export type MessageVisibility = 'Public' | 'Private';
+
+export const MESSAGE_VISIBILITY = {
+  Public: 'Public' as MessageVisibility,
+  Private: 'Private' as MessageVisibility,
+} as const;
+
 export type Message = {
   id: string;
   revision: number;
@@ -121,7 +135,7 @@ export type Message = {
   sender: Sender;
   identity: Identity;
   content: string;
-  visibility: 'Public' | 'Private';
+  visibility: MessageVisibility;
   isDeleted: boolean;
   links: MessageLink[];
   audit: Audit;

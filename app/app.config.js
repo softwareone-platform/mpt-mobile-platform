@@ -41,7 +41,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: bundleId,
-      buildNumber: '26',
+      buildNumber: '31',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
@@ -59,6 +59,7 @@ export default {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: bundleId,
+      versionCode: 31,
     },
     web: {
       favicon: './assets/favicon.png',

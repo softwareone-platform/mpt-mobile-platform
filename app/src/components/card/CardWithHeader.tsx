@@ -1,18 +1,18 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
+import CardHeader from '@/components/card/CardHeader';
 import { cardStyle, Spacing } from '@/styles';
 
 interface CardProps {
   title: string;
   children: React.ReactNode;
+  testID?: string;
 }
 
-const CardWithHeader = ({ title, children }: CardProps) => {
+const CardWithHeader = ({ title, children, testID }: CardProps) => {
   return (
     <View style={styles.containerCard}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardHeaderText}>{title}</Text>
-      </View>
+      <CardHeader title={title} testID={testID} />
 
       {children}
     </View>
@@ -24,8 +24,6 @@ const styles = StyleSheet.create({
     ...cardStyle.containerRounded,
     marginBottom: Spacing.spacing2,
   },
-  cardHeader: cardStyle.header,
-  cardHeaderText: cardStyle.headerText,
 });
 
 export default CardWithHeader;

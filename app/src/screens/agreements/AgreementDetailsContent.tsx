@@ -7,11 +7,12 @@ import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import NavigationItem from '@/components/navigation-item/NavigationItem';
+import { getAgreementSubList } from '@/config/subListsNavigation';
 import { EMPTY_VALUE } from '@/constants/common';
-import { agreementsSubList } from '@/constants/subListsNavigation';
 import { useAccountType } from '@/hooks/useAccountType';
 import { useSubListNavigation } from '@/hooks/useSubListNavigation';
 import type { AgreementData } from '@/types/agreement';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { formatNumber, formatPercentage } from '@/utils/formatting';
 import { calculateMarginWithMarkup } from '@/utils/formulas';
@@ -46,7 +47,7 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
   const defaultMargin = calculateMarginWithMarkup(data.price?.defaultMarkup || 0);
   const formattedDefaultMargin = `${formatPercentage(defaultMargin, 2) || EMPTY_VALUE} ${labelDown}`;
 
-  const filteredSubList = agreementsSubList.filter((item) =>
+  const filteredSubList = getAgreementSubList(data.id).filter((item) =>
     item.roles.includes(accountType as AccountType),
   );
 
@@ -152,8 +153,7 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
               title={t(`navigation.tabs.${item.name}`)}
               isLast={index === filteredSubList.length - 1}
               onPress={() => {
-                const query = `&eq(agreement.id, "${data.id}")`;
-                navigateToSubListItem(item, query);
+                navigateToSubListItem(item);
               }}
             />
           ))}

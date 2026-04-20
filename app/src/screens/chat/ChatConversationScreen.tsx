@@ -4,12 +4,15 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   StyleSheet,
 } from 'react-native';
 
+import HelpdeskAvatar from '@/components/avatar/HelpdeskAvatar';
 import ChatConversationFooter from '@/components/chat/ChatConversationFooter';
 import ChatMessage from '@/components/chat/ChatMessage';
 import StatusMessage from '@/components/common/EmptyStateHelper';
@@ -17,31 +20,36 @@ import DetailsHeader from '@/components/details/DetailsHeader';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
 import { useMessages, MessagesProvider } from '@/context/MessagesContext';
+import { useCaseData } from '@/hooks/queries/useCaseData';
 import { useChatData } from '@/hooks/queries/useChatData';
 import { useMarkAsRead } from '@/hooks/useMarkAsRead';
 import { useMyParticipant } from '@/hooks/useMyParticipant';
 import { useSendMessage } from '@/hooks/useSendMessage';
 import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
+import { MESSAGE_VISIBILITY } from '@/types/chat';
 import type { Message } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
-import { mapToChatListItemProps } from '@/utils/chat';
+import { isMessageHiddenForAccount, mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
 
-const KEYBOARD_VERTICAL_OFFSET = 100;
 const LOAD_MORE_THRESHOLD = 0.5;
+// Fallback for iOS 16+ where keyboardWillShow reports duration=0 (spring animation)
+const KEYBOARD_ANIMATION_DURATION_MS = 280;
 
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
   const [contentHeight, setContentHeight] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
   const [layoutReady, setLayoutReady] = useState(false);
+  const keyboardPadding = useRef(new Animated.Value(0)).current;
   const { i18n, t } = useTranslation();
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageKeyRef = useRef<string | null>(null);
   const scrollToBottomOnContentChangeRef = useRef(false);
   const { userData } = useAccount();
   const currentUserId = userData?.id ?? '';
+  const accountType = userData?.currentAccount?.type;
 
   const {
     messages,
@@ -55,12 +63,14 @@ const ChatConversationScreenContent = () => {
   } = useMessages();
 
   const { data: chatData } = useChatData(chatId);
+  const { data: caseData } = useCaseData(chatId, chatData?.type === 'Case');
   const myParticipant = useMyParticipant(chatData, currentUserId);
   const { saveParticipant } = useParticipantApi(chatId ?? '');
 
   const chatProps = useMemo(
-    () => (chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId) : null),
-    [chatData, i18n.language, currentUserId],
+    () =>
+      chatData ? mapToChatListItemProps(chatData, i18n.language, currentUserId, accountType) : null,
+    [chatData, i18n.language, currentUserId, accountType],
   );
 
   const otherParticipant =
@@ -70,8 +80,13 @@ const ChatConversationScreenContent = () => {
 
   const contentFillsScreen = contentHeight > layoutHeight;
 
+  const visibleMessages = useMemo(
+    () => messages.filter((m) => !isMessageHiddenForAccount(m.visibility, accountType)),
+    [messages, accountType],
+  );
+
   useEffect(() => {
-    const newest = messages[0];
+    const newest = visibleMessages[0];
     const currentKey = newest?._localKey ?? newest?.id ?? null;
     const previousKey = previousFirstMessageKeyRef.current;
 
@@ -86,7 +101,40 @@ const ChatConversationScreenContent = () => {
     }
 
     previousFirstMessageKeyRef.current = currentKey;
-  }, [messages, contentFillsScreen]);
+  }, [visibleMessages, contentFillsScreen]);
+
+  // TODO: Android uses windowSoftInputMode="adjustResize" (AndroidManifest.xml) which resizes
+  // the app window natively — verify keyboard avoidance still works correctly on Android.
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    const onShow = Keyboard.addListener('keyboardWillShow', (e) => {
+      Animated.timing(keyboardPadding, {
+        toValue: e.endCoordinates.height,
+        duration: e.duration > 0 ? e.duration : KEYBOARD_ANIMATION_DURATION_MS,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const onHide = Keyboard.addListener('keyboardWillHide', (e) => {
+      if (e.duration === 0) {
+        keyboardPadding.setValue(0);
+      } else {
+        Animated.timing(keyboardPadding, {
+          toValue: 0,
+          duration: e.duration,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: false,
+        }).start();
+      }
+    });
+
+    return () => {
+      onShow.remove();
+      onHide.remove();
+    };
+  }, [keyboardPadding]);
 
   const handleLoadMore = () => {
     if (hasMoreMessages && !messagesFetchingNext) {
@@ -117,8 +165,8 @@ const ChatConversationScreenContent = () => {
   });
 
   const displayMessages = useMemo(
-    () => (contentFillsScreen ? messages : [...messages].reverse()),
-    [messages, contentFillsScreen],
+    () => (contentFillsScreen ? visibleMessages : [...visibleMessages].reverse()),
+    [visibleMessages, contentFillsScreen],
   );
 
   const contentContainerStyle = useMemo(
@@ -128,9 +176,14 @@ const ChatConversationScreenContent = () => {
 
   const renderMessage = useCallback(
     ({ item }: { item: Message }) => (
-      <ChatMessage message={item} currentUserId={currentUserId} locale={i18n.language} />
+      <ChatMessage
+        message={item}
+        currentUserId={currentUserId}
+        locale={i18n.language}
+        isPrivate={item.visibility === MESSAGE_VISIBILITY.Private && accountType === 'Operations'}
+      />
     ),
-    [currentUserId, i18n.language],
+    [currentUserId, i18n.language, accountType],
   );
 
   const onBeforeSend = useCallback(() => {
@@ -140,24 +193,23 @@ const ChatConversationScreenContent = () => {
   const sendMessage = useSendMessage({ chatId, inputText, setInputText, onBeforeSend });
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
-    >
+    <Animated.View style={[styles.container, { paddingBottom: keyboardPadding }]}>
       <DetailsHeader
         id={otherParticipant?.identity.id ?? chatId ?? ''}
         title={chatProps?.title ?? EMPTY_VALUE}
-        subtitle={chatId ?? ''}
+        subtitle={
+          chatData?.type === 'Case' && caseData?.id ? `${chatId} | ${caseData.id}` : (chatId ?? '')
+        }
         statusText=""
         imagePath={otherParticipant?.identity.icon ?? ''}
         avatars={chatProps?.avatars}
         variant="chat"
+        customAvatar={chatData?.type === 'Case' ? <HelpdeskAvatar /> : undefined}
       />
       <StatusMessage
         isLoading={messagesLoading}
         isError={messagesError}
-        isEmpty={messages.length === 0}
+        isEmpty={visibleMessages.length === 0}
         isUnauthorised={isUnauthorised}
         loadingTestId={TestIDs.CHAT_CONVERSATION_LOADING_INDICATOR}
         errorTestId={TestIDs.CHAT_CONVERSATION_ERROR_STATE}
@@ -190,7 +242,7 @@ const ChatConversationScreenContent = () => {
         />
       </StatusMessage>
       <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
-    </KeyboardAvoidingView>
+    </Animated.View>
   );
 };
 

@@ -4,11 +4,11 @@ import { DEFAULT_OFFSET, MESSAGE_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import { logger } from '@/services/loggerService';
 import type { PaginatedResponse } from '@/types/api';
-import type { Message } from '@/types/chat';
+import type { Message, MessageVisibility } from '@/types/chat';
 
 export type MessageInput = {
   content: string;
-  visibility: 'Public' | 'Private';
+  visibility: MessageVisibility;
   isDeleted: boolean;
   links?: unknown[];
 };

@@ -12,8 +12,8 @@ type Props = {
   onPress?: () => void;
 };
 
-const NavigationItemWithText = ({ label, text, isLast, isDisabled, onPress }: Props) => (
-  <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
+const NavigationItemWithText = ({ label, text, isLast, isDisabled, onPress }: Props) => {
+  const inner = (
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
       <View style={styles.textContainerInline}>
         <Text style={styles.label}>{label}</Text>
@@ -23,8 +23,18 @@ const NavigationItemWithText = ({ label, text, isLast, isDisabled, onPress }: Pr
       </View>
       {!isDisabled && <NavigationItemChevron />}
     </View>
-  </TouchableOpacity>
-);
+  );
+
+  if (isDisabled) {
+    return <View style={styles.container}>{inner}</View>;
+  }
+
+  return (
+    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
+      {inner}
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   container: listItemStyle.container,

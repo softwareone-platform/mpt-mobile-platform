@@ -14,9 +14,14 @@ interface AgreementsContextValue {
   fetchAgreements: () => void;
 }
 
+interface AgreementProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
 const AgreementsContext = createContext<AgreementsContextValue | undefined>(undefined);
 
-export const AgreementsProvider = ({ children }: { children: ReactNode }) => {
+export const AgreementsProvider = ({ children, query }: AgreementProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const AgreementsProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useAgreementsData(userId, currentAccountId);
+  } = useAgreementsData(userId, currentAccountId, query);
 
   const agreements = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

@@ -17,19 +17,23 @@ interface UsersContextValue {
 
 const UsersContext = createContext<UsersContextValue | undefined>(undefined);
 
+interface UsersProviderProps {
+  children: ReactNode;
+  showAllUsers?: boolean;
+  query?: string;
+  accountId?: string;
+}
+
 export const UsersProvider = ({
   children,
   showAllUsers = false,
   query,
-}: {
-  children: ReactNode;
-  showAllUsers?: boolean;
-  query?: string;
-}) => {
+  accountId,
+}: UsersProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
+  const currentAccountId = accountId || userData?.currentAccount?.id;
   const isOperations = userData?.currentAccount?.type === 'Operations';
   const shouldUseAllUsers = showAllUsers && isOperations;
 

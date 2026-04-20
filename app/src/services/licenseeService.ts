@@ -13,12 +13,14 @@ export function useLicenseeApi() {
       accountId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<ListItemFull>> => {
+      const defaultQuery = `&eq(account.id, ${accountId})&order=name`;
+
       const endpoint =
         `/v1/accounts/licensees` +
         `?select=seller,buyer.status` +
-        `&eq(account.id,%22${accountId}%22)` +
-        `&order=name` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 

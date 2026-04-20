@@ -12,6 +12,8 @@ import {
   EnrollmentsScreen,
   LicenseesScreen,
   BuyersScreen,
+  ClientsScreen,
+  VendorsScreen,
   ProductsScreen,
   CreditMemoDetailsScreen,
   JournalDetailsScreen,
@@ -31,6 +33,7 @@ import {
   CertificateDetailsScreen,
   ChatScreen,
   ChatConversationScreen,
+  CertificatesScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -47,12 +50,6 @@ export const mainTabsData: MainTabItem[] = [
     component: ChatScreen,
     stackRootName: 'chatRoot',
   },
-  {
-    name: 'subscriptions',
-    icon: 'subscriptions',
-    component: SubscriptionsScreen,
-    stackRootName: 'subscriptionsRoot',
-  },
   { name: 'more', icon: 'more-horiz', stackRootName: 'moreRoot' },
 ];
 
@@ -68,9 +65,23 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         roles: ['Operations'],
       },
       {
+        name: 'clients',
+        icon: 'contacts',
+        component: ClientsScreen,
+        modules: ['platform-account-management'],
+        roles: ['Operations'],
+      },
+      {
         name: 'allUsers',
         icon: 'group',
         component: UsersScreen,
+        modules: ['platform-account-management'],
+        roles: ['Operations'],
+      },
+      {
+        name: 'vendors',
+        icon: 'storefront',
+        component: VendorsScreen,
         modules: ['platform-account-management'],
         roles: ['Operations'],
       },
@@ -145,11 +156,32 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         modules: ['new-marketplace'],
         roles: ['Client', 'Vendor', 'Operations'],
       },
+      {
+        name: 'subscriptions',
+        icon: 'subscriptions',
+        component: SubscriptionsScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
     ],
   },
   {
     title: 'program',
     items: [
+      {
+        name: 'certificates',
+        icon: 'workspace-premium',
+        component: CertificatesScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client'],
+      },
+      {
+        name: 'certificates',
+        icon: 'workspace-premium',
+        component: CertificatesScreen,
+        modules: ['catalog-management'],
+        roles: ['Vendor', 'Operations'],
+      },
       {
         name: 'enrollments',
         icon: 'badge',
@@ -201,11 +233,15 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'allUsers', component: UsersScreen },
   { name: 'programs', component: ProgramsScreen },
   { name: 'enrollments', component: EnrollmentsScreen },
+  { name: 'certificates', component: CertificatesScreen },
   { name: 'licensees', component: LicenseesScreen },
   { name: 'buyers', component: BuyersScreen },
   { name: 'allBuyers', component: BuyersScreen },
+  { name: 'clients', component: ClientsScreen },
+  { name: 'vendors', component: VendorsScreen },
   { name: 'products', component: ProductsScreen },
   { name: 'orders', component: OrdersScreen },
+  { name: 'subscriptions', component: SubscriptionsScreen },
   { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
   { name: 'journalDetails', component: JournalDetailsScreen },
   { name: 'orderDetails', component: OrderDetailsScreen },

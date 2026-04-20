@@ -8,17 +8,11 @@ export const useSubListNavigation = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const navigateToSubListItem = useCallback(
-    (item: SubListItem, query: string) => {
-      if (item.name === 'subscriptions') {
-        navigation.navigate('subscriptions', {
-          screen: 'subscriptionsRoot',
-          params: { query },
-        });
-      } else {
-        navigation.navigate(item.name, {
-          query,
-        });
-      }
+    (item: SubListItem) => {
+      navigation.navigate(item.name, {
+        query: item.query,
+        accountId: item.accountId,
+      });
     },
     [navigation],
   );
