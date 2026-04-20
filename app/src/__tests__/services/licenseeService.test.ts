@@ -53,7 +53,7 @@ describe('useLicenseeApi - getLicensees', () => {
     const expectedUrl =
       `/v1/accounts/licensees` +
       `?select=seller,buyer.status` +
-      `&eq(account.id,%22ACC-0000-0001%22)` +
+      `&eq(account.id, ACC-0000-0001)` +
       `&order=name` +
       `&offset=${DEFAULT_OFFSET}` +
       `&limit=${DEFAULT_PAGE_SIZE}`;
@@ -85,7 +85,7 @@ describe('useLicenseeApi - getLicensees', () => {
     const expectedUrl =
       `/v1/accounts/licensees` +
       `?select=seller,buyer.status` +
-      `&eq(account.id,%22ACC-1234-5678%22)` +
+      `&eq(account.id, ACC-1234-5678)` +
       `&order=name` +
       `&offset=50` +
       `&limit=25`;
@@ -207,6 +207,39 @@ describe('useLicenseeApi - getLicensees', () => {
     mockGet.mockRejectedValueOnce(mockError);
 
     await expect(api.getLicensees('ACC-0000-0001')).rejects.toThrow('Network error');
+  });
+  it('uses custom query instead of default query', async () => {
+    const api = setup();
+
+    const mockResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 0,
+        },
+      },
+      data: [],
+    };
+
+    const customQuery = `&and(eq(account.id,"ACC-9999"),ne(status,"Deleted"))`;
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getLicensees('ACC-0000-0001', undefined, undefined, customQuery);
+    });
+
+    const expectedUrl =
+      `/v1/accounts/licensees` +
+      `?select=seller,buyer.status` +
+      customQuery +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
   });
 });
 

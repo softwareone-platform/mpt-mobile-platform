@@ -50,12 +50,6 @@ export const mainTabsData: MainTabItem[] = [
     component: ChatScreen,
     stackRootName: 'chatRoot',
   },
-  {
-    name: 'subscriptions',
-    icon: 'subscriptions',
-    component: SubscriptionsScreen,
-    stackRootName: 'subscriptionsRoot',
-  },
   { name: 'more', icon: 'more-horiz', stackRootName: 'moreRoot' },
 ];
 
@@ -162,6 +156,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         modules: ['new-marketplace'],
         roles: ['Client', 'Vendor', 'Operations'],
       },
+      {
+        name: 'subscriptions',
+        icon: 'subscriptions',
+        component: SubscriptionsScreen,
+        modules: ['new-marketplace'],
+        roles: ['Client', 'Vendor', 'Operations'],
+      },
     ],
   },
   {
@@ -171,14 +172,14 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         name: 'certificates',
         icon: 'workspace-premium',
         component: CertificatesScreen,
-        modules: ['catalog-management'],
+        modules: ['new-marketplace'],
         roles: ['Client'],
       },
       {
         name: 'certificates',
         icon: 'workspace-premium',
         component: CertificatesScreen,
-        modules: ['new-marketplace'],
+        modules: ['catalog-management'],
         roles: ['Vendor', 'Operations'],
       },
       {
@@ -240,6 +241,7 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'vendors', component: VendorsScreen },
   { name: 'products', component: ProductsScreen },
   { name: 'orders', component: OrdersScreen },
+  { name: 'subscriptions', component: SubscriptionsScreen },
   { name: 'creditMemoDetails', component: CreditMemoDetailsScreen },
   { name: 'journalDetails', component: JournalDetailsScreen },
   { name: 'orderDetails', component: OrderDetailsScreen },

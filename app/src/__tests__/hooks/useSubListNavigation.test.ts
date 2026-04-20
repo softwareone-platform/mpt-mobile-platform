@@ -8,11 +8,29 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+const mockQuery = `&eq(agreement.id, "123")`;
+
 const mockSubList: SubListItem[] = [
-  { name: 'subscriptions', roles: ['Client', 'Operations'] },
-  { name: 'invoices', roles: ['Client', 'Operations'] },
-  { name: 'statements', roles: ['Client', 'Operations'] },
-  { name: 'journals', roles: ['Vendor', 'Operations'] },
+  {
+    name: 'subscriptions',
+    roles: ['Client', 'Operations'],
+    query: mockQuery,
+  },
+  {
+    name: 'invoices',
+    roles: ['Client', 'Operations'],
+    query: mockQuery,
+  },
+  {
+    name: 'statements',
+    roles: ['Client', 'Operations'],
+    query: mockQuery,
+  },
+  {
+    name: 'journals',
+    roles: ['Vendor', 'Operations'],
+    query: mockQuery,
+  },
 ];
 
 describe('useSubListNavigation', () => {
@@ -26,18 +44,16 @@ describe('useSubListNavigation', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to subscriptions with nested params', async () => {
+  it('navigates to subscriptions with query param', async () => {
     const { result } = renderHook(() => useSubListNavigation());
 
     const item = mockSubList[0];
-    const query = '&eq(agreement.id, "123")';
 
-    result.current.navigateToSubListItem(item, query);
+    result.current.navigateToSubListItem(item);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('subscriptions', {
-        screen: 'subscriptionsRoot',
-        params: { query },
+        query: item.query,
       });
     });
   });
@@ -48,7 +64,7 @@ describe('useSubListNavigation', () => {
     const item = mockSubList[1];
     const query = '&eq(agreement.id, "123")';
 
-    result.current.navigateToSubListItem(item, query);
+    result.current.navigateToSubListItem(item);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('invoices', {
@@ -63,7 +79,7 @@ describe('useSubListNavigation', () => {
     const subList = mockSubList[2];
     const query = '&eq(agreement.id, "123")';
 
-    result.current.navigateToSubListItem(subList, query);
+    result.current.navigateToSubListItem(subList);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('statements', {
@@ -76,24 +92,22 @@ describe('useSubListNavigation', () => {
     const { result } = renderHook(() => useSubListNavigation());
 
     const item = mockSubList[3];
-    const query = '&eq(agreement.id, "123")';
 
-    result.current.navigateToSubListItem(item, query);
+    result.current.navigateToSubListItem(item);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('journals', {
-        query,
+        query: item.query,
       });
     });
   });
 
   it('calls navigate exactly once', async () => {
     const item = mockSubList[3];
-    const query = '&eq(agreement.id, "123")';
 
     const { result } = renderHook(() => useSubListNavigation());
 
-    result.current.navigateToSubListItem(item, query);
+    result.current.navigateToSubListItem(item);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);

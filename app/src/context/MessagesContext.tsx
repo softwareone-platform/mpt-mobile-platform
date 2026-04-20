@@ -10,11 +10,13 @@ import {
   useState,
 } from 'react';
 
+import { useAccount } from '@/context/AccountContext';
 import { useSignalR } from '@/context/SignalRContext';
 import { useMessagesData } from '@/hooks/queries/useMessagesData';
 import { logger } from '@/services/loggerService';
 import type { Message } from '@/types/chat';
 import type { EntitySubscription, ServerNotification } from '@/types/signalr';
+import { isMessageHiddenForAccount } from '@/utils/chat';
 
 interface MessagesContextValue {
   messages: Message[];
@@ -45,6 +47,8 @@ const MESSAGE_SUBSCRIPTIONS: EntitySubscription[] = [
 export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) => {
   const queryClient = useQueryClient();
   const { subscribe, addMessageListener, addReconnectionListener } = useSignalR();
+  const { userData } = useAccount();
+  const accountType = userData?.currentAccount?.type;
 
   const {
     data,
@@ -145,6 +149,10 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
         return;
       }
 
+      if (isMessageHiddenForAccount(message.visibility, accountType)) {
+        return;
+      }
+
       logger.debug('[MessagesContext] New message received via SignalR, adding to local messages', {
         messageId: message.id,
         event: notification.event,
@@ -168,7 +176,7 @@ export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) =>
       removeListener();
       removeReconnectionListener();
     };
-  }, [chatId, subscribe, addMessageListener, addReconnectionListener, queryClient]);
+  }, [chatId, accountType, subscribe, addMessageListener, addReconnectionListener, queryClient]);
 
   return (
     <MessagesContext.Provider

@@ -10,6 +10,10 @@ import { listItemStyle } from '@/styles';
 import type { ListItemWithStatusProps } from '@/types/lists';
 import { getStatus } from '@/utils/list';
 
+type DetailsHeaderProps = ListItemWithStatusProps & {
+  customAvatar?: React.ReactNode;
+};
+
 const DetailsHeader = ({
   id,
   imagePath,
@@ -20,7 +24,8 @@ const DetailsHeader = ({
   headerTitleTestId,
   headerStatusTestId,
   avatars,
-}: ListItemWithStatusProps) => {
+  customAvatar,
+}: DetailsHeaderProps) => {
   const { t } = useTranslation();
 
   const hasSubtitle = Boolean(subtitle);
@@ -44,7 +49,9 @@ const DetailsHeader = ({
     <View style={styles.screenHeader}>
       <View style={styles.topRow}>
         <View style={styles.avatarWrapper}>
-          {avatars && avatars.length > 0 ? (
+          {customAvatar !== undefined ? (
+            customAvatar
+          ) : avatars && avatars.length > 0 ? (
             <GroupAvatar avatars={avatars} size={44} />
           ) : (
             <AvatarIcon id={id} imagePath={imagePath} size={44} />

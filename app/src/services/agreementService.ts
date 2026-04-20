@@ -12,12 +12,14 @@ export function useAgreementApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<ListItemNoImage>> => {
+      const defaultQuery = `&filter(group.buyers)&and(ne(status,"Draft"),ne(status,"Failed"))`;
+
       const endpoint =
         `/v1/commerce/agreements` +
         `?select=-*,id,name,status` +
-        `&filter(group.buyers)` +
-        `&and(ne(status,"Draft"),ne(status,"Failed"))` +
+        `${query || defaultQuery}` +
         `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;

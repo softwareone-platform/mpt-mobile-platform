@@ -1,6 +1,6 @@
 {
   "profileScreen": {
-    "yourProfile": "Your Profile",
+    "userProfile": "User Profile",
     "switchAccount": "Switch Account",
     "tabs": {
       "all": "All accounts",

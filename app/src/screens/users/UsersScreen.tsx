@@ -61,9 +61,10 @@ const UsersScreen = () => {
   const showAllUsers = route.name === 'allUsers';
 
   const query = route.params?.query;
+  const accountId = route.params?.accountId;
 
   return (
-    <UsersProvider showAllUsers={showAllUsers} query={query}>
+    <UsersProvider showAllUsers={showAllUsers} query={query} accountId={accountId}>
       <UsersScreenContent />
     </UsersProvider>
   );

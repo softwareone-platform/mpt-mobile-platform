@@ -2,11 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@assets/*": ["assets/*"],
-      "@featureFlags": ["src/config/feature-flags/featureFlags.ts"]
+      "@/*": ["./src/*"],
+      "@assets/*": ["./assets/*"],
+      "@featureFlags": ["./src/config/feature-flags/featureFlags.ts"]
     },
     "types": ["jest"],
     "typeRoots": ["./node_modules/@types"]

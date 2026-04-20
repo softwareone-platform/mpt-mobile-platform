@@ -5,10 +5,12 @@ import ListItemChat from '@/components/list-item/ListItemChat';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { screenStyle } from '@/styles';
 import type { ChatItem } from '@/types/chat';
+import type { AccountType } from '@/types/common';
 import { mapToChatListItemProps } from '@/utils/chat';
 
 type Props = {
   userId: string;
+  accountType?: AccountType;
   data: ChatItem[];
   onItemPress?: (id: string) => void;
   isFetchingNext?: boolean;
@@ -16,7 +18,15 @@ type Props = {
   fetchNext?: () => void;
 };
 
-const ListViewChat = ({ userId, data, onItemPress, isFetchingNext, hasMore, fetchNext }: Props) => {
+const ListViewChat = ({
+  userId,
+  accountType,
+  data,
+  onItemPress,
+  isFetchingNext,
+  hasMore,
+  fetchNext,
+}: Props) => {
   const { i18n } = useTranslation();
 
   if (data.length === 0) {
@@ -32,7 +42,7 @@ const ListViewChat = ({ userId, data, onItemPress, isFetchingNext, hasMore, fetc
         const isFirst = index === 0;
         const isLast = index === data.length - 1;
 
-        const mapped = mapToChatListItemProps(item, i18n.language, userId);
+        const mapped = mapToChatListItemProps(item, i18n.language, userId, accountType);
 
         return (
           <ListItemChat

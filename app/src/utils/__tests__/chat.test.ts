@@ -1,4 +1,10 @@
-import { parseMarkdownToHtml, stripLinkMarkdown, stripMarkdown, isSafeUri } from '@/utils/chat';
+import {
+  parseMarkdownToHtml,
+  stripLinkMarkdown,
+  stripMarkdown,
+  isSafeUri,
+  getChatTitle,
+} from '@/utils/chat';
 
 describe('parseMarkdownToHtml', () => {
   describe('plain markdown', () => {
@@ -165,5 +171,23 @@ describe('isSafeUri', () => {
 
   it('returns false for invalid URIs', () => {
     expect(isSafeUri('not a uri')).toBe(false);
+  });
+});
+
+describe('getChatTitle', () => {
+  it('returns chat name for a Case type chat', () => {
+    const chat = { id: 'CHT-0001', type: 'Case' as const, name: 'Support request' };
+
+    const result = getChatTitle(chat, 'USR-0001');
+
+    expect(result).toBe('Support request');
+  });
+
+  it('returns empty string for a Case type chat without a name', () => {
+    const chat = { id: 'CHT-0001', type: 'Case' as const };
+
+    const result = getChatTitle(chat, 'USR-0001');
+
+    expect(result).toBe('');
   });
 });

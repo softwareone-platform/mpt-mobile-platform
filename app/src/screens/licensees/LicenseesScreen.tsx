@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,8 @@ import { listItemConfigFull } from '@/config/list';
 import { useLicensees, LicenseeProvider } from '@/context/LicenseeContext';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
+
+type LicenseesScreenRouteProp = RouteProp<RootStackParamList, 'licensees'>;
 
 const LicenseesScreenContent = () => {
   const {
@@ -52,10 +54,16 @@ const LicenseesScreenContent = () => {
   );
 };
 
-const LicenseesScreen = () => (
-  <LicenseeProvider>
-    <LicenseesScreenContent />
-  </LicenseeProvider>
-);
+const LicenseesScreen = () => {
+  const route = useRoute<LicenseesScreenRouteProp>();
+
+  const query = route.params?.query;
+
+  return (
+    <LicenseeProvider query={query}>
+      <LicenseesScreenContent />
+    </LicenseeProvider>
+  );
+};
 
 export default LicenseesScreen;

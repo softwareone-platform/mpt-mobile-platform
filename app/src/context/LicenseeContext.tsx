@@ -16,7 +16,12 @@ interface LicenseeContextValue {
 
 const LicenseeContext = createContext<LicenseeContextValue | undefined>(undefined);
 
-export const LicenseeProvider = ({ children }: { children: ReactNode }) => {
+interface LicenseeProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
+export const LicenseeProvider = ({ children, query }: LicenseeProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -30,7 +35,7 @@ export const LicenseeProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
-  } = useLicenseesData(userId, currentAccountId);
+  } = useLicenseesData(userId, currentAccountId, query);
 
   const licensees = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

@@ -8,7 +8,8 @@
     "emptyStateDescription": "Type your first message below"
   },
   "chat": {
-    "messageInputPlaceholder": "Type a message"
+    "messageInputPlaceholder": "Type a message",
+    "privateMessageIndicator": "Only my account"
   },
   "createChatWizard": {
     "title": "Create chat",

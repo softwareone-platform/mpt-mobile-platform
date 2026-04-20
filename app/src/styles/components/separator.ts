@@ -9,4 +9,8 @@ export const separatorStyle = {
     borderBottomColor: Color.gray.gray2,
     borderBottomWidth: 1,
   },
+  topBorder1: {
+    borderTopColor: Color.gray.gray2,
+    borderTopWidth: 1,
+  },
 } as const;

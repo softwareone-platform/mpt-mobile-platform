@@ -1,21 +1,17 @@
-import { useQuery } from '@tanstack/react-query';
-
-import { MAX_RECENT_ACCOUNTS } from '@/constants/api';
+import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useAccountApi } from '@/services/accountService';
-import { FormattedUserAccounts } from '@/types/api';
-import { formatUserAccountsData } from '@/utils/account';
+import type { UserAccount } from '@/types/api';
 
 export const useUserAccountsData = (userId: string | undefined) => {
   const { getUserAccountsData } = useAccountApi();
 
-  return useQuery<FormattedUserAccounts>({
+  return usePaginatedQuery<UserAccount>({
     queryKey: ['userAccountsData', userId],
-    queryFn: async () => {
-      const { data } = await getUserAccountsData(userId!);
-
-      const formattedData = formatUserAccountsData(data, MAX_RECENT_ACCOUNTS);
-
-      return formattedData;
+    queryFn: (offset, limit) => {
+      if (!userId) {
+        throw new Error('userId is required for fetching accounts');
+      }
+      return getUserAccountsData(userId, offset, limit);
     },
     enabled: !!userId,
   });

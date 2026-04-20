@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
+import CardHeader from '@/components/card/CardHeader';
 import EmptyState from '@/components/common/EmptyState';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
@@ -108,16 +109,7 @@ const SpotlightScreen = () => {
   const handleNavigate = (section: SpotlightItemWithDetails) => {
     const filter = formatSpotlightQuery(section.query?.filter || '');
 
-    // Nested stacks
-    if (section.listScreenName === 'subscriptions') {
-      navigation.navigate(section.listScreenName, {
-        screen: 'subscriptionsRoot',
-        params: { query: filter },
-      });
-    } else {
-      // All other screens
-      navigation.navigate(section.listScreenName, { query: filter });
-    }
+    navigation.navigate(section.listScreenName, { query: filter });
   };
 
   return (
@@ -140,16 +132,12 @@ const SpotlightScreen = () => {
                 testID={`${TestIDs.SPOTLIGHT_CARD_PREFIX}-${categoryName}-${section.id}`}
                 style={styles.containerCard}
               >
-                <View style={styles.cardHeader}>
-                  <Text
-                    testID={`${TestIDs.SPOTLIGHT_CARD_HEADER_PREFIX}-${section.id}`}
-                    style={styles.cardHeaderText}
-                  >
-                    {t(`spotlightScreen.${section?.query?.template}.title`, {
-                      count: section.total,
-                    })}
-                  </Text>
-                </View>
+                <CardHeader
+                  title={t(`spotlightScreen.${section?.query?.template}.title`, {
+                    count: section.total,
+                  })}
+                  testID={`${TestIDs.SPOTLIGHT_CARD_HEADER_PREFIX}-${section.id}`}
+                />
                 {section.top.map((item, itemIndex) => {
                   const nestedItem = item?.product || item?.program || item?.user || item?.buyer;
                   const itemImagePath = item?.icon || nestedItem?.icon || '';
@@ -206,8 +194,6 @@ const styles = StyleSheet.create({
     ...cardStyle.containerRounded,
     marginBottom: Spacing.spacing2,
   },
-  cardHeader: cardStyle.header,
-  cardHeaderText: cardStyle.headerText,
   cardFooter: cardStyle.footer,
   cardFooterText: cardStyle.footerText,
   containerFillScreen: screenStyle.containerFillScreen,
