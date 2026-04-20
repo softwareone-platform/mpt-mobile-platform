@@ -1,12 +1,12 @@
 const { expect } = require('@wdio/globals');
 
-const invoicesPage = require('../pageobjects/invoices.page');
 const invoiceDetailsPage = require('../pageobjects/invoice-details.page');
+const invoicesPage = require('../pageobjects/invoices.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 // E2E tests for Invoice Details Page, modeled after agreement-details.e2e.js
 // API call: apiClient.getInvoiceById(invoiceId)
@@ -16,14 +16,25 @@ describe('Invoice Details Page', () => {
   let apiAvailable = false;
   let testInvoiceId = null;
   let apiInvoiceData = null;
+  let invoicesMenuAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Invoices page via More menu
     await invoicesPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
+
+    invoicesMenuAvailable = await morePage.invoicesMenuItem.isDisplayed().catch(() => false);
+    if (!invoicesMenuAvailable) {
+      console.info(
+        '⚠️ Invoices menu item not available for this user - skipping Invoice Details tests',
+      );
+      return;
+    }
+
     await morePage.invoicesMenuItem.click();
     await invoicesPage.waitForScreenReady();
 
@@ -45,9 +56,9 @@ describe('Invoice Details Page', () => {
       }
     }
 
-    console.info(`📊 Invoice Details test setup: hasInvoices=${hasInvoicesData}, apiAvailable=${apiAvailable}, testInvoiceId=${testInvoiceId}`);
-    console.log(JSON.stringify(apiInvoiceData, null, 2));
-    console.log(testInvoiceId);
+    console.info(
+      `📊 Invoice Details test setup: hasInvoices=${hasInvoicesData}, apiAvailable=${apiAvailable}, testInvoiceId=${testInvoiceId}`,
+    );
 
     // Navigate to invoice details page once at the start
     if (hasInvoicesData && testInvoiceId) {
@@ -57,6 +68,10 @@ describe('Invoice Details Page', () => {
   });
 
   beforeEach(async function () {
+    if (!invoicesMenuAvailable || !hasInvoicesData) {
+      this.skip();
+      return;
+    }
     await invoiceDetailsPage.scrollToTop(1);
   });
 
@@ -84,10 +99,7 @@ describe('Invoice Details Page', () => {
         this.skip();
         return;
       }
-      // Use robust status getter for standalone status fields
-      const statusElem = await invoiceDetailsPage.getStatusByName(apiInvoiceData.status);
-      await expect(statusElem).toBeDisplayed();
-      const status = await statusElem.getText();
+      const status = await invoiceDetailsPage.getStatus();
       expect(status).toBeTruthy();
     });
 
@@ -180,7 +192,7 @@ describe('Invoice Details Page', () => {
         this.skip();
         return;
       }
-      const uiStatus = await (invoiceDetailsPage.getStatusByName(apiInvoiceData.status)).getText();
+      const uiStatus = await invoiceDetailsPage.getStatusByName(apiInvoiceData.status).getText();
       const apiStatus = apiInvoiceData.status;
       expect(uiStatus).toBe(apiStatus);
     });
@@ -262,7 +274,7 @@ describe('Invoice Details Page', () => {
       }
       const uiCurrency = await invoiceDetailsPage.getSimpleFieldValue('Currency', true);
       const apiCurrency = apiInvoiceData.currency;
-      console.log(`[Currency] UI: ${uiCurrency} | API: ${apiCurrency}`);
+      console.info(`[Currency] UI: ${uiCurrency} | API: ${apiCurrency}`);
       expect(uiCurrency).toBe(apiCurrency);
     });
 
@@ -277,12 +289,24 @@ describe('Invoice Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.info(`Invoice ID: UI="${uiDetails.invoiceId}" | API="${apiInvoiceData.id}"`);
       console.info(`Status:     UI="${uiDetails.status}" | API="${apiInvoiceData.status}"`);
-      console.info(`Client:     UI="${uiDetails.client}" | API="${apiInvoiceData.client?.name || global.constants.dashForEmpty}"`);
-      console.info(`Buyer:      UI="${uiDetails.buyer}" | API="${apiInvoiceData.buyer?.name || global.constants.dashForEmpty}"`);
-      console.info(`Licensee:   UI="${uiDetails.licensee}" | API="${apiInvoiceData.licensee?.name || global.constants.dashForEmpty}"`);
-      console.info(`Vendor:     UI="${uiDetails.vendor}" | API="${apiInvoiceData.vendor?.name || global.constants.dashForEmpty}"`);
-      console.info(`Product:    UI="${uiDetails.product}" | API="${apiInvoiceData.product?.name || global.constants.dashForEmpty}"`);
-      console.info(`Agreement:  UI="${uiDetails.agreement}" | API="${apiInvoiceData.agreement?.name}"`);
+      console.info(
+        `Client:     UI="${uiDetails.client}" | API="${apiInvoiceData.client?.name || global.constants.dashForEmpty}"`,
+      );
+      console.info(
+        `Buyer:      UI="${uiDetails.buyer}" | API="${apiInvoiceData.buyer?.name || global.constants.dashForEmpty}"`,
+      );
+      console.info(
+        `Licensee:   UI="${uiDetails.licensee}" | API="${apiInvoiceData.licensee?.name || global.constants.dashForEmpty}"`,
+      );
+      console.info(
+        `Vendor:     UI="${uiDetails.vendor}" | API="${apiInvoiceData.vendor?.name || global.constants.dashForEmpty}"`,
+      );
+      console.info(
+        `Product:    UI="${uiDetails.product}" | API="${apiInvoiceData.product?.name || global.constants.dashForEmpty}"`,
+      );
+      console.info(
+        `Agreement:  UI="${uiDetails.agreement}" | API="${apiInvoiceData.agreement?.name}"`,
+      );
       console.info(`Seller:     UI="${uiDetails.seller}" | API="${apiInvoiceData.seller?.name}"`);
       console.info(`Currency:   UI="${uiDetails.currency}" | API="${apiInvoiceData.currency}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

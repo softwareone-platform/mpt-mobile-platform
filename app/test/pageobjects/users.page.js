@@ -1,6 +1,6 @@
-const { selectors } = require('./utils/selectors');
-
 const ListPage = require('./base/list.page');
+const { REGEX } = require('./utils/constants');
+const { selectors } = require('./utils/selectors');
 
 /**
  * Users Page - extends ListPage for common list functionality
@@ -11,7 +11,7 @@ const ListPage = require('./base/list.page');
  * Status Values: Active, Blocked, Invitation Expired, ...
  */
 class UsersPage extends ListPage {
-  // ========== Abstract Property Implementations ========== 
+  // ========== Abstract Property Implementations ==========
 
   get itemPrefix() {
     return 'USR-';
@@ -33,7 +33,7 @@ class UsersPage extends ListPage {
     return 'users-error-state';
   }
 
-  // ========== Empty State Elements (page-specific) ========== 
+  // ========== Empty State Elements (page-specific) ==========
 
   get noUsersTitle() {
     return $(selectors.byText('No users'));
@@ -53,13 +53,12 @@ class UsersPage extends ListPage {
    * @returns {Promise<{userId: string, id: string, name: string, status: string, label: string}>}
    */
   async getItemDetails(itemElement) {
-    const label = (await itemElement.getAttribute('name')) || (await itemElement.getAttribute('content-desc'));
-    // USR- uses 2-group format: USR-XXXX-XXXX
-    const idMatch = label.match(/(USR-\d{4}-\d{4})/);
-    const id = idMatch ? idMatch[1] : '';
+    const label =
+      (await itemElement.getAttribute('name')) || (await itemElement.getAttribute('content-desc'));
+    const idMatch = label.match(REGEX.USER_ID);
+    const id = idMatch ? idMatch[0] : '';
     // Extract name (everything before the ID)
-    const nameMatch = label.match(/^(.+?),\s*USR-/);
-    const name = nameMatch ? nameMatch[1].trim() : '';
+    const name = id ? label.split(`, ${id}`)[0].trim() : '';
     // Extract status (everything after the last comma)
     const statusMatch = label.match(/,\s*([\w ]+)$/);
     const status = statusMatch ? statusMatch[1] : '';

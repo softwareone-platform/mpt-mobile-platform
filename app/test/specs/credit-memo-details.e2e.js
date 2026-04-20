@@ -1,12 +1,12 @@
 const { expect } = require('@wdio/globals');
 
-const creditMemosPage = require('../pageobjects/credit-memos.page');
 const creditMemoDetailsPage = require('../pageobjects/credit-memo-details.page');
+const creditMemosPage = require('../pageobjects/credit-memos.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 // E2E tests for Credit Memo Details Page, modeled after agreement-details.e2e.js
 // API call: apiClient.getCreditMemoById(creditMemoId)
@@ -16,14 +16,25 @@ describe('Credit Memo Details Page', () => {
   let apiAvailable = false;
   let testCreditMemoId = null;
   let apiCreditMemoData = null;
+  let creditMemosMenuAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     // Navigate to Credit Memos page via More menu
     await creditMemosPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
+
+    creditMemosMenuAvailable = await morePage.creditMemosMenuItem.isDisplayed().catch(() => false);
+    if (!creditMemosMenuAvailable) {
+      console.info(
+        '⚠️ Credit Memos menu item not available for this user - skipping Credit Memo Details tests',
+      );
+      return;
+    }
+
     await morePage.creditMemosMenuItem.click();
     await creditMemosPage.waitForScreenReady();
 
@@ -45,7 +56,9 @@ describe('Credit Memo Details Page', () => {
       }
     }
 
-    console.info(`📊 Credit Memo Details test setup: hasCreditMemos=${hasCreditMemosData}, apiAvailable=${apiAvailable}, testCreditMemoId=${testCreditMemoId}`);
+    console.info(
+      `📊 Credit Memo Details test setup: hasCreditMemos=${hasCreditMemosData}, apiAvailable=${apiAvailable}, testCreditMemoId=${testCreditMemoId}`,
+    );
 
     // Navigate to credit memo details page once at the start
     if (hasCreditMemosData && testCreditMemoId) {
@@ -55,6 +68,10 @@ describe('Credit Memo Details Page', () => {
   });
 
   beforeEach(async function () {
+    if (!creditMemosMenuAvailable || !hasCreditMemosData) {
+      this.skip();
+      return;
+    }
     await creditMemoDetailsPage.scrollToTop(1);
   });
 
@@ -269,16 +286,34 @@ describe('Credit Memo Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.info('📋 Credit Memo Details Comparison');
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.info(`Credit Memo ID: UI="${uiDetails.creditMemoId}" | API="${apiCreditMemoData.id}"`);
+      console.info(
+        `Credit Memo ID: UI="${uiDetails.creditMemoId}" | API="${apiCreditMemoData.id}"`,
+      );
       console.info(`Status:         UI="${uiDetails.status}" | API="${apiCreditMemoData.status}"`);
-      console.info(`Client:         UI="${uiDetails.client}" | API="${apiCreditMemoData.client?.name}"`);
-      console.info(`Buyer:          UI="${uiDetails.buyer}" | API="${apiCreditMemoData.buyer?.name}"`);
-      console.info(`Licensee:       UI="${uiDetails.licensee}" | API="${apiCreditMemoData.licensee?.name}"`);
-      console.info(`Vendor:         UI="${uiDetails.vendor}" | API="${apiCreditMemoData.vendor?.name}"`);
-      console.info(`Product:        UI="${uiDetails.product}" | API="${apiCreditMemoData.product?.name}"`);
-      console.info(`Agreement:      UI="${uiDetails.agreement}" | API="${apiCreditMemoData.agreement?.name}"`);
-      console.info(`Seller:         UI="${uiDetails.seller}" | API="${apiCreditMemoData.seller?.name}"`);
-      console.info(`Currency:       UI="${uiDetails.currency}" | API="${apiCreditMemoData.currency}"`);
+      console.info(
+        `Client:         UI="${uiDetails.client}" | API="${apiCreditMemoData.client?.name}"`,
+      );
+      console.info(
+        `Buyer:          UI="${uiDetails.buyer}" | API="${apiCreditMemoData.buyer?.name}"`,
+      );
+      console.info(
+        `Licensee:       UI="${uiDetails.licensee}" | API="${apiCreditMemoData.licensee?.name}"`,
+      );
+      console.info(
+        `Vendor:         UI="${uiDetails.vendor}" | API="${apiCreditMemoData.vendor?.name}"`,
+      );
+      console.info(
+        `Product:        UI="${uiDetails.product}" | API="${apiCreditMemoData.product?.name}"`,
+      );
+      console.info(
+        `Agreement:      UI="${uiDetails.agreement}" | API="${apiCreditMemoData.agreement?.name}"`,
+      );
+      console.info(
+        `Seller:         UI="${uiDetails.seller}" | API="${apiCreditMemoData.seller?.name}"`,
+      );
+      console.info(
+        `Currency:       UI="${uiDetails.currency}" | API="${apiCreditMemoData.currency}"`,
+      );
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.creditMemoId).toBe(apiCreditMemoData.id);
     });

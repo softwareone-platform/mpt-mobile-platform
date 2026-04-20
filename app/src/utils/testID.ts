@@ -54,6 +54,7 @@ export const TestIDs = {
   NAV_TAB_SUBSCRIPTIONS: 'nav-tab-subscriptions',
   NAV_TAB_MORE: 'nav-tab-more',
   NAV_ACCOUNT_BUTTON: 'nav-account-button',
+  NAV_ACCOUNT_USER_ID: 'nav-account-user-id',
   NAV_MENU_ITEM_PREFIX: 'nav-menu',
   NAV_TAB_PREFIX: 'nav-tab',
 

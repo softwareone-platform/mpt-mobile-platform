@@ -85,6 +85,23 @@ class ApiClient {
   // ========== User Information Methods ==========
 
   /**
+   * Get the user ID (USR-XXXX-XXXX) from the API_OPS_TOKEN JWT claims.
+   * Decodes the JWT payload without verification to extract the userId claim.
+   * @returns {string|null} - User ID or null if not found/invalid
+   */
+  getTokenUserId() {
+    if (!this.opsToken) return null;
+    try {
+      const parts = this.opsToken.split('.');
+      if (parts.length !== 3) return null;
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+      return payload['https://claims.softwareone.com/userId'] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Get user information including associated accounts
    * @param {string} userId - User ID in format USR-XXXX-XXXX (e.g., 'USR-0556-8733')
    *                          This should come from the Profile page's "Your Profile" user entry
@@ -1160,7 +1177,8 @@ class ApiClient {
    * @returns {Promise<object>} - Object with boolean flags for each category
    */
   async getSpotlightDataAvailabilityByTemplate() {
-    console.info('📊 Checking spotlight data availability using individual template queries...');
+    const tokenUserId = this.getTokenUserId();
+    console.info(`📊 Checking spotlight data availability using individual template queries (user: ${tokenUserId || 'unknown'})...`);
     
     // Define templates per category
     const templatesByCategory = {

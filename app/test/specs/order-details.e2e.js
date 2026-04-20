@@ -1,11 +1,11 @@
 const { expect } = require('@wdio/globals');
 
-const ordersPage = require('../pageobjects/orders.page');
 const orderDetailsPage = require('../pageobjects/order-details.page');
+const ordersPage = require('../pageobjects/orders.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Order Details Page', () => {
   let hasOrdersData = false;
@@ -15,6 +15,7 @@ describe('Order Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     await ordersPage.ensureOrdersPage();
@@ -37,12 +38,21 @@ describe('Order Details Page', () => {
       }
     }
 
-    console.info(`📊 Order Details test setup: hasOrders=${hasOrdersData}, apiAvailable=${apiAvailable}, testOrderId=${testOrderId}`);
+    console.info(
+      `📊 Order Details test setup: hasOrders=${hasOrdersData}, apiAvailable=${apiAvailable}, testOrderId=${testOrderId}`,
+    );
 
     // Navigate to order details page once at the start
     if (hasOrdersData && testOrderId) {
       await ordersPage.tapOrder(testOrderId);
       await orderDetailsPage.waitForPageReady();
+    }
+  });
+
+  beforeEach(async function () {
+    if (!hasOrdersData) {
+      this.skip();
+      return;
     }
   });
 
@@ -75,7 +85,15 @@ describe('Order Details Page', () => {
 
       await expect(orderDetailsPage.statusText).toBeDisplayed();
       const status = await orderDetailsPage.getStatus();
-      expect(['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed', 'Processing', 'Querying']).toContain(status);
+      expect([
+        'Draft',
+        'Quoted',
+        'Completed',
+        'Deleted',
+        'Failed',
+        'Processing',
+        'Querying',
+      ]).toContain(status);
     });
 
     it('should display the Details section header', async function () {
@@ -104,7 +122,10 @@ describe('Order Details Page', () => {
         return;
       }
 
-      const agreementValue = await orderDetailsPage.getCompositeFieldValueByLabel('Agreement', false);
+      const agreementValue = await orderDetailsPage.getCompositeFieldValueByLabel(
+        'Agreement',
+        false,
+      );
       expect(agreementValue).toBeTruthy();
     });
 
@@ -176,7 +197,9 @@ describe('Order Details Page', () => {
       console.info(`[Status] UI: ${uiStatus} | API: ${apiStatus}`);
 
       if (uiStatus !== apiStatus) {
-        console.warn(`[Status Mismatch] Order status may have changed during test execution. UI: ${uiStatus}, API: ${apiStatus}`);
+        console.warn(
+          `[Status Mismatch] Order status may have changed during test execution. UI: ${uiStatus}, API: ${apiStatus}`,
+        );
       }
 
       expect(uiStatus).toBeTruthy();
@@ -257,7 +280,8 @@ describe('Order Details Page', () => {
       }
 
       const uiClient = await orderDetailsPage.getCompositeFieldValueByLabel('Client', false);
-      const apiClientName = apiOrderData.client?.name || apiOrderData.buyer?.name || apiOrderData.clientName || '';
+      const apiClientName =
+        apiOrderData.client?.name || apiOrderData.buyer?.name || apiOrderData.clientName || '';
 
       console.info(`[Client] UI: ${uiClient} | API: ${apiClientName}`);
       expect(apiClientName).toBeTruthy();
@@ -275,10 +299,14 @@ describe('Order Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.info('📋 Order Details Comparison');
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.info(`Order ID:   UI="${uiDetails.orderId}" | API="${apiOrderData.id || apiOrderData.orderId}"`);
+      console.info(
+        `Order ID:   UI="${uiDetails.orderId}" | API="${apiOrderData.id || apiOrderData.orderId}"`,
+      );
       console.info(`Status:     UI="${uiDetails.status}" | API="${apiOrderData.status}"`);
       console.info(`Type:       UI="${uiDetails.type}" | API="${apiOrderData.type}"`);
-      console.info(`Currency:   UI="${uiDetails.currency}" | API="${apiOrderData.price?.currency}"`);
+      console.info(
+        `Currency:   UI="${uiDetails.currency}" | API="${apiOrderData.price?.currency}"`,
+      );
       console.info(`Agreement:  UI="${uiDetails.agreement}"`);
       console.info(`Product:    UI="${uiDetails.product}"`);
       console.info(`Vendor:     UI="${uiDetails.vendor}"`);

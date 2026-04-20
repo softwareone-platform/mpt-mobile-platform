@@ -1,11 +1,11 @@
 const { expect } = require('@wdio/globals');
 
-const subscriptionsPage = require('../pageobjects/subscriptions.page');
 const subscriptionDetailsPage = require('../pageobjects/subscription-details.page');
+const subscriptionsPage = require('../pageobjects/subscriptions.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Subscription Details Page', () => {
   let hasSubscriptionsData = false;
@@ -15,6 +15,7 @@ describe('Subscription Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     await subscriptionsPage.ensureSubscriptionsPage();
@@ -30,7 +31,7 @@ describe('Subscription Details Page', () => {
       if (apiAvailable && testSubscriptionId) {
         try {
           apiSubscriptionData = await apiClient.getSubscriptionById(testSubscriptionId);
-          console.log(JSON.stringify(apiSubscriptionData, null, 2));
+          console.info(JSON.stringify(apiSubscriptionData, null, 2));
           console.info(`📊 Pre-fetched API data for subscription: ${testSubscriptionId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);
@@ -38,7 +39,9 @@ describe('Subscription Details Page', () => {
       }
     }
 
-    console.info(`📊 Subscription Details test setup: hasSubscriptions=${hasSubscriptionsData}, apiAvailable=${apiAvailable}, testSubscriptionId=${testSubscriptionId}`);
+    console.info(
+      `📊 Subscription Details test setup: hasSubscriptions=${hasSubscriptionsData}, apiAvailable=${apiAvailable}, testSubscriptionId=${testSubscriptionId}`,
+    );
 
     // Navigate to subscription details page once at the start
     if (hasSubscriptionsData && testSubscriptionId) {
@@ -48,6 +51,10 @@ describe('Subscription Details Page', () => {
   });
 
   beforeEach(async function () {
+    if (!hasSubscriptionsData) {
+      this.skip();
+      return;
+    }
     await subscriptionDetailsPage.scrollToTop(1);
   });
 
@@ -102,7 +109,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const productValue = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Product', true);
+      const productValue = await subscriptionDetailsPage.getCompositeFieldValueByLabel(
+        'Product',
+        true,
+      );
       expect(productValue).toBeTruthy();
     });
 
@@ -111,7 +121,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const agreementValue = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Agreement', true);
+      const agreementValue = await subscriptionDetailsPage.getCompositeFieldValueByLabel(
+        'Agreement',
+        true,
+      );
       expect(agreementValue).toBeTruthy();
     });
 
@@ -120,7 +133,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const clientValue = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Client', true);
+      const clientValue = await subscriptionDetailsPage.getCompositeFieldValueByLabel(
+        'Client',
+        true,
+      );
       expect(clientValue).toBeTruthy();
     });
 
@@ -138,7 +154,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const renewalDateValue = await subscriptionDetailsPage.getSimpleFieldValue('Renewal date', true);
+      const renewalDateValue = await subscriptionDetailsPage.getSimpleFieldValue(
+        'Renewal date',
+        true,
+      );
       expect(renewalDateValue).toBeTruthy();
     });
 
@@ -147,7 +166,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const billingModelValue = await subscriptionDetailsPage.getSimpleFieldValue('Billing model', true);
+      const billingModelValue = await subscriptionDetailsPage.getSimpleFieldValue(
+        'Billing model',
+        true,
+      );
       expect(billingModelValue).toBeTruthy();
     });
 
@@ -165,7 +187,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const avgYieldValue = await subscriptionDetailsPage.getSimpleFieldValue('Average yield', true);
+      const avgYieldValue = await subscriptionDetailsPage.getSimpleFieldValue(
+        'Average yield',
+        true,
+      );
       expect(avgYieldValue).toBeTruthy();
     });
 
@@ -174,7 +199,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const defaultYieldValue = await subscriptionDetailsPage.getSimpleFieldValue('Default yield', true);
+      const defaultYieldValue = await subscriptionDetailsPage.getSimpleFieldValue(
+        'Default yield',
+        true,
+      );
       expect(defaultYieldValue).toBeTruthy();
     });
   });
@@ -200,7 +228,9 @@ describe('Subscription Details Page', () => {
       const apiStatus = apiSubscriptionData.status;
       console.info(`[Status] UI: ${uiStatus} | API: ${apiStatus}`);
       if (uiStatus !== apiStatus) {
-        console.warn(`[Status Mismatch] Subscription status may have changed during test execution. UI: ${uiStatus}, API: ${apiStatus}`);
+        console.warn(
+          `[Status Mismatch] Subscription status may have changed during test execution. UI: ${uiStatus}, API: ${apiStatus}`,
+        );
       }
       expect(uiStatus).toBeTruthy();
       expect(apiStatus).toBeTruthy();
@@ -211,7 +241,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const uiProduct = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Product', true);
+      const uiProduct = await subscriptionDetailsPage.getCompositeFieldValueByLabel(
+        'Product',
+        true,
+      );
       const apiProduct = apiSubscriptionData.product?.name || '';
       console.info(`[Product] UI: ${uiProduct} | API: ${apiProduct}`);
       expect(apiProduct).toBeTruthy();
@@ -223,7 +256,10 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const uiAgreement = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Agreement', true);
+      const uiAgreement = await subscriptionDetailsPage.getCompositeFieldValueByLabel(
+        'Agreement',
+        true,
+      );
       const apiAgreement = apiSubscriptionData.agreement?.name || '';
       console.info(`[Agreement] UI: ${uiAgreement} | API: ${apiAgreement}`);
       expect(apiAgreement).toBeTruthy();
@@ -257,14 +293,11 @@ describe('Subscription Details Page', () => {
         '3y': 'Annual billing',
         'one-time': 'One-time',
       };
-      const modelMap = {
-        'one-time': 'One-time',
-        'usage': 'Usage',
-        'quantity': 'Quantity',
-      };
       // UI shows period label for terms
       const expectedTerms = periodMap[terms.period] || '';
-      console.info(`[Terms] UI: ${uiTerms} | API: ${JSON.stringify(terms)} | Expected: ${expectedTerms}`);
+      console.info(
+        `[Terms] UI: ${uiTerms} | API: ${JSON.stringify(terms)} | Expected: ${expectedTerms}`,
+      );
       expect(uiTerms).toBe(expectedTerms);
     });
 
@@ -285,7 +318,9 @@ describe('Subscription Details Page', () => {
         return `${day} ${month} ${year}`;
       }
       const expectedRenewalDate = formatDate(apiRenewalDate);
-      console.info(`[Renewal Date] UI: ${uiRenewalDate} | API: ${apiRenewalDate} | Expected: ${expectedRenewalDate}`);
+      console.info(
+        `[Renewal Date] UI: ${uiRenewalDate} | API: ${apiRenewalDate} | Expected: ${expectedRenewalDate}`,
+      );
       expect(uiRenewalDate).toBe(expectedRenewalDate);
     });
 
@@ -294,16 +329,23 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
-      const uiBillingModel = await subscriptionDetailsPage.getSimpleFieldValue('Billing model', true);
+      const uiBillingModel = await subscriptionDetailsPage.getSimpleFieldValue(
+        'Billing model',
+        true,
+      );
       // Use model from terms, fallback to billingModel
-      const model = (apiSubscriptionData.terms && apiSubscriptionData.terms.model) || apiSubscriptionData.billingModel;
+      const model =
+        (apiSubscriptionData.terms && apiSubscriptionData.terms.model) ||
+        apiSubscriptionData.billingModel;
       const modelMap = {
         'one-time': 'One-time',
-        'usage': 'Usage',
-        'quantity': 'Quantity',
+        usage: 'Usage',
+        quantity: 'Quantity',
       };
       const expectedBillingModel = modelMap[model] || '';
-      console.info(`[Billing Model] UI: ${uiBillingModel} | API: ${model} | Expected: ${expectedBillingModel}`);
+      console.info(
+        `[Billing Model] UI: ${uiBillingModel} | API: ${model} | Expected: ${expectedBillingModel}`,
+      );
       expect(uiBillingModel).toBe(expectedBillingModel);
     });
 
@@ -335,18 +377,30 @@ describe('Subscription Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.info('📋 Subscription Details Comparison');
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.info(`Subscription ID: UI="${uiDetails.subscriptionId}" | API="${apiSubscriptionData.id || apiSubscriptionData.subscriptionId}"`);
-      console.info(`Status:         UI="${uiDetails.status}" | API="${apiSubscriptionData.status}"`);
+      console.info(
+        `Subscription ID: UI="${uiDetails.subscriptionId}" | API="${apiSubscriptionData.id || apiSubscriptionData.subscriptionId}"`,
+      );
+      console.info(
+        `Status:         UI="${uiDetails.status}" | API="${apiSubscriptionData.status}"`,
+      );
       console.info(`Terms:          UI="${uiDetails.terms}" | API="${apiSubscriptionData.terms}"`);
-      console.info(`Renewal Date:   UI="${uiDetails.renewalDate}" | API="${apiSubscriptionData.renewalDate}"`);
-      console.info(`Billing Model:  UI="${uiDetails.billingModel}" | API="${apiSubscriptionData.billingModel}"`);
-      console.info(`Quantity:       UI="${uiDetails.quantity}" | API="${apiSubscriptionData.quantity}"`);
+      console.info(
+        `Renewal Date:   UI="${uiDetails.renewalDate}" | API="${apiSubscriptionData.renewalDate}"`,
+      );
+      console.info(
+        `Billing Model:  UI="${uiDetails.billingModel}" | API="${apiSubscriptionData.billingModel}"`,
+      );
+      console.info(
+        `Quantity:       UI="${uiDetails.quantity}" | API="${apiSubscriptionData.quantity}"`,
+      );
       console.info(`Product:        UI="${uiDetails.product}"`);
       console.info(`Agreement:      UI="${uiDetails.agreement}"`);
       console.info(`Client:         UI="${uiDetails.client}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       // Basic validation - subscription ID should always match
-      expect(uiDetails.subscriptionId).toBe(apiSubscriptionData.id || apiSubscriptionData.subscriptionId);
+      expect(uiDetails.subscriptionId).toBe(
+        apiSubscriptionData.id || apiSubscriptionData.subscriptionId,
+      );
     });
   });
 });
