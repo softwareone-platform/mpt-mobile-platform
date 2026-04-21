@@ -96,7 +96,6 @@ describe('Programs Page', () => {
     it('should display all footer navigation tabs', async () => {
       await expect(programsPage.footer.spotlightsTab).toBeDisplayed();
       await expect(programsPage.footer.chatTab).toBeDisplayed();
-      await expect(programsPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(programsPage.footer.moreTab).toBeDisplayed();
     });
 

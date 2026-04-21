@@ -24,7 +24,7 @@ describe('User Details Page', () => {
     await usersPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
 
-    usersMenuAvailable = await morePage.usersMenuItem.isDisplayed().catch(() => false);
+    usersMenuAvailable = await morePage.usersMenuItem.isExisting().catch(() => false);
     if (!usersMenuAvailable) {
       console.info('⚠️ Users menu item not available for this user - skipping User Details tests');
       return;
