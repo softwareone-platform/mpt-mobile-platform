@@ -91,7 +91,7 @@ const BottomSheet = ({
   }
 
   return (
-    <Modal transparent animationType="none" visible={internalVisible}>
+    <Modal transparent animationType="none" visible={internalVisible} onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} />
       <Animated.View
         style={[styles.sheet, { height: SHEET_MAX_HEIGHT, transform: [{ translateY }] }]}
