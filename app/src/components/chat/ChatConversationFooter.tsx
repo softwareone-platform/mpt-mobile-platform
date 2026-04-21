@@ -1,6 +1,7 @@
 import { OutlinedIcons } from '@assets/icons';
 import { useTranslation } from 'react-i18next';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { buttonStyle, Color, inputStyle, chatStyle } from '@/styles';
@@ -13,8 +14,10 @@ type Props = {
 
 const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
+    <View style={Platform.OS === 'android' ? { paddingBottom: insets.bottom } : undefined}>
     <View style={styles.inputContainer}>
       <View style={styles.textInputWrapper}>
         <TextInput
@@ -41,6 +44,7 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
           size={24}
         />
       </TouchableOpacity>
+    </View>
     </View>
   );
 };

@@ -1,5 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { AppInsightsProvider } from '@/components/AppInsightsProvider';
 import { Navigation } from '@/components/navigation';
@@ -11,18 +12,20 @@ import './src/i18n';
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SignalRProvider>
-          <AppInsightsProvider>
-            <AccountProvider>
-              <Navigation />
-              <StatusBar style="auto" />
-            </AccountProvider>
-          </AppInsightsProvider>
-        </SignalRProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SignalRProvider>
+            <AppInsightsProvider>
+              <AccountProvider>
+                <Navigation />
+                <StatusBar style="auto" />
+              </AccountProvider>
+            </AppInsightsProvider>
+          </SignalRProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 };
 
