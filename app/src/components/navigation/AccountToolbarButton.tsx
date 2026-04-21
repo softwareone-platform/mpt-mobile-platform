@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
 import Avatar, { clearAvatarCache } from '@/components/avatar/Avatar';
 import { DEFAULT_AVATAR_SIZE } from '@/constants/icons';
@@ -39,11 +39,6 @@ const AccountToolbarButton: React.FC = () => {
       onPress={() => navigation.navigate('ProfileRoot')}
       activeOpacity={0.7}
     >
-      {userId && (
-        <Text testID={TestIDs.NAV_ACCOUNT_USER_ID} style={styles.hiddenText}>
-          {userId}
-        </Text>
-      )}
       <View style={styles.topBarIconWrapper}>
         {displayAccount && (
           <Avatar
@@ -51,6 +46,7 @@ const AccountToolbarButton: React.FC = () => {
             imagePath={displayAccount.icon}
             size={DEFAULT_AVATAR_SIZE}
             variant="small"
+            accessibilityValue={userId}
           />
         )}
       </View>
@@ -61,13 +57,6 @@ const AccountToolbarButton: React.FC = () => {
 const styles = StyleSheet.create({
   container: avatarStyle.container,
   topBarIconWrapper: navigationStyle.header.rightIconWrapper,
-  hiddenText: {
-    position: 'absolute',
-    width: 1,
-    height: 1,
-    overflow: 'hidden',
-    opacity: 0,
-  },
 });
 
 export default AccountToolbarButton;
