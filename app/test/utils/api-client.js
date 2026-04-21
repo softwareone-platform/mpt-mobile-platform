@@ -1,5 +1,12 @@
 const https = require('https');
+const { EventEmitter } = require('events');
 const { API_BASE_URL, API_OPS_TOKEN } = require('./env');
+
+// The test suite fires many API calls across suites; increase the limit to
+// prevent false-positive memory leak warnings from Node's TLSSocket handling.
+EventEmitter.defaultMaxListeners = 25;
+
+const sharedAgent = new https.Agent({ keepAlive: false });
 
 class ApiClient {
   constructor() {
@@ -41,6 +48,7 @@ class ApiClient {
       hostname: url.hostname,
       path: url.pathname + url.search,
       method,
+      agent: sharedAgent,
       headers: {
         'accept': 'application/json',
         'authorization': `Bearer ${this.opsToken}`,
