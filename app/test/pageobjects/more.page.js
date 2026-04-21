@@ -98,6 +98,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get clientsMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-clients',
+        android: '//*[@resource-id="nav-menu-clients"]',
+      }),
+    );
+  }
+
   get enrollmentsMenuItem() {
     return $(
       getSelector({
@@ -236,6 +245,15 @@ class MorePage extends BasePage {
   }
 
   /**
+   * Navigate to Clients page (Operations role only)
+   */
+  async navigateToClients() {
+    await this.ensureMorePage();
+    await this.clientsMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
    * Navigate to Enrollments page
    */
   async navigateToEnrollments() {
@@ -246,6 +264,7 @@ class MorePage extends BasePage {
 
   /**
    * Navigate to Licensees page
+   * @deprecated Licensees is not in the More menu. Use Clients → Client Details → sub-list navigation instead.
    */
   async navigateToLicensees() {
     await this.ensureMorePage();
