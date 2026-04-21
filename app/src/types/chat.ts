@@ -132,7 +132,7 @@ export type Message = {
   id: string;
   revision: number;
   chat?: Chat;
-  sender: Sender;
+  sender?: Sender;
   identity: Identity;
   content: string;
   visibility: MessageVisibility;

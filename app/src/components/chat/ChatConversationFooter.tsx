@@ -18,33 +18,33 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
 
   return (
     <View style={Platform.OS === 'android' ? { paddingBottom: insets.bottom } : undefined}>
-    <View style={styles.inputContainer}>
-      <View style={styles.textInputWrapper}>
-        <TextInput
-          placeholder={t('chat.messageInputPlaceholder')}
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          onSubmitEditing={onSend}
-          returnKeyType="send"
-          multiline
-          scrollEnabled
-        />
-      </View>
+      <View style={styles.inputContainer}>
+        <View style={styles.textInputWrapper}>
+          <TextInput
+            placeholder={t('chat.messageInputPlaceholder')}
+            style={styles.input}
+            value={value}
+            onChangeText={onChangeText}
+            onSubmitEditing={onSend}
+            returnKeyType="send"
+            multiline
+            scrollEnabled
+          />
+        </View>
 
-      {/* TODO: add visual disabled state when !value.trim() */}
-      <TouchableOpacity
-        style={styles.buttonPrimaryIconOnly}
-        onPress={onSend}
-        disabled={!value.trim()}
-      >
-        <OutlinedIcon
-          name={'arrow-upward' as keyof typeof OutlinedIcons}
-          color={Color.brand.white}
-          size={24}
-        />
-      </TouchableOpacity>
-    </View>
+        {/* TODO: add visual disabled state when !value.trim() */}
+        <TouchableOpacity
+          style={styles.buttonPrimaryIconOnly}
+          onPress={onSend}
+          disabled={!value.trim()}
+        >
+          <OutlinedIcon
+            name={'arrow-upward' as keyof typeof OutlinedIcons}
+            color={Color.brand.white}
+            size={24}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
