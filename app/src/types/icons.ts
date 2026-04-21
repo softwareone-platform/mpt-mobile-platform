@@ -32,6 +32,7 @@ export interface AvatarProps {
   imagePath?: string;
   size?: number;
   variant?: AvatarVariant;
+  accessibilityValue?: string;
 }
 
 export type AvatarWithBadgeVariant = 'small' | 'medium';
