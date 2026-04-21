@@ -32,7 +32,7 @@ class ProfilePage extends BasePage {
   get yourProfileLabel() {
     return $(
       getSelector({
-        ios: '~YOUR PROFILE',
+        ios: '~User Profile',
         android: '//*[@resource-id="profile-section-yourprofile-text"]',
       }),
     );
@@ -74,7 +74,7 @@ class ProfilePage extends BasePage {
   get switchAccountLabel() {
     return $(
       getSelector({
-        ios: '~SWITCH ACCOUNT',
+        ios: '~Switch Account',
         android: '//*[@resource-id="profile-section-switchaccount-text"]',
       }),
     );
@@ -321,7 +321,7 @@ class ProfilePage extends BasePage {
 
   async getCurrentUserId() {
     const text = await this.getText(this.currentUserId);
-    return text ? text.match(REGEX.USER_ID)?.[0] || text : text;
+    return text ? text.match(/USR-\d{4}-\d{4}/)?.[0] || text : text;
   }
 
   async scrollToAccount(index) {
