@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Agreements Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -173,7 +173,7 @@ describe('Agreements Page', () => {
       
       const details = await agreementsPage.getAgreementDetails(firstAgreement);
       expect(details.agreementId).toMatch(REGEX.AGREEMENT_ID);
-      expect(['Active', 'Terminated', 'Deleted', 'Provisioning', 'Updating']).toContain(details.status);
+      expect(STATUSES.AGREEMENT).toContain(details.status);
     });
 
     it('should detect all loaded agreements in the list', async function () {

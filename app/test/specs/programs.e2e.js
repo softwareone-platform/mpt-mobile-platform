@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Programs Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -174,7 +174,7 @@ describe('Programs Page', () => {
       const details = await programsPage.getProgramDetails(firstProgram);
       // Programs use 3-group IDs: PRG-XXXX-XXXX
       expect(details.programId).toMatch(REGEX.PROGRAM_ID);
-      expect(['Unpublished', 'Draft', 'Published']).toContain(details.status);
+      expect(STATUSES.PROGRAM).toContain(details.status);
     });
 
     it('should detect all loaded programs in the list', async function () {

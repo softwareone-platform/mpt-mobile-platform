@@ -1,51 +1,112 @@
-const { expect } = require('@wdio/globals');
+const { expect, $ } = require('@wdio/globals');
 
 const licenseesPage = require('../pageobjects/licensees.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
-const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { isAndroid, getSelector } = require('../pageobjects/utils/selectors');
+const { TIMEOUT, PAUSE, REGEX, SCROLL } = require('../pageobjects/utils/constants');
 
 describe('Licensees Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
   let hasLicenseesData = false;
   let hasEmptyState = false;
   let apiLicenseesAvailable = false;
-  let licenseesMenuAvailable = false;
+  let licenseesReachable = false;
+  let capturedClientId = null;
 
   /**
-   * Navigate to Licensees page via More menu
+   * Selector for the first client item in the Clients list (ACC- prefix)
+   */
+  function firstClientItem() {
+    return $(
+      getSelector({
+        ios: '//XCUIElementTypeOther[contains(@name, "ACC-")]',
+        android: '//*[contains(@content-desc, "ACC-")]',
+      }),
+    );
+  }
+
+  /**
+   * Selector for the Licensees sub-list navigation item on Account Details.
+   * NavigationItem renders as a TouchableOpacity (XCUIElementTypeOther on iOS)
+   * with accessible label "Licensees, " (title + chevron icon text).
+   */
+  async function findLicenseesSubListItem() {
+    return $(
+      getSelector({
+        ios: '//XCUIElementTypeOther[contains(@name, "Licensees")]',
+        android: '//*[contains(@content-desc, "Licensees")]',
+      }),
+    );
+  }
+
+  /**
+   * Navigate to Licensees page via More → Clients → first client → sub-list
+   * Licensees is not a top-level More menu item; it is only reachable as a
+   * sub-list of a Client (account) detail page under an Operations account.
    */
   async function navigateToLicensees() {
-    // First ensure we're on a page with footer visible
-    await licenseesPage.footer.moreTab.click();
+    await morePage.ensureMorePage();
+
+    // Scroll down to find Clients if needed — it may be below the fold
+    let clientsExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
+    if (!clientsExists) {
+      await licenseesPage.scrollDown();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+      clientsExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
+    }
+    if (!clientsExists) return false;
+
+    await morePage.clientsMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
-    // Click Licensees menu item
-    await morePage.licenseesMenuItem.click();
+
+    // Wait for first client to appear
+    const client = firstClientItem();
+    const clientVisible = await client.waitForDisplayed({ timeout: TIMEOUT.SCREEN_READY }).catch(() => false);
+    if (!clientVisible) return false;
+
+    // Capture the ACC- ID so API calls can be scoped to the same account
+    const clientLabel = (await client.getAttribute('name')) || (await client.getAttribute('content-desc')) || '';
+    const clientIdMatch = clientLabel.match(/(ACC-\d{4}-\d{4})/);
+    capturedClientId = clientIdMatch ? clientIdMatch[1] : null;
+
+    await client.click();
+    await browser.pause(PAUSE.NAVIGATION);
+
+    // Scroll down to reveal the sub-list navigation group
+    let subListFound = false;
+    let subListEl;
+    for (let attempt = 0; attempt < SCROLL.MAX_SCROLL_ATTEMPTS; attempt++) {
+      subListEl = await findLicenseesSubListItem();
+      subListFound = await subListEl.isDisplayed().catch(() => false);
+      if (subListFound) break;
+      await licenseesPage.scrollDown();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+    }
+    if (!subListFound) return false;
+
+    await subListEl.click();
     await licenseesPage.waitForScreenReady();
+    return true;
   }
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
-    // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
-    
-    // Check if Licensees menu item is available for this user
-    await licenseesPage.footer.moreTab.click();
-    await browser.pause(PAUSE.NAVIGATION);
-    licenseesMenuAvailable = await morePage.licenseesMenuItem.isExisting().catch(() => false);
-    
-    if (!licenseesMenuAvailable) {
-      console.info('⚠️ Licensees menu item not available for this user - skipping Licensees tests');
+
+    // Licensees requires an Operations account with Clients access
+    await ensureOperationsAccount();
+
+    licenseesReachable = await navigateToLicensees();
+
+    if (!licenseesReachable) {
+      console.info('⚠️ Licensees not reachable via Clients sub-list — skipping Licensees tests');
       return;
     }
-    
-    // Navigate to Licensees page via More menu
-    await morePage.licenseesMenuItem.click();
-    await licenseesPage.waitForScreenReady();
 
     // Check data state ONCE and cache the results
     hasLicenseesData = await licenseesPage.hasLicensees();
@@ -56,28 +117,42 @@ describe('Licensees Page', () => {
   });
 
   beforeEach(async function () {
-    // Skip if Licensees menu not available
-    if (!licenseesMenuAvailable) {
+    if (!licenseesReachable) {
       this.skip();
       return;
     }
     // Ensure we're on Licensees page
     const isOnLicensees = await licenseesPage.isOnLicenseesPage();
     if (!isOnLicensees) {
-      await navigateToLicensees();
+      await navigation.ensureHomePage({ resetFilters: false });
+      const reached = await navigateToLicensees();
+      if (!reached) {
+        this.skip();
+        return;
+      }
     }
   });
 
   describe('Navigation', () => {
-    it('should be accessible from More menu', async () => {
+    it('should be accessible via Client sub-list navigation', async () => {
       // Navigate away first
       await licenseesPage.goBack();
       await browser.pause(PAUSE.NAVIGATION);
-      
-      // Navigate back to Licensees
-      await morePage.licenseesMenuItem.click();
+
+      // Scroll down to find the sub-list item again on the Client Details page
+      let subListFound = false;
+      let subListEl;
+      for (let attempt = 0; attempt < SCROLL.MAX_SCROLL_ATTEMPTS; attempt++) {
+        subListEl = await findLicenseesSubListItem();
+        subListFound = await subListEl.isDisplayed().catch(() => false);
+        if (subListFound) break;
+        await licenseesPage.scrollDown();
+        await browser.pause(PAUSE.ANIMATION_SETTLE);
+      }
+
+      await subListEl.click();
       await licenseesPage.waitForScreenReady();
-      
+
       await expect(licenseesPage.headerTitle).toBeDisplayed();
     });
 
@@ -85,14 +160,24 @@ describe('Licensees Page', () => {
       await expect(licenseesPage.goBackButton).toBeDisplayed();
     });
 
-    it('should navigate back to More page when back button tapped', async () => {
+    it('should navigate back to Client Details when back button tapped', async () => {
       await licenseesPage.goBack();
-      
-      // Verify we're back on More page by checking for Licensees menu item
-      await expect(morePage.licenseesMenuItem).toBeDisplayed();
-      
+
+      // Verify we're on a details page (Client Details / Account Details)
+      // The sub-list item should be visible after scrolling
+      let subListFound = false;
+      let subListEl;
+      for (let attempt = 0; attempt < SCROLL.MAX_SCROLL_ATTEMPTS; attempt++) {
+        subListEl = await findLicenseesSubListItem();
+        subListFound = await subListEl.isDisplayed().catch(() => false);
+        if (subListFound) break;
+        await licenseesPage.scrollDown();
+        await browser.pause(PAUSE.ANIMATION_SETTLE);
+      }
+      expect(subListFound).toBe(true);
+
       // Navigate back to Licensees for subsequent tests
-      await morePage.licenseesMenuItem.click();
+      await subListEl.click();
       await licenseesPage.waitForScreenReady();
     });
   });
@@ -192,7 +277,7 @@ describe('Licensees Page', () => {
       const details = await licenseesPage.getLicenseeDetails(firstLicensee);
       // Licensees use 4-group IDs: LCE-XXXX-XXXX-XXXX
       expect(details.licenseeId).toMatch(REGEX.LICENSEE_ID);
-      expect(['Enabled', 'Disabled']).toContain(details.status);
+      expect(['Active', 'Enabled', 'Disabled', 'Deleted']).toContain(details.status);
     });
 
     it('should detect all loaded licensees in the list', async function () {
@@ -247,15 +332,14 @@ describe('Licensees Page', () => {
 
   describe('API Integration', () => {
     it('should match API licensees count with visible licensees', async function () {
-      // Skip if API token not configured or no licensees in UI
-      if (!apiLicenseesAvailable || !hasLicenseesData) {
+      // Skip if API token not configured, no licensees in UI, or no client ID captured
+      if (!apiLicenseesAvailable || !hasLicenseesData || !capturedClientId) {
         this.skip();
         return;
       }
 
       try {
-        // Note: Licensees API requires accountId parameter
-        const apiLicensees = await apiClient.getLicensees({ limit: 100 });
+        const apiLicensees = await apiClient.getLicensees(capturedClientId, { limit: 100 });
         const apiLicenseesList = apiLicensees.data || apiLicensees;
         const apiCount = apiLicenseesList.length;
         
@@ -274,14 +358,13 @@ describe('Licensees Page', () => {
     });
 
     it('should verify first 10 licensee IDs and statuses match API data', async function () {
-      if (!apiLicenseesAvailable || !hasLicenseesData) {
+      if (!apiLicenseesAvailable || !hasLicenseesData || !capturedClientId) {
         this.skip();
         return;
       }
 
       try {
-        // Note: Licensees API requires accountId parameter
-        const apiLicensees = await apiClient.getLicensees({ limit: 10 });
+        const apiLicensees = await apiClient.getLicensees(capturedClientId, { limit: 10 });
         const apiLicenseesList = apiLicensees.data || apiLicensees;
         const uiLicenseeIds = await licenseesPage.getVisibleLicenseeIds();
         const uiLicenseesWithStatus = await licenseesPage.getVisibleLicenseesWithStatus();

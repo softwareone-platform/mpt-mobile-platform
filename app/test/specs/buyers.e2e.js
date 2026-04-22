@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Buyers Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -192,7 +192,7 @@ describe('Buyers Page', () => {
       const details = await buyersPage.getBuyerDetails(firstBuyer);
       // Buyers use 3-group IDs: BUY-XXXX-XXXX
       expect(details.buyerId).toMatch(REGEX.BUYER_ID);
-      expect(['Active', 'Unassigned']).toContain(details.status);
+      expect(STATUSES.BUYER).toContain(details.status);
     });
 
     it('should detect all loaded buyers in the list', async function () {
