@@ -19,6 +19,11 @@ export const cardStyle = {
     backgroundColor: Color.brand.white,
     borderRadius: BorderRadius.xl,
   },
+  containerRoundedBottom: {
+    backgroundColor: Color.brand.white,
+    borderBottomLeftRadius: BorderRadius.xl,
+    borderBottomRightRadius: BorderRadius.xl,
+  },
   containerSpacingOnly: {
     padding: Spacing.spacing2,
     marginBottom: Spacing.spacing2,
@@ -31,7 +36,7 @@ export const cardStyle = {
   },
   header: {
     ...separatorStyle.bottomBorder1,
-    paddingVertical: Spacing.spacing1,
+    paddingVertical: Spacing.spacingSmall12,
   },
   headerText: {
     fontSize: Typography.fontSize.font3,

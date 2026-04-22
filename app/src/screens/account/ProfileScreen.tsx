@@ -151,7 +151,7 @@ const ProfileScreen = () => {
 
   const listEmpty = useMemo(
     () => (
-      <View style={[styles.containerCard, styles.containerCenterContent, styles.paddingVertical4]}>
+      <View style={styles.containerCard}>
         <EmptyState
           icon={{
             name: 'how-to-reg',
@@ -216,11 +216,10 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   containerMain: screenStyle.containerMain,
   containerCard: {
-    ...cardStyle.containerRounded,
-    marginBottom: Spacing.spacing2,
+    ...cardStyle.containerRoundedBottom,
+    ...screenStyle.containerCenterContent,
+    ...spacingStyle.paddingVertical4,
   },
-  containerCenterContent: screenStyle.containerCenterContent,
-  paddingVertical4: spacingStyle.paddingVertical4,
   accountItem: {
     ...listItemStyle.listItemDynamic.container,
     ...listItemStyle.listItemDynamic.contentWrapper,

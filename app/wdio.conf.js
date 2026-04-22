@@ -469,6 +469,7 @@ exports.config = {
         ],
         enrollments: [
             './test/specs/enrollments.e2e.js',
+            './test/specs/enrollment-details.e2e.js',
         ],
         licensees: [
             './test/specs/licensees.e2e.js',

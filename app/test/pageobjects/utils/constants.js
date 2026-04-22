@@ -96,7 +96,7 @@ const SCROLL = {
   PAGINATION_PERCENT: 0.75,
 
   /** Maximum scroll attempts before giving up */
-  MAX_SCROLL_ATTEMPTS: 10,
+  MAX_SCROLL_ATTEMPTS: 4,
 
   /** Consecutive no-change scrolls to detect bottom */
   NO_CHANGE_THRESHOLD: 3,
