@@ -8,12 +8,11 @@ import TabStack from './TabStack';
 
 import DynamicIcon from '@/components/common/DynamicIcon';
 import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
-import { mainTabsData } from '@/constants/navigation';
+import { mainTabsData, TAB_BAR_CONTENT_HEIGHT } from '@/constants/navigation';
 import { navigationStyle, commonStyle } from '@/styles';
 import { TestIDs } from '@/utils/testID';
 
 const Tab = createBottomTabNavigator();
-const TAB_BAR_CONTENT_HEIGHT = 65;
 
 const MainTabs = () => {
   const { t } = useTranslation();
