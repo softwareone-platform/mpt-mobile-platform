@@ -1,8 +1,9 @@
 const https = require('https');
 const { API_BASE_URL, API_OPS_TOKEN } = require('./env');
 const { STATUSES } = require('../pageobjects/utils/constants');
-
-const sharedAgent = new https.Agent({ keepAlive: false });
+// Reuse TCP connections and cap concurrency to avoid exceeding Node's
+// default EventEmitter listener limit during parallel API call bursts.
+const sharedAgent = new https.Agent({ keepAlive: true, maxSockets: 15 });
 
 class ApiClient {
   constructor() {
@@ -1197,7 +1198,7 @@ class ApiClient {
    * - enrollments: 'queryingEnrollments', 'processingEnrollments', 'longRunningEnrollmentsOfMyClients'
    * - buyers: 'mismatchingBuyersClient', 'mismatchingBuyersOfMyClients', 'buyersWithBlockedSellerConnectionsOfMyClients'
    */
-  async getSpotlightDataAvailability(useIndividualQueries = true) {
+  async getSpotlightDataAvailability(useIndividualQueries = false) {
     if (useIndividualQueries) {
       return this.getSpotlightDataAvailabilityByTemplate();
     }
