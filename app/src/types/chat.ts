@@ -132,7 +132,6 @@ export type Message = {
   id: string;
   revision: number;
   chat?: Chat;
-  // TODO: reconsider whether sender should be required — optimistic messages are constructed without it
   sender?: Sender;
   identity: Identity;
   content: string;

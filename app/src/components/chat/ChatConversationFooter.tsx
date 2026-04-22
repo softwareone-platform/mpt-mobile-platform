@@ -32,8 +32,6 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
             scrollEnabled
           />
         </View>
-
-        {/* TODO: add visual disabled state when !value.trim() */}
         <TouchableOpacity
           style={styles.buttonPrimaryIconOnly}
           onPress={onSend}
