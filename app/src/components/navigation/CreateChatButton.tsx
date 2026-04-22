@@ -1,6 +1,7 @@
 import { TouchableOpacity, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
+import { ICON_HIT_SLOP } from '@/constants';
 import { navigationStyle } from '@/styles';
 import { TestIDs } from '@/utils/testID';
 
@@ -14,6 +15,7 @@ const CreateChatButton = ({ onPress }: CreateChatButtonProps) => {
       style={styles.topBarIconWrapper}
       onPress={onPress}
       testID={TestIDs.CREATE_CHAT_BUTTON}
+      hitSlop={ICON_HIT_SLOP}
     >
       <OutlinedIcon
         name="edit-square"
