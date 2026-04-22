@@ -15,7 +15,7 @@ type Props = {
 const NavigationItemWithText = ({ label, text, isLast, isDisabled, onPress }: Props) => {
   const inner = (
     <View style={[styles.contentWrapper, isLast && styles.lastItem]}>
-      <View style={styles.textContainerInline}>
+      <View>
         <Text style={styles.label}>{label}</Text>
         <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
           {text}
@@ -41,11 +41,10 @@ const styles = StyleSheet.create({
   lastItem: listItemStyle.lastItem,
   contentWrapper: {
     ...listItemStyle.contentWrapper,
-    ...listItemStyle.textInline.contentWrapper,
+    ...listItemStyle.textOnly.contentWrapper,
   },
-  textContainerInline: listItemStyle.textInline.textContainerInline,
-  label: listItemStyle.textInline.labelInline,
-  text: listItemStyle.textInline.textInline,
+  label: listItemStyle.textOnly.label,
+  text: listItemStyle.textOnly.text,
 });
 
 export default NavigationItemWithText;
