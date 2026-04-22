@@ -2,12 +2,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { CommonActions, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import TabStack from './TabStack';
 
 import DynamicIcon from '@/components/common/DynamicIcon';
 import LinearGradientHorisontal from '@/components/common/LinearGradientHorisontal';
-import { mainTabsData } from '@/constants/navigation';
+import { mainTabsData, TAB_BAR_CONTENT_HEIGHT } from '@/constants/navigation';
 import { navigationStyle, commonStyle } from '@/styles';
 import { TestIDs } from '@/utils/testID';
 
@@ -15,6 +16,7 @@ const Tab = createBottomTabNavigator();
 
 const MainTabs = () => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -43,7 +45,9 @@ const MainTabs = () => {
           },
           tabBarActiveTintColor: navigationStyle.primary.activeTintColor,
           tabBarInactiveTintColor: navigationStyle.primary.inactiveTintColor,
-          tabBarStyle: shouldHideTabBar ? styles.noDisplay : styles.container,
+          tabBarStyle: shouldHideTabBar
+            ? styles.noDisplay
+            : [styles.container, { height: TAB_BAR_CONTENT_HEIGHT + insets.bottom }],
           tabBarLabelStyle: styles.label,
           tabBarBackground: () => <LinearGradientHorisontal height={3} />,
           headerShown: false,

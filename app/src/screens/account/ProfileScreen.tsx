@@ -217,6 +217,8 @@ const styles = StyleSheet.create({
   containerMain: screenStyle.containerMain,
   containerCard: {
     ...cardStyle.containerRounded,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     marginBottom: Spacing.spacing2,
   },
   containerCenterContent: screenStyle.containerCenterContent,
