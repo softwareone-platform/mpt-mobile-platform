@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { View, ScrollView, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 
 import AccountSummary from '@/components/account-summary/AccountSummary';
+import CardWithHeader from '@/components/card/CardWithHeader';
 import EmptyState from '@/components/common/EmptyState';
 import NavigationItemWithText from '@/components/navigation-item/NavigationItemWithText';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccount } from '@/context/AccountContext';
-import { cardStyle, screenStyle, Spacing } from '@/styles';
+import { screenStyle } from '@/styles';
 import { Color } from '@/styles/tokens';
 import { formatPhoneNumber } from '@/utils/formatting';
 import { TestIDs } from '@/utils/testID';
@@ -72,24 +73,21 @@ const PersonalInformation = () => {
         subtitle={userData?.id}
         icon={userData?.icon}
       />
-      <View>
-        <Text style={styles.sectionHeader}>{t('userSettingsScreen.userDetails')}</Text>
-        <View style={styles.containerCard}>
-          {personalInformationData.map((item, index) => {
-            const value =
-              item.name === 'phone' ? phoneNumber : (userData[item.name] ?? EMPTY_VALUE);
-            return (
-              <NavigationItemWithText
-                key={item.name}
-                label={t(`personalInformationScreen.${item.name}`)}
-                text={value}
-                isLast={index === personalInformationData.length - 1}
-                isDisabled={item.isDisabled}
-              />
-            );
-          })}
-        </View>
-      </View>
+
+      <CardWithHeader title={t('userSettingsScreen.personalInformation')}>
+        {personalInformationData.map((item, index) => {
+          const value = item.name === 'phone' ? phoneNumber : (userData[item.name] ?? EMPTY_VALUE);
+          return (
+            <NavigationItemWithText
+              key={item.name}
+              label={t(`personalInformationScreen.${item.name}`)}
+              text={value}
+              isLast={index === personalInformationData.length - 1}
+              isDisabled={item.isDisabled}
+            />
+          );
+        })}
+      </CardWithHeader>
     </ScrollView>
   );
 };
@@ -97,11 +95,6 @@ const PersonalInformation = () => {
 const styles = StyleSheet.create({
   containerMain: screenStyle.containerMain,
   containerCenterContent: screenStyle.containerCenterContent,
-  containerCard: {
-    ...cardStyle.containerRounded,
-    marginBottom: Spacing.spacing4,
-  },
-  sectionHeader: screenStyle.sectionHeader,
 });
 
 export default PersonalInformation;

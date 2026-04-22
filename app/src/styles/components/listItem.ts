@@ -65,7 +65,16 @@ export const listItemStyle = {
   },
   textOnly: {
     contentWrapper: {
-      paddingVertical: Spacing.spacingSmall12,
+      paddingVertical: Spacing.spacing1,
+    },
+    label: {
+      fontSize: Typography.fontSize.font3,
+      lineHeight: Typography.lineHeight.height3,
+    },
+    text: {
+      fontSize: Typography.fontSize.font2,
+      lineHeight: Typography.lineHeight.height3,
+      color: Color.gray.gray4,
     },
   },
   textAndIcon: {

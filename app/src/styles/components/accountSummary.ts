@@ -17,7 +17,7 @@ export const accountSummaryStyle = {
   },
   title: {
     fontSize: Typography.fontSize.font6,
-    fontWeight: Typography.fontWeight.bold,
+    fontWeight: Typography.fontWeight.medium,
     lineHeight: Typography.lineHeight.height6,
     color: Color.labels.primary,
     textAlign: 'center',

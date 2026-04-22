@@ -8,7 +8,7 @@ type Props = {
   height?: number;
 };
 
-const LinearGradientHorizontal: React.FC<Props> = ({ style, height = 3 }) => {
+const LinearGradientHorizontal: React.FC<Props> = ({ style, height = 2 }) => {
   return (
     <LinearGradient
       colors={Color.brand.gradient.colors}
