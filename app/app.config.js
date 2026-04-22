@@ -32,6 +32,15 @@ export default {
       './plugins/withNetworkSecurityConfig',
       './plugins/withAppStoreIcon',
       'expo-font',
+      [
+        'expo-build-properties',
+        {
+          android: {
+            enableMinifyInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+          },
+        },
+      ],
     ],
     splash: {
       image: './assets/splash-icon.png',
@@ -60,6 +69,11 @@ export default {
       predictiveBackGestureEnabled: false,
       package: bundleId,
       versionCode: 31,
+      blockedPermissions: [
+        'android.permission.SYSTEM_ALERT_WINDOW',
+        'android.permission.VIBRATE',
+        'android.permission.WRITE_EXTERNAL_STORAGE',
+      ],
     },
     web: {
       favicon: './assets/favicon.png',
