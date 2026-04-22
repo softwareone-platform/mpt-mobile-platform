@@ -26,7 +26,7 @@ describe('Buyer Details Page', () => {
     await buyersPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
 
-    buyersMenuAvailable = await morePage.buyersMenuItem.isDisplayed().catch(() => false);
+    buyersMenuAvailable = await morePage.buyersMenuItem.isExisting().catch(() => false);
     if (!buyersMenuAvailable) {
       console.info(
         '⚠️ Buyers menu item not available for this user - skipping Buyer Details tests',

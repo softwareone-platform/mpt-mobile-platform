@@ -36,7 +36,7 @@ describe('Enrollments Page', () => {
     // Check if Enrollments menu item is available for this user
     await enrollmentsPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
-    enrollmentsMenuAvailable = await morePage.enrollmentsMenuItem.isDisplayed().catch(() => false);
+    enrollmentsMenuAvailable = await morePage.enrollmentsMenuItem.isExisting().catch(() => false);
     
     if (!enrollmentsMenuAvailable) {
       console.info('⚠️ Enrollments menu item not available for this user - skipping Enrollments tests');

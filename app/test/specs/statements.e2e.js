@@ -36,7 +36,7 @@ describe('Statements Page', () => {
     // Check if Statements menu item is available for this user
     await statementsPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
-    statementsMenuAvailable = await morePage.statementsMenuItem.isDisplayed().catch(() => false);
+    statementsMenuAvailable = await morePage.statementsMenuItem.isExisting().catch(() => false);
     
     if (!statementsMenuAvailable) {
       console.info('⚠️ Statements menu item not available for this user - skipping Statements tests');

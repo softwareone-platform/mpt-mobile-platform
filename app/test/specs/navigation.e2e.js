@@ -39,12 +39,11 @@ describe('Navigation via footer', () => {
     await expect(ordersPage.headerTitle).toBeDisplayed();
   });
 
-  it('click on Subscriptions button to load Subscriptions page', async () => {
-    await expect(ordersPage.footer.subscriptionsTab).toBeDisplayed();
-    await ordersPage.footer.clickSubscriptionsTab();
+  it('click on Subscriptions in More menu to load Subscriptions page', async () => {
+    await ordersPage.footer.moreTab.click();
+    await morePage.subscriptionsMenuItem.click();
     await subscriptionsPage.waitForScreenReady();
-    // Verify we navigated by checking the Subscriptions tab is still accessible
-    await expect(subscriptionsPage.footer.subscriptionsTab).toBeDisplayed();
+    await expect(subscriptionsPage.headerTitle).toBeDisplayed();
   });
 
   it('click on More button to load More page', async () => {
