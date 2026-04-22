@@ -45,7 +45,7 @@ const MainTabs = () => {
           tabBarInactiveTintColor: navigationStyle.primary.inactiveTintColor,
           tabBarStyle: shouldHideTabBar ? styles.noDisplay : styles.container,
           tabBarLabelStyle: styles.label,
-          tabBarBackground: () => <LinearGradientHorisontal height={3} />,
+          tabBarBackground: () => <LinearGradientHorisontal />,
           headerShown: false,
         };
       }}
