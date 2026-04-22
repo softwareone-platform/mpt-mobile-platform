@@ -103,37 +103,52 @@ const ChatConversationScreenContent = () => {
     previousFirstMessageKeyRef.current = currentKey;
   }, [visibleMessages, contentFillsScreen]);
 
-  // TODO: Android uses windowSoftInputMode="adjustResize" (AndroidManifest.xml) which resizes
-  // the app window natively — verify keyboard avoidance still works correctly on Android.
   useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-
-    const onShow = Keyboard.addListener('keyboardWillShow', (e) => {
-      Animated.timing(keyboardPadding, {
-        toValue: e.endCoordinates.height,
-        duration: e.duration > 0 ? e.duration : KEYBOARD_ANIMATION_DURATION_MS,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: false,
-      }).start();
-    });
-
-    const onHide = Keyboard.addListener('keyboardWillHide', (e) => {
-      if (e.duration === 0) {
-        keyboardPadding.setValue(0);
-      } else {
+    if (Platform.OS === 'ios') {
+      // iOS: use Will events for smooth animation in sync with keyboard
+      const onShow = Keyboard.addListener('keyboardWillShow', (e) => {
         Animated.timing(keyboardPadding, {
-          toValue: 0,
-          duration: e.duration,
+          toValue: e.endCoordinates.height,
+          duration: e.duration > 0 ? e.duration : KEYBOARD_ANIMATION_DURATION_MS,
           easing: Easing.out(Easing.exp),
           useNativeDriver: false,
         }).start();
-      }
-    });
+      });
 
-    return () => {
-      onShow.remove();
-      onHide.remove();
-    };
+      const onHide = Keyboard.addListener('keyboardWillHide', (e) => {
+        if (e.duration === 0) {
+          keyboardPadding.setValue(0);
+        } else {
+          Animated.timing(keyboardPadding, {
+            toValue: 0,
+            duration: e.duration,
+            easing: Easing.out(Easing.exp),
+            useNativeDriver: false,
+          }).start();
+        }
+      });
+
+      return () => {
+        onShow.remove();
+        onHide.remove();
+      };
+    } else {
+      // Android: edgeToEdgeEnabled disables adjustResize, so we handle keyboard offset manually.
+      // Android only fires "Did" events (post-animation), causing a snap instead of smooth
+      // animation. For smooth animation, react-native-keyboard-controller would be needed.
+      const onShow = Keyboard.addListener('keyboardDidShow', (e) => {
+        keyboardPadding.setValue(e.endCoordinates.height);
+      });
+
+      const onHide = Keyboard.addListener('keyboardDidHide', () => {
+        keyboardPadding.setValue(0);
+      });
+
+      return () => {
+        onShow.remove();
+        onHide.remove();
+      };
+    }
   }, [keyboardPadding]);
 
   const handleLoadMore = () => {
