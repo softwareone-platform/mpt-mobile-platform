@@ -77,7 +77,6 @@ const ChatScreenContent = () => {
     }, [queryClient, userId, currentAccountId]),
   );
 
-  // TODO: warp into loading / error handling component when API is ready
   return (
     <StatusMessage
       isLoading={chatsLoading}

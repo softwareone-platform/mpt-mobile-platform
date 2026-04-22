@@ -27,7 +27,6 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
 
   const { navigateToSubListItem } = useSubListNavigation();
 
-  const hasBillingCurrencyData = data.price?.billingCurrency;
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
   const labelYear = `${data.price?.currency}/${t('details.year')}`;
   const labelUp = t('details.up');
@@ -131,19 +130,15 @@ const AgreementDetailsContent = ({ data }: { data: AgreementData }) => {
           <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
         )}
 
-        {/* TODO: remove conditional logic once billingCurrency is stable in API response */}
         <ListItemWithLabelAndText
-          title={hasBillingCurrencyData ? t(`details.baseCurrency`) : t(`details.currency`)}
+          title={t(`details.baseCurrency`)}
           subtitle={data.price?.currency}
-          isLast={hasBillingCurrencyData ? false : true}
         />
-        {hasBillingCurrencyData && (
-          <ListItemWithLabelAndText
-            title={t(`details.billingCurrency`)}
-            subtitle={data.price?.billingCurrency}
-            isLast={true}
-          />
-        )}
+        <ListItemWithLabelAndText
+          title={t(`details.billingCurrency`)}
+          subtitle={data.price?.billingCurrency}
+          isLast={true}
+        />
       </CardWithHeader>
       {filteredSubList.length > 0 && (
         <NavigationGroupCard>
