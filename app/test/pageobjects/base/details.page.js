@@ -168,7 +168,7 @@ class DetailsPage extends BasePage {
    * Scroll to the top of the details view
    * Useful before gathering all details to ensure we start from the top
    */
-  async scrollToTop(maxAttempts = 3) {
+  async scrollToTop(maxAttempts = 2) {
     // Scroll up multiple times to ensure we're at the top
     for (let i = 0; i < maxAttempts; i++) {
       await this.scrollUp();
