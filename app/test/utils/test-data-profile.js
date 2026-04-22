@@ -70,6 +70,7 @@ async function buildProfile() {
     buyers,
     licensees,
     invoices,
+    journals,
   ] = await Promise.all([
     canProbeSpotlightByToken
       ? safeCheck(() => apiClient.getSpotlightDataAvailability(), null)
@@ -85,6 +86,7 @@ async function buildProfile() {
       const response = await apiClient.getInvoices({ limit: 1 });
       return getTotalCount(response) > 0;
     }),
+    safeCheck(() => apiClient.hasJournals()),
   ]);
 
   profile.datasets.orders = orders;
@@ -95,6 +97,7 @@ async function buildProfile() {
   profile.datasets.buyers = buyers;
   profile.datasets.licensees = licensees;
   profile.datasets.invoices = invoices;
+  profile.datasets.journals = journals;
 
   if (spotlightAvailability) {
     profile.datasets.spotlight =
@@ -105,7 +108,7 @@ async function buildProfile() {
       spotlightAvailability.hasJournals ||
       spotlightAvailability.hasEnrollments ||
       spotlightAvailability.hasBuyers;
-    profile.datasets.journals = !!spotlightAvailability.hasJournals;
+    profile.datasets.journals = profile.datasets.journals || !!spotlightAvailability.hasJournals;
     profile.datasets.users = !!spotlightAvailability.hasUsers;
   }
 

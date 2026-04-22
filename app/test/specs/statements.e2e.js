@@ -3,6 +3,7 @@ const { expect } = require('@wdio/globals');
 const statementsPage = require('../pageobjects/statements.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { testPageStructure } = require('../utils/shared-tests');
@@ -32,7 +33,10 @@ describe('Statements Page', () => {
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
-    
+
+    // Statements requires an Operations account for meaningful data
+    await ensureOperationsAccount();
+
     // Check if Statements menu item is available for this user
     await statementsPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
