@@ -321,7 +321,7 @@ class ProfilePage extends BasePage {
 
   async getCurrentUserId() {
     const text = await this.getText(this.currentUserId);
-    return text ? text.match(/USR-\d{4}-\d{4}/)?.[0] || text : text;
+    return text ? text.match(REGEX.USER_ID_EXTRACT)?.[0] || text : text;
   }
 
   async scrollToAccount(index) {

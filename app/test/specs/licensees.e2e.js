@@ -15,6 +15,7 @@ describe('Licensees Page', () => {
   let hasEmptyState = false;
   let apiLicenseesAvailable = false;
   let licenseesReachable = false;
+  let capturedClientId = null;
 
   /**
    * Selector for the first client item in the Clients list (ACC- prefix)
@@ -66,6 +67,11 @@ describe('Licensees Page', () => {
     const client = firstClientItem();
     const clientVisible = await client.waitForDisplayed({ timeout: TIMEOUT.SCREEN_READY }).catch(() => false);
     if (!clientVisible) return false;
+
+    // Capture the ACC- ID so API calls can be scoped to the same account
+    const clientLabel = (await client.getAttribute('name')) || (await client.getAttribute('content-desc')) || '';
+    const clientIdMatch = clientLabel.match(/(ACC-\d{4}-\d{4})/);
+    capturedClientId = clientIdMatch ? clientIdMatch[1] : null;
 
     await client.click();
     await browser.pause(PAUSE.NAVIGATION);
@@ -326,15 +332,14 @@ describe('Licensees Page', () => {
 
   describe('API Integration', () => {
     it('should match API licensees count with visible licensees', async function () {
-      // Skip if API token not configured or no licensees in UI
-      if (!apiLicenseesAvailable || !hasLicenseesData) {
+      // Skip if API token not configured, no licensees in UI, or no client ID captured
+      if (!apiLicenseesAvailable || !hasLicenseesData || !capturedClientId) {
         this.skip();
         return;
       }
 
       try {
-        // Note: Licensees API requires accountId parameter
-        const apiLicensees = await apiClient.getLicensees({ limit: 100 });
+        const apiLicensees = await apiClient.getLicensees(capturedClientId, { limit: 100 });
         const apiLicenseesList = apiLicensees.data || apiLicensees;
         const apiCount = apiLicenseesList.length;
         
@@ -353,14 +358,13 @@ describe('Licensees Page', () => {
     });
 
     it('should verify first 10 licensee IDs and statuses match API data', async function () {
-      if (!apiLicenseesAvailable || !hasLicenseesData) {
+      if (!apiLicenseesAvailable || !hasLicenseesData || !capturedClientId) {
         this.skip();
         return;
       }
 
       try {
-        // Note: Licensees API requires accountId parameter
-        const apiLicensees = await apiClient.getLicensees({ limit: 10 });
+        const apiLicensees = await apiClient.getLicensees(capturedClientId, { limit: 10 });
         const apiLicenseesList = apiLicensees.data || apiLicensees;
         const uiLicenseeIds = await licenseesPage.getVisibleLicenseeIds();
         const uiLicenseesWithStatus = await licenseesPage.getVisibleLicenseesWithStatus();
