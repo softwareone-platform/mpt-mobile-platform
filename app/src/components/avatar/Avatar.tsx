@@ -28,6 +28,7 @@ const Avatar: React.FC<AvatarProps> = ({
   imagePath,
   size = DEFAULT_AVATAR_SIZE,
   variant = DEFAULT_AVATAR_VARIANT,
+  accessibilityValue,
 }) => {
   const [imageSource, setImageSource] = useState<AuthenticatedImageSource | null>(
     imagePath ? (imageSourceCache.get(imagePath) ?? null) : null,
@@ -92,7 +93,7 @@ const Avatar: React.FC<AvatarProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessibilityValue={{ text: accessibilityValue }}>
       <View style={[styles.commonIconContainer, containerVariantStyle[variant]]}>
         {imageSource && !hasError ? (
           <Image

@@ -1,11 +1,12 @@
 import { TouchableOpacity, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
+import { ICON_HIT_SLOP } from '@/constants';
 import { navigationStyle } from '@/styles';
 
 const ChatMoreButton = () => {
   return (
-    <TouchableOpacity style={styles.topBarIconWrapper} onPress={() => {}}>
+    <TouchableOpacity style={styles.topBarIconWrapper} onPress={() => {}} hitSlop={ICON_HIT_SLOP}>
       <OutlinedIcon
         name="more-horiz"
         color={navigationStyle.header.rightIconColorPrimary}

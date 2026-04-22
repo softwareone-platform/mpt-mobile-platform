@@ -42,6 +42,8 @@ import type {
   AppScreenItem,
 } from '@/types/navigation';
 
+export const TAB_BAR_CONTENT_HEIGHT = 65;
+
 export const mainTabsData: MainTabItem[] = [
   { name: 'spotlight', icon: 'flare', component: SpotlightScreen, stackRootName: 'spotlightRoot' },
   {

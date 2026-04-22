@@ -27,7 +27,7 @@ describe('Credit Memo Details Page', () => {
     await creditMemosPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
 
-    creditMemosMenuAvailable = await morePage.creditMemosMenuItem.isDisplayed().catch(() => false);
+    creditMemosMenuAvailable = await morePage.creditMemosMenuItem.isExisting().catch(() => false);
     if (!creditMemosMenuAvailable) {
       console.info(
         '⚠️ Credit Memos menu item not available for this user - skipping Credit Memo Details tests',

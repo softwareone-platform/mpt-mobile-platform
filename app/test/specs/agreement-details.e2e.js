@@ -26,7 +26,7 @@ describe('Agreement Details Page', () => {
     await agreementsPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
 
-    agreementsMenuAvailable = await morePage.agreementsMenuItem.isDisplayed().catch(() => false);
+    agreementsMenuAvailable = await morePage.agreementsMenuItem.isExisting().catch(() => false);
     if (!agreementsMenuAvailable) {
       console.info(
         '⚠️ Agreements menu item not available for this user - skipping Agreement Details tests',

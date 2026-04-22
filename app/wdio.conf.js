@@ -465,6 +465,7 @@ exports.config = {
         ],
         programs: [
             './test/specs/programs.e2e.js',
+            './test/specs/program-details.e2e.js',
         ],
         enrollments: [
             './test/specs/enrollments.e2e.js',

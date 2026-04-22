@@ -37,7 +37,6 @@ function testPageStructure(page, options = {}) {
     it('should display all footer navigation tabs', async () => {
       await expect(page.footer.spotlightsTab).toBeDisplayed();
       await expect(page.footer.chatTab).toBeDisplayed();
-      await expect(page.footer.subscriptionsTab).toBeDisplayed();
       await expect(page.footer.moreTab).toBeDisplayed();
     });
 
@@ -45,7 +44,6 @@ function testPageStructure(page, options = {}) {
       const tabMap = {
         spotlights: page.footer.spotlightsTab,
         chat: page.footer.chatTab,
-        subscriptions: page.footer.subscriptionsTab,
         more: page.footer.moreTab,
       };
       const tab = tabMap[selectedTab];

@@ -36,7 +36,7 @@ describe('Licensees Page', () => {
     // Check if Licensees menu item is available for this user
     await licenseesPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
-    licenseesMenuAvailable = await morePage.licenseesMenuItem.isDisplayed().catch(() => false);
+    licenseesMenuAvailable = await morePage.licenseesMenuItem.isExisting().catch(() => false);
     
     if (!licenseesMenuAvailable) {
       console.info('⚠️ Licensees menu item not available for this user - skipping Licensees tests');

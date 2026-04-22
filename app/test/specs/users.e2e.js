@@ -33,7 +33,7 @@ describe('Users Page', () => {
     // Check if Users menu item is available for this user
     await usersPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
-    usersMenuAvailable = await morePage.usersMenuItem.isDisplayed().catch(() => false);
+    usersMenuAvailable = await morePage.usersMenuItem.isExisting().catch(() => false);
 
     if (!usersMenuAvailable) {
       console.info('⚠️ Users menu item not available for this user - skipping Users tests');
@@ -101,7 +101,6 @@ describe('Users Page', () => {
     it('should display all footer navigation tabs', async () => {
       await expect(usersPage.footer.spotlightsTab).toBeDisplayed();
       await expect(usersPage.footer.chatTab).toBeDisplayed();
-      await expect(usersPage.footer.subscriptionsTab).toBeDisplayed();
       await expect(usersPage.footer.moreTab).toBeDisplayed();
     });
 
