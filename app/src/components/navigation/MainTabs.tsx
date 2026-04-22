@@ -49,7 +49,7 @@ const MainTabs = () => {
             ? styles.noDisplay
             : [styles.container, { height: TAB_BAR_CONTENT_HEIGHT + insets.bottom }],
           tabBarLabelStyle: styles.label,
-          tabBarBackground: () => <LinearGradientHorisontal height={3} />,
+          tabBarBackground: () => <LinearGradientHorisontal />,
           headerShown: false,
         };
       }}

@@ -5,29 +5,29 @@
 
 export const Color = {
   brand: {
-    primary: '#3366FF',
+    primary: '#3366ff',
     danger: '#dc182c',
     success: '#008556',
     type: '#000000',
     white: '#ffffff',
     gradient: {
-      colors: ['#00C9CD', '#472AFF', '#392D9C'],
-      start: { x: 1, y: 0.4 }, // approximate 256deg angle
-      end: { x: 0, y: 0.6 },
+      colors: ['#49d7ff', '#3366ff', '#000000'],
+      start: { x: 1.15, y: 0.82 },
+      end: { x: -0.75, y: 0.18 },
     },
   },
   gray: {
     gray1: '#f4f6f8',
-    gray2: '#E0E5E8',
+    gray2: '#e0e5e8',
     gray3: '#aeb1b9',
     gray4: '#6b7180',
     gray5: '#434952',
     gray6: '#25282d',
   },
   alerts: {
-    info1: '#EBF0FF',
-    info2: '#959bff',
-    info3: '#3520bf',
+    info1: '#ebf0ff',
+    info2: '#85a3ff',
+    info3: '#2447b3',
     info4: '#1A3380',
     warning1: '#fdf2e9',
     warning2: '#f1b178',
