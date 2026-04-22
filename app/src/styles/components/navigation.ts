@@ -7,7 +7,6 @@ export const navigationStyle = {
   primary: {
     container: {
       paddingTop: 11,
-      height: 100,
       backgroundColor: Color.brand.white,
     },
     label: {

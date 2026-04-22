@@ -27,7 +27,7 @@ describe('Invoice Details Page', () => {
     await invoicesPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
 
-    invoicesMenuAvailable = await morePage.invoicesMenuItem.isDisplayed().catch(() => false);
+    invoicesMenuAvailable = await morePage.invoicesMenuItem.isExisting().catch(() => false);
     if (!invoicesMenuAvailable) {
       console.info(
         '⚠️ Invoices menu item not available for this user - skipping Invoice Details tests',

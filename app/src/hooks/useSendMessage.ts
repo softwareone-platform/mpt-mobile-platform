@@ -39,7 +39,7 @@ export function useSendMessage({
   onBeforeSendRef.current = onBeforeSend;
 
   return useCallback(async () => {
-    const content = inputTextRef.current.trim();
+    const content = inputTextRef.current.trim().replace(/\n/g, '\n\n');
     if (!content || !chatId || isSendingRef.current) return;
 
     isSendingRef.current = true;
