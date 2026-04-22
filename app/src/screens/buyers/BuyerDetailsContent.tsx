@@ -4,10 +4,15 @@ import { useTranslation } from 'react-i18next';
 
 import AddressCard from '@/components/address/AddressCard';
 import CardWithHeader from '@/components/card/CardWithHeader';
+import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import NavigationItem from '@/components/navigation-item/NavigationItem';
+import { getBuyerSubList } from '@/config/subListsNavigation';
 import { useAccountType } from '@/hooks/useAccountType';
+import { useSubListNavigation } from '@/hooks/useSubListNavigation';
 import type { BuyerData } from '@/types/admin';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import { canNavigateTo } from '@/utils/navigationPermissions';
 
@@ -16,6 +21,11 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { accountType } = useAccountType();
+  const { navigateToSubListItem } = useSubListNavigation();
+
+  const filteredSubList = getBuyerSubList(data.id).filter((item) =>
+    item.roles.includes(accountType as AccountType),
+  );
 
   return (
     <>
@@ -46,6 +56,20 @@ const BuyerDetailsContent = ({ data }: { data: BuyerData }) => {
         />
       </CardWithHeader>
       <AddressCard address={data.address} headerTitle={t(`details.address`)} />
+      {filteredSubList.length > 0 && (
+        <NavigationGroupCard>
+          {filteredSubList.map((item, index) => (
+            <NavigationItem
+              key={item.name}
+              title={t(`navigation.tabs.${item.name}`)}
+              isLast={index === filteredSubList.length - 1}
+              onPress={() => {
+                navigateToSubListItem(item);
+              }}
+            />
+          ))}
+        </NavigationGroupCard>
+      )}
     </>
   );
 };

@@ -2,6 +2,7 @@ import {
   getAgreementSubList,
   getCertificateSubList,
   getAccountSubList,
+  getBuyerSubList,
 } from '@/config/subListsNavigation';
 
 describe('subListsNavigation (queries)', () => {
@@ -53,6 +54,18 @@ describe('subListsNavigation (queries)', () => {
 
       expect(result.find((i) => i.name === 'users')?.query).toBe('&order=name');
       expect(result.find((i) => i.name === 'users')?.accountId).toBe(id);
+    });
+  });
+
+  describe('getBuyerSubList', () => {
+    it('generates correct queries', () => {
+      const result = getBuyerSubList(id);
+
+      expect(result.find((i) => i.name === 'licensees')?.query).toBe(
+        `&eq(buyer.id,"${id}")&order=name`,
+      );
+
+      expect(result.find((i) => i.name === 'licensees')?.roles).toEqual(['Client', 'Operations']);
     });
   });
 });
