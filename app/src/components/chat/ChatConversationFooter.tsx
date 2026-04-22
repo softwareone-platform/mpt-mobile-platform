@@ -4,21 +4,13 @@ import { View, TextInput, StyleSheet, TouchableOpacity, Platform } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { MIN_TOUCH_TARGET, ICON_ONLY_BUTTON_SIZE } from '@/constants';
+import { BUTTON_ICON_ONLY_HIT_SLOP } from '@/constants';
 import { buttonStyle, Color, inputStyle, chatStyle } from '@/styles';
 
 type Props = {
   value: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
-};
-
-const sendButtonSlop = (MIN_TOUCH_TARGET - ICON_ONLY_BUTTON_SIZE) / 2;
-const sendButtonHitSlop = {
-  top: sendButtonSlop,
-  bottom: sendButtonSlop,
-  left: sendButtonSlop,
-  right: sendButtonSlop,
 };
 
 const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
@@ -46,7 +38,7 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
           style={styles.buttonPrimaryIconOnly}
           onPress={onSend}
           disabled={!value.trim()}
-          hitSlop={sendButtonHitSlop}
+          hitSlop={BUTTON_ICON_ONLY_HIT_SLOP}
         >
           <OutlinedIcon
             name={'arrow-upward' as keyof typeof OutlinedIcons}
