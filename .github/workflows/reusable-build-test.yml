@@ -74,6 +74,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: SonarCloud Quality Gate
+        # Temporarily non-blocking: SonarCloud's /api/ce/task endpoint has been
+        # returning 404 "Project doesn't exist" for this project since
+        # 2026-04-22 08:23 UTC, breaking every main-branch run. Tracked
+        # separately; remove continue-on-error once SonarCloud is investigated.
+        continue-on-error: true
         uses: SonarSource/sonarqube-quality-gate-action@v1
         timeout-minutes: 5
         with:
