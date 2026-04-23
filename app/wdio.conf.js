@@ -475,6 +475,14 @@ exports.config = {
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
         ],
+        statements: [
+            './test/specs/statements.e2e.js',
+            './test/specs/statement-details.e2e.js',
+        ],
+        journals: [
+            './test/specs/journals.e2e.js',
+            './test/specs/journal-details.e2e.js',
+        ],
         buyers: [
             './test/specs/buyers.e2e.js',
             './test/specs/buyer-details.e2e.js',
@@ -804,6 +812,10 @@ exports.config = {
      * @param {object}         browser      instance of created browser/device session
      */
     before: function (capabilities, specs) {
+        // Suppress MaxListenersExceededWarning from WDIO/Appium TLS
+        // socket reuse — harmless in a test runner process.
+        require('events').EventEmitter.defaultMaxListeners = 50;
+
         // Log spec file being executed
         const specFile = specs && specs.length > 0 ? specs[0] : 'unknown';
         const shortSpec = specFile.replace(/.*\/test\/specs\//, '');

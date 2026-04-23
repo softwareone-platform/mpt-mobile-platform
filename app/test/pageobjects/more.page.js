@@ -152,6 +152,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get journalsMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-journals',
+        android: '//*[@resource-id="nav-menu-journals"]',
+      }),
+    );
+  }
+
   // ========== Helper Methods ==========
 
   /**
@@ -223,6 +232,15 @@ class MorePage extends BasePage {
   async navigateToStatements() {
     await this.ensureMorePage();
     await this.statementsMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Journals page
+   */
+  async navigateToJournals() {
+    await this.ensureMorePage();
+    await this.journalsMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 
