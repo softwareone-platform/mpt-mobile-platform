@@ -5,7 +5,7 @@ import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import AvatarWithBadge from '@/components/avatar/AvatarWithBadge';
 import GroupAvatar from '@/components/avatar/GroupAvatar';
 import HelpdeskAvatar from '@/components/avatar/HelpdeskAvatar';
-import { DEFAULT_CHAT_AVATAR_SIZE } from '@/constants/icons';
+// import { DEFAULT_CHAT_AVATAR_SIZE } from '@/constants/icons';
 import { listItemStyle, listItemChatStyle, linkStyle, Color } from '@/styles';
 import type { ListItemChatProps } from '@/types/chat';
 import { stripMarkdown } from '@/utils/chat';
@@ -54,7 +54,7 @@ const ListItemChat = ({
             variant="medium"
           />
         ) : type === 'Case' ? (
-          <HelpdeskAvatar size={DEFAULT_CHAT_AVATAR_SIZE} />
+          <HelpdeskAvatar variant="medium" />
         ) : (
           <GroupAvatar avatars={avatars || []} />
         )}

@@ -37,8 +37,14 @@ export interface AvatarProps {
 
 export type AvatarWithBadgeVariant = 'small' | 'medium';
 
-export type AvatarWithBadgeProps = {
+export interface AvatarWithBadgeProps {
   userAvatarProps: AvatarProps;
   accountLogoProps: AvatarProps;
   variant: AvatarWithBadgeVariant;
-};
+}
+
+export type AvatarWithIconVariant = 'default' | 'medium';
+
+export interface AvatarWithIconProps {
+  variant?: AvatarWithIconVariant;
+}
