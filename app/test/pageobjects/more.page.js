@@ -1,10 +1,10 @@
-const { $ } = require('@wdio/globals');
+const { $, $$ } = require('@wdio/globals');
 
 const BasePage = require('./base/base.page');
 const footerPage = require('./base/footer.page');
 const headingPage = require('./base/heading.page');
-const { getSelector, selectors } = require('./utils/selectors');
-const { PAUSE } = require('./utils/constants');
+const { getSelector, selectors, isAndroid } = require('./utils/selectors');
+const { PAUSE, GESTURE } = require('./utils/constants');
 
 class MorePage extends BasePage {
   constructor() {
@@ -161,6 +161,68 @@ class MorePage extends BasePage {
     );
   }
 
+  get vendorsMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-vendors',
+        android: '//*[@resource-id="nav-menu-vendors"]',
+      }),
+    );
+  }
+
+  get allBuyersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-allBuyers',
+        android: '//*[@resource-id="nav-menu-allBuyers"]',
+      }),
+    );
+  }
+
+  get allUsersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-allUsers',
+        android: '//*[@resource-id="nav-menu-allUsers"]',
+      }),
+    );
+  }
+
+  get certificatesMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-certificates',
+        android: '//*[@resource-id="nav-menu-certificates"]',
+      }),
+    );
+  }
+
+  // ========== Group Heading Elements ==========
+
+  get administrationGroupHeading() {
+    return $(selectors.byText('Administration'));
+  }
+
+  get billingGroupHeading() {
+    return $(selectors.byText('Billing'));
+  }
+
+  get catalogGroupHeading() {
+    return $(selectors.byText('Catalog'));
+  }
+
+  get marketplaceGroupHeading() {
+    return $(selectors.byText('Marketplace'));
+  }
+
+  get programGroupHeading() {
+    return $(selectors.byText('Program'));
+  }
+
+  get settingsGroupHeading() {
+    return $(selectors.byText('Settings'));
+  }
+
   // ========== Helper Methods ==========
 
   /**
@@ -315,6 +377,108 @@ class MorePage extends BasePage {
     await this.ensureMorePage();
     await this.subscriptionsMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Vendors page (Operations role only)
+   */
+  async navigateToVendors() {
+    await this.ensureMorePage();
+    await this.vendorsMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to All Buyers page (Operations role only)
+   */
+  async navigateToAllBuyers() {
+    await this.ensureMorePage();
+    await this.allBuyersMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to All Users page (Operations role only)
+   */
+  async navigateToAllUsers() {
+    await this.ensureMorePage();
+    await this.allUsersMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Certificates page
+   */
+  async navigateToCertificates() {
+    await this.ensureMorePage();
+    await this.certificatesMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Scroll down within the More menu scroll view.
+   * Uses the same swipe gesture pattern as list.page.js to avoid
+   * scrollIntoView direction issues on iOS with nested ScrollViews.
+   */
+  async scrollDown() {
+    if (isAndroid()) {
+      await browser.execute('mobile: swipeGesture', {
+        left: GESTURE.SWIPE_LEFT,
+        top: GESTURE.SWIPE_TOP,
+        width: GESTURE.SWIPE_WIDTH,
+        height: GESTURE.SWIPE_HEIGHT,
+        direction: 'up',
+        percent: 0.5,
+      });
+    } else {
+      await browser.execute('mobile: swipe', {
+        direction: 'up',
+        velocity: GESTURE.IOS_VELOCITY,
+      });
+    }
+    await browser.pause(PAUSE.SWIPE_ANIMATION);
+  }
+
+  /**
+   * Scroll down until the given element is displayed, or the scroll limit is reached.
+   * @param {object} element - WebdriverIO element to scroll to
+   * @param {number} maxScrolls - Maximum number of swipes (default 8)
+   * @returns {Promise<boolean>} True if the element became displayed
+   */
+  async scrollToElement(element, maxScrolls = 8) {
+    for (let i = 0; i < maxScrolls; i++) {
+      const displayed = await element.isDisplayed().catch(() => false);
+      if (displayed) return true;
+      await this.scrollDown();
+    }
+    return await element.isDisplayed().catch(() => false);
+  }
+
+  /**
+   * Returns an array of testIDs for all menu items currently visible on the More page.
+   * Used to assert which items are present for the current user role/modules.
+   * @returns {Promise<string[]>} Array of testID strings (e.g. 'nav-menu-agreements')
+   */
+  async getVisibleMenuItemIds() {
+    await this.ensureMorePage();
+    const allMenuItems = await $$(
+      getSelector({
+        ios: `//XCUIElementTypeOther[starts-with(@name, "nav-menu-")]`,
+        android: `//*[starts-with(@resource-id, "nav-menu-")]`,
+      }),
+    );
+    const ids = [];
+    for (const el of allMenuItems) {
+      try {
+        const id = await el.getAttribute(
+          getSelector({ ios: 'name', android: 'resource-id' }),
+        );
+        if (id) ids.push(id);
+      } catch (_) {
+        // skip elements that can't be read
+      }
+    }
+    return ids;
   }
 }
 
