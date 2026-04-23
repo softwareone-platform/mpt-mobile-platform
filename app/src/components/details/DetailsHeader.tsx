@@ -29,6 +29,7 @@ const DetailsHeader = ({
   const { t } = useTranslation();
 
   const hasSubtitle = Boolean(subtitle);
+  const hasCustomAvatar = customAvatar !== undefined;
   const status = getStatus(statusText, statusList);
 
   const styles = useMemo(
@@ -38,6 +39,7 @@ const DetailsHeader = ({
         screenHeader: listItemStyle.detailsHeaderContainer[variant],
         topRow: listItemStyle.detailsHeaderTopRow[variant],
         avatarWrapper: listItemStyle.detailsHeaderAvatarWrapper[variant],
+        avatarWrapperNoBorder: listItemStyle.avatarWrapperNoBorder,
         textWrapper: listItemStyle.textContainer,
         title: listItemStyle.detailsHeaderTitle,
         subtitle: listItemStyle.detailsHeaderSubtitle,
@@ -66,7 +68,11 @@ const DetailsHeader = ({
   return (
     <View style={styles.screenHeader}>
       <View style={styles.topRow}>
-        {avatar && <View style={styles.avatarWrapper}>{avatar}</View>}
+        {avatar && (
+          <View style={[styles.avatarWrapper, hasCustomAvatar && styles.avatarWrapperNoBorder]}>
+            {avatar}
+          </View>
+        )}
         <View style={styles.textWrapper}>
           {hasSubtitle && (
             <Text style={styles.title} numberOfLines={1} testID={headerTitleTestId} selectable>
