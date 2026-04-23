@@ -3,7 +3,7 @@ const { expect } = require('@wdio/globals');
 const productDetailsPage = require('../pageobjects/product-details.page');
 const productsPage = require('../pageobjects/products.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 
@@ -67,7 +67,7 @@ describe('Product Details Page', () => {
     it('should display the status badge', async function () {
       await expect(productDetailsPage.statusText).toBeDisplayed();
       const status = await productDetailsPage.getStatus();
-      expect(['Published', 'Unpublished', 'Pending']).toContain(status);
+      expect(STATUSES.PRODUCT).toContain(status);
     });
 
     it('should display the Details section header', async function () {

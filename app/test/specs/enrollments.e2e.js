@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Enrollments Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -192,7 +192,7 @@ describe('Enrollments Page', () => {
       const details = await enrollmentsPage.getEnrollmentDetails(firstEnrollment);
       // Enrollments use 4-group IDs: ENR-XXXX-XXXX-XXXX
       expect(details.enrollmentId).toMatch(REGEX.ENROLLMENT_ID);
-      expect(['Draft', 'Completed', 'Processing']).toContain(details.status);
+      expect(STATUSES.ENROLLMENT).toContain(details.status);
     });
 
     it('should detect all loaded enrollments in the list', async function () {

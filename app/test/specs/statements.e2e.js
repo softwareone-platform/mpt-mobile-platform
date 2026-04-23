@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { testPageStructure } = require('../utils/shared-tests');
-const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Statements Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -160,7 +160,7 @@ describe('Statements Page', () => {
       const details = await statementsPage.getStatementDetails(firstStatement);
       // Statements use 4-group IDs: SOM-XXXX-XXXX-XXXX-XXXX
       expect(details.statementId).toMatch(REGEX.STATEMENT_ID);
-      expect(['Issued','Generated', 'Queued', 'Error', 'Cancelled', 'Pending', 'Generating']).toContain(details.status);
+      expect(STATUSES.STATEMENT).toContain(details.status);
     });
 
     it('should detect all loaded statements in the list', async function () {

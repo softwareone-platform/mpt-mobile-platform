@@ -38,4 +38,9 @@ module.exports = {
   API_BASE_URL: getEnv('API_BASE_URL'),
   API_OPS_TOKEN: getEnv('API_OPS_TOKEN'),
   AUTH0_CLIENT_ID: getEnv('AUTH0_CLIENT_ID'),
+  // ACC- ID of the Operations test account for the current environment.
+  // Used by account.helper.js to detect and switch to the Operations account,
+  // which is required for navigating to sub-lists like Licensees.
+  // Falls back to the known test-environment value if not explicitly set.
+  OPS_ACCOUNT_ID: getEnv('OPS_ACCOUNT_ID', 'ACC-4850-1126'),
 };

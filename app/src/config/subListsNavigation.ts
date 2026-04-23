@@ -57,3 +57,13 @@ export const getAccountSubList = (id: string): SubListItem[] => {
     },
   ];
 };
+
+export const getBuyerSubList = (id: string): SubListItem[] => {
+  return [
+    {
+      name: 'licensees',
+      roles: ['Client', 'Operations'],
+      query: `&eq(buyer.id,"${id}")&order=name`,
+    },
+  ];
+};

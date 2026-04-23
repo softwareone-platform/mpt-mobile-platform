@@ -5,7 +5,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Products Page', () => {
   let hasProductsData = false;
@@ -148,7 +148,7 @@ describe('Products Page', () => {
       const details = await productsPage.getProductDetails(firstProduct);
       expect(details.name).toBeTruthy();
       expect(details.productId).toMatch(REGEX.PRODUCT_ID);
-      expect(['Published', 'Unpublished', 'Pending']).toContain(details.status);
+      expect(STATUSES.PRODUCT).toContain(details.status);
     });
 
     it('should detect all loaded products in the list', async function () {
