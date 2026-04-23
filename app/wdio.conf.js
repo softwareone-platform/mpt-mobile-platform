@@ -504,6 +504,8 @@ exports.config = {
         ],
         // Feature flag validation tests
         featureFlags: ['./test/specs/feature-flags.e2e.js'],
+        // Menu navigation, group headings, module-gated visibility (MPT-17294, MPT-20232, MPT-20348, MPT-17165)
+        menuNavigation: ['./test/specs/menu-navigation.e2e.js'],
         // Experimental tests — known CI limitations, run separately and allowed to fail
         experimental: ['./test/specs/session-restart.e2e.js'],
     },
