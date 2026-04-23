@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Users Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -166,7 +166,7 @@ describe('Users Page', () => {
       await expect(firstUser).toBeDisplayed();
       const details = await usersPage.getUserDetails(firstUser);
       expect(details.userId).toMatch(REGEX.USER_ID);
-      expect(['Active', 'Blocked', 'Invitation Expired']).toContain(details.status);
+      expect(STATUSES.USER).toContain(details.status);
     });
 
     it('should detect all loaded users in the list', async function () {

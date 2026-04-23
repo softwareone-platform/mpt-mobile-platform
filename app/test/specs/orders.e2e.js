@@ -5,7 +5,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Orders Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -151,7 +151,7 @@ describe('Orders Page', () => {
       
       const details = await ordersPage.getOrderDetails(firstOrder);
       expect(details.orderId).toMatch(REGEX.ORDER_ID);
-      expect(['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed', 'Processing', 'Querying']).toContain(details.status);
+      expect(STATUSES.ORDER).toContain(details.status);
     });
 
     it('should detect all loaded orders in the list', async function () {

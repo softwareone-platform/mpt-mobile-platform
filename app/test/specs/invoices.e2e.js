@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { testPageStructure } = require('../utils/shared-tests');
-const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Invoices Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -160,7 +160,7 @@ describe('Invoices Page', () => {
       const details = await invoicesPage.getInvoiceDetails(firstInvoice);
       // Invoices use 4-group IDs: INV-XXXX-XXXX-XXXX-XXXX
       expect(details.invoiceId).toMatch(REGEX.INVOICE_ID);
-      expect(['Issued', 'Paid', 'Overdue']).toContain(details.status);
+      expect(STATUSES.INVOICE).toContain(details.status);
     });
 
     it('should detect all loaded invoices in the list', async function () {

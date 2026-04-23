@@ -473,6 +473,7 @@ exports.config = {
         ],
         licensees: [
             './test/specs/licensees.e2e.js',
+            './test/specs/licensee-details.e2e.js',
         ],
         buyers: [
             './test/specs/buyers.e2e.js',

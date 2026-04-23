@@ -5,7 +5,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Subscriptions Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
@@ -123,7 +123,7 @@ describe('Subscriptions Page', () => {
       
       const details = await subscriptionsPage.getSubscriptionDetails(firstSubscription);
       expect(details.subscriptionId).toMatch(REGEX.SUBSCRIPTION_ID);
-      expect(['Active', 'Terminated', 'Updating', 'Terminating', 'Suspended']).toContain(details.status);
+      expect(STATUSES.SUBSCRIPTION).toContain(details.status);
     });
 
     it('should detect all loaded subscriptions in the list', async function () {

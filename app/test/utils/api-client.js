@@ -1,6 +1,6 @@
 const https = require('https');
 const { API_BASE_URL, API_OPS_TOKEN } = require('./env');
-
+const { STATUSES } = require('../pageobjects/utils/constants');
 // Reuse TCP connections and cap concurrency to avoid exceeding Node's
 // default EventEmitter listener limit during parallel API call bursts.
 const sharedAgent = new https.Agent({ keepAlive: true, maxSockets: 15 });
@@ -221,9 +221,8 @@ class ApiClient {
    * @returns {Promise<Array>} - Array of orders with the specified status
    */
   async getOrdersByStatus(status) {
-    const validStatuses = ['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    if (!STATUSES.ORDER.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.ORDER.join(', ')}`);
     }
     
     const response = await this.getOrders({ status });
@@ -306,9 +305,8 @@ class ApiClient {
    * @returns {Promise<Array>} - Array of subscriptions with the specified status
    */
   async getSubscriptionsByStatus(status) {
-    const validStatuses = ['Active', 'Terminated', 'Updating', 'Terminating', 'Suspended'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    if (!STATUSES.SUBSCRIPTION.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.SUBSCRIPTION.join(', ')}`);
     }
     
     const response = await this.getSubscriptions({ status });
@@ -574,9 +572,8 @@ class ApiClient {
    * @returns {Promise<Array>} - Array of agreements with the specified status
    */
   async getAgreementsByStatus(status) {
-    const validStatuses = ['Active', 'Terminated', 'Deleted', 'Provisioning', 'Updating'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    if (!STATUSES.AGREEMENT.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.AGREEMENT.join(', ')}`);
     }
     
     const response = await this.getAgreements({ status });
@@ -659,9 +656,8 @@ class ApiClient {
    * @returns {Promise<Array>} - Array of programs with the specified status
    */
   async getProgramsByStatus(status) {
-    const validStatuses = ['Unpublished', 'Draft', 'Published'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    if (!STATUSES.PROGRAM.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.PROGRAM.join(', ')}`);
     }
     
     const response = await this.getPrograms({ status });
@@ -737,7 +733,7 @@ class ApiClient {
    * @param {Object} options - Query parameters
    * @param {number} [options.limit] - Maximum number of enrollments to return
    * @param {number} [options.offset] - Offset for pagination
-   * @param {string} [options.status] - Filter by enrollment status (Draft, Completed, Processing)
+   * @param {string} [options.status] - Filter by enrollment status (Draft, Completed, Processing, Deleted)
    * @returns {Promise<object>} - Enrollments list response
    * 
    * @example
@@ -802,13 +798,12 @@ class ApiClient {
 
   /**
    * Get enrollments by status
-   * @param {string} status - Enrollment status (Draft, Completed, Processing)
+   * @param {string} status - Enrollment status (Draft, Completed, Processing, Deleted)
    * @returns {Promise<Array>} - Array of enrollments with the specified status
    */
   async getEnrollmentsByStatus(status) {
-    const validStatuses = ['Draft', 'Completed', 'Processing'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    if (!STATUSES.ENROLLMENT.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.ENROLLMENT.join(', ')}`);
     }
     
     const response = await this.getEnrollments({ status });
@@ -818,32 +813,33 @@ class ApiClient {
   // ========== Licensees Methods ==========
 
   /**
-   * Get licensees list for the authenticated user
+   * Get licensees list scoped to a specific account, matching the app's endpoint.
+   * @param {string} accountId - Account ID (ACC-XXXX-XXXX) of the client being browsed
    * @param {Object} options - Query parameters
-   * @param {number} [options.limit] - Maximum number of licensees to return
-   * @param {number} [options.offset] - Offset for pagination
+   * @param {number} [options.limit] - Maximum number of licensees to return (default 50)
+   * @param {number} [options.offset] - Offset for pagination (default 0)
    * @param {string} [options.status] - Filter by licensee status (Enabled, Disabled)
    * @returns {Promise<object>} - Licensees list response
    * 
-   * Note: The Licensees API may require accountId parameter depending on the endpoint
-   * 
    * @example
-   * // Get all licensees
-   * const licensees = await apiClient.getLicensees();
-   * 
-   * // Get licensees with pagination
-   * const licensees = await apiClient.getLicensees({ limit: 10, offset: 0 });
+   * const licensees = await apiClient.getLicensees('ACC-4850-1126', { limit: 10 });
    */
-  async getLicensees(options = {}) {
-    let endpoint = '/public/v1/accounts/licensees';
+  async getLicensees(accountId, options = {}) {
+    if (!accountId) {
+      throw new Error('accountId is required for getLicensees (format: ACC-XXXX-XXXX)');
+    }
     
-    const queryParams = [];
-    if (options.limit) queryParams.push(`limit=${options.limit}`);
-    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
-    if (options.status) queryParams.push(`status=${options.status}`);
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
     
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
+    let endpoint =
+      `/v1/accounts/licensees` +
+      `?select=seller,buyer.status` +
+      `&eq(account.id,${accountId})&order=name` +
+      `&offset=${offset}&limit=${limit}`;
+    
+    if (options.status) {
+      endpoint += `&eq(status,"${options.status}")`;
     }
     
     return this.get(endpoint);
@@ -867,35 +863,37 @@ class ApiClient {
   }
 
   /**
-   * Get licensees count
+   * Get licensees count for an account
+   * @param {string} accountId - Account ID (ACC-XXXX-XXXX)
    * @returns {Promise<number>} - Total number of licensees
    */
-  async getLicenseesCount() {
-    const response = await this.getLicensees({ limit: 1 });
+  async getLicenseesCount(accountId) {
+    const response = await this.getLicensees(accountId, { limit: 1 });
     return response.pagination?.total || response.data?.length || 0;
   }
 
   /**
-   * Check if user has any licensees
+   * Check if an account has any licensees
+   * @param {string} accountId - Account ID (ACC-XXXX-XXXX)
    * @returns {Promise<boolean>}
    */
-  async hasLicensees() {
-    const count = await this.getLicenseesCount();
+  async hasLicensees(accountId) {
+    const count = await this.getLicenseesCount(accountId);
     return count > 0;
   }
 
   /**
-   * Get licensees by status
+   * Get licensees by status for an account
+   * @param {string} accountId - Account ID (ACC-XXXX-XXXX)
    * @param {string} status - Licensee status (Enabled, Disabled)
    * @returns {Promise<Array>} - Array of licensees with the specified status
    */
-  async getLicenseesByStatus(status) {
-    const validStatuses = ['Enabled', 'Disabled'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+  async getLicenseesByStatus(accountId, status) {
+    if (!STATUSES.LICENSEE.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.LICENSEE.join(', ')}`);
     }
     
-    const response = await this.getLicensees({ status });
+    const response = await this.getLicensees(accountId, { status });
     return response.data || response;
   }
 
@@ -975,9 +973,8 @@ class ApiClient {
    * @returns {Promise<Array>} - Array of buyers with the specified status
    */
   async getBuyersByStatus(status) {
-    const validStatuses = ['Active', 'Unassigned'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status: "${status}". Must be one of: ${validStatuses.join(', ')}`);
+    if (!STATUSES.BUYER.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.BUYER.join(', ')}`);
     }
     
     const response = await this.getBuyers({ status });

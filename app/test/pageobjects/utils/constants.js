@@ -165,6 +165,7 @@ const REGEX = {
   STATEMENT_ID_EXTRACT: /(SOM-\d{4}-\d{4}-\d{4}-\d{4})/,
   USER_ID: /^USR-\d{4}-\d{4}$/,
   USER_ID_FLEX: /^USR-(\d{4}-)+\d{4}$/,
+  USER_ID_EXTRACT: /USR-\d{4}-\d{4}/,
   PROGRAM_ID: /^PRG-\d{4}-\d{4}$/,
   PRODUCT_ID: /^PRD-\d{4}-\d{4}$/,
   BUYER_ID: /^BUY-\d{4}-\d{4}$/,
@@ -194,6 +195,42 @@ const PLATFORM = {
   ANDROID: 'android',
 };
 
+// ============ Entity Status Constants ============
+const STATUSES = {
+  /** Valid statuses that can appear for orders in the UI */
+  ORDER: ['Draft', 'Quoted', 'Completed', 'Deleted', 'Failed', 'Processing', 'Querying'],
+
+  /** Valid statuses that can appear for subscriptions in the UI */
+  SUBSCRIPTION: ['Active', 'Terminated', 'Updating', 'Terminating', 'Suspended'],
+
+  /** Valid statuses that can appear for agreements in the UI */
+  AGREEMENT: ['Active', 'Terminated', 'Deleted', 'Provisioning', 'Updating'],
+
+  /** Valid statuses that can appear for programs in the UI */
+  PROGRAM: ['Unpublished', 'Draft', 'Published'],
+
+  /** Valid statuses that can appear for enrollments in the UI */
+  ENROLLMENT: ['Draft', 'Completed', 'Processing', 'Deleted'],
+
+  /** Valid statuses that can appear for licensees in the UI */
+  LICENSEE: ['Enabled', 'Disabled'],
+
+  /** Valid statuses that can appear for buyers in the UI */
+  BUYER: ['Active', 'Unassigned'],
+
+  /** Valid statuses that can appear for products in the UI */
+  PRODUCT: ['Published', 'Unpublished', 'Pending'],
+
+  /** Valid statuses that can appear for invoices in the UI */
+  INVOICE: ['Issued', 'Paid', 'Overdue'],
+
+  /** Valid statuses that can appear for statements in the UI */
+  STATEMENT: ['Issued', 'Generated', 'Queued', 'Error', 'Cancelled', 'Pending', 'Generating'],
+
+  /** Valid statuses that can appear for users in the UI */
+  USER: ['Active', 'Blocked', 'Invitation Expired'],
+};
+
 module.exports = {
   TIMEOUT,
   PAUSE,
@@ -204,4 +241,5 @@ module.exports = {
   DEFAULTS,
   LIMITS,
   PLATFORM,
+  STATUSES,
 };
