@@ -19,5 +19,6 @@ export const useSpotlightData = (userId: string | undefined) => {
       return arrangeSpotlightData(data, SPOTLIGHT_CATEGORY, templateLookup);
     },
     enabled: !!currentAccountId,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
 };
