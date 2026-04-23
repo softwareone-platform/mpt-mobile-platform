@@ -22,9 +22,8 @@ export type SpotlightTemplateName =
   | 'invoicesPastDueOfMyClients'
   | 'queryingEnrollments'
   | 'processingEnrollments'
-  | 'longRunningEnrollmentsOfMyClients';
-// TODO: add back when Journal screens are ready
-// | 'inProgressJournals';
+  | 'longRunningEnrollmentsOfMyClients'
+  | 'inProgressJournals';
 
 export type SpotlightCategoryName =
   | 'orders'
