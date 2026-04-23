@@ -140,12 +140,10 @@ class AppInsightsService {
 
   public trackEvent(event: AppInsightsEvent): void {
     if (!this.isInitialized || !this.appInsights) {
-      console.warn('[AppInsights] Not initialized. Event not tracked:', event.name);
       return;
     }
 
     this.appInsights.trackEvent({ name: event.name }, event.properties);
-    console.info('[AppInsights] Event tracked:', event.name);
   }
 
   public trackException(
