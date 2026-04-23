@@ -1,9 +1,8 @@
 const https = require('https');
 const { API_BASE_URL, API_OPS_TOKEN } = require('./env');
 const { STATUSES } = require('../pageobjects/utils/constants');
-// Reuse TCP connections and cap concurrency to avoid exceeding Node's
-// default EventEmitter listener limit during parallel API call bursts.
-const sharedAgent = new https.Agent({ keepAlive: true, maxSockets: 15 });
+
+const sharedAgent = new https.Agent({ keepAlive: true, maxSockets: 6 });
 
 class ApiClient {
   constructor() {
@@ -494,6 +493,50 @@ class ApiClient {
   async hasStatements() {
     const count = await this.getStatementsCount();
     return count > 0;
+  }
+
+  // ========== Journals Methods ==========
+
+  /**
+   * Get journals list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of journals to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @returns {Promise<object>} - Journals list response
+   */
+  async getJournals(options = {}) {
+    let endpoint = '/public/v1/billing/journals';
+
+    const queryParams = ['select=audit', 'order=-audit.created.at'];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+
+    endpoint += '?' + queryParams.join('&');
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific journal by ID
+   * @param {string} journalId - Journal ID
+   * @returns {Promise<object>} - Journal details
+   */
+  async getJournalById(journalId) {
+    return this.get(`/public/v1/billing/journals/${journalId}`);
+  }
+
+  /**
+   * Check if user has any journals
+   * @returns {Promise<boolean>}
+   */
+  async hasJournals() {
+    try {
+      const response = await this.getJournals({ limit: 1 });
+      const data = response.data || response;
+      return Array.isArray(data) ? data.length > 0 : false;
+    } catch {
+      return false;
+    }
   }
 
   // ========== Agreements Methods ==========
