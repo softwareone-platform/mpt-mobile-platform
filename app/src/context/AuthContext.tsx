@@ -8,7 +8,9 @@ import {
   PropsWithChildren,
 } from 'react';
 
+import { AnalyticsEvents } from '@/constants/analytics';
 import { usePortalVersion } from '@/hooks/queries/usePortalVersion';
+import { trackEvent } from '@/hooks/useTrackEvent';
 import { tokenProvider } from '@/lib/tokenProvider';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
@@ -150,6 +152,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     } finally {
       await credentialStorageService.clearAllCredentials();
       dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
+      trackEvent(AnalyticsEvents.AUTH_LOGOUT);
     }
   }, [authState.tokens?.refreshToken]);
 
@@ -213,6 +216,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     try {
       await environmentSwitcherService.switchEnvironmentForEmail(email);
       await authService.sendPasswordlessEmail(email);
+      trackEvent(AnalyticsEvents.AUTH_PASSWORDLESS_EMAIL_SENT);
     } catch (error) {
       logger.error('Send passwordless email error', error, {
         operation: 'sendPasswordlessEmail',
@@ -239,11 +243,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         tokens,
       },
     });
+
+    trackEvent(AnalyticsEvents.AUTH_LOGIN_SUCCESS);
   };
 
   const resendPasswordlessEmail = async (email: string) => {
     try {
       await authService.resendPasswordlessEmail(email);
+      trackEvent(AnalyticsEvents.AUTH_OTP_RESENT);
     } catch (error) {
       logger.error('Resend passwordless email error', error, {
         operation: 'resendPasswordlessEmail',

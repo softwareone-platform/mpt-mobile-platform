@@ -1,8 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef } from 'react';
 
+import { AnalyticsEvents } from '@/constants/analytics';
 import { useAccount } from '@/context/AccountContext';
 import { useMessages } from '@/context/MessagesContext';
+import { trackEvent } from '@/hooks/useTrackEvent';
 import { logger } from '@/services/loggerService';
 import { useMessageApi } from '@/services/messageService';
 import type { Message } from '@/types/chat';
@@ -69,6 +71,10 @@ export function useSendMessage({
         links: [],
       });
       replaceOptimisticMessage(optimisticId, response);
+      trackEvent(AnalyticsEvents.CHAT_MESSAGE_SENT, {
+        chatId: chatId ?? '',
+        messageLength: content.length,
+      });
       if (currentUserId && currentAccountId) {
         void queryClient.invalidateQueries({
           queryKey: ['chats', currentUserId, currentAccountId],
