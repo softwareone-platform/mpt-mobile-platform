@@ -38,7 +38,7 @@ export const ENROLLMENTS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'longRunningEnrollmentsOfMyClients',
 ];
 
-// export const JOURNALS_SPOTLIGHTS: Array<SpotlightTemplateName> = ['inProgressJournals'];
+export const JOURNALS_SPOTLIGHTS: Array<SpotlightTemplateName> = ['inProgressJournals'];
 
 export const BUYERS_SPOTLIGHTS: Array<SpotlightTemplateName> = [
   'mismatchingBuyersClient',
@@ -81,12 +81,12 @@ const enrollmentsConfig: SpotlightTemplateConfig = {
   detailsScreenName: 'enrollmentDetails',
   listScreenName: 'enrollments',
 };
-// TODO: add back when Journal screens are ready
-// const journalsConfig: SpotlightTemplateConfig = {
-//   category: 'journals',
-//   detailsScreenName: 'journalDetails',
-//   listScreenName: 'journals',
-// };
+
+const journalsConfig: SpotlightTemplateConfig = {
+  category: 'journals',
+  detailsScreenName: 'journalDetails',
+  listScreenName: 'journals',
+};
 
 const buyersConfig: SpotlightTemplateConfig = {
   category: 'buyers',
@@ -114,8 +114,7 @@ export const templateLookup: Record<SpotlightTemplateName, SpotlightTemplateConf
   queryingEnrollments: enrollmentsConfig,
   processingEnrollments: enrollmentsConfig,
   longRunningEnrollmentsOfMyClients: enrollmentsConfig,
-  // TODO: add back when Journal screens are ready
-  // inProgressJournals: journalsConfig,
+  inProgressJournals: journalsConfig,
   mismatchingBuyersClient: buyersConfig,
   mismatchingBuyersOfMyClients: buyersConfig,
   buyersWithBlockedSellerConnectionsOfMyClients: buyersConfig,
@@ -142,11 +141,10 @@ export const SPOTLIGHT_CATEGORY: Array<SpotlightCategory> = [
     name: 'enrollments',
     templates: ENROLLMENTS_SPOTLIGHTS,
   },
-  // TODO: add Journals back when details screen is ready
-  // {
-  // name: 'journals',
-  // templates: JOURNALS_SPOTLIGHTS,
-  // },
+  {
+    name: 'journals',
+    templates: JOURNALS_SPOTLIGHTS,
+  },
   {
     name: 'buyers',
     templates: BUYERS_SPOTLIGHTS,
