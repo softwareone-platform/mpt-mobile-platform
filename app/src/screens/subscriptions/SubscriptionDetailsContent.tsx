@@ -3,10 +3,15 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
+import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import NavigationItem from '@/components/navigation-item/NavigationItem';
+import { getSubscriptionSubList } from '@/config/subListsNavigation';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccountType } from '@/hooks/useAccountType';
+import { useSubListNavigation } from '@/hooks/useSubListNavigation';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { SubscriptionData } from '@/types/subscription';
 import { formatNumber, formatPercentage, formatDateForLocale } from '@/utils/formatting';
@@ -19,6 +24,12 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { accountType, isClient, isVendor, isOperations } = useAccountType();
+
+  const { navigateToSubListItem } = useSubListNavigation();
+
+  const filteredSubList = getSubscriptionSubList(data.id).filter((item) =>
+    item.roles.includes(accountType as AccountType),
+  );
 
   const labelMonth = `${data.price?.currency}/${t('details.month')}`;
   const labelYear = `${data.price?.currency}/${t('details.year')}`;
@@ -42,92 +53,108 @@ const SubscriptionDetailsContent = ({ data }: { data: SubscriptionData }) => {
     data.autoRenew === undefined ? undefined : t(data.autoRenew ? 'details.yes' : 'details.no');
 
   return (
-    <CardWithHeader title={t(`details.title`)}>
-      <DetailsListItem
-        label={t(`details.product`)}
-        data={data.product}
-        onPress={() => {
-          navigation.navigate('productDetails', {
-            id: data.product?.id,
-          });
-        }}
-      />
-      <DetailsListItem
-        label={t(`details.agreement`)}
-        data={data.agreement}
-        hideImage={true}
-        onPress={() => {
-          navigation.navigate('agreementDetails', {
-            id: data.agreement?.id,
-          });
-        }}
-      />
-      {isOperations && (
+    <>
+      <CardWithHeader title={t(`details.title`)}>
         <DetailsListItem
-          label={t(`details.client`)}
-          data={data.agreement?.client}
-          onPress={
-            canNavigateTo('clientAccount', accountType)
-              ? () => {
-                  navigation.navigate('accountDetails', {
-                    id: data.agreement?.client?.id,
-                    type: 'client',
-                  });
-                }
-              : undefined
-          }
+          label={t(`details.product`)}
+          data={data.product}
+          onPress={() => {
+            navigation.navigate('productDetails', {
+              id: data.product?.id,
+            });
+          }}
         />
-      )}
-      {(isClient || isVendor) && (
         <DetailsListItem
-          label={t(`details.licensee`)}
-          data={data.licensee}
-          onPress={
-            canNavigateTo('licensee', accountType)
-              ? () => {
-                  navigation.navigate('licenseeDetails', { id: data.licensee?.id });
-                }
-              : undefined
-          }
+          label={t(`details.agreement`)}
+          data={data.agreement}
+          hideImage={true}
+          onPress={() => {
+            navigation.navigate('agreementDetails', {
+              id: data.agreement?.id,
+            });
+          }}
         />
-      )}
-      <ListItemWithLabelAndText
-        title={t(`details.terms`)}
-        subtitle={t(`details.period.${data.terms.period}`)}
-      />
-      <ListItemWithLabelAndText
-        title={t(data.autoRenew ? `details.renewalDate` : `details.expiration`)}
-        subtitle={formattedCommitmentDate}
-      />
-      <ListItemWithLabelAndText title={t(`details.autoRenewal`)} subtitle={autoRenewLabel} />
-      <ListItemWithLabelAndText
-        title={t(`details.billingModel`)}
-        subtitle={t(`details.model.${data.terms.model}`)}
-      />
-      {!isClient && (
-        <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
-      )}
-      {isOperations && (
-        <>
-          <ListItemWithLabelAndText
-            title={t(`details.averageYield`)}
-            subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
+        {isOperations && (
+          <DetailsListItem
+            label={t(`details.client`)}
+            data={data.agreement?.client}
+            onPress={
+              canNavigateTo('clientAccount', accountType)
+                ? () => {
+                    navigation.navigate('accountDetails', {
+                      id: data.agreement?.client?.id,
+                      type: 'client',
+                    });
+                  }
+                : undefined
+            }
           />
-          <ListItemWithLabelAndText
-            title={t(`details.defaultYield`)}
-            subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
+        )}
+        {(isClient || isVendor) && (
+          <DetailsListItem
+            label={t(`details.licensee`)}
+            data={data.licensee}
+            onPress={
+              canNavigateTo('licensee', accountType)
+                ? () => {
+                    navigation.navigate('licenseeDetails', { id: data.licensee?.id });
+                  }
+                : undefined
+            }
           />
-        </>
+        )}
+        <ListItemWithLabelAndText
+          title={t(`details.terms`)}
+          subtitle={t(`details.period.${data.terms.period}`)}
+        />
+        <ListItemWithLabelAndText
+          title={t(data.autoRenew ? `details.renewalDate` : `details.expiration`)}
+          subtitle={formattedCommitmentDate}
+        />
+        <ListItemWithLabelAndText title={t(`details.autoRenewal`)} subtitle={autoRenewLabel} />
+        <ListItemWithLabelAndText
+          title={t(`details.billingModel`)}
+          subtitle={t(`details.model.${data.terms.model}`)}
+        />
+        {!isClient && (
+          <ListItemWithLabelAndText title={t(`details.ppx`)} subtitle={`${PPxM}    ${PPxY}`} />
+        )}
+        {isOperations && (
+          <>
+            <ListItemWithLabelAndText
+              title={t(`details.averageYield`)}
+              subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
+            />
+            <ListItemWithLabelAndText
+              title={t(`details.defaultYield`)}
+              subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
+            />
+          </>
+        )}
+        {!isVendor && (
+          <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
+        )}
+        <ListItemWithLabelAndText
+          title={t(`details.currency`)}
+          subtitle={data.price?.currency}
+          isLast={true}
+        />
+      </CardWithHeader>
+      {filteredSubList.length > 0 && (
+        <NavigationGroupCard>
+          {filteredSubList.map((item, index) => (
+            <NavigationItem
+              key={item.name}
+              title={t(`navigation.tabs.${item.name}`)}
+              isLast={index === filteredSubList.length - 1}
+              onPress={() => {
+                navigateToSubListItem(item);
+              }}
+            />
+          ))}
+        </NavigationGroupCard>
       )}
-      {!isVendor && (
-        <ListItemWithLabelAndText title={t(`details.spx`)} subtitle={`${SPxM}    ${SPxY}`} />
-      )}
-      <ListItemWithLabelAndText
-        title={t(`details.currency`)}
-        subtitle={data.price?.currency}
-        isLast={true}
-      />
-    </CardWithHeader>
+    </>
   );
 };
 
