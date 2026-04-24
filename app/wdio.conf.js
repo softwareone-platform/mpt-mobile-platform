@@ -443,7 +443,10 @@ exports.config = {
             './test/specs/navigation.e2e.js',
             './test/specs/order-details-navigation.e2e.js',
         ],
-        spotlight: ['./test/specs/spotlight-filters.e2e.js'],
+        spotlight: [
+            './test/specs/spotlight-filters.e2e.js',
+            './test/specs/spotlight-navigation.e2e.js',
+        ],
         profile: ['./test/specs/profile.e2e.js'],
         personalInformation: ['./test/specs/personal-information.e2e.js'],
         orders: [
