@@ -20,11 +20,22 @@ const badgeCommon: ViewStyle = {
   borderRadius: BorderRadius.xxs,
 };
 
+const iconContainerCommon: ViewStyle = {
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: Color.alerts.info1,
+  borderRadius: BorderRadius.round,
+};
+
 export const avatarSize = {
   default: 44,
   small: 32,
   medium: 48,
   large: 80,
+};
+
+export const avatarIconSize = {
+  default: 24,
 };
 
 export const badgeSize = {
@@ -171,6 +182,25 @@ export const avatarWithBadgeStyle = {
       right: -2,
       width: badgeSize.medium,
       height: badgeSize.medium,
+    },
+  },
+} as const;
+
+export const avatarWithIconStyle = {
+  iconColor: Color.alerts.info4,
+  iconSize: avatarIconSize.default,
+  default: {
+    container: {
+      ...iconContainerCommon,
+      width: avatarSize.default,
+      height: avatarSize.default,
+    },
+  },
+  medium: {
+    container: {
+      ...iconContainerCommon,
+      width: avatarSize.medium,
+      height: avatarSize.medium,
     },
   },
 } as const;

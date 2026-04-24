@@ -1,29 +1,29 @@
+import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
-import { HELPDESK_AVATAR_SIZE, HELPDESK_AVATAR_ICON_PADDING } from '@/constants/icons';
-import { iconStyle } from '@/styles';
+import { avatarWithIconStyle } from '@/styles';
+import type { AvatarWithIconProps } from '@/types/icons';
 
-interface HelpdeskAvatarProps {
-  size?: number;
-}
+const HelpdeskAvatar = ({ variant = 'default' }: AvatarWithIconProps) => {
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        /* eslint-disable react-native/no-unused-styles */
+        container: avatarWithIconStyle[variant].container,
+      }),
+    [variant],
+  );
 
-const HelpdeskAvatar = ({ size = HELPDESK_AVATAR_SIZE }: HelpdeskAvatarProps) => (
-  <View style={[styles.container, { width: size, height: size }]}>
-    <OutlinedIcon
-      name="headset-mic"
-      size={size - 2 * HELPDESK_AVATAR_ICON_PADDING}
-      color={iconStyle.iconColorPrimary}
-    />
-  </View>
-);
-
-const styles = StyleSheet.create({
-  container: {
-    ...iconStyle.backgroundContainer,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+  return (
+    <View style={styles.container}>
+      <OutlinedIcon
+        name="headset-mic"
+        size={avatarWithIconStyle.iconSize}
+        color={avatarWithIconStyle.iconColor}
+      />
+    </View>
+  );
+};
 
 export default HelpdeskAvatar;

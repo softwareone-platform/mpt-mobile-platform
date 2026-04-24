@@ -8,7 +8,7 @@ export { cardStyle } from './card';
 export { screenStyle, spacingStyle, commonStyle } from './common';
 export { separatorStyle } from './separator';
 export { navigationStyle } from './navigation';
-export { avatarStyle, groupAvatarStyle } from './avatar';
+export { avatarStyle, groupAvatarStyle, avatarWithBadgeStyle, avatarWithIconStyle } from './avatar';
 export { otpInputStyle } from './otpInput';
 export { listItemStyle, listItemChatStyle } from './listItem';
 export { accountSummaryStyle } from './accountSummary';
@@ -27,5 +27,4 @@ export {
   chatLinkPreviewStyle,
 } from './chat';
 export { bottomSheetStyle } from './bottomSheet';
-export { iconStyle } from './icon';
 export { checkboxStyle } from './checkbox';

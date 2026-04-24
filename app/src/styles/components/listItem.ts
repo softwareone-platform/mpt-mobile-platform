@@ -183,6 +183,9 @@ export const listItemStyle = {
       borderWidth: 1,
     },
   },
+  avatarWrapperNoBorder: {
+    borderWidth: 0,
+  },
   detailsHeaderTitle: {
     fontSize: Typography.fontSize.font5,
     color: Color.labels.primary,

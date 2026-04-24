@@ -29,6 +29,7 @@ const DetailsHeader = ({
   const { t } = useTranslation();
 
   const hasSubtitle = Boolean(subtitle);
+  const hasCustomAvatar = customAvatar !== undefined;
   const status = getStatus(statusText, statusList);
 
   const styles = useMemo(
@@ -38,6 +39,7 @@ const DetailsHeader = ({
         screenHeader: listItemStyle.detailsHeaderContainer[variant],
         topRow: listItemStyle.detailsHeaderTopRow[variant],
         avatarWrapper: listItemStyle.detailsHeaderAvatarWrapper[variant],
+        avatarWrapperNoBorder: listItemStyle.avatarWrapperNoBorder,
         textWrapper: listItemStyle.textContainer,
         title: listItemStyle.detailsHeaderTitle,
         subtitle: listItemStyle.detailsHeaderSubtitle,
@@ -45,18 +47,32 @@ const DetailsHeader = ({
     [variant],
   );
 
+  const getAvatar = () => {
+    if (customAvatar !== undefined) {
+      return customAvatar;
+    }
+
+    if (avatars && avatars.length > 0) {
+      return <GroupAvatar avatars={avatars} size={44} />;
+    }
+
+    if (imagePath) {
+      return <AvatarIcon id={id} imagePath={imagePath} size={44} />;
+    }
+
+    return null;
+  };
+
+  const avatar = getAvatar();
+
   return (
     <View style={styles.screenHeader}>
       <View style={styles.topRow}>
-        <View style={styles.avatarWrapper}>
-          {customAvatar !== undefined ? (
-            customAvatar
-          ) : avatars && avatars.length > 0 ? (
-            <GroupAvatar avatars={avatars} size={44} />
-          ) : (
-            <AvatarIcon id={id} imagePath={imagePath} size={44} />
-          )}
-        </View>
+        {avatar && (
+          <View style={[styles.avatarWrapper, hasCustomAvatar && styles.avatarWrapperNoBorder]}>
+            {avatar}
+          </View>
+        )}
         <View style={styles.textWrapper}>
           {hasSubtitle && (
             <Text style={styles.title} numberOfLines={1} testID={headerTitleTestId} selectable>
