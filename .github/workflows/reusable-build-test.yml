@@ -72,7 +72,15 @@ jobs:
         timeout-minutes: 10
         with:
           projectBaseDir: app
-          args: -Dsonar.qualitygate.wait=true
+          # On pull_request the action auto-detects PR context. On push, it
+          # submits the report with a BRANCH:<name> context via the API but
+          # does not pass sonar.branch.name to the scanner, so the report
+          # itself is branchless and SonarCloud rejects it with a
+          # "project or branch in report does not match" CE failure.
+          # Set the branch explicitly for non-PR runs to keep both sides aligned.
+          args: >-
+            -Dsonar.qualitygate.wait=true
+            ${{ github.event_name != 'pull_request' && format('-Dsonar.branch.name={0}', github.ref_name) || '' }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
