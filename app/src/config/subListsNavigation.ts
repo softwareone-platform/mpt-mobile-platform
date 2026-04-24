@@ -10,6 +10,11 @@ export const getAgreementSubList = (id: string): SubListItem[] => {
       query: `&eq(agreement.id,"${id}")&filter(group.buyers)`,
     },
     {
+      name: 'orders',
+      roles: ['Client', 'Vendor', 'Operations'],
+      query: defaultQuery,
+    },
+    {
       name: 'invoices',
       roles: ['Client', 'Operations'],
       query: defaultQuery,
