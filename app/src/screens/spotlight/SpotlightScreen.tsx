@@ -15,7 +15,9 @@ import CardHeader from '@/components/card/CardHeader';
 import EmptyState from '@/components/common/EmptyState';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
+import { AnalyticsEvents } from '@/constants/analytics';
 import { useAccount } from '@/context/AccountContext';
+import { trackEvent } from '@/hooks/useTrackEvent';
 import { screenStyle, cardStyle, Spacing } from '@/styles';
 import { Color } from '@/styles/tokens';
 import type { SpotlightItemWithDetails } from '@/types/api';
@@ -154,6 +156,10 @@ const SpotlightScreen = () => {
                       subtitle={itemId}
                       isLast={itemIndex === section.top.length - 1}
                       onPress={() => {
+                        trackEvent(AnalyticsEvents.SPOTLIGHT_ITEM_SELECTED, {
+                          itemType: section.detailsScreenName,
+                          itemId,
+                        });
                         navigation.navigate(section.detailsScreenName, {
                           id: itemId,
                         });

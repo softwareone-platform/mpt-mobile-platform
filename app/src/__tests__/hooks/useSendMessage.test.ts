@@ -4,6 +4,16 @@ jest.mock('@/services/loggerService', () => ({
   logger: { error: jest.fn() },
 }));
 
+jest.mock('@/services/appInsightsService', () => ({
+  appInsightsService: {
+    trackEvent: jest.fn(),
+    trackException: jest.fn(),
+    trackTrace: jest.fn(),
+    initialize: jest.fn(),
+    isReady: jest.fn().mockReturnValue(false),
+  },
+}));
+
 jest.mock('@tanstack/react-query', () => ({
   useQueryClient: jest.fn(),
 }));
