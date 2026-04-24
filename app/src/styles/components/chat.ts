@@ -1,7 +1,7 @@
 import type { ViewStyle, TextStyle } from 'react-native';
 import type { MixedStyleDeclaration } from 'react-native-render-html';
 
-import { BorderRadius, Color, Spacing, Typography } from '../tokens';
+import { BorderRadius, Color, Shadow, Spacing, Typography } from '../tokens';
 
 const SMALL_AVATAR_SIZE = 32;
 const AVATAR_OFFSET_HORIZONTAL = SMALL_AVATAR_SIZE + Spacing.spacing2;
@@ -55,6 +55,47 @@ export const chatStyle = {
     borderTopWidth: 1,
     borderColor: Color.gray.gray2,
     backgroundColor: Color.brand.white,
+  },
+  visibilityIconWrapper: {
+    position: 'absolute' as const,
+    right: Spacing.spacingSmall4,
+    bottom: Spacing.spacingSmall6,
+  },
+} as const;
+
+export const visibilityDropdownStyle = {
+  overlay: {
+    flex: 1,
+  } as ViewStyle,
+  dropdown: {
+    position: 'absolute' as const,
+    backgroundColor: Color.brand.white,
+    borderRadius: BorderRadius.sm,
+    ...Shadow.md,
+    paddingVertical: Spacing.spacingSmall4,
+    minWidth: 200,
+  } as ViewStyle,
+  option: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    paddingVertical: Spacing.spacing1,
+    paddingHorizontal: Spacing.spacing2,
+  } as ViewStyle,
+  optionSelected: {
+    backgroundColor: Color.gray.gray1,
+  } as ViewStyle,
+  optionText: {
+    fontSize: Typography.fontSize.font2,
+    color: Color.brand.type,
+  } as TextStyle,
+  optionIcon: {
+    size: Typography.fontSize.font3,
+    color: Color.brand.primary,
+  },
+  tickIcon: {
+    size: Typography.fontSize.font3,
+    color: Color.brand.primary,
   },
 } as const;
 

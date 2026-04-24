@@ -25,6 +25,7 @@ export {
   chatMarkdownStyle,
   chatMarkdownTagStyles,
   chatLinkPreviewStyle,
+  visibilityDropdownStyle,
 } from './chat';
 export { bottomSheetStyle } from './bottomSheet';
 export { checkboxStyle } from './checkbox';
