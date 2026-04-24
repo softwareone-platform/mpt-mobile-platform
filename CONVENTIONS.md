@@ -1314,5 +1314,5 @@ The following are excluded from coverage requirements (see `sonar-project.proper
 
 ### Dashboard
 
-- **View results:** https://sonarcloud.io/project/overview?id=softwareone-pc_mpt-mobile-platform
+- **View results:** https://sonarcloud.io/project/overview?id=softwareone-pc_mpt-mobile-platform-v2
 - **PR analysis:** Linked in PR comments automatically
