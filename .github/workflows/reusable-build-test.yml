@@ -72,15 +72,7 @@ jobs:
         timeout-minutes: 10
         with:
           projectBaseDir: app
-          # On pull_request the action auto-detects PR context. On push, it
-          # submits the report with a BRANCH:<name> context via the API but
-          # does not pass sonar.branch.name to the scanner, so the report
-          # itself is branchless and SonarCloud rejects it with a
-          # "project or branch in report does not match" CE failure.
-          # Set the branch explicitly for non-PR runs to keep both sides aligned.
-          args: >-
-            -Dsonar.qualitygate.wait=true
-            ${{ github.event_name != 'pull_request' && format('-Dsonar.branch.name={0}', github.ref_name) || '' }}
+          args: -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -127,9 +119,9 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "📊 **[View Full Report for PR #${{ github.event.pull_request.number }}](https://sonarcloud.io/summary/new_code?id=softwareone-pc_mpt-mobile-platform&pullRequest=${{ github.event.pull_request.number }})**" >> $GITHUB_STEP_SUMMARY
+            echo "📊 **[View Full Report for PR #${{ github.event.pull_request.number }}](https://sonarcloud.io/summary/new_code?id=softwareone-pc_mpt-mobile-platform-v2&pullRequest=${{ github.event.pull_request.number }})**" >> $GITHUB_STEP_SUMMARY
           else
-            echo "📊 **[View Full Report](https://sonarcloud.io/summary/overall?id=softwareone-pc_mpt-mobile-platform)**" >> $GITHUB_STEP_SUMMARY
+            echo "📊 **[View Full Report](https://sonarcloud.io/summary/overall?id=softwareone-pc_mpt-mobile-platform-v2)**" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY

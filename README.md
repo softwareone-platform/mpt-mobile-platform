@@ -102,7 +102,7 @@ We welcome contributions! Here's the quick version:
 2. Read [CONVENTIONS.md](CONVENTIONS.md) — it's enforced on every PR
 3. Write tests for new code
 4. Open a PR with a [Conventional Commits](https://www.conventionalcommits.org/) title (e.g., `feat: add biometric login`)
-5. Wait for CI to go green (lint, tests, [SonarCloud](https://sonarcloud.io/project/overview?id=softwareone-pc_mpt-mobile-platform) quality gate)
+5. Wait for CI to go green (lint, tests, [SonarCloud](https://sonarcloud.io/project/overview?id=softwareone-pc_mpt-mobile-platform-v2) quality gate)
 
 Found a bug or have an idea? [Open an issue](../../issues) — we'd love to hear from you.
 
