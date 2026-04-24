@@ -22,7 +22,9 @@ import {
   WIZARD_INITIAL_STEP,
   EMPTY_STRING,
 } from '@/constants';
+import { AnalyticsEvents } from '@/constants/analytics';
 import { useCreateChatMutation } from '@/hooks/queries/useCreateChatMutation';
+import { trackEvent } from '@/hooks/useTrackEvent';
 import { logger } from '@/services/loggerService';
 import { createChatWizardStyle, screenStyle, spacingStyle } from '@/styles';
 import type { Contact } from '@/types/chat';
@@ -57,6 +59,7 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
           type: 'Direct',
           participants: [{ contact: { id: contact.id } }],
         });
+        trackEvent(AnalyticsEvents.CHAT_DIRECT_CREATED);
         navigation.navigate('chatConversation', { id: chat.id });
         handleClose();
       } catch (error) {
@@ -73,6 +76,7 @@ const CreateChatWizard = ({ visible, onClose }: CreateChatWizardProps) => {
         participants: selectedIds.map((id) => ({ contact: { id } })),
         ...(chatNameRef.current.trim() && { name: chatNameRef.current.trim() }),
       });
+      trackEvent(AnalyticsEvents.CHAT_GROUP_CREATED, { participantCount: selectedIds.length });
       navigation.navigate('chatConversation', { id: chat.id });
       handleClose();
     } catch (error) {

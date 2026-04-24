@@ -1,12 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useCallback, useState, ReactNode, useMemo } from 'react';
 
+import { AnalyticsEvents } from '@/constants/analytics';
 import { MAX_RECENT_ACCOUNTS } from '@/constants/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
 import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
 import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
 import { useUserData } from '@/hooks/queries/useUserData';
+import { trackEvent } from '@/hooks/useTrackEvent';
 import { authService } from '@/services/authService';
 import { logger } from '@/services/loggerService';
 import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
@@ -85,6 +87,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         queryClient.removeQueries({ queryKey: ['userData', userId] });
         queryClient.removeQueries({ queryKey: ['spotlightData', userId] });
         queryClient.removeQueries({ queryKey: ['contacts'] });
+
+        trackEvent(AnalyticsEvents.ACCOUNT_SWITCHED, { accountId });
       } catch (error) {
         logger.error('Failed to switch account', error, {
           operation: 'switchAccount',
