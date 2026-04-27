@@ -25,7 +25,7 @@ const AccountDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useAccountDetailsData(
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useAccountDetailsData(
     id,
     userId,
     currentAccountId,
@@ -55,6 +55,8 @@ const AccountDetailsScreen = () => {
           config={listItemConfigFull}
           headerTitleTestId={TestIDs.ACCOUNT_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.ACCOUNT_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <AccountDetailsContent data={data} />
         </DetailsView>

@@ -20,11 +20,8 @@ const EnrollmentDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useEnrollmentDetailsData(
-    id,
-    userId,
-    currentAccountId,
-  );
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
+    useEnrollmentDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -44,6 +41,8 @@ const EnrollmentDetailsScreen = () => {
           config={listItemConfigNoImageNoSubtitle}
           headerTitleTestId={TestIDs.ENROLLMENT_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.ENROLLMENT_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <EnrollmentDetailsContent data={data} />
         </DetailsView>

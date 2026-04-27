@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 
 import CardHeader from '@/components/card/CardHeader';
 import CardWithHeader from '@/components/card/CardWithHeader';
@@ -14,7 +14,7 @@ import Tabs, { TabData } from '@/components/tabs/Tabs';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { useAccount } from '@/context/AccountContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
-import { cardStyle, listItemStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
+import { cardStyle, listItemStyle, screenStyle, Spacing, spacingStyle, Color } from '@/styles';
 import { FormattedUserAccounts, UserAccount } from '@/types/api';
 import type { ProfileStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
@@ -38,6 +38,8 @@ const ProfileScreen = () => {
     accountsFetchingNext,
     hasMoreAccounts,
     fetchNextAccounts,
+    refetchAccounts,
+    isAccountsRefetching,
   } = useAccount();
   const { isEnabled } = useFeatureFlags();
 
@@ -209,6 +211,14 @@ const ProfileScreen = () => {
       ListFooterComponent={listFooter}
       onEndReached={handleEndReached}
       onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
+      refreshControl={
+        <RefreshControl
+          refreshing={isAccountsRefetching}
+          onRefresh={refetchAccounts}
+          tintColor={Color.brand.primary}
+          colors={[Color.brand.primary]}
+        />
+      }
     />
   );
 };

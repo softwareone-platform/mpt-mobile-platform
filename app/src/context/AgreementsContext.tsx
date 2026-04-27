@@ -12,6 +12,8 @@ interface AgreementsContextValue {
   agreementsError: boolean;
   isUnauthorised: boolean;
   fetchAgreements: () => void;
+  refetchAgreements: () => void;
+  isAgreementsRefetching: boolean;
 }
 
 interface AgreementProviderProps {
@@ -35,6 +37,8 @@ export const AgreementsProvider = ({ children, query }: AgreementProviderProps) 
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useAgreementsData(userId, currentAccountId, query);
 
   const agreements = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -49,6 +53,8 @@ export const AgreementsProvider = ({ children, query }: AgreementProviderProps) 
         agreementsError: isError,
         isUnauthorised,
         fetchAgreements: fetchNextPage,
+        refetchAgreements: refetch,
+        isAgreementsRefetching: isRefetching,
       }}
     >
       {children}

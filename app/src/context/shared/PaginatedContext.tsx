@@ -15,6 +15,8 @@ interface PaginatedQueryResult<T> {
   isError: boolean;
   isUnauthorised: boolean;
   fetchNextPage: () => void;
+  refetch: () => void;
+  isRefetching: boolean;
 }
 
 /**
@@ -28,6 +30,8 @@ export interface PaginatedContextValue<T> {
   isError: boolean;
   isUnauthorised: boolean;
   fetchNextPage: () => void;
+  refetch: () => void;
+  isRefetching: boolean;
 }
 
 type UseDataHook<T> = (
@@ -77,6 +81,8 @@ export function createPaginatedContext<T>({
       isError,
       isUnauthorised,
       fetchNextPage,
+      refetch,
+      isRefetching,
     } = useDataHook(userId, currentAccountId);
 
     const items = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -90,8 +96,20 @@ export function createPaginatedContext<T>({
         isError,
         isUnauthorised,
         fetchNextPage,
+        refetch,
+        isRefetching,
       }),
-      [items, isLoading, isFetchingNextPage, hasNextPage, isError, isUnauthorised, fetchNextPage],
+      [
+        items,
+        isLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        isError,
+        isUnauthorised,
+        fetchNextPage,
+        refetch,
+        isRefetching,
+      ],
     );
 
     return <Context.Provider value={value}>{children}</Context.Provider>;

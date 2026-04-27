@@ -20,7 +20,7 @@ const InvoiceDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useInvoiceDetailsData(
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useInvoiceDetailsData(
     id,
     userId,
     currentAccountId,
@@ -44,6 +44,8 @@ const InvoiceDetailsScreen = () => {
           config={listItemConfigNoImageNoSubtitle}
           headerTitleTestId={TestIDs.INVOICE_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.INVOICE_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <InvoiceDetailsContent data={data} />
         </DetailsView>

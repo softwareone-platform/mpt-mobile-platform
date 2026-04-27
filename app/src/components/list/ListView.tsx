@@ -1,8 +1,8 @@
-import { FlatList, ActivityIndicator } from 'react-native';
+import { FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 
 import ListItemWithStatus from '@/components/list-item/ListItemWithStatus';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
-import { screenStyle } from '@/styles';
+import { screenStyle, Color } from '@/styles';
 import type { ListItemConfig } from '@/types/lists';
 import { mapToListItemProps } from '@/utils/list';
 
@@ -13,6 +13,8 @@ type ListViewProps<T extends { id: string }> = {
   isFetchingNext?: boolean;
   hasMore?: boolean;
   fetchNext?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 };
 
 export function ListView<T extends { id: string }>({
@@ -22,6 +24,8 @@ export function ListView<T extends { id: string }>({
   isFetchingNext,
   hasMore,
   fetchNext,
+  onRefresh,
+  isRefreshing,
 }: ListViewProps<T>) {
   if (data.length === 0) return null;
 
@@ -53,6 +57,16 @@ export function ListView<T extends { id: string }>({
       onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
       ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={isRefreshing ?? false}
+            onRefresh={onRefresh}
+            tintColor={Color.brand.primary}
+            colors={[Color.brand.primary]}
+          />
+        ) : undefined
+      }
     />
   );
 }

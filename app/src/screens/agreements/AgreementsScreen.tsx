@@ -20,6 +20,8 @@ const AgreementsScreenContent = () => {
     hasMoreAgreements,
     isUnauthorised,
     fetchAgreements,
+    refetchAgreements,
+    isAgreementsRefetching,
   } = useAgreements();
 
   const { t } = useTranslation();
@@ -44,6 +46,8 @@ const AgreementsScreenContent = () => {
         hasMore={hasMoreAgreements}
         fetchNext={fetchAgreements}
         config={listItemConfigNoImage}
+        onRefresh={refetchAgreements}
+        isRefreshing={isAgreementsRefetching}
         onItemPress={(id) => {
           navigation.navigate('agreementDetails', {
             id,

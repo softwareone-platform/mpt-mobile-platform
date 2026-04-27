@@ -20,6 +20,8 @@ const SubscriptionsScreenContent = () => {
     hasMoreSubscriptions,
     isUnauthorised,
     fetchSubscriptions,
+    refetchSubscriptions,
+    isSubscriptionsRefetching,
   } = useSubscriptions();
 
   const { t } = useTranslation();
@@ -44,6 +46,8 @@ const SubscriptionsScreenContent = () => {
         hasMore={hasMoreSubscriptions}
         fetchNext={fetchSubscriptions}
         config={listItemConfigNoImage}
+        onRefresh={refetchSubscriptions}
+        isRefreshing={isSubscriptionsRefetching}
         onItemPress={(id) => {
           navigation.navigate('subscriptionDetails', {
             id,

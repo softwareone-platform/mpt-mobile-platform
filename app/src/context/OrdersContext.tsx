@@ -12,6 +12,8 @@ interface OrdersContextValue {
   ordersError: boolean;
   isUnauthorised: boolean;
   fetchOrders: () => void;
+  refetchOrders: () => void;
+  isOrdersRefetching: boolean;
 }
 
 const OrdersContext = createContext<OrdersContextValue | undefined>(undefined);
@@ -35,6 +37,8 @@ export const OrdersProvider = ({ children, query }: OrderProviderProps) => {
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useOrdersData(userId, currentAccountId, query);
 
   const orders = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -49,6 +53,8 @@ export const OrdersProvider = ({ children, query }: OrderProviderProps) => {
         ordersError: isError,
         isUnauthorised,
         fetchOrders: fetchNextPage,
+        refetchOrders: refetch,
+        isOrdersRefetching: isRefetching,
       }}
     >
       {children}

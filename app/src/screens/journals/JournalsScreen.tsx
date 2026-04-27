@@ -18,6 +18,8 @@ const JournalsScreenContent = () => {
     hasMoreJournals,
     isUnauthorised,
     fetchJournals,
+    refetchJournals,
+    isJournalsRefetching,
   } = useJournals();
 
   const { t } = useTranslation();
@@ -42,6 +44,8 @@ const JournalsScreenContent = () => {
         hasMore={hasMoreJournals}
         fetchNext={fetchJournals}
         config={listItemConfigNoImage}
+        onRefresh={refetchJournals}
+        isRefreshing={isJournalsRefetching}
         onItemPress={(id) => {
           navigation.navigate('journalDetails', { id });
         }}

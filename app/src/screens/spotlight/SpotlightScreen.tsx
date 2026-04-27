@@ -9,6 +9,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 
 import CardHeader from '@/components/card/CardHeader';
@@ -35,8 +36,14 @@ const SpotlightScreen = () => {
   >({});
   const [filterKeys, setFilterKeys] = useState<string[]>([]);
 
-  const { spotlightData, isSpotlightError, isSpotlightDataLoading, isSwitchingAccount } =
-    useAccount();
+  const {
+    spotlightData,
+    isSpotlightError,
+    isSpotlightDataLoading,
+    isSwitchingAccount,
+    refetchSpotlight,
+    isSpotlightRefetching,
+  } = useAccount();
   const { t } = useTranslation();
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -125,6 +132,14 @@ const SpotlightScreen = () => {
       <ScrollView
         style={[styles.containerMain, styles.noPaddingTop]}
         contentContainerStyle={styles.contentFillContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={isSpotlightRefetching}
+            onRefresh={refetchSpotlight}
+            tintColor={Color.brand.primary}
+            colors={[Color.brand.primary]}
+          />
+        }
       >
         {Object.entries(filteredData).map(([categoryName, sections]) => (
           <View key={categoryName}>

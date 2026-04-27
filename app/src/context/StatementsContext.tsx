@@ -12,6 +12,8 @@ interface StatementsContextValue {
   statementsError: boolean;
   isUnauthorised: boolean;
   fetchStatements: () => void;
+  refetchStatements: () => void;
+  isStatementsRefetching: boolean;
 }
 
 interface StatementProviderProps {
@@ -35,6 +37,8 @@ export const StatementsProvider = ({ children, query }: StatementProviderProps) 
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useStatementsData(userId, currentAccountId, query);
 
   const statements = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -49,6 +53,8 @@ export const StatementsProvider = ({ children, query }: StatementProviderProps) 
         statementsError: isError,
         isUnauthorised,
         fetchStatements: fetchNextPage,
+        refetchStatements: refetch,
+        isStatementsRefetching: isRefetching,
       }}
     >
       {children}

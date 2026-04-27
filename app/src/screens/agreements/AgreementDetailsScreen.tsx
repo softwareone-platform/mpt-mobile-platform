@@ -20,11 +20,8 @@ const AgreementDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useAgreementDetailsData(
-    id,
-    userId,
-    currentAccountId,
-  );
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
+    useAgreementDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -44,6 +41,8 @@ const AgreementDetailsScreen = () => {
           config={listItemConfigNoImage}
           headerTitleTestId={TestIDs.AGREEMENT_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.AGREEMENT_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <AgreementDetailsContent data={data} />
         </DetailsView>

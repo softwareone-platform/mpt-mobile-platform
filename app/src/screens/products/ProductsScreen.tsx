@@ -18,6 +18,8 @@ const ProductsScreenContent = () => {
     hasMoreProducts,
     isUnauthorised,
     fetchProductsNextPage,
+    refetchProducts,
+    isProductsRefetching,
   } = useProducts();
 
   const { t } = useTranslation();
@@ -42,6 +44,8 @@ const ProductsScreenContent = () => {
         hasMore={hasMoreProducts}
         fetchNext={fetchProductsNextPage}
         config={listItemConfigFull}
+        onRefresh={refetchProducts}
+        isRefreshing={isProductsRefetching}
         onItemPress={(id) => {
           navigation.navigate('productDetails', {
             id,
