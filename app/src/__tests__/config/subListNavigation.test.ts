@@ -17,13 +17,32 @@ describe('subListsNavigation (queries)', () => {
         `&eq(agreement.id,"${id}")&filter(group.buyers)`,
       );
 
+      expect(result.find((i) => i.name === 'subscriptions')?.roles).toEqual([
+        'Client',
+        'Operations',
+      ]);
+
+      expect(result.find((i) => i.name === 'orders')?.query).toBe(
+        `&eq(agreement.id,"${id}")&order=-audit.created.at`,
+      );
+
+      expect(result.find((i) => i.name === 'orders')?.roles).toEqual([
+        'Client',
+        'Vendor',
+        'Operations',
+      ]);
+
       expect(result.find((i) => i.name === 'invoices')?.query).toBe(
         `&eq(agreement.id,"${id}")&order=-audit.created.at`,
       );
 
+      expect(result.find((i) => i.name === 'invoices')?.roles).toEqual(['Client', 'Operations']);
+
       expect(result.find((i) => i.name === 'statements')?.query).toBe(
         `&eq(agreement.id,"${id}")&order=-audit.created.at`,
       );
+
+      expect(result.find((i) => i.name === 'statements')?.roles).toEqual(['Client', 'Operations']);
     });
   });
 
