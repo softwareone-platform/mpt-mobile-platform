@@ -61,25 +61,35 @@ export const chatStyle = {
     right: Spacing.spacingSmall4,
     bottom: Spacing.spacingSmall6,
   },
+  inputWithToggle: {
+    paddingRight: Spacing.spacing4,
+  },
 } as const;
 
 export const visibilityDropdownStyle = {
-  overlay: {
-    flex: 1,
-  } as ViewStyle,
-  dropdown: {
+  backdrop: {
     position: 'absolute' as const,
+    top: -9999,
+    bottom: -9999,
+    left: -9999,
+    right: -9999,
+  } as ViewStyle,
+  dropdownInline: {
+    position: 'absolute' as const,
+    bottom: '100%' as unknown as number,
+    right: -(Spacing.spacing2 + Spacing.spacing4 + Spacing.spacingSmall12),
+    marginBottom: Spacing.spacingSmall10,
     backgroundColor: Color.brand.white,
     borderRadius: BorderRadius.sm,
     ...Shadow.md,
-    paddingVertical: Spacing.spacingSmall4,
+    paddingVertical: Spacing.spacing1,
     minWidth: 200,
   } as ViewStyle,
   option: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    paddingVertical: Spacing.spacing1,
+    paddingVertical: Spacing.spacingSmall4,
     paddingHorizontal: Spacing.spacing2,
   } as ViewStyle,
   optionSelected: {

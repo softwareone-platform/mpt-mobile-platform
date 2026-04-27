@@ -73,9 +73,7 @@ const styles = StyleSheet.create({
     ...inputStyle.container,
     ...inputStyle.inputChat,
   },
-  inputWithToggle: {
-    paddingRight: 32,
-  },
+  inputWithToggle: chatStyle.inputWithToggle,
   buttonPrimaryIconOnly: {
     ...buttonStyle.primary,
     ...buttonStyle.primaryIconOnly,

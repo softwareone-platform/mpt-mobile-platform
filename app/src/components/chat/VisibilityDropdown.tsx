@@ -1,14 +1,7 @@
 import { OutlinedIcons } from '@assets/icons';
-import { useRef, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { visibilityDropdownStyle } from '@/styles/components';
@@ -24,17 +17,9 @@ const ICON_SIZE = 24;
 const VisibilityDropdown = ({ visibility, onVisibilityChange }: VisibilityDropdownProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
-  const anchorRef = useRef<View>(null);
 
-  const handleOpen = useCallback(() => {
-    anchorRef.current?.measureInWindow((x, y, width, height) => {
-      setDropdownPosition({
-        top: y - 80,
-        right: 16,
-      });
-      setOpen(true);
-    });
+  const handleToggle = useCallback(() => {
+    setOpen((prev) => !prev);
   }, []);
 
   const handleSelect = useCallback(
@@ -48,61 +33,55 @@ const VisibilityDropdown = ({ visibility, onVisibilityChange }: VisibilityDropdo
   const iconName = visibility === 'Public' ? 'public' : 'lock';
 
   return (
-    <View ref={anchorRef}>
-      <TouchableOpacity onPress={handleOpen}>
+    <View>
+      <Pressable onPress={handleToggle}>
         <OutlinedIcon
           name={iconName as keyof typeof OutlinedIcons}
           size={ICON_SIZE}
           color={visibilityDropdownStyle.optionIcon.color}
         />
-      </TouchableOpacity>
+      </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <TouchableWithoutFeedback onPress={() => setOpen(false)}>
-          <View style={styles.overlay}>
-            <View
-              style={[
-                styles.dropdown,
-                { top: dropdownPosition.top, right: dropdownPosition.right },
-              ]}
+      {open && (
+        <>
+          <Pressable style={styles.backdrop} onPress={() => setOpen(false)} />
+          <View style={styles.dropdown}>
+            <Pressable
+              style={[styles.option, visibility === 'Public' && styles.optionSelected]}
+              onPress={() => handleSelect('Public')}
             >
-              <TouchableOpacity
-                style={[styles.option, visibility === 'Public' && styles.optionSelected]}
-                onPress={() => handleSelect('Public')}
-              >
-                <Text style={styles.optionText}>{t('chat.visibilityPublic')}</Text>
-                {visibility === 'Public' && (
-                  <OutlinedIcon
-                    name={'done' as keyof typeof OutlinedIcons}
-                    size={visibilityDropdownStyle.tickIcon.size}
-                    color={visibilityDropdownStyle.tickIcon.color}
-                  />
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.option, visibility === 'Private' && styles.optionSelected]}
-                onPress={() => handleSelect('Private')}
-              >
-                <Text style={styles.optionText}>{t('chat.visibilityPrivate')}</Text>
-                {visibility === 'Private' && (
-                  <OutlinedIcon
-                    name={'done' as keyof typeof OutlinedIcons}
-                    size={visibilityDropdownStyle.tickIcon.size}
-                    color={visibilityDropdownStyle.tickIcon.color}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
+              <Text style={styles.optionText}>{t('chat.visibilityPublic')}</Text>
+              {visibility === 'Public' && (
+                <OutlinedIcon
+                  name={'done' as keyof typeof OutlinedIcons}
+                  size={visibilityDropdownStyle.tickIcon.size}
+                  color={visibilityDropdownStyle.tickIcon.color}
+                />
+              )}
+            </Pressable>
+            <Pressable
+              style={[styles.option, visibility === 'Private' && styles.optionSelected]}
+              onPress={() => handleSelect('Private')}
+            >
+              <Text style={styles.optionText}>{t('chat.visibilityPrivate')}</Text>
+              {visibility === 'Private' && (
+                <OutlinedIcon
+                  name={'done' as keyof typeof OutlinedIcons}
+                  size={visibilityDropdownStyle.tickIcon.size}
+                  color={visibilityDropdownStyle.tickIcon.color}
+                />
+              )}
+            </Pressable>
           </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+        </>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: visibilityDropdownStyle.overlay,
-  dropdown: visibilityDropdownStyle.dropdown,
+  backdrop: visibilityDropdownStyle.backdrop,
+  dropdown: visibilityDropdownStyle.dropdownInline,
   option: visibilityDropdownStyle.option,
   optionSelected: visibilityDropdownStyle.optionSelected,
   optionText: visibilityDropdownStyle.optionText,
