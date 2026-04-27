@@ -350,7 +350,7 @@ describe('useSubscriptionApi - getSubscriptionsForOrder', () => {
 
     let res;
     await act(async () => {
-      res = await api.getSubscriptionsForOrder(undefined, undefined, mockOrderId);
+      res = await api.getSubscriptionsForOrder(mockOrderId, undefined, undefined);
     });
 
     const expectedUrl =
@@ -378,7 +378,7 @@ describe('useSubscriptionApi - getSubscriptionsForOrder', () => {
 
     let res;
     await act(async () => {
-      res = await api.getSubscriptionsForOrder(20, 10, mockOrderId);
+      res = await api.getSubscriptionsForOrder(mockOrderId, 20, 10);
     });
 
     const expectedUrl = expectedBaseUrl + `&offset=20` + `&limit=10`;
@@ -411,7 +411,7 @@ describe('useSubscriptionApi - getSubscriptionsForOrder', () => {
 
     let res;
     await act(async () => {
-      res = await api.getSubscriptionsForOrder(0, 10, mockOrderId);
+      res = await api.getSubscriptionsForOrder(mockOrderId, 0, 10);
     });
 
     expect(res).toEqual(mockResponse);
@@ -424,6 +424,6 @@ describe('useSubscriptionApi - getSubscriptionsForOrder', () => {
     const mockError = new Error('Network error');
     mockGet.mockRejectedValueOnce(mockError);
 
-    await expect(api.getSubscriptionsForOrder(0, 10, mockOrderId)).rejects.toThrow('Network error');
+    await expect(api.getSubscriptionsForOrder(mockOrderId, 0, 10)).rejects.toThrow('Network error');
   });
 });
