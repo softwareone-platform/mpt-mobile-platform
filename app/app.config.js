@@ -50,7 +50,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: bundleId,
-      buildNumber: '31',
+      buildNumber: '32',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
@@ -68,7 +68,7 @@ export default {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: bundleId,
-      versionCode: 31,
+      versionCode: 32,
       blockedPermissions: [
         'android.permission.SYSTEM_ALERT_WINDOW',
         'android.permission.VIBRATE',

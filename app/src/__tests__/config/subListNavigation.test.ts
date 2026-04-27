@@ -3,6 +3,7 @@ import {
   getCertificateSubList,
   getAccountSubList,
   getBuyerSubList,
+  getSubscriptionSubList,
 } from '@/config/subListsNavigation';
 
 describe('subListsNavigation (queries)', () => {
@@ -66,6 +67,20 @@ describe('subListsNavigation (queries)', () => {
       );
 
       expect(result.find((i) => i.name === 'licensees')?.roles).toEqual(['Client', 'Operations']);
+    });
+  });
+
+  describe('getSubscriptionSubList', () => {
+    it('generates correct queries', () => {
+      const result = getSubscriptionSubList(id);
+
+      expect(result.find((i) => i.name === 'orders')?.query).toBe(`&any(subscriptions,id=${id})`);
+
+      expect(result.find((i) => i.name === 'orders')?.roles).toEqual([
+        'Client',
+        'Vendor',
+        'Operations',
+      ]);
     });
   });
 });

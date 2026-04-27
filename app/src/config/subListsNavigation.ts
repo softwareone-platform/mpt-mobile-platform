@@ -67,3 +67,13 @@ export const getBuyerSubList = (id: string): SubListItem[] => {
     },
   ];
 };
+
+export const getSubscriptionSubList = (id: string): SubListItem[] => {
+  return [
+    {
+      name: 'orders',
+      roles: ['Client', 'Vendor', 'Operations'],
+      query: `&any(subscriptions,id=${id})`,
+    },
+  ];
+};
