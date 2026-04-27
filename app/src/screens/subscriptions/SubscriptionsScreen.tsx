@@ -57,9 +57,10 @@ const SubscriptionsScreenContent = () => {
 const SubscriptionsScreen = () => {
   const route = useRoute<SubscriptionsScreenRouteProp>();
   const query = route.params?.query;
+  const source = route.params?.source;
 
   return (
-    <SubscriptionsProvider query={query}>
+    <SubscriptionsProvider query={query} source={source}>
       <SubscriptionsScreenContent />
     </SubscriptionsProvider>
   );

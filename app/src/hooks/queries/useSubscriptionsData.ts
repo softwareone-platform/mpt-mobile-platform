@@ -1,17 +1,26 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
 import { useSubscriptionApi } from '@/services/subscriptionService';
-import type { ListItemNoImage } from '@/types/api';
+import type { ListItemNoImage, DataSource } from '@/types/api';
 
 export const useSubscriptionsData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
   query?: string,
+  source?: DataSource,
 ) => {
-  const { getSubscriptions } = useSubscriptionApi();
+  const { getSubscriptions, getSubscriptionsForOrder } = useSubscriptionApi();
 
   return usePaginatedQuery<ListItemNoImage>({
-    queryKey: ['subscriptions', userId, currentAccountId, query],
-    queryFn: (offset, limit) => getSubscriptions(offset, limit, query),
+    queryKey: ['subscriptions', userId, currentAccountId, query, source],
+    queryFn: (offset, limit) => {
+      switch (source?.type) {
+        case 'order':
+          return getSubscriptionsForOrder(offset, limit, source.id!);
+
+        default:
+          return getSubscriptions(offset, limit, query);
+      }
+    },
     enabled: !!userId && !!currentAccountId,
   });
 };
