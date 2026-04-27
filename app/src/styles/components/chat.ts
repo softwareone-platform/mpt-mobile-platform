@@ -83,7 +83,7 @@ export const visibilityDropdownStyle = {
     paddingHorizontal: Spacing.spacing2,
   } as ViewStyle,
   optionSelected: {
-    backgroundColor: Color.gray.gray1,
+    backgroundColor: Color.alerts.info1,
   } as ViewStyle,
   optionText: {
     fontSize: Typography.fontSize.font2,

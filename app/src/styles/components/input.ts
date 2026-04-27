@@ -44,6 +44,7 @@ export const inputStyle = {
   },
   inputChat: {
     maxHeight: 100,
+    borderRadius: 22,
   },
 } as const;
 
