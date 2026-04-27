@@ -1,5 +1,6 @@
-import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 
+import RefreshControl from '@/components/common/RefreshControl';
 import DetailsHeader from '@/components/details/DetailsHeader';
 import { screenStyle, Color } from '@/styles';
 import type { ListItemConfig, ListItemWithStatusProps } from '@/types/lists';

@@ -63,7 +63,9 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const spotlightData = spotlightDataRaw ?? {};
 
   const isSpotlightLoading =
-    isUserDataLoading || isSpotlightDataLoading || fetchStatus === 'fetching';
+    isUserDataLoading ||
+    isSpotlightDataLoading ||
+    (fetchStatus === 'fetching' && !isSpotlightRefetching);
 
   const {
     data: userAccountsPages,

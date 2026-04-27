@@ -3,11 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 
 import CardHeader from '@/components/card/CardHeader';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import EmptyState from '@/components/common/EmptyState';
+import RefreshControl from '@/components/common/RefreshControl';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import Tabs, { TabData } from '@/components/tabs/Tabs';
