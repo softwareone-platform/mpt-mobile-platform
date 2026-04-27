@@ -3,7 +3,7 @@ import { FlatList, ActivityIndicator } from 'react-native';
 import RefreshControl from '@/components/common/RefreshControl';
 import ListItemWithStatus from '@/components/list-item/ListItemWithStatus';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
-import { screenStyle, Color } from '@/styles';
+import { screenStyle } from '@/styles';
 import type { ListItemConfig } from '@/types/lists';
 import { mapToListItemProps } from '@/utils/list';
 
@@ -60,12 +60,7 @@ export function ListView<T extends { id: string }>({
       showsVerticalScrollIndicator={false}
       refreshControl={
         onRefresh ? (
-          <RefreshControl
-            refreshing={isRefreshing ?? false}
-            onRefresh={onRefresh}
-            tintColor={Color.brand.primary}
-            colors={[Color.brand.primary]}
-          />
+          <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
         ) : undefined
       }
     />

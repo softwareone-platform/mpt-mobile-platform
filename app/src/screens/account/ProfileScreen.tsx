@@ -15,7 +15,7 @@ import Tabs, { TabData } from '@/components/tabs/Tabs';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { useAccount } from '@/context/AccountContext';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
-import { cardStyle, listItemStyle, screenStyle, Spacing, spacingStyle, Color } from '@/styles';
+import { cardStyle, listItemStyle, screenStyle, Spacing, spacingStyle } from '@/styles';
 import { FormattedUserAccounts, UserAccount } from '@/types/api';
 import type { ProfileStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
@@ -213,12 +213,7 @@ const ProfileScreen = () => {
       onEndReached={handleEndReached}
       onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
       refreshControl={
-        <RefreshControl
-          refreshing={isAccountsRefetching}
-          onRefresh={refetchAccounts}
-          tintColor={Color.brand.primary}
-          colors={[Color.brand.primary]}
-        />
+        <RefreshControl refreshing={isAccountsRefetching} onRefresh={refetchAccounts} />
       }
     />
   );

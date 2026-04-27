@@ -2,7 +2,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 
 import RefreshControl from '@/components/common/RefreshControl';
 import DetailsHeader from '@/components/details/DetailsHeader';
-import { screenStyle, Color } from '@/styles';
+import { screenStyle } from '@/styles';
 import type { ListItemConfig, ListItemWithStatusProps } from '@/types/lists';
 import { mapToListItemProps } from '@/utils/list';
 
@@ -46,12 +46,7 @@ const DetailsView = <T extends object>({
         style={styles.container}
         refreshControl={
           onRefresh ? (
-            <RefreshControl
-              refreshing={isRefreshing ?? false}
-              onRefresh={onRefresh}
-              tintColor={Color.brand.primary}
-              colors={[Color.brand.primary]}
-            />
+            <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
           ) : undefined
         }
       >

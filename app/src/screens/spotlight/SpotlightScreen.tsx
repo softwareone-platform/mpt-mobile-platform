@@ -133,12 +133,7 @@ const SpotlightScreen = () => {
         style={[styles.containerMain, styles.noPaddingTop]}
         contentContainerStyle={styles.contentFillContainer}
         refreshControl={
-          <RefreshControl
-            refreshing={isSpotlightRefetching}
-            onRefresh={refetchSpotlight}
-            tintColor={Color.brand.primary}
-            colors={[Color.brand.primary]}
-          />
+          <RefreshControl refreshing={isSpotlightRefetching} onRefresh={refetchSpotlight} />
         }
       >
         {Object.entries(filteredData).map(([categoryName, sections]) => (
