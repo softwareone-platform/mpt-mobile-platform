@@ -30,9 +30,9 @@ export function useSubscriptionApi() {
 
   const getSubscriptionsForOrder = useCallback(
     async (
+      orderId: string,
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
-      orderId: string,
     ): Promise<PaginatedResponse<ListItemNoImage>> => {
       const endpoint =
         `/v1/commerce/orders/${orderId}/subscriptions` +

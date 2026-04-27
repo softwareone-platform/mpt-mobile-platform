@@ -15,7 +15,7 @@ export const useSubscriptionsData = (
     queryFn: (offset, limit) => {
       switch (source?.type) {
         case 'order':
-          return getSubscriptionsForOrder(offset, limit, source.id!);
+          return getSubscriptionsForOrder(source.id, offset, limit);
 
         default:
           return getSubscriptions(offset, limit, query);
