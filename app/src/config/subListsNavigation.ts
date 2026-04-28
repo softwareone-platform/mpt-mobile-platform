@@ -82,3 +82,16 @@ export const getSubscriptionSubList = (id: string): SubListItem[] => {
     },
   ];
 };
+
+export const getOrderSubList = (id: string): SubListItem[] => {
+  return [
+    {
+      name: 'subscriptions',
+      roles: ['Client', 'Operations'],
+      source: {
+        type: 'order',
+        id,
+      },
+    },
+  ];
+};

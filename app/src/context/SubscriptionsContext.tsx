@@ -2,7 +2,7 @@ import { createContext, ReactNode, useContext, useMemo } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useSubscriptionsData } from '@/hooks/queries/useSubscriptionsData';
-import type { ListItemNoImage } from '@/types/api';
+import type { ListItemNoImage, DataSource } from '@/types/api';
 
 interface SubscriptionsContextValue {
   subscriptions: ListItemNoImage[];
@@ -19,11 +19,12 @@ interface SubscriptionsContextValue {
 interface SubscriptionProviderProps {
   children: ReactNode;
   query?: string;
+  source?: DataSource;
 }
 
 const SubscriptionsContext = createContext<SubscriptionsContextValue | undefined>(undefined);
 
-export const SubscriptionsProvider = ({ children, query }: SubscriptionProviderProps) => {
+export const SubscriptionsProvider = ({ children, query, source }: SubscriptionProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -39,7 +40,7 @@ export const SubscriptionsProvider = ({ children, query }: SubscriptionProviderP
     fetchNextPage,
     refetch,
     isRefetching,
-  } = useSubscriptionsData(userId, currentAccountId, query);
+  } = useSubscriptionsData(userId, currentAccountId, query, source);
 
   const subscriptions = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

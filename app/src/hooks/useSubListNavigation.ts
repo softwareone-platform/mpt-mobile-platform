@@ -12,6 +12,7 @@ export const useSubListNavigation = () => {
       navigation.navigate(item.name, {
         query: item.query,
         accountId: item.accountId,
+        source: item.source,
       });
     },
     [navigation],
