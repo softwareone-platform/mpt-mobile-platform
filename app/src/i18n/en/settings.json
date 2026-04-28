@@ -37,6 +37,10 @@
     "email": "E-mail",
     "phone": "Phone number"
   },
+  "userAccountsScreen": {
+    "emptyStateTitle": "No accounts",
+    "emptyStateDescription": "No accounts found."
+  },
   "usersScreen": {
     "emptyStateTitle": "No users",
     "emptyStateDescription": "No users found."

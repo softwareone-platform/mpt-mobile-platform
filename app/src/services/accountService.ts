@@ -53,7 +53,7 @@ export function useAccountApi() {
     ): Promise<PaginatedUserAccounts> => {
       const endpoint =
         `/v1/accounts/users/${userId}/accounts` +
-        `?select=id,name,type,icon,favorite,audit.access.at,-*` +
+        `?select=id,name,type,status,icon,favorite,audit.access.at,-*` +
         `&eq(invitation.status,"Active")` +
         `&order=name` +
         `&offset=${offset}` +

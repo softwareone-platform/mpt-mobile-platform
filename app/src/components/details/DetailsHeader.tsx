@@ -60,7 +60,7 @@ const DetailsHeader = ({
       return <AvatarIcon id={id} imagePath={imagePath} size={44} />;
     }
 
-    return null;
+    return <AvatarIcon id={id} size={44} />;
   };
 
   const avatar = getAvatar();

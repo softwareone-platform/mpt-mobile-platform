@@ -28,6 +28,7 @@ export type SecondaryTabsParamList = {
   statements: ScreenParams;
   users: ScreenParams;
   allUsers: ScreenParams;
+  accounts: { userId?: string };
   programs: ScreenParams;
   enrollments: ScreenParams;
   certificates: ScreenParams;
@@ -46,7 +47,7 @@ export type AppScreensParamList = {
   journalDetails: { id: string | undefined };
   orderDetails: { id: string | undefined };
   accountDetails: { id: string | undefined; type?: 'client' | 'vendor' | 'operations' | 'account' };
-  userDetails: { id: string | undefined };
+  userDetails: { id: string | undefined; showAccounts?: boolean };
   buyerDetails: { id: string | undefined };
   sellerDetails: { id: string | undefined };
   agreementDetails: { id: string | undefined };
@@ -159,5 +160,6 @@ export interface SubListItem {
   roles: AccountType[];
   query?: string;
   accountId?: string;
+  userId?: string;
   source?: DataSource;
 }

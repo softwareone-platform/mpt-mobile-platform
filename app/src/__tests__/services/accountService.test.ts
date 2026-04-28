@@ -107,7 +107,7 @@ describe('useAccountApi', () => {
 
     const expectedUrl =
       `/v1/accounts/users/555/accounts` +
-      `?select=id,name,type,icon,favorite,audit.access.at,-*` +
+      `?select=id,name,type,status,icon,favorite,audit.access.at,-*` +
       `&eq(invitation.status,"Active")` +
       `&order=name` +
       `&offset=${DEFAULT_OFFSET}` +
@@ -128,7 +128,7 @@ describe('useAccountApi', () => {
 
     const expectedUrl =
       `/v1/accounts/users/555/accounts` +
-      `?select=id,name,type,icon,favorite,audit.access.at,-*` +
+      `?select=id,name,type,status,icon,favorite,audit.access.at,-*` +
       `&eq(invitation.status,"Active")` +
       `&order=name` +
       `&offset=10` +

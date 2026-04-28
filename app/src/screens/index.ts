@@ -7,6 +7,7 @@ export { default as CreditMemosScreen } from './credit-memos/CreditMemosScreen';
 export { default as JournalsScreen } from './journals/JournalsScreen';
 export { default as StatementsScreen } from './statements/StatementsScreen';
 export { default as UsersScreen } from './users/UsersScreen';
+export { default as UserAccountsScreen } from './users/UserAccountsScreen';
 export { default as ProgramsScreen } from './programs/ProgramsScreen';
 export { default as EnrollmentsScreen } from './enrollments/EnrollmentsScreen';
 export { default as CertificatesScreen } from './certificates/CertificatesScreen';

@@ -15,7 +15,7 @@ type UserDetailsRouteProp = RouteProp<RootStackParamList, 'userDetails'>;
 
 const UserDetailsScreen = () => {
   const { t } = useTranslation();
-  const { id } = useRoute<UserDetailsRouteProp>().params;
+  const { id, showAccounts } = useRoute<UserDetailsRouteProp>().params;
 
   const { userData } = useAccount();
   const currentUserId = userData?.id;
@@ -53,7 +53,7 @@ const UserDetailsScreen = () => {
           headerTitleTestId={TestIDs.USER_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.USER_DETAILS_HEADER_STATUS}
         >
-          <UserDetailsContent data={userDetails} sso={sso} />
+          <UserDetailsContent data={userDetails} sso={sso} showAccounts={showAccounts} />
         </DetailsView>
       )}
     </StatusMessage>
