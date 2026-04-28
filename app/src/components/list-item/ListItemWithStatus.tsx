@@ -42,9 +42,11 @@ const ListItemWithStatus = ({
           isLast && styles.lastItem,
         ]}
       >
-        <View style={styles.avatarWrapper}>
-          <AvatarIcon id={id} imagePath={imagePath} size={44} />
-        </View>
+        {Boolean(imagePath) && (
+          <View style={styles.avatarWrapper}>
+            <AvatarIcon id={id} imagePath={imagePath} size={44} />
+          </View>
+        )}
 
         <View style={styles.textContainer}>
           {hasSubtitle && (

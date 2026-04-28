@@ -416,7 +416,7 @@ Not all numeric values in styles require a design token. The rule depends on **w
 
 ```typescript
 // @/styles/components/checkbox.ts
-import { Spacing } from "@/styles/tokens";
+import { Spacing } from '@/styles/tokens';
 
 export const checkboxStyle = {
   // ✅ Raw values for intrinsic sizing — acceptable
@@ -433,7 +433,7 @@ export const checkboxStyle = {
 
 ```typescript
 // In a component file
-import { checkboxStyle } from "@/styles/components";
+import { checkboxStyle } from '@/styles/components';
 
 // ✅ Correct — spacing comes from the style layer
 const styles = StyleSheet.create({
