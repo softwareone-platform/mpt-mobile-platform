@@ -3,17 +3,29 @@ import { useTranslation } from 'react-i18next';
 import { View, TextInput, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import VisibilityDropdown from '@/components/chat/VisibilityDropdown';
 import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { BUTTON_ICON_ONLY_HIT_SLOP } from '@/constants';
 import { buttonStyle, Color, inputStyle, chatStyle } from '@/styles';
+import type { MessageVisibility } from '@/types/chat';
 
 type Props = {
   value: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
+  visibility?: MessageVisibility;
+  onVisibilityChange?: (visibility: MessageVisibility) => void;
+  showVisibilityToggle?: boolean;
 };
 
-const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
+const ChatConversationFooter = ({
+  value,
+  onChangeText,
+  onSend,
+  visibility = 'Public',
+  onVisibilityChange,
+  showVisibilityToggle,
+}: Props) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -23,7 +35,7 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
         <View style={styles.textInputWrapper}>
           <TextInput
             placeholder={t('chat.messageInputPlaceholder')}
-            style={styles.input}
+            style={[styles.input, showVisibilityToggle && styles.inputWithToggle]}
             value={value}
             onChangeText={onChangeText}
             onSubmitEditing={onSend}
@@ -31,6 +43,11 @@ const ChatConversationFooter = ({ value, onChangeText, onSend }: Props) => {
             multiline
             scrollEnabled
           />
+          {showVisibilityToggle && onVisibilityChange && (
+            <View style={styles.visibilityIconWrapper}>
+              <VisibilityDropdown visibility={visibility} onVisibilityChange={onVisibilityChange} />
+            </View>
+          )}
         </View>
         <TouchableOpacity
           style={styles.buttonPrimaryIconOnly}
@@ -56,10 +73,12 @@ const styles = StyleSheet.create({
     ...inputStyle.container,
     ...inputStyle.inputChat,
   },
+  inputWithToggle: chatStyle.inputWithToggle,
   buttonPrimaryIconOnly: {
     ...buttonStyle.primary,
     ...buttonStyle.primaryIconOnly,
   },
+  visibilityIconWrapper: chatStyle.visibilityIconWrapper,
 });
 
 export default ChatConversationFooter;

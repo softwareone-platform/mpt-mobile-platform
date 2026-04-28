@@ -16,6 +16,7 @@ import ChecklistRtlOutlined from './checklist-rtl';
 import CloseOutlined from './close';
 import ContactsOutlined from './contacts';
 import CreditCardOutlined from './credit-card';
+import DoneOutlined from './done';
 import DocumentScannerOutlined from './document-scanner';
 import EditSquareOutlined from './edit-square';
 import FactCheckOutlined from './fact-check';
@@ -73,6 +74,7 @@ export const OutlinedIcons = {
   contacts: ContactsOutlined,
   'credit-card': CreditCardOutlined,
   'document-scanner': DocumentScannerOutlined,
+  done: DoneOutlined,
   'edit-square': EditSquareOutlined,
   'fact-check': FactCheckOutlined,
   flare: FlareOutlined,
