@@ -21,6 +21,7 @@ const ListItemWithStatus = ({
 }: ListItemWithStatusProps) => {
   const { t } = useTranslation();
   const hasSubtitle = Boolean(subtitle);
+  const hasImage = Boolean(imagePath);
 
   const status = getStatus(statusText, statusList);
 
@@ -42,7 +43,7 @@ const ListItemWithStatus = ({
           isLast && styles.lastItem,
         ]}
       >
-        {Boolean(imagePath) && (
+        {hasImage && (
           <View style={styles.avatarWrapper}>
             <AvatarIcon id={id} imagePath={imagePath} size={44} />
           </View>
