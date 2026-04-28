@@ -3,13 +3,15 @@ const { expect } = require('@wdio/globals');
 const creditMemosPage = require('../pageobjects/credit-memos.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { testPageStructure } = require('../utils/shared-tests');
-const { PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Credit Memos Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasCreditMemosData = false;
   let hasEmptyState = false;
   let apiAvailable = false;
@@ -29,9 +31,11 @@ describe('Credit Memos Page', () => {
 
   before(async function () {
     this.timeout(150000);
+    api = getClientApi();
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     
      // Check if Credit Memos menu item is available for this user
     await creditMemosPage.footer.moreTab.click();
@@ -50,7 +54,7 @@ describe('Credit Memos Page', () => {
     // Check data state ONCE and cache the results
     hasCreditMemosData = await creditMemosPage.hasCreditMemos();
     hasEmptyState = !hasCreditMemosData && await creditMemosPage.emptyState.isDisplayed().catch(() => false);
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     console.info(`📊 Credit Memos data state: hasCreditMemos=${hasCreditMemosData}, emptyState=${hasEmptyState}, apiAvailable=${apiAvailable}`);
   });
@@ -221,7 +225,7 @@ describe('Credit Memos Page', () => {
       }
 
       try {
-        const apiCreditMemos = await apiClient.getCreditMemos({ limit: 100 });
+        const apiCreditMemos = await api.getCreditMemos({ limit: 100 });
         const apiCreditMemosList = apiCreditMemos.data || apiCreditMemos;
         const apiCount = apiCreditMemosList.length;
         
@@ -239,42 +243,44 @@ describe('Credit Memos Page', () => {
       }
     });
 
-    it('should verify first 10 credit memos IDs and statuses match API data', async function () {
+    it('should verify first 10 credit memos have valid IDs and known statuses', async function () {
       if (!apiAvailable || !hasCreditMemosData) {
         this.skip();
         return;
       }
 
       try {
-        const apiCreditMemos = await apiClient.getCreditMemos({ limit: 10 });
+        const apiCreditMemos = await api.getCreditMemos({ limit: 10 });
         const apiCreditMemosList = apiCreditMemos.data || apiCreditMemos;
         const uiCreditMemoIds = await creditMemosPage.getVisibleItemIds();
         const uiCreditMemosWithStatus = await creditMemosPage.getVisibleItemsWithStatus();
-        
-        // Compare each API credit memo with UI and log results
-        const comparisons = [];
-        for (let i = 0; i < Math.min(apiCreditMemosList.length, 10); i++) {
+
+        const compareCount = Math.min(apiCreditMemosList.length, uiCreditMemosWithStatus.length, 10);
+
+        if (compareCount === 0) {
+          this.skip();
+          return;
+        }
+
+        // Log for informational comparison — sequential ID matching is unreliable
+        // because filter(group.buyers) scopes to the token's buyer group, which may
+        // differ from the logged-in app user's scope.
+        for (let i = 0; i < compareCount; i++) {
           const apiCreditMemo = apiCreditMemosList[i];
-          const apiCreditMemoId = apiCreditMemo.creditMemoId || apiCreditMemo.id;
+          const apiCreditMemoId = apiCreditMemo.id || apiCreditMemo.creditMemoId;
           const apiStatus = apiCreditMemo.status;
           const uiCreditMemo = uiCreditMemosWithStatus[i] || {};
           const uiCreditMemoId = uiCreditMemo.creditMemoId;
           const uiStatus = uiCreditMemo.status;
-          
-          const idMatches = apiCreditMemoId === uiCreditMemoId;
-          const statusMatches = apiStatus === uiStatus;
-          
-          console.info(`[${i + 1}] ID: ${apiCreditMemoId} vs ${uiCreditMemoId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
-          comparisons.push({ apiCreditMemoId, uiCreditMemoId, idMatches, apiStatus, uiStatus, statusMatches });
+          console.info(`[${i + 1}] ID: ${apiCreditMemoId} vs ${uiCreditMemoId} | Status: ${apiStatus} vs ${uiStatus}`);
         }
-        
-        const idMatchCount = comparisons.filter(c => c.idMatches).length;
-        const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
-        
-        // Verify all visible UI credit memos have valid format (4-group)
+
+        // Assert: UI credit memos have valid ID format and recognized statuses
         for (const uiCreditMemoId of uiCreditMemoIds.slice(0, 10)) {
           expect(uiCreditMemoId).toMatch(REGEX.CREDIT_MEMO_ID);
+        }
+        for (const uiCreditMemo of uiCreditMemosWithStatus.slice(0, 10)) {
+          expect(STATUSES.INVOICE).toContain(uiCreditMemo.status);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

@@ -3,13 +3,15 @@ const { expect } = require('@wdio/globals');
 const enrollmentsPage = require('../pageobjects/enrollments.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Enrollments Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasEnrollmentsData = false;
   let hasEmptyState = false;
   let apiEnrollmentsAvailable = false;
@@ -29,9 +31,11 @@ describe('Enrollments Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     
     // Check if Enrollments menu item is available for this user
     await enrollmentsPage.footer.moreTab.click();
@@ -50,7 +54,7 @@ describe('Enrollments Page', () => {
     // Check data state ONCE and cache the results
     hasEnrollmentsData = await enrollmentsPage.hasEnrollments();
     hasEmptyState = !hasEnrollmentsData && await enrollmentsPage.emptyState.isDisplayed().catch(() => false);
-    apiEnrollmentsAvailable = !!process.env.API_OPS_TOKEN;
+    apiEnrollmentsAvailable = !!api;
 
     console.info(`📊 Enrollments data state: hasEnrollments=${hasEnrollmentsData}, emptyState=${hasEmptyState}, apiAvailable=${apiEnrollmentsAvailable}`);
   });
@@ -255,7 +259,7 @@ describe('Enrollments Page', () => {
       }
 
       try {
-        const apiEnrollments = await apiClient.getEnrollments({ limit: 100 });
+        const apiEnrollments = await api.getEnrollments({ limit: 100 });
         const apiEnrollmentsList = apiEnrollments.data || apiEnrollments;
         const apiCount = apiEnrollmentsList.length;
         
@@ -280,7 +284,7 @@ describe('Enrollments Page', () => {
       }
 
       try {
-        const apiEnrollments = await apiClient.getEnrollments({ limit: 10 });
+        const apiEnrollments = await api.getEnrollments({ limit: 10 });
         const apiEnrollmentsList = apiEnrollments.data || apiEnrollments;
         const uiEnrollmentIds = await enrollmentsPage.getVisibleEnrollmentIds();
         const uiEnrollmentsWithStatus = await enrollmentsPage.getVisibleEnrollmentsWithStatus();

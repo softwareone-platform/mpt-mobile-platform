@@ -2,9 +2,10 @@ const { expect } = require('@wdio/globals');
 
 const spotlightsPage = require('../pageobjects/spotlights.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 const { ensureHomePage } = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 /**
  * Spotlight Filter Tests - Optimized Structure
@@ -19,14 +20,17 @@ const { apiClient } = require('../utils/api-client');
 
 describe('Spotlight Filter Chips', () => {
   // Section data flags - set once in before() to avoid redundant checks
+  let api;
   let sectionData = {};
   let hasSpotlightsData = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await ensureHomePage();
+    await ensureClientAccount();
 
     // Check if there's any spotlight data at all (filters only show when there's data)
     hasSpotlightsData = await spotlightsPage.hasSpotlights();
@@ -37,7 +41,7 @@ describe('Spotlight Filter Chips', () => {
     }
 
     try {
-      sectionData = await apiClient.getSpotlightDataAvailability();
+      sectionData = await api.getSpotlightDataAvailability();
       console.info(`📊 Spotlight section data (from API):`, {
         hasSubscriptions: sectionData.hasSubscriptions,
         hasJournals: sectionData.hasJournals,
@@ -125,6 +129,7 @@ describe('Spotlight Filter Chips', () => {
       }
       await spotlightsPage.selectFilter('orders');
       await browser.pause(PAUSE.NAVIGATION);
+      await spotlightsPage.scrollToTop().catch(() => {});
 
       const ordersVisible = await spotlightsPage.isOrdersSectionVisible();
       expect(ordersVisible).toBe(true);
@@ -373,6 +378,7 @@ describe('Spotlight Filter Chips', () => {
       await spotlightsPage.resetFilterScrollPosition();
       await spotlightsPage.selectFilter('orders');
       await browser.pause(PAUSE.ANIMATION_SETTLE);
+      await spotlightsPage.scrollToTop().catch(() => {});
 
       const ordersVisible = await spotlightsPage.isOrdersSectionVisible();
       expect(ordersVisible).toBe(true);

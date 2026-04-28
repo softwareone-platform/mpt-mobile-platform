@@ -24,6 +24,17 @@ const OPS_ACCOUNT_IDS = {
 const OPS_ACCOUNT_ID = getEnv('OPS_ACCOUNT_ID', OPS_ACCOUNT_IDS.test);
 
 /**
+ * ACC- IDs for the Client/Buyer test account, keyed by environment.
+ * Used to detect and switch to the client account for tests that validate
+ * client-scoped data (agreements, orders, subscriptions, etc.).
+ */
+const CLIENT_ACCOUNT_IDS = {
+  test: '',
+};
+
+const CLIENT_ACCOUNT_ID = getEnv('CLIENT_ACCOUNT_ID', CLIENT_ACCOUNT_IDS.test);
+
+/**
  * Opens the profile/account-switcher screen via the header account button.
  */
 async function openProfileScreen() {
@@ -32,37 +43,37 @@ async function openProfileScreen() {
 }
 
 /**
- * Checks whether the Operations account is currently active.
+ * Checks whether the given account is currently active.
  * Opens the profile screen, finds the account item by ID, and inspects its
  * accessible label for the checkmark indicator that React Native renders when
  * `isSelected` is true.
  *
- * @returns {Promise<boolean>} True if the Operations account is the active account.
+ * @param {string} accountId - The ACC- ID to check.
+ * @param {string} label - Human-readable label for logging (e.g. 'Operations', 'Client').
+ * @returns {Promise<boolean>} True if the given account is the active account.
  */
-async function isOperationsAccountActive() {
-  if (!OPS_ACCOUNT_ID) {
-    console.warn('⚠️ [isOperationsAccountActive] OPS_ACCOUNT_ID not configured');
+async function isAccountActive(accountId, label) {
+  if (!accountId) {
+    console.warn(`⚠️ [is${label}AccountActive] Account ID not configured`);
     return false;
   }
 
   await openProfileScreen();
 
   try {
-    const accountItem = profilePage.getAccountItemById(OPS_ACCOUNT_ID);
+    const accountItem = profilePage.getAccountItemById(accountId);
     const exists = await accountItem.isExisting().catch(() => false);
 
     if (!exists) {
-      console.info(`⚠️ [isOperationsAccountActive] Account item ${OPS_ACCOUNT_ID} not found in list`);
+      console.info(`⚠️ [is${label}AccountActive] Account item ${accountId} not found in list`);
       return false;
     }
 
     const attribute = isIOS() ? 'name' : 'content-desc';
-    const label = String((await accountItem.getAttribute(attribute).catch(() => '')) || '');
-    console.info(`[isOperationsAccountActive] ${OPS_ACCOUNT_ID} label: "${label}"`);
+    const attrLabel = String((await accountItem.getAttribute(attribute).catch(() => '')) || '');
+    console.info(`[is${label}AccountActive] ${accountId} label: "${attrLabel}"`);
 
-    // When the item is selected, a MaterialIcons "check" icon is rendered inside it.
-    // On iOS the icon's accessible text is included in the parent element's `name`.
-    return label.toLowerCase().includes('check');
+    return attrLabel.toLowerCase().includes('check');
   } finally {
     await headingPage.backButton.click().catch(() => {});
     await browser.pause(PAUSE.NAVIGATION);
@@ -70,34 +81,36 @@ async function isOperationsAccountActive() {
 }
 
 /**
- * Ensures the Operations account is the active account.
+ * Ensures the given account is the active account.
  *
  * Navigation flow:
  * 1. Open the profile/account-switcher screen.
- * 2. Find the account item by `profile-account-item-{OPS_ACCOUNT_ID}` testID.
+ * 2. Find the account item by `profile-account-item-{accountId}` testID.
  * 3. Tap it — if already selected, `handleSwitchAccount` returns early (no-op).
  *    If not selected, the app switches accounts (shows ActivityIndicator on the item,
  *    disables the back button via `isSwitching`, then re-enables it on completion).
  * 4. Poll for the back button to become enabled again (= switch finished or was a no-op).
  * 5. Navigate back and return to the home page.
  *
- * @throws {Error} If the Operations account item cannot be found in the profile list.
+ * @param {string} accountId - The ACC- ID to switch to.
+ * @param {string} label - Human-readable label for logging (e.g. 'Operations', 'Client').
+ * @throws {Error} If the account item cannot be found in the profile list.
  */
-async function ensureOperationsAccount() {
-  if (!OPS_ACCOUNT_ID) {
-    console.warn('⚠️ [ensureOperationsAccount] OPS_ACCOUNT_ID not configured — skipping account switch');
+async function ensureAccount(accountId, label) {
+  if (!accountId) {
+    console.warn(`⚠️ [ensure${label}Account] Account ID not configured — skipping account switch`);
     return;
   }
 
-  console.info(`🔄 [ensureOperationsAccount] Ensuring Operations account ${OPS_ACCOUNT_ID} is active`);
+  console.info(`🔄 [ensure${label}Account] Ensuring ${label} account ${accountId} is active`);
   await openProfileScreen();
 
-  const accountItem = profilePage.getAccountItemById(OPS_ACCOUNT_ID);
+  const accountItem = profilePage.getAccountItemById(accountId);
   const exists = await accountItem.isExisting().catch(() => false);
 
   if (!exists) {
     await headingPage.backButton.click().catch(() => {});
-    throw new Error(`[ensureOperationsAccount] Operations account ${OPS_ACCOUNT_ID} not found in account list`);
+    throw new Error(`[ensure${label}Account] ${label} account ${accountId} not found in account list`);
   }
 
   await accountItem.click();
@@ -119,12 +132,32 @@ async function ensureOperationsAccount() {
   await browser.pause(PAUSE.NAVIGATION);
   await navigation.ensureHomePage({ resetFilters: false });
 
-  console.info(`✅ [ensureOperationsAccount] Operations account ${OPS_ACCOUNT_ID} is now active`);
+  console.info(`✅ [ensure${label}Account] ${label} account ${accountId} is now active`);
+}
+
+async function isOperationsAccountActive() {
+  return isAccountActive(OPS_ACCOUNT_ID, 'Operations');
+}
+
+async function ensureOperationsAccount() {
+  return ensureAccount(OPS_ACCOUNT_ID, 'Operations');
+}
+
+async function isClientAccountActive() {
+  return isAccountActive(CLIENT_ACCOUNT_ID, 'Client');
+}
+
+async function ensureClientAccount() {
+  return ensureAccount(CLIENT_ACCOUNT_ID, 'Client');
 }
 
 module.exports = {
   OPS_ACCOUNT_ID,
   OPS_ACCOUNT_IDS,
+  CLIENT_ACCOUNT_ID,
+  CLIENT_ACCOUNT_IDS,
   isOperationsAccountActive,
   ensureOperationsAccount,
+  isClientAccountActive,
+  ensureClientAccount,
 };

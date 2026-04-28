@@ -5,9 +5,9 @@ const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { apiClient, opsApiClient } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Journals Page', () => {
   let hasJournalsData = false;
@@ -203,7 +203,7 @@ describe('Journals Page', () => {
         return;
       }
       try {
-        const apiJournals = await apiClient.getJournals({ limit: 100 });
+        const apiJournals = await opsApiClient.getJournals({ limit: 100 });
         const apiJournalsList = apiJournals.data || apiJournals;
         const apiCount = apiJournalsList.length;
 
@@ -216,6 +216,27 @@ describe('Journals Page', () => {
         }
       } catch (error) {
         console.warn('API check skipped:', error.message);
+        this.skip();
+      }
+    });
+
+    it('should not display Deleted journals (ne(status,"Deleted") filter)', async function () {
+      if (!apiJournalsAvailable || !hasJournalsData) {
+        this.skip();
+        return;
+      }
+      try {
+        const uiJournalsWithStatus = await journalsPage.getVisibleJournalsWithStatus();
+
+        // The app filters out Deleted journals via ne(status,"Deleted").
+        // Verify no Deleted items appear in the visible list.
+        for (const journal of uiJournalsWithStatus.slice(0, 10)) {
+          if (journal.status) {
+            expect(journal.status).not.toBe('Deleted');
+          }
+        }
+      } catch (error) {
+        console.warn('Status filter validation skipped:', error.message);
         this.skip();
       }
     });

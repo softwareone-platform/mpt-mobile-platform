@@ -4,11 +4,13 @@ const morePage = require('../pageobjects/more.page');
 const userDetailsPage = require('../pageobjects/user-details.page');
 const usersPage = require('../pageobjects/users.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 describe('User Details Page', () => {
+  let api;
   let hasUsersData = false;
   let apiAvailable = false;
   let testUserId = null;
@@ -17,9 +19,11 @@ describe('User Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     // Navigate to Users page via More menu (same as users.e2e.js)
     await usersPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
@@ -34,7 +38,7 @@ describe('User Details Page', () => {
     await usersPage.waitForScreenReady();
 
     hasUsersData = await usersPage.hasUsers();
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     if (hasUsersData) {
       const userIds = await usersPage.getVisibleUserIds();
@@ -43,7 +47,7 @@ describe('User Details Page', () => {
       // Pre-fetch API data for validation tests
       if (apiAvailable && testUserId) {
         try {
-          apiUserData = await apiClient.getUserInformation(testUserId);
+          apiUserData = await api.getUserInformation(testUserId);
           console.info(`📊 Pre-fetched API data for user: ${testUserId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);

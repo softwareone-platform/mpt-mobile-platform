@@ -1,6 +1,8 @@
 const { selectors } = require('./utils/selectors');
+const { PAUSE, RETRY } = require('./utils/constants');
 
 const ListPage = require('./base/list.page');
+const morePage = require('./more.page');
 
 /**
  * Agreements Page - extends ListPage for common list functionality
@@ -107,6 +109,30 @@ class AgreementsPage extends ListPage {
   }
 
   // ========== Agreement-Specific Methods ==========
+
+  /**
+   * Ensures the app is on the Agreements page, navigating there if needed
+   */
+  async ensureAgreementsPage() {
+    const isOnAgreements = await this.isOnAgreementsPage();
+    if (isOnAgreements) {
+      return;
+    }
+
+    // Try to navigate back until footer is visible
+    for (let i = 0; i < RETRY.MAX_BACK_ATTEMPTS; i++) {
+      const isFooterVisible = await this.footer.chatTab.isDisplayed().catch(() => false);
+      if (isFooterVisible) {
+        break;
+      }
+      await browser.back();
+      await browser.pause(PAUSE.NAVIGATION);
+    }
+
+    // Navigate through More menu to Agreements
+    await morePage.navigateToAgreements();
+    await this.waitForScreenReady();
+  }
 
   /**
    * Get agreement details from an agreement item's accessibility label

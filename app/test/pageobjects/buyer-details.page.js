@@ -29,7 +29,7 @@ class BuyerDetailsPage extends DetailsPage {
   async getAllBuyerDetails() {
     await this.scrollToTop();
     return {
-      buyerName: await this.getSimpleFieldValue('Websparks Pte Ltd', true), // Company name label
+      buyerName: '',
       buyerId: await this.getItemId(),
       status: await this.getSimpleFieldValue('Active', true),
       client: await this.getCompositeFieldValueByLabel('Client', true),

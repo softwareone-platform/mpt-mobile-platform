@@ -2,29 +2,33 @@ const { expect } = require('@wdio/globals');
 
 const ordersPage = require('../pageobjects/orders.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Orders Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasOrdersData = false;
   let hasEmptyState = false;
   let apiOrdersAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     // Navigate to Orders page to check data state
     await ordersPage.ensureOrdersPage();
 
     // Check data state ONCE and cache the results
     hasOrdersData = await ordersPage.hasOrders();
     hasEmptyState = !hasOrdersData && await ordersPage.emptyState.isDisplayed().catch(() => false);
-    apiOrdersAvailable = !!process.env.API_OPS_TOKEN;
+    apiOrdersAvailable = !!api;
 
     console.info(`📊 Orders data state: hasOrders=${hasOrdersData}, emptyState=${hasEmptyState}, apiAvailable=${apiOrdersAvailable}`);
   });
@@ -221,7 +225,7 @@ describe('Orders Page', () => {
       }
 
       try {
-        const apiOrders = await apiClient.getOrders({ limit: 100 });
+        const apiOrders = await api.getOrders({ limit: 100 });
         const apiOrdersList = apiOrders.data || apiOrders;
         const apiCount = apiOrdersList.length;
         
@@ -249,7 +253,7 @@ describe('Orders Page', () => {
       }
 
       try {
-        const apiOrders = await apiClient.getOrders({ limit: 10 });
+        const apiOrders = await api.getOrders({ limit: 10 });
         const apiOrdersList = apiOrders.data || apiOrders;
         const uiOrderIds = await ordersPage.getVisibleOrderIds();
         const uiOrdersWithStatus = await ordersPage.getVisibleOrdersWithStatus();
