@@ -4,7 +4,7 @@ import { DataSource } from '@/types/api';
 import { AccountType } from '@/types/common';
 import { ModuleName } from '@/types/modules';
 
-type ScreenParams = { query?: string; accountId?: string; source?: DataSource } | undefined;
+type ScreenParams = { query?: string; accountId?: string; userId?: string; source?: DataSource } | undefined;
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -28,7 +28,7 @@ export type SecondaryTabsParamList = {
   statements: ScreenParams;
   users: ScreenParams;
   allUsers: ScreenParams;
-  accounts: { userId?: string };
+  accounts: ScreenParams;
   programs: ScreenParams;
   enrollments: ScreenParams;
   certificates: ScreenParams;
