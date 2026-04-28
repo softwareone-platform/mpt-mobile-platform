@@ -4,7 +4,9 @@ import { DataSource } from '@/types/api';
 import { AccountType } from '@/types/common';
 import { ModuleName } from '@/types/modules';
 
-type ScreenParams = { query?: string; accountId?: string; userId?: string; source?: DataSource } | undefined;
+type ScreenParams =
+  | { query?: string; accountId?: string; userId?: string; source?: DataSource }
+  | undefined;
 
 export type RootStackParamList = {
   Auth: undefined;
