@@ -71,7 +71,7 @@ const UserAccountsScreenContent = () => {
 
 const UserAccountsScreen = () => {
   const route = useRoute<UserAccountsScreenRouteProp>();
-  const userId = route.params?.userId;
+  const userId = route.params.userId;
 
   return (
     <UserAccountsProvider userId={userId}>

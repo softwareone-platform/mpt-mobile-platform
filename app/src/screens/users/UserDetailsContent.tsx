@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
@@ -25,9 +26,13 @@ const UserDetailsContent = ({
   const { accountType } = useAccountType();
   const ssoStatus = sso?.status === 'enabled' ? t('details.yes') : t('details.no');
 
-  const filteredSubList = showAccounts
-    ? getUserSubList(data.id).filter((item) => item.roles.includes(accountType as AccountType))
-    : [];
+  const filteredSubList = useMemo(
+    () =>
+      showAccounts
+        ? getUserSubList(data.id).filter((item) => item.roles.includes(accountType as AccountType))
+        : [],
+    [showAccounts, data.id, accountType],
+  );
 
   return (
     <>
