@@ -20,7 +20,7 @@ const JournalDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useJournalDetailsData(
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useJournalDetailsData(
     id,
     userId,
     currentAccountId,
@@ -44,6 +44,8 @@ const JournalDetailsScreen = () => {
           config={listItemConfigNoImage}
           headerTitleTestId={TestIDs.JOURNAL_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.JOURNAL_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <JournalDetailsContent data={data} />
         </DetailsView>

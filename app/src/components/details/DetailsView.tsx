@@ -1,5 +1,6 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 
+import RefreshControl from '@/components/common/RefreshControl';
 import DetailsHeader from '@/components/details/DetailsHeader';
 import { screenStyle } from '@/styles';
 import type { ListItemConfig, ListItemWithStatusProps } from '@/types/lists';
@@ -11,6 +12,8 @@ interface DetailsViewProps<T extends object> {
   children: React.ReactNode;
   headerTitleTestId?: string;
   headerStatusTestId?: string;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const DetailsView = <T extends object>({
@@ -19,6 +22,8 @@ const DetailsView = <T extends object>({
   children,
   headerTitleTestId,
   headerStatusTestId,
+  onRefresh,
+  isRefreshing,
 }: DetailsViewProps<T>) => {
   const header: ListItemWithStatusProps = mapToListItemProps(
     data as Record<string, unknown>,
@@ -37,7 +42,16 @@ const DetailsView = <T extends object>({
         headerStatusTestId={headerStatusTestId}
       />
 
-      <ScrollView style={styles.container}>{children}</ScrollView>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
+          ) : undefined
+        }
+      >
+        {children}
+      </ScrollView>
     </View>
   );
 };

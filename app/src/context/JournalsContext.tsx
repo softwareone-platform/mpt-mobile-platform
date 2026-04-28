@@ -12,6 +12,8 @@ interface JournalsContextValue {
   journalsError: boolean;
   isUnauthorised: boolean;
   fetchJournals: () => void;
+  refetchJournals: () => void;
+  isJournalsRefetching: boolean;
 }
 
 const JournalsContext = createContext<JournalsContextValue | undefined>(undefined);
@@ -30,6 +32,8 @@ export const JournalsProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useJournalsData(userId, currentAccountId);
 
   const journals = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -43,8 +47,20 @@ export const JournalsProvider = ({ children }: { children: ReactNode }) => {
       journalsError: isError,
       isUnauthorised,
       fetchJournals: fetchNextPage,
+      refetchJournals: refetch,
+      isJournalsRefetching: isRefetching,
     }),
-    [journals, isLoading, isFetchingNextPage, hasNextPage, isError, isUnauthorised, fetchNextPage],
+    [
+      journals,
+      isLoading,
+      isFetchingNextPage,
+      hasNextPage,
+      isError,
+      isUnauthorised,
+      fetchNextPage,
+      refetch,
+      isRefetching,
+    ],
   );
 
   return <JournalsContext.Provider value={value}>{children}</JournalsContext.Provider>;

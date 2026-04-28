@@ -10,8 +10,17 @@ import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const VendorsScreenContent = () => {
-  const { items, isLoading, isError, isFetchingNext, hasMore, isUnauthorised, fetchNextPage } =
-    useVendors();
+  const {
+    items,
+    isLoading,
+    isError,
+    isFetchingNext,
+    hasMore,
+    isUnauthorised,
+    fetchNextPage,
+    refetch,
+    isRefetching,
+  } = useVendors();
 
   const { t } = useTranslation();
 
@@ -35,6 +44,8 @@ const VendorsScreenContent = () => {
         hasMore={hasMore}
         fetchNext={fetchNextPage}
         config={listItemConfigFull}
+        onRefresh={refetch}
+        isRefreshing={isRefetching}
         onItemPress={(id) => {
           navigation.navigate('accountDetails', {
             id,

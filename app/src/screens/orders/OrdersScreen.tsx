@@ -20,6 +20,8 @@ const OrdersScreenContent = () => {
     hasMoreOrders,
     isUnauthorised,
     fetchOrders,
+    refetchOrders,
+    isOrdersRefetching,
   } = useOrders();
 
   const { t } = useTranslation();
@@ -44,6 +46,8 @@ const OrdersScreenContent = () => {
         hasMore={hasMoreOrders}
         fetchNext={fetchOrders}
         config={listItemConfigNoImageNoSubtitle}
+        onRefresh={refetchOrders}
+        isRefreshing={isOrdersRefetching}
         onItemPress={(id) => {
           navigation.navigate('orderDetails', { id });
         }}

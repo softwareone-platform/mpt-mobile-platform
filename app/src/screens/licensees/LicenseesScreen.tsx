@@ -20,6 +20,8 @@ const LicenseesScreenContent = () => {
     hasMoreLicensees,
     isUnauthorised,
     fetchLicenseesNextPage,
+    refetchLicensees,
+    isLicenseesRefetching,
   } = useLicensees();
 
   const { t } = useTranslation();
@@ -44,6 +46,8 @@ const LicenseesScreenContent = () => {
         hasMore={hasMoreLicensees}
         fetchNext={fetchLicenseesNextPage}
         config={listItemConfigFull}
+        onRefresh={refetchLicensees}
+        isRefreshing={isLicenseesRefetching}
         onItemPress={(id) => {
           navigation.navigate('licenseeDetails', {
             id,

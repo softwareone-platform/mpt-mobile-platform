@@ -20,7 +20,7 @@ const ProgramDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useProgramDetailsData(
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useProgramDetailsData(
     id,
     userId,
     currentAccountId,
@@ -44,6 +44,8 @@ const ProgramDetailsScreen = () => {
           config={listItemConfigFull}
           headerTitleTestId={TestIDs.PROGRAM_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.PROGRAM_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <ProgramDetailsContent data={data} />
         </DetailsView>

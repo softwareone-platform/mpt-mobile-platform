@@ -12,6 +12,8 @@ interface BuyersContextValue {
   isBuyersError: boolean;
   isUnauthorised: boolean;
   fetchBuyersNextPage: () => void;
+  refetchBuyers: () => void;
+  isBuyersRefetching: boolean;
 }
 
 interface BuyerProviderProps {
@@ -35,6 +37,8 @@ export const BuyersProvider = ({ children, query }: BuyerProviderProps) => {
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useBuyersData(userId, currentAccountId, query);
 
   const buyers = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -49,6 +53,8 @@ export const BuyersProvider = ({ children, query }: BuyerProviderProps) => {
         isBuyersError: isError,
         isUnauthorised,
         fetchBuyersNextPage: fetchNextPage,
+        refetchBuyers: refetch,
+        isBuyersRefetching: isRefetching,
       }}
     >
       {children}

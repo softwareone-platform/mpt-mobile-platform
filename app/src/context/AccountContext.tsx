@@ -22,12 +22,16 @@ interface AccountContextValue {
   accountsFetchingNext: boolean;
   hasMoreAccounts: boolean;
   fetchNextAccounts: () => void;
+  refetchAccounts: () => void;
+  isAccountsRefetching: boolean;
   spotlightData: Record<string, SpotlightItem[]>;
   isSpotlightError: boolean;
   isSpotlightDataLoading: boolean;
   isSwitchingAccount: boolean;
   pendingAccountId: string | null;
   switchAccount: (accountId: string) => Promise<void>;
+  refetchSpotlight: () => void;
+  isSpotlightRefetching: boolean;
 }
 
 const AccountContext = createContext<AccountContextValue | undefined>(undefined);
@@ -52,18 +56,25 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     isLoading: isSpotlightDataLoading,
     isError: isSpotlightError,
     fetchStatus,
+    refetch: refetchSpotlight,
+    isRefetching: isSpotlightRefetching,
   } = useSpotlightData(userId);
 
   const spotlightData = spotlightDataRaw ?? {};
 
+  // Suppress the full-screen loader during user-initiated pull-to-refresh so only the spinner shows.
   const isSpotlightLoading =
-    isUserDataLoading || isSpotlightDataLoading || fetchStatus === 'fetching';
+    isUserDataLoading ||
+    isSpotlightDataLoading ||
+    (fetchStatus === 'fetching' && !isSpotlightRefetching);
 
   const {
     data: userAccountsPages,
     isFetchingNextPage: accountsFetchingNext,
     hasNextPage: hasMoreAccounts,
     fetchNextPage: fetchNextAccounts,
+    refetch: refetchAccounts,
+    isRefetching: isAccountsRefetching,
   } = useUserAccountsData(userId);
 
   const userAccountsData = useMemo(() => {
@@ -114,12 +125,16 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         accountsFetchingNext,
         hasMoreAccounts: hasMoreAccounts ?? false,
         fetchNextAccounts,
+        refetchAccounts,
+        isAccountsRefetching,
         spotlightData,
         isSpotlightError,
         isSpotlightDataLoading: isSpotlightLoading,
         isSwitchingAccount,
         pendingAccountId,
         switchAccount,
+        refetchSpotlight,
+        isSpotlightRefetching,
       }}
     >
       {children}
