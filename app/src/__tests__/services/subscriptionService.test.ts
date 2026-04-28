@@ -321,3 +321,109 @@ describe('useSubscriptionApi - getSubscriptions with optional query', () => {
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
   });
 });
+
+describe('useSubscriptionApi - getSubscriptionsForOrder', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const mockOrderId = 'ORD-1234';
+
+  const expectedBaseUrl =
+    `/v1/commerce/orders/${mockOrderId}/subscriptions` + `?select=parameters` + `&order=-name`;
+
+  it('calls getSubscriptionsForOrder with default offset and limit', async () => {
+    const api = setup();
+
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 0,
+        },
+      },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSubscriptionsForOrder(mockOrderId, undefined, undefined);
+    });
+
+    const expectedUrl =
+      expectedBaseUrl + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('calls getSubscriptionsForOrder with custom offset and limit', async () => {
+    const api = setup();
+
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
+      $meta: {
+        pagination: {
+          offset: 20,
+          limit: 10,
+          total: 50,
+        },
+      },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSubscriptionsForOrder(mockOrderId, 20, 10);
+    });
+
+    const expectedUrl = expectedBaseUrl + `&offset=20` + `&limit=10`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockResponse);
+  });
+
+  it('returns correct subscription data structure', async () => {
+    const api = setup();
+
+    const mockSubscription: ListItemNoImage = {
+      id: 'SUB-9999',
+      name: 'Order Subscription',
+      status: 'Active',
+    };
+
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
+      $meta: {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          total: 1,
+        },
+      },
+      data: [mockSubscription],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSubscriptionsForOrder(mockOrderId, 0, 10);
+    });
+
+    expect(res).toEqual(mockResponse);
+    expect(res!.data[0]).toMatchObject(mockSubscription);
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    const mockError = new Error('Network error');
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getSubscriptionsForOrder(mockOrderId, 0, 10)).rejects.toThrow('Network error');
+  });
+});

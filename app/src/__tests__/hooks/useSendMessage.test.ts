@@ -66,13 +66,18 @@ const mockResponse: Message = {
   audit: { created: { at: '2026-01-01T10:00:00Z', by: null } },
 };
 
-const setup = (overrides?: { chatId?: string | undefined; inputText?: string }) =>
+const setup = (overrides?: {
+  chatId?: string | undefined;
+  inputText?: string;
+  visibility?: 'Public' | 'Private';
+}) =>
   renderHook(() =>
     useSendMessage({
       chatId: overrides && 'chatId' in overrides ? overrides.chatId : chatId,
       inputText: overrides?.inputText ?? inputText,
       setInputText,
       onBeforeSend,
+      visibility: overrides?.visibility ?? 'Public',
     }),
   );
 

@@ -28,6 +28,24 @@ export function useSubscriptionApi() {
     [api],
   );
 
+  const getSubscriptionsForOrder = useCallback(
+    async (
+      orderId: string,
+      offset: number = DEFAULT_OFFSET,
+      limit: number = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedResponse<ListItemNoImage>> => {
+      const endpoint =
+        `/v1/commerce/orders/${orderId}/subscriptions` +
+        `?select=parameters` +
+        `&order=-name` +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
+
+      return api.get<PaginatedResponse<ListItemNoImage>>(endpoint);
+    },
+    [api],
+  );
+
   const getSubscriptionData = useCallback(
     async (subscriptionId: string): Promise<SubscriptionData> => {
       const endpoint =
@@ -44,8 +62,9 @@ export function useSubscriptionApi() {
   return useMemo(
     () => ({
       getSubscriptions,
+      getSubscriptionsForOrder,
       getSubscriptionData,
     }),
-    [getSubscriptions, getSubscriptionData],
+    [getSubscriptions, getSubscriptionsForOrder, getSubscriptionData],
   );
 }

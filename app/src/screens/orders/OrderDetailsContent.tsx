@@ -3,10 +3,15 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import CardWithHeader from '@/components/card/CardWithHeader';
+import NavigationGroupCard from '@/components/card/NavigationGroupCard';
 import DetailsListItem from '@/components/list-item/DetailsListItem';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
+import NavigationItem from '@/components/navigation-item/NavigationItem';
+import { getOrderSubList } from '@/config/subListsNavigation';
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccountType } from '@/hooks/useAccountType';
+import { useSubListNavigation } from '@/hooks/useSubListNavigation';
+import type { AccountType } from '@/types/common';
 import type { RootStackParamList } from '@/types/navigation';
 import type { OrderDetails } from '@/types/order';
 import { formatPercentage } from '@/utils/formatting';
@@ -18,6 +23,7 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { accountType, isVendor, isClient, isOperations } = useAccountType();
+  const { navigateToSubListItem } = useSubListNavigation();
 
   const labelUp = t('details.up');
   const labelDown = t('details.down');
@@ -31,92 +37,112 @@ const OrderDetailsContent = ({ data }: { data: OrderDetails }) => {
   const defaultMargin = calculateMarginWithMarkup(data.price.defaultMarkup || 0);
   const formattedDefaultMargin = `${formatPercentage(defaultMargin, 2) || EMPTY_VALUE} ${labelDown}`;
 
-  return (
-    <CardWithHeader title={t(`details.title`)}>
-      <ListItemWithLabelAndText title={t(`details.type`)} subtitle={data.type} />
-      <DetailsListItem
-        label={t(`details.agreement`)}
-        data={data.agreement}
-        hideImage={true}
-        onPress={() => {
-          navigation.navigate('agreementDetails', {
-            id: data.agreement?.id,
-          });
-        }}
-      />
-      <DetailsListItem
-        label={t(`details.product`)}
-        data={data.product}
-        onPress={() => {
-          navigation.navigate('productDetails', {
-            id: data.product?.id,
-          });
-        }}
-      />
-      {!isVendor && (
-        <DetailsListItem
-          label={t(`details.vendor`)}
-          data={data.vendor}
-          onPress={
-            canNavigateTo('vendorAccount', accountType)
-              ? () => {
-                  navigation.navigate('accountDetails', {
-                    id: data.vendor?.id,
-                    type: 'vendor',
-                  });
-                }
-              : undefined
-          }
-        />
-      )}
-      {!isClient && (
-        <DetailsListItem
-          label={t(`details.client`)}
-          data={data.client}
-          onPress={
-            canNavigateTo('clientAccount', accountType)
-              ? () => {
-                  navigation.navigate('accountDetails', {
-                    id: data.client?.id,
-                    type: 'client',
-                  });
-                }
-              : undefined
-          }
-        />
-      )}
-      <ListItemWithLabelAndText
-        title={t(`details.resale`)}
-        subtitle={data.licensee?.eligibility?.partner === undefined ? '' : labelResaleLicensee}
-      />
-      {isOperations && (
-        <ListItemWithLabelAndText
-          title={t(`details.averageYield`)}
-          subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
-        />
-      )}
-      {isOperations && (
-        <ListItemWithLabelAndText
-          title={t(`details.defaultYield`)}
-          subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
-        />
-      )}
+  const filteredSubList = getOrderSubList(data.id).filter((item) =>
+    item.roles.includes(accountType as AccountType),
+  );
 
-      <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
-      <DetailsListItem
-        label={t(`details.assignee`)}
-        data={data.assignee}
-        isLast={true}
-        // TODO: navigate to token details when token screen is available
-        onPress={
-          data.assignee?.id?.startsWith('TKN')
-            ? undefined
-            : () => {
-                navigation.navigate('userDetails', { id: data.assignee?.id });
-              }
-        }
-      />
-    </CardWithHeader>
+  return (
+    <>
+      <CardWithHeader title={t(`details.title`)}>
+        <ListItemWithLabelAndText title={t(`details.type`)} subtitle={data.type} />
+        <DetailsListItem
+          label={t(`details.agreement`)}
+          data={data.agreement}
+          hideImage={true}
+          onPress={() => {
+            navigation.navigate('agreementDetails', {
+              id: data.agreement?.id,
+            });
+          }}
+        />
+        <DetailsListItem
+          label={t(`details.product`)}
+          data={data.product}
+          onPress={() => {
+            navigation.navigate('productDetails', {
+              id: data.product?.id,
+            });
+          }}
+        />
+        {!isVendor && (
+          <DetailsListItem
+            label={t(`details.vendor`)}
+            data={data.vendor}
+            onPress={
+              canNavigateTo('vendorAccount', accountType)
+                ? () => {
+                    navigation.navigate('accountDetails', {
+                      id: data.vendor?.id,
+                      type: 'vendor',
+                    });
+                  }
+                : undefined
+            }
+          />
+        )}
+        {!isClient && (
+          <DetailsListItem
+            label={t(`details.client`)}
+            data={data.client}
+            onPress={
+              canNavigateTo('clientAccount', accountType)
+                ? () => {
+                    navigation.navigate('accountDetails', {
+                      id: data.client?.id,
+                      type: 'client',
+                    });
+                  }
+                : undefined
+            }
+          />
+        )}
+        <ListItemWithLabelAndText
+          title={t(`details.resale`)}
+          subtitle={data.licensee?.eligibility?.partner === undefined ? '' : labelResaleLicensee}
+        />
+        {isOperations && (
+          <ListItemWithLabelAndText
+            title={t(`details.averageYield`)}
+            subtitle={`${formattedAverageMarkup}    ${formattedAverageMargin}`}
+          />
+        )}
+        {isOperations && (
+          <ListItemWithLabelAndText
+            title={t(`details.defaultYield`)}
+            subtitle={`${formattedDefaultMarkup}    ${formattedDefaultMargin}`}
+          />
+        )}
+
+        <ListItemWithLabelAndText title={t(`details.currency`)} subtitle={data.price.currency} />
+        <DetailsListItem
+          label={t(`details.assignee`)}
+          data={data.assignee}
+          isLast={true}
+          // TODO: navigate to token details when token screen is available
+          onPress={
+            data.assignee?.id?.startsWith('TKN')
+              ? undefined
+              : () => {
+                  navigation.navigate('userDetails', { id: data.assignee?.id });
+                }
+          }
+        />
+      </CardWithHeader>
+      {filteredSubList.length > 0 && (
+        <NavigationGroupCard>
+          {filteredSubList.map((item, index) => (
+            <NavigationItem
+              key={item.name}
+              title={t(`navigation.tabs.${item.name}`)}
+              isLast={index === filteredSubList.length - 1}
+              onPress={() => {
+                navigateToSubListItem(item);
+              }}
+            />
+          ))}
+        </NavigationGroupCard>
+      )}
+    </>
   );
 };
 

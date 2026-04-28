@@ -28,7 +28,7 @@ import { useSendMessage } from '@/hooks/useSendMessage';
 import { useParticipantApi } from '@/services/participantService';
 import { screenStyle } from '@/styles';
 import { MESSAGE_VISIBILITY } from '@/types/chat';
-import type { Message } from '@/types/chat';
+import type { Message, MessageVisibility } from '@/types/chat';
 import type { RootStackParamList } from '@/types/navigation';
 import { isMessageHiddenForAccount, mapToChatListItemProps } from '@/utils/chat';
 import { TestIDs } from '@/utils/testID';
@@ -39,6 +39,7 @@ const KEYBOARD_ANIMATION_DURATION_MS = 280;
 
 const ChatConversationScreenContent = () => {
   const [inputText, setInputText] = useState('');
+  const [messageVisibility, setMessageVisibility] = useState<MessageVisibility>('Public');
   const [contentHeight, setContentHeight] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
   const [layoutReady, setLayoutReady] = useState(false);
@@ -205,7 +206,15 @@ const ChatConversationScreenContent = () => {
     scrollToBottomOnContentChangeRef.current = true;
   }, []);
 
-  const sendMessage = useSendMessage({ chatId, inputText, setInputText, onBeforeSend });
+  const sendMessage = useSendMessage({
+    chatId,
+    inputText,
+    setInputText,
+    onBeforeSend,
+    visibility: messageVisibility,
+  });
+
+  const showVisibilityToggle = accountType === 'Operations';
 
   return (
     <Animated.View style={[styles.container, { paddingBottom: keyboardPadding }]}>
@@ -256,7 +265,14 @@ const ChatConversationScreenContent = () => {
           }
         />
       </StatusMessage>
-      <ChatConversationFooter value={inputText} onChangeText={setInputText} onSend={sendMessage} />
+      <ChatConversationFooter
+        value={inputText}
+        onChangeText={setInputText}
+        onSend={sendMessage}
+        visibility={messageVisibility}
+        onVisibilityChange={setMessageVisibility}
+        showVisibilityToggle={showVisibilityToggle}
+      />
     </Animated.View>
   );
 };

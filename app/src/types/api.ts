@@ -214,3 +214,8 @@ export interface AccountDetails {
 export interface SsoStatus {
   status: 'enabled' | 'disabled';
 }
+
+export interface DataSource {
+  type: 'order';
+  id: string;
+}

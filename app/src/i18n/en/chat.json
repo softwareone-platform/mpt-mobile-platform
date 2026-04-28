@@ -9,7 +9,9 @@
   },
   "chat": {
     "messageInputPlaceholder": "Type a message",
-    "privateMessageIndicator": "Only my account"
+    "privateMessageIndicator": "Only my account",
+    "visibilityPublic": "Everyone in the chat",
+    "visibilityPrivate": "Only my account"
   },
   "createChatWizard": {
     "title": "Create chat",
