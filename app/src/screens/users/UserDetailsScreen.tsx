@@ -1,4 +1,5 @@
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
@@ -34,7 +35,14 @@ const UserDetailsScreen = () => {
     data: sso,
     isLoading: isSsoLoading,
     isError: isSsoError,
+    refetch: refetchSso,
+    isRefetching: isSsoRefetching,
   } = useSsoStatus(id, currentUserId, currentAccountId);
+
+  const handleRefresh = useCallback(() => {
+    void refetch();
+    void refetchSso();
+  }, [refetch, refetchSso]);
 
   return (
     <StatusMessage
@@ -54,8 +62,8 @@ const UserDetailsScreen = () => {
           config={listItemConfigFull}
           headerTitleTestId={TestIDs.USER_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.USER_DETAILS_HEADER_STATUS}
-          onRefresh={refetch}
-          isRefreshing={isRefetching}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefetching || isSsoRefetching}
         >
           <UserDetailsContent data={userDetails} sso={sso} />
         </DetailsView>

@@ -62,6 +62,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
   const spotlightData = spotlightDataRaw ?? {};
 
+  // Suppress the full-screen loader during user-initiated pull-to-refresh so only the spinner shows.
   const isSpotlightLoading =
     isUserDataLoading ||
     isSpotlightDataLoading ||
