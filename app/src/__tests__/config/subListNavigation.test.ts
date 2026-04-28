@@ -4,6 +4,7 @@ import {
   getAccountSubList,
   getBuyerSubList,
   getSubscriptionSubList,
+  getUserSubList,
 } from '@/config/subListsNavigation';
 
 describe('subListsNavigation (queries)', () => {
@@ -100,6 +101,17 @@ describe('subListsNavigation (queries)', () => {
         'Vendor',
         'Operations',
       ]);
+    });
+  });
+
+  describe('getUserSubList', () => {
+    it('returns accounts item with correct userId and roles', () => {
+      const result = getUserSubList(id);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('accounts');
+      expect(result[0].userId).toBe(id);
+      expect(result[0].roles).toEqual(['Operations']);
     });
   });
 });

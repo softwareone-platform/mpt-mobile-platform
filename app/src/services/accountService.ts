@@ -117,6 +117,24 @@ export function useAccountApi() {
     [api],
   );
 
+  const getAccountsForUser = useCallback(
+    async (
+      userId: string,
+      offset: number = DEFAULT_OFFSET,
+      limit: number = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedUserAccounts> => {
+      const endpoint =
+        `/v1/accounts/users/${userId}/accounts` +
+        `?select=groups,audit` +
+        `&order=name` +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
+
+      return api.get<PaginatedUserAccounts>(endpoint);
+    },
+    [api],
+  );
+
   const getClients = useCallback(
     async (
       offset: number = DEFAULT_OFFSET,
@@ -159,6 +177,7 @@ export function useAccountApi() {
       getCurrentAccountIcon,
       getAllUserAccounts,
       getUserAccountsData,
+      getAccountsForUser,
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,
@@ -171,6 +190,7 @@ export function useAccountApi() {
       getCurrentAccountIcon,
       getAllUserAccounts,
       getUserAccountsData,
+      getAccountsForUser,
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,
