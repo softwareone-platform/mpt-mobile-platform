@@ -1,7 +1,7 @@
-import type { ViewStyle, TextStyle } from 'react-native';
+import type { DimensionValue, ViewStyle, TextStyle } from 'react-native';
 import type { MixedStyleDeclaration } from 'react-native-render-html';
 
-import { BorderRadius, Color, Spacing, Typography } from '../tokens';
+import { BorderRadius, Color, Shadow, Spacing, Typography } from '../tokens';
 
 const SMALL_AVATAR_SIZE = 32;
 const AVATAR_OFFSET_HORIZONTAL = SMALL_AVATAR_SIZE + Spacing.spacing2;
@@ -55,6 +55,57 @@ export const chatStyle = {
     borderTopWidth: 1,
     borderColor: Color.gray.gray2,
     backgroundColor: Color.brand.white,
+  },
+  visibilityIconWrapper: {
+    position: 'absolute' as const,
+    right: Spacing.spacingSmall4,
+    bottom: Spacing.spacingSmall6,
+  },
+  inputWithToggle: {
+    paddingRight: Spacing.spacing4,
+  },
+} as const;
+
+export const visibilityDropdownStyle = {
+  backdrop: {
+    position: 'absolute' as const,
+    top: -9999,
+    bottom: -9999,
+    left: -9999,
+    right: -9999,
+  } as ViewStyle,
+  dropdownInline: {
+    position: 'absolute' as const,
+    bottom: '100%' as DimensionValue,
+    right: -(Spacing.spacing2 + Spacing.spacing4 + Spacing.spacingSmall12),
+    marginBottom: Spacing.spacingSmall10,
+    backgroundColor: Color.brand.white,
+    borderRadius: BorderRadius.sm,
+    ...Shadow.md,
+    paddingVertical: Spacing.spacing1,
+    minWidth: 200,
+  } as ViewStyle,
+  option: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    paddingVertical: Spacing.spacingSmall4,
+    paddingHorizontal: Spacing.spacing2,
+  } as ViewStyle,
+  optionSelected: {
+    backgroundColor: Color.alerts.info1,
+  } as ViewStyle,
+  optionText: {
+    fontSize: Typography.fontSize.font2,
+    color: Color.brand.type,
+  } as TextStyle,
+  optionIcon: {
+    size: Typography.fontSize.font6,
+    color: Color.brand.primary,
+  } as const,
+  tickIcon: {
+    size: Typography.fontSize.font6,
+    color: Color.brand.primary,
   },
 } as const;
 

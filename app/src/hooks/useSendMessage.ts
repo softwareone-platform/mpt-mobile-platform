@@ -7,13 +7,14 @@ import { useMessages } from '@/context/MessagesContext';
 import { trackEvent } from '@/hooks/useTrackEvent';
 import { logger } from '@/services/loggerService';
 import { useMessageApi } from '@/services/messageService';
-import type { Message } from '@/types/chat';
+import type { Message, MessageVisibility } from '@/types/chat';
 
 interface UseSendMessageParams {
   chatId: string | undefined;
   inputText: string;
   setInputText: (text: string) => void;
   onBeforeSend: () => void;
+  visibility: MessageVisibility;
 }
 
 export function useSendMessage({
@@ -21,6 +22,7 @@ export function useSendMessage({
   inputText,
   setInputText,
   onBeforeSend,
+  visibility,
 }: UseSendMessageParams) {
   const { userData } = useAccount();
   const { addOptimisticMessage, replaceOptimisticMessage, markMessageFailed } = useMessages();
@@ -39,6 +41,8 @@ export function useSendMessage({
   setInputTextRef.current = setInputText;
   const onBeforeSendRef = useRef(onBeforeSend);
   onBeforeSendRef.current = onBeforeSend;
+  const visibilityRef = useRef(visibility);
+  visibilityRef.current = visibility;
 
   return useCallback(async () => {
     const content = inputTextRef.current.trim().replace(/\n/g, '\n\n');
@@ -50,7 +54,7 @@ export function useSendMessage({
       id: optimisticId,
       revision: 0,
       content,
-      visibility: 'Public',
+      visibility: visibilityRef.current,
       isDeleted: false,
       links: [],
       identity: { id: currentUserId, name: userName, icon: userIcon, revision: 0 },
@@ -66,7 +70,7 @@ export function useSendMessage({
     try {
       const response = await saveMessage({
         content,
-        visibility: 'Public',
+        visibility: visibilityRef.current,
         isDeleted: false,
         links: [],
       });
