@@ -100,11 +100,11 @@ export const visibilityDropdownStyle = {
     color: Color.brand.type,
   } as TextStyle,
   optionIcon: {
-    size: Typography.fontSize.font3,
+    size: Typography.fontSize.font6,
     color: Color.brand.primary,
   } as const,
   tickIcon: {
-    size: Typography.fontSize.font3,
+    size: Typography.fontSize.font6,
     color: Color.brand.primary,
   },
 } as const;
