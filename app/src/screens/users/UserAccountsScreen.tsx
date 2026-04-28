@@ -20,8 +20,17 @@ const userAccountListConfig: ListItemConfig = {
 type UserAccountsScreenRouteProp = RouteProp<RootStackParamList, 'accounts'>;
 
 const UserAccountsScreenContent = () => {
-  const { accounts, isLoading, isError, isFetchingNext, hasMore, isUnauthorised, fetchNextPage } =
-    useUserAccounts();
+  const {
+    accounts,
+    isLoading,
+    isError,
+    isFetchingNext,
+    hasMore,
+    isUnauthorised,
+    fetchNextPage,
+    refetch,
+    isRefetching,
+  } = useUserAccounts();
 
   const { t } = useTranslation();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -44,6 +53,8 @@ const UserAccountsScreenContent = () => {
         hasMore={hasMore}
         fetchNext={fetchNextPage}
         config={userAccountListConfig}
+        onRefresh={refetch}
+        isRefreshing={isRefetching}
         onItemPress={(id) => {
           const account = accounts.find((a) => a.id === id);
           const rawType = account?.type?.toLowerCase();

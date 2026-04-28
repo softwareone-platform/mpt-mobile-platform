@@ -11,6 +11,8 @@ interface UserAccountsContextValue {
   isError: boolean;
   isUnauthorised: boolean;
   fetchNextPage: () => void;
+  refetch: () => void;
+  isRefetching: boolean;
 }
 
 const UserAccountsContext = createContext<UserAccountsContextValue | undefined>(undefined);
@@ -29,6 +31,8 @@ export const UserAccountsProvider = ({ children, userId }: UserAccountsProviderP
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useUserAccountsData(userId);
 
   const accounts = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -42,8 +46,20 @@ export const UserAccountsProvider = ({ children, userId }: UserAccountsProviderP
       isError,
       isUnauthorised,
       fetchNextPage,
+      refetch,
+      isRefetching,
     }),
-    [accounts, isLoading, isFetchingNextPage, hasNextPage, isError, isUnauthorised, fetchNextPage],
+    [
+      accounts,
+      isLoading,
+      isFetchingNextPage,
+      hasNextPage,
+      isError,
+      isUnauthorised,
+      fetchNextPage,
+      refetch,
+      isRefetching,
+    ],
   );
 
   return <UserAccountsContext.Provider value={value}>{children}</UserAccountsContext.Provider>;
