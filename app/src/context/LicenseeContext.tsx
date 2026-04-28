@@ -12,6 +12,8 @@ interface LicenseeContextValue {
   isLicenseesError: boolean;
   isUnauthorised: boolean;
   fetchLicenseesNextPage: () => void;
+  refetchLicensees: () => void;
+  isLicenseesRefetching: boolean;
 }
 
 const LicenseeContext = createContext<LicenseeContextValue | undefined>(undefined);
@@ -35,6 +37,8 @@ export const LicenseeProvider = ({ children, query }: LicenseeProviderProps) => 
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useLicenseesData(userId, currentAccountId, query);
 
   const licensees = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -49,6 +53,8 @@ export const LicenseeProvider = ({ children, query }: LicenseeProviderProps) => 
         isLicenseesError: isError,
         isUnauthorised,
         fetchLicenseesNextPage: fetchNextPage,
+        refetchLicensees: refetch,
+        isLicenseesRefetching: isRefetching,
       }}
     >
       {children}

@@ -23,6 +23,8 @@ const BuyersScreenContent = () => {
     hasMoreBuyers,
     isUnauthorised,
     fetchBuyersNextPage,
+    refetchBuyers,
+    isBuyersRefetching,
   } = useBuyers();
 
   const { t } = useTranslation();
@@ -63,6 +65,8 @@ const BuyersScreenContent = () => {
         hasMore={hasMoreBuyers}
         fetchNext={fetchBuyersNextPage}
         config={listItemConfigFull}
+        onRefresh={refetchBuyers}
+        isRefreshing={isBuyersRefetching}
         onItemPress={(id) => {
           navigation.navigate('buyerDetails', {
             id,

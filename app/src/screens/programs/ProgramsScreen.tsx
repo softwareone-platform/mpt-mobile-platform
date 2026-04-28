@@ -18,6 +18,8 @@ const ProgramsScreenContent = () => {
     hasMorePrograms,
     isUnauthorised,
     fetchPrograms,
+    refetchPrograms,
+    isProgramsRefetching,
   } = usePrograms();
 
   const { t } = useTranslation();
@@ -42,6 +44,8 @@ const ProgramsScreenContent = () => {
         hasMore={hasMorePrograms}
         fetchNext={fetchPrograms}
         config={listItemConfigFull}
+        onRefresh={refetchPrograms}
+        isRefreshing={isProgramsRefetching}
         onItemPress={(id) => {
           navigation.navigate('programDetails', { id });
         }}

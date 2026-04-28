@@ -20,11 +20,8 @@ const SubscriptionDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useSubscriptionDetailsData(
-    id,
-    userId,
-    currentAccountId,
-  );
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
+    useSubscriptionDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -44,6 +41,8 @@ const SubscriptionDetailsScreen = () => {
           config={listItemConfigNoImage}
           headerTitleTestId={TestIDs.SUBSCRIPTION_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.SUBSCRIPTION_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <SubscriptionDetailsContent data={data} />
         </DetailsView>

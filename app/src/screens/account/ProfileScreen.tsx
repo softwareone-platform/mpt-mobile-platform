@@ -8,6 +8,7 @@ import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import CardHeader from '@/components/card/CardHeader';
 import CardWithHeader from '@/components/card/CardWithHeader';
 import EmptyState from '@/components/common/EmptyState';
+import RefreshControl from '@/components/common/RefreshControl';
 import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import Tabs, { TabData } from '@/components/tabs/Tabs';
@@ -38,6 +39,8 @@ const ProfileScreen = () => {
     accountsFetchingNext,
     hasMoreAccounts,
     fetchNextAccounts,
+    refetchAccounts,
+    isAccountsRefetching,
   } = useAccount();
   const { isEnabled } = useFeatureFlags();
 
@@ -209,6 +212,9 @@ const ProfileScreen = () => {
       ListFooterComponent={listFooter}
       onEndReached={handleEndReached}
       onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
+      refreshControl={
+        <RefreshControl refreshing={isAccountsRefetching} onRefresh={refetchAccounts} />
+      }
     />
   );
 };

@@ -22,6 +22,8 @@ const UsersScreenContent = ({ showAccounts }: { showAccounts: boolean }) => {
     hasMoreUsers,
     isUnauthorised,
     fetchUsers,
+    refetchUsers,
+    isUsersRefetching,
   } = useUsers();
 
   const { t } = useTranslation();
@@ -46,6 +48,8 @@ const UsersScreenContent = ({ showAccounts }: { showAccounts: boolean }) => {
         hasMore={hasMoreUsers}
         fetchNext={fetchUsers}
         config={listItemConfigFull}
+        onRefresh={refetchUsers}
+        isRefreshing={isUsersRefetching}
         onItemPress={(id) => {
           navigation.navigate('userDetails', {
             id,

@@ -12,6 +12,8 @@ interface ProgramContextValue {
   programsError: boolean;
   isUnauthorised: boolean;
   fetchPrograms: () => void;
+  refetchPrograms: () => void;
+  isProgramsRefetching: boolean;
 }
 
 const ProgramContext = createContext<ProgramContextValue | undefined>(undefined);
@@ -30,6 +32,8 @@ export const ProgramProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useProgramsData(userId, currentAccountId);
 
   const programs = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -44,6 +48,8 @@ export const ProgramProvider = ({ children }: { children: ReactNode }) => {
         programsError: isError,
         isUnauthorised,
         fetchPrograms: fetchNextPage,
+        refetchPrograms: refetch,
+        isProgramsRefetching: isRefetching,
       }}
     >
       {children}

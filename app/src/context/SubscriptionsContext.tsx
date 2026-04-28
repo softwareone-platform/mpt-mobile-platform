@@ -12,6 +12,8 @@ interface SubscriptionsContextValue {
   subscriptionsError: boolean;
   isUnauthorised: boolean;
   fetchSubscriptions: () => void;
+  refetchSubscriptions: () => void;
+  isSubscriptionsRefetching: boolean;
 }
 
 interface SubscriptionProviderProps {
@@ -36,6 +38,8 @@ export const SubscriptionsProvider = ({ children, query, source }: SubscriptionP
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useSubscriptionsData(userId, currentAccountId, query, source);
 
   const subscriptions = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -50,6 +54,8 @@ export const SubscriptionsProvider = ({ children, query, source }: SubscriptionP
         subscriptionsError: isError,
         isUnauthorised,
         fetchSubscriptions: fetchNextPage,
+        refetchSubscriptions: refetch,
+        isSubscriptionsRefetching: isRefetching,
       }}
     >
       {children}

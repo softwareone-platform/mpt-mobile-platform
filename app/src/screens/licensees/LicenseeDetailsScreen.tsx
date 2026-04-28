@@ -20,11 +20,8 @@ const LicenseeDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useLicenseeDetailsData(
-    id,
-    userId,
-    currentAccountId,
-  );
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
+    useLicenseeDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -44,6 +41,8 @@ const LicenseeDetailsScreen = () => {
           config={listItemConfigFull}
           headerTitleTestId={TestIDs.LICENSEE_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.LICENSEE_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <LicenseeDetailsContent data={data} />
         </DetailsView>

@@ -12,6 +12,8 @@ interface EnrollmentContextValue {
   isEnrollmentsError: boolean;
   isUnauthorised: boolean;
   fetchEnrollmentsNextPage: () => void;
+  refetchEnrollments: () => void;
+  isEnrollmentsRefetching: boolean;
 }
 
 interface EnrollmentProviderProps {
@@ -35,6 +37,8 @@ export const EnrollmentProvider = ({ children, query }: EnrollmentProviderProps)
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useEnrollmentsData(userId, currentAccountId, query);
 
   const enrollments = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -49,6 +53,8 @@ export const EnrollmentProvider = ({ children, query }: EnrollmentProviderProps)
         isEnrollmentsError: isError,
         isUnauthorised,
         fetchEnrollmentsNextPage: fetchNextPage,
+        refetchEnrollments: refetch,
+        isEnrollmentsRefetching: isRefetching,
       }}
     >
       {children}

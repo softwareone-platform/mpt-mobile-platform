@@ -20,6 +20,8 @@ const EnrollmentsScreenContent = () => {
     hasMoreEnrollments,
     isUnauthorised,
     fetchEnrollmentsNextPage,
+    refetchEnrollments,
+    isEnrollmentsRefetching,
   } = useEnrollments();
 
   const { t } = useTranslation();
@@ -44,6 +46,8 @@ const EnrollmentsScreenContent = () => {
         hasMore={hasMoreEnrollments}
         fetchNext={fetchEnrollmentsNextPage}
         config={listItemConfigNoImageNoSubtitle}
+        onRefresh={refetchEnrollments}
+        isRefreshing={isEnrollmentsRefetching}
         onItemPress={(id) => {
           navigation.navigate('enrollmentDetails', { id });
         }}

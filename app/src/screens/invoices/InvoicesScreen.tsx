@@ -20,6 +20,8 @@ const InvoicesScreenContent = () => {
     hasMoreInvoices,
     isUnauthorised,
     fetchInvoices,
+    refetchInvoices,
+    isInvoicesRefetching,
   } = useInvoices();
 
   const { t } = useTranslation();
@@ -44,6 +46,8 @@ const InvoicesScreenContent = () => {
         hasMore={hasMoreInvoices}
         fetchNext={fetchInvoices}
         config={listItemConfigNoImageNoSubtitle}
+        onRefresh={refetchInvoices}
+        isRefreshing={isInvoicesRefetching}
         onItemPress={(id) => {
           navigation.navigate('invoiceDetails', {
             id,
