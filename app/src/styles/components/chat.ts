@@ -1,4 +1,4 @@
-import type { ViewStyle, TextStyle } from 'react-native';
+import type { DimensionValue, ViewStyle, TextStyle } from 'react-native';
 import type { MixedStyleDeclaration } from 'react-native-render-html';
 
 import { BorderRadius, Color, Shadow, Spacing, Typography } from '../tokens';
@@ -76,7 +76,7 @@ export const visibilityDropdownStyle = {
   } as ViewStyle,
   dropdownInline: {
     position: 'absolute' as const,
-    bottom: '100%' as unknown as number,
+    bottom: '100%' as DimensionValue,
     right: -(Spacing.spacing2 + Spacing.spacing4 + Spacing.spacingSmall12),
     marginBottom: Spacing.spacingSmall10,
     backgroundColor: Color.brand.white,
@@ -102,7 +102,7 @@ export const visibilityDropdownStyle = {
   optionIcon: {
     size: Typography.fontSize.font3,
     color: Color.brand.primary,
-  },
+  } as const,
   tickIcon: {
     size: Typography.fontSize.font3,
     color: Color.brand.primary,

@@ -12,8 +12,6 @@ type VisibilityDropdownProps = {
   onVisibilityChange: (visibility: MessageVisibility) => void;
 };
 
-const ICON_SIZE = 24;
-
 const VisibilityDropdown = ({ visibility, onVisibilityChange }: VisibilityDropdownProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -37,7 +35,7 @@ const VisibilityDropdown = ({ visibility, onVisibilityChange }: VisibilityDropdo
       <Pressable onPress={handleToggle}>
         <OutlinedIcon
           name={iconName as keyof typeof OutlinedIcons}
-          size={ICON_SIZE}
+          size={visibilityDropdownStyle.optionIcon.size}
           color={visibilityDropdownStyle.optionIcon.color}
         />
       </Pressable>
