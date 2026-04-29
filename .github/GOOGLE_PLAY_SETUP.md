@@ -249,7 +249,8 @@ Once verification is completed:
 2. Select **Android Google Play Deployment**
 3. Click **Run workflow**
 4. Configure:
-   - Version bump: `build` (safest for first test)
+   - Version bump: `none (build)` to test deployment without changing `expo.version`
+   - Use `patch`, `minor`, or `major` only when you intentionally want a semantic-version chore PR
    - Environment: `test`
 5. Click **Run workflow**
 6. Monitor the workflow (~20-30 minutes)
@@ -289,8 +290,9 @@ REVIEW_ENV_AUTH0_CLIENT_ID                 # Reviewer Auth0 client ID
 - Verify the service account email in Play Console → Users and permissions
 
 **Issue: "Upload failed 403: APK specifies a version code that has already been used"**
-- The versionCode in `app.config.js` must be higher than any previously uploaded build
-- Run the workflow with version bump `build` to increment the versionCode
+- Android `versionCode` is generated from `github.run_number + ANDROID_VERSION_CODE_OFFSET`
+- Confirm the generated value is higher than any versionCode already consumed in Google Play
+- If the Play Console floor is higher than the generated value, increase `ANDROID_VERSION_CODE_OFFSET` in `.github/workflows/android-google-play.yml` before retrying
 
 **Issue: "Upload failed 400: The Android App Bundle was not signed"**
 - Verify `ANDROID_KEYSTORE_BASE64` is correctly base64-encoded

@@ -456,6 +456,22 @@ jobs:
           BUILD="${{ steps.version.outputs.build }}"
           BRANCH_NAME="chore/version-bump-${VERSION}"
 
+          EXISTING_PR_URL=$(gh pr list \
+            --state open \
+            --head "$BRANCH_NAME" \
+            --json url \
+            --jq '.[0].url // ""')
+
+          if [ -n "$EXISTING_PR_URL" ]; then
+            echo "::notice::Version bump PR already exists for ${BRANCH_NAME}: ${EXISTING_PR_URL}"
+            exit 0
+          fi
+
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+            echo "::error::Remote branch ${BRANCH_NAME} exists but no open PR was found. Delete the stale branch or open a PR from it before rerunning."
+            exit 1
+          fi
+
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
