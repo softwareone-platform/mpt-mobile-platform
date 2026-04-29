@@ -2,31 +2,35 @@ const { expect } = require('@wdio/globals');
 
 const productsPage = require('../pageobjects/products.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Products Page', () => {
+  let api;
   let hasProductsData = false;
   let hasEmptyState = false;
   let apiProductsAvailable = false;
+  // Mirror the app's default query for consistent count/order comparison:
+  // ne(status,"Draft")&order=name are now built into api.getProducts() defaults.
   const uiProductQuery = {
     select: '-*,id,name,status,icon',
-    excludeDraft: true,
-    order: 'name',
   };
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     await productsPage.ensureProductsPage();
 
     hasProductsData = await productsPage.hasProducts();
     hasEmptyState =
       !hasProductsData && (await productsPage.emptyState.isDisplayed().catch(() => false));
-    apiProductsAvailable = !!process.env.API_OPS_TOKEN;
+    apiProductsAvailable = !!api;
 
     console.info(
       `Products data state: hasProducts=${hasProductsData}, emptyState=${hasEmptyState}, apiAvailable=${apiProductsAvailable}`,
@@ -177,7 +181,7 @@ describe('Products Page', () => {
 
       let apiProducts;
       try {
-        apiProducts = await apiClient.getProducts({ limit: 100, ...uiProductQuery });
+        apiProducts = await api.getProducts({ limit: 100, ...uiProductQuery });
       } catch (error) {
         console.warn('API count check skipped:', error.message);
         this.skip();
@@ -205,7 +209,7 @@ describe('Products Page', () => {
 
       let apiProducts;
       try {
-        apiProducts = await apiClient.getProducts({ limit: 10, offset: 0, ...uiProductQuery });
+        apiProducts = await api.getProducts({ limit: 10, offset: 0, ...uiProductQuery });
       } catch (error) {
         console.warn('API rows check skipped:', error.message);
         this.skip();
@@ -268,8 +272,12 @@ describe('Products Page', () => {
       }
 
       const uiIdSet = new Set(uiProductIds);
-      const firstMembershipMismatch = apiProductsList
+      // Only check Published products: the OPS token has broader access and may return
+      // Unpublished products that are not visible to the buyer account in the UI.
+      const publishedApiProducts = apiProductsList
         .slice(0, compareCount)
+        .filter((apiProduct) => apiProduct.status === 'Published');
+      const firstMembershipMismatch = publishedApiProducts
         .find((apiProduct) => !uiIdSet.has(apiProduct.id));
       if (firstMembershipMismatch) {
         console.error('API/UI fallback membership mismatch:', {
@@ -282,7 +290,7 @@ describe('Products Page', () => {
         });
       }
 
-      for (const apiProduct of apiProductsList.slice(0, compareCount)) {
+      for (const apiProduct of publishedApiProducts) {
         expect(uiIdSet.has(apiProduct.id)).toBe(true);
       }
     });

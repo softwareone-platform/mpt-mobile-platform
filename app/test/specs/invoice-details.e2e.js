@@ -4,14 +4,16 @@ const invoiceDetailsPage = require('../pageobjects/invoice-details.page');
 const invoicesPage = require('../pageobjects/invoices.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 // E2E tests for Invoice Details Page, modeled after agreement-details.e2e.js
 // API call: apiClient.getInvoiceById(invoiceId)
 
 describe('Invoice Details Page', () => {
+  let api;
   let hasInvoicesData = false;
   let apiAvailable = false;
   let testInvoiceId = null;
@@ -20,9 +22,11 @@ describe('Invoice Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     // Navigate to Invoices page via More menu
     await invoicesPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
@@ -39,7 +43,7 @@ describe('Invoice Details Page', () => {
     await invoicesPage.waitForScreenReady();
 
     hasInvoicesData = await invoicesPage.hasInvoices();
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     if (hasInvoicesData) {
       const invoiceIds = await invoicesPage.getVisibleInvoiceIds();
@@ -48,7 +52,7 @@ describe('Invoice Details Page', () => {
       // Pre-fetch API data for validation tests
       if (apiAvailable && testInvoiceId) {
         try {
-          apiInvoiceData = await apiClient.getInvoiceById(testInvoiceId);
+          apiInvoiceData = await api.getInvoiceById(testInvoiceId);
           console.info(`📊 Pre-fetched API data for invoice: ${testInvoiceId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);

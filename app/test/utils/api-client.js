@@ -1,16 +1,28 @@
 const https = require('https');
-const { API_BASE_URL, API_OPS_TOKEN } = require('./env');
+const { API_BASE_URL, API_OPS_TOKEN, API_CLIENT_TOKEN, API_VENDOR_TOKEN, CLIENT_ACCOUNT_ID } = require('./env');
 const { STATUSES } = require('../pageobjects/utils/constants');
 
 const sharedAgent = new https.Agent({ keepAlive: true, maxSockets: 6 });
 
-class ApiClient {
-  constructor() {
-    this.baseUrl = API_BASE_URL;
-    this.opsToken = API_OPS_TOKEN;
+/**
+ * Token propagation wait time in milliseconds.
+ * Newly created API tokens need ~60 seconds to propagate across the platform
+ * before they can be used for API calls.
+ */
+const TOKEN_PROPAGATION_WAIT_MS = 60000;
 
-    if (!this.opsToken) {
-      console.warn('⚠️  API_OPS_TOKEN not set in .env - API calls will fail');
+/**
+ * Prefix for auto-created API tokens. Used to search for and reuse existing tokens.
+ */
+const TOKEN_NAME_PREFIX = 'mobile-e2e-setup';
+
+class ApiClient {
+  constructor(token) {
+    this.baseUrl = API_BASE_URL;
+    this.token = token || API_OPS_TOKEN;
+
+    if (!this.token) {
+      console.warn('⚠️  API token not set - API calls will fail');
     }
   }
 
@@ -47,7 +59,7 @@ class ApiClient {
       agent: sharedAgent,
       headers: {
         'accept': 'application/json',
-        'authorization': `Bearer ${this.opsToken}`,
+        'authorization': `Bearer ${this.token}`,
         'request-context': 'appId=cid-v1:MobileAutomation',
         'content-type': 'application/json',
       },
@@ -89,14 +101,14 @@ class ApiClient {
   // ========== User Information Methods ==========
 
   /**
-   * Get the user ID (USR-XXXX-XXXX) from the API_OPS_TOKEN JWT claims.
+   * Get the user ID (USR-XXXX-XXXX) from the token's JWT claims.
    * Decodes the JWT payload without verification to extract the userId claim.
    * @returns {string|null} - User ID or null if not found/invalid
    */
   getTokenUserId() {
-    if (!this.opsToken) return null;
+    if (!this.token) return null;
     try {
-      const parts = this.opsToken.split('.');
+      const parts = this.token.split('.');
       if (parts.length !== 3) return null;
       const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
       return payload['https://claims.softwareone.com/userId'] || null;
@@ -167,14 +179,14 @@ class ApiClient {
   async getOrders(options = {}) {
     let endpoint = '/public/v1/commerce/orders';
     
-    const queryParams = [];
+    // Match app's default query: filter by buyer group and sort by created date descending
+    // (mirrors orderService.ts: filter(group.buyers)&order=-audit.created.at)
+    const queryParams = ['filter(group.buyers)', 'order=-audit.created.at'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
     
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
+    endpoint += '?' + queryParams.join('&');
     
     return this.get(endpoint);
   }
@@ -251,7 +263,7 @@ class ApiClient {
   async getSubscriptions(options = {}) {
     let endpoint = '/public/v1/commerce/subscriptions';
     
-    const queryParams = [];
+    const queryParams = ['filter(group.buyers)'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
@@ -335,14 +347,13 @@ class ApiClient {
   async getInvoices(options = {}) {
     let endpoint = '/public/v1/billing/invoices';
 
-    const queryParams = [];
+    // Match app's default query (mirrors billingService.ts: filter(group.buyers)&order=-audit.created.at)
+    const queryParams = ['filter(group.buyers)', 'order=-audit.created.at'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
 
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
+    endpoint += '?' + queryParams.join('&');
 
     return this.get(endpoint);
   }
@@ -383,14 +394,13 @@ class ApiClient {
   async getCreditMemos(options = {}) {
     let endpoint = '/public/v1/billing/credit-memos';
 
-    const queryParams = [];
+    // Match app's default query (mirrors billingService.ts: filter(group.buyers)&order=-audit.created.at)
+    const queryParams = ['filter(group.buyers)', 'order=-audit.created.at'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
 
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
+    endpoint += '?' + queryParams.join('&');
 
     return this.get(endpoint);
   }
@@ -449,14 +459,13 @@ class ApiClient {
   async getStatements(options = {}) {
     let endpoint = '/public/v1/billing/statements';
 
-    const queryParams = [];
+    // Match app's default query (mirrors billingService.ts: filter(group.buyers)&order=-audit.created.at)
+    const queryParams = ['filter(group.buyers)', 'order=-audit.created.at'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
 
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
+    endpoint += '?' + queryParams.join('&');
 
     return this.get(endpoint);
   }
@@ -507,7 +516,8 @@ class ApiClient {
   async getJournals(options = {}) {
     let endpoint = '/public/v1/billing/journals';
 
-    const queryParams = ['select=audit', 'order=-audit.created.at'];
+    // Match app's default query (mirrors billingService.ts: ne(status,"Deleted")&order=-audit.created.at)
+    const queryParams = ['ne(status,"Deleted")', 'order=-audit.created.at'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
 
@@ -562,14 +572,20 @@ class ApiClient {
   async getAgreements(options = {}) {
     let endpoint = '/public/v1/commerce/agreements';
     
-    const queryParams = [];
+    // Match app's default query (mirrors agreementService.ts):
+    // filter(group.buyers) - scoped to buyer group
+    // and(ne(status,"Draft"),ne(status,"Failed")) - exclude Draft and Failed
+    // order=name - sorted by name alphabetically
+    const queryParams = [
+      'filter(group.buyers)',
+      'and(ne(status,"Draft"),ne(status,"Failed"))',
+      'order=name',
+    ];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
     
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
+    endpoint += '?' + queryParams.join('&');
     
     return this.get(endpoint);
   }
@@ -645,16 +661,15 @@ class ApiClient {
    */
   async getPrograms(options = {}) {
     let endpoint = '/public/v1/program/programs';
-    
-    const queryParams = [];
+
+    // Match app's default query (mirrors programService.ts: order=name)
+    const queryParams = ['order=name'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
-    
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
-    
+
+    endpoint += '?' + queryParams.join('&');
+
     return this.get(endpoint);
   }
 
@@ -714,26 +729,21 @@ class ApiClient {
    * @param {Object} options - Query parameters
    * @param {number} [options.limit] - Maximum number of products to return
    * @param {number} [options.offset] - Offset for pagination
-    * @param {string} [options.status] - Filter by product status (Published, Unpublished, Pending, Draft)
-    * @param {boolean} [options.excludeDraft] - Exclude products with Draft status (UI behavior)
-    * @param {string} [options.order] - Ordering expression (e.g., 'name')
-    * @param {string} [options.select] - Select projection expression (e.g., '-*,id,name,status,icon')
+   * @param {string} [options.status] - Filter by product status (Published, Unpublished, Pending, Draft)
+   * @param {string} [options.select] - Select projection expression (e.g., '-*,id,name,status,icon')
    * @returns {Promise<object>} - Products list response
    */
   async getProducts(options = {}) {
     let endpoint = '/public/v1/catalog/products';
 
-    const queryParams = [];
+    // Match app's default query (mirrors productService.ts: ne(status,"Draft")&order=name)
+    const queryParams = ['ne(status,"Draft")', 'order=name'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
-    if (options.excludeDraft) queryParams.push('ne(status,%22Draft%22)');
-    if (options.order) queryParams.push(`order=${encodeURIComponent(options.order)}`);
     if (options.select) queryParams.push(`select=${encodeURIComponent(options.select)}`);
 
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
+    endpoint += '?' + queryParams.join('&');
 
     return this.get(endpoint);
   }
@@ -791,16 +801,15 @@ class ApiClient {
    */
   async getEnrollments(options = {}) {
     let endpoint = '/public/v1/program/enrollments';
-    
-    const queryParams = [];
+
+    // Match app's default query (mirrors enrollmentService.ts: order=-id)
+    const queryParams = ['order=-id'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
-    
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
-    
+
+    endpoint += '?' + queryParams.join('&');
+
     return this.get(endpoint);
   }
 
@@ -962,16 +971,15 @@ class ApiClient {
    */
   async getBuyers(options = {}) {
     let endpoint = '/public/v1/accounts/buyers';
-    
-    const queryParams = [];
+
+    // Match app's default query (mirrors buyerService.ts: ne(status,"Deleted")&order=name)
+    const queryParams = ['ne(status,"Deleted")', 'order=name'];
     if (options.limit) queryParams.push(`limit=${options.limit}`);
     if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
     if (options.status) queryParams.push(`status=${options.status}`);
-    
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
-    
+
+    endpoint += '?' + queryParams.join('&');
+
     return this.get(endpoint);
   }
 
@@ -1366,7 +1374,187 @@ class ApiClient {
   }
 }
 
-// Export singleton instance
+// Export singleton instances per access level
 const apiClient = new ApiClient();
+const opsApiClient = apiClient;
 
-module.exports = { ApiClient, apiClient };
+// Client/vendor instances — initialized statically from env vars if provided,
+// or dynamically via initAccountTokens() at test setup time.
+let clientApiClient = API_CLIENT_TOKEN ? new ApiClient(API_CLIENT_TOKEN) : null;
+let vendorApiClient = API_VENDOR_TOKEN ? new ApiClient(API_VENDOR_TOKEN) : null;
+
+/**
+ * Fetches default (free, non-paid) module IDs for a given account type from the API.
+ * These modules are required when creating an account-scoped API token.
+ *
+ * @param {ApiClient} client - An ApiClient with OPS-level authorization
+ * @param {'Client'|'Vendor'} accountType - The account type to fetch modules for
+ * @returns {Promise<string[]>} Array of module IDs
+ */
+async function fetchDefaultModules(client, accountType) {
+  const FALLBACK_MODULES = {
+    Client: ['MOD-0478', 'MOD-0622', 'MOD-1239', 'MOD-1756', 'MOD-4525', 'MOD-5842', 'MOD-6338', 'MOD-8352', 'MOD-9042'],
+    Vendor: ['MOD-0478', 'MOD-1239', 'MOD-1756', 'MOD-4525', 'MOD-5842', 'MOD-8352', 'MOD-8743', 'MOD-9042'],
+  };
+
+  try {
+    const response = await client.get('/public/v1/accounts/modules?select=accountTypes&limit=100');
+    const items = response.data || response;
+
+    if (!Array.isArray(items)) {
+      console.warn(`⚠️ [fetchDefaultModules] Unexpected response, using fallback modules`);
+      return FALLBACK_MODULES[accountType];
+    }
+
+    const moduleIds = items
+      .filter(m =>
+        m.accountTypes?.includes(accountType) &&
+        m.settings?.default === true &&
+        m.settings?.paid === false
+      )
+      .map(m => m.id);
+
+    if (moduleIds.length === 0) {
+      console.warn(`⚠️ [fetchDefaultModules] No modules found for ${accountType}, using fallback`);
+      return FALLBACK_MODULES[accountType];
+    }
+
+    console.info(`✅ [fetchDefaultModules] Found ${moduleIds.length} modules for ${accountType}`);
+    return moduleIds;
+  } catch (error) {
+    console.warn(`⚠️ [fetchDefaultModules] Failed: ${error.message}, using fallback modules`);
+    return FALLBACK_MODULES[accountType];
+  }
+}
+
+/**
+ * Gets or creates an account-scoped API token using the OPS token.
+ *
+ * This function is idempotent:
+ * 1. Searches for existing "mobile-e2e-setup-*" tokens for the account
+ * 2. If found, reuses the token (no propagation wait needed)
+ * 3. Only creates a new token if none exists (requires 60s propagation wait)
+ *
+ * @param {string} accountId - The ACC- ID to create a token for
+ * @param {'Client'|'Vendor'} accountType - Determines which modules the token gets
+ * @returns {Promise<{token: string|null, isNew: boolean}>}
+ */
+async function getOrCreateAccountToken(accountId, accountType) {
+  if (!API_OPS_TOKEN) {
+    console.warn(`⚠️ [getOrCreateAccountToken] API_OPS_TOKEN not set, cannot create ${accountType} token`);
+    return { token: null, isNew: false };
+  }
+
+  if (!accountId) {
+    console.warn(`⚠️ [getOrCreateAccountToken] No account ID for ${accountType}, skipping token creation`);
+    return { token: null, isNew: false };
+  }
+
+  const ops = new ApiClient(API_OPS_TOKEN);
+
+  // Step 1: Search for existing tokens
+  try {
+    const searchEndpoint = `/public/v1/accounts/api-tokens?eq(account.id,"${accountId}")&eq(status,"Active")&like(name,"${TOKEN_NAME_PREFIX}-*")&limit=10`;
+    const searchResponse = await ops.get(searchEndpoint);
+    const existingTokens = searchResponse.data || [];
+
+    if (existingTokens.length > 0) {
+      const tokenId = existingTokens[0].id;
+      console.info(`🔄 [getOrCreateAccountToken] Found existing ${accountType} token: ${tokenId}, retrieving value...`);
+
+      try {
+        const tokenData = await ops.get(`/public/v1/accounts/api-tokens/${tokenId}`);
+        if (tokenData.token) {
+          console.info(`✅ [getOrCreateAccountToken] Reusing existing ${accountType} token (no propagation wait)`);
+          return { token: tokenData.token, isNew: false };
+        }
+      } catch (error) {
+        console.warn(`⚠️ [getOrCreateAccountToken] Could not retrieve token ${tokenId}: ${error.message}`);
+      }
+    }
+  } catch (error) {
+    console.warn(`⚠️ [getOrCreateAccountToken] Token search failed: ${error.message}`);
+  }
+
+  // Step 2: Create a new token
+  console.info(`🔧 [getOrCreateAccountToken] Creating new ${accountType} API token for ${accountId}...`);
+
+  const modules = await fetchDefaultModules(ops, accountType);
+  const timestamp = Date.now();
+
+  try {
+    const tokenData = await ops.post('/public/v1/accounts/api-tokens', {
+      account: { id: accountId },
+      name: `${TOKEN_NAME_PREFIX}-${timestamp}`,
+      description: `Auto-created token for mobile E2E test API validation (${accountType})`,
+      icon: '',
+      extensions: null,
+      modules: modules.map(id => ({ id })),
+    });
+
+    if (!tokenData.token) {
+      console.error(`❌ [getOrCreateAccountToken] Token response missing 'token' field`);
+      return { token: null, isNew: false };
+    }
+
+    console.info(`✅ [getOrCreateAccountToken] Created new ${accountType} token: ${tokenData.id}`);
+    return { token: tokenData.token, isNew: true };
+  } catch (error) {
+    console.error(`❌ [getOrCreateAccountToken] Failed to create ${accountType} token: ${error.message}`);
+    return { token: null, isNew: false };
+  }
+}
+
+/**
+ * Initializes account-scoped API client instances for E2E test API validation.
+ *
+ * Call this once in a top-level `before()` hook. It will:
+ * 1. Check if static tokens are already provided via env vars (skip generation)
+ * 2. Otherwise, use the OPS token to create/reuse account-scoped tokens
+ * 3. Wait for propagation if new tokens were created (60 seconds)
+ * 4. Create ApiClient instances for each account type
+ *
+ * After calling this, `clientApiClient` will be populated if CLIENT_ACCOUNT_ID is configured.
+ * `vendorApiClient` is not populated by this function — it is only available when
+ * API_VENDOR_TOKEN is set via environment variable at startup.
+ *
+ * @returns {Promise<{clientApiClient: ApiClient|null, vendorApiClient: ApiClient|null}>}
+ */
+async function initAccountTokens() {
+  let needsPropagationWait = false;
+
+  // Client token
+  if (!clientApiClient && CLIENT_ACCOUNT_ID) {
+    const result = await getOrCreateAccountToken(CLIENT_ACCOUNT_ID, 'Client');
+    if (result.token) {
+      clientApiClient = new ApiClient(result.token);
+      if (result.isNew) needsPropagationWait = true;
+    }
+  }
+
+  // Propagation wait — only if we created new tokens
+  if (needsPropagationWait) {
+    console.info(`⏳ [initAccountTokens] Waiting ${TOKEN_PROPAGATION_WAIT_MS / 1000}s for new token(s) to propagate...`);
+    await new Promise(resolve => setTimeout(resolve, TOKEN_PROPAGATION_WAIT_MS));
+    console.info(`✅ [initAccountTokens] Token propagation wait complete`);
+  }
+
+  return { clientApiClient, vendorApiClient };
+}
+
+module.exports = {
+  ApiClient,
+  apiClient,
+  opsApiClient,
+  get clientApiClient() { return clientApiClient; },
+  get vendorApiClient() { return vendorApiClient; },
+  initAccountTokens,
+  /**
+   * Returns the best available API client for client-scoped tests.
+   * Prefers clientApiClient (client token) when available, falls back to apiClient (ops token).
+   * Call this inside before() hooks or test bodies — not at module top level —
+   * so that dynamically initialized tokens are picked up.
+   * @returns {ApiClient}
+   */
+  getClientApi() { return clientApiClient || apiClient; },
+};

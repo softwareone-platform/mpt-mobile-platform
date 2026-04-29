@@ -20,11 +20,8 @@ const CertificateDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useCertificateDetailsData(
-    id,
-    userId,
-    currentAccountId,
-  );
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
+    useCertificateDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -44,6 +41,8 @@ const CertificateDetailsScreen = () => {
           config={listItemConfigNoImage}
           headerTitleTestId={TestIDs.CERTIFICATE_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.CERTIFICATE_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <CertificateDetailsContent data={data} />
         </DetailsView>

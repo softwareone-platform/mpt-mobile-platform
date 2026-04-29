@@ -13,6 +13,8 @@ interface UsersContextValue {
   usersError: boolean;
   isUnauthorised: boolean;
   fetchUsers: () => void;
+  refetchUsers: () => void;
+  isUsersRefetching: boolean;
 }
 
 const UsersContext = createContext<UsersContextValue | undefined>(undefined);
@@ -48,6 +50,8 @@ export const UsersProvider = ({
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = shouldUseAllUsers ? allUsersQuery : accountUsersQuery;
 
   const users = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -62,6 +66,8 @@ export const UsersProvider = ({
         usersError: isError,
         isUnauthorised,
         fetchUsers: fetchNextPage,
+        refetchUsers: refetch,
+        isUsersRefetching: isRefetching,
       }}
     >
       {children}

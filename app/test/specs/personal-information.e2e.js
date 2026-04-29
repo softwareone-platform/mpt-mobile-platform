@@ -5,21 +5,25 @@ const personalInformationPage = require('../pageobjects/personal-information.pag
 const profilePage = require('../pageobjects/profile.page');
 const userSettingsPage = require('../pageobjects/user-settings.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Personal Information Page', () => {
+  let api;
   let userId;
   let userInfo;
 
   before(async function () {
     // Set timeout for login flow
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
 
     // Navigate to Profile page and get user ID
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     await headingPage.navAccountButton.click();
     await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
 
@@ -29,7 +33,7 @@ describe('Personal Information Page', () => {
 
     // Fetch user information from API
     try {
-      userInfo = await apiClient.getUserInformation(userId);
+      userInfo = await api.getUserInformation(userId);
       console.info(`📊 Loaded user information from API for user ${userId}`);
     } catch (error) {
       console.warn(`⚠️ Could not fetch user information from API: ${error.message}`);

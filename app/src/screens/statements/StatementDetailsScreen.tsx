@@ -20,11 +20,8 @@ const StatementDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useStatementDetailsData(
-    id,
-    userId,
-    currentAccountId,
-  );
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
+    useStatementDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -44,6 +41,8 @@ const StatementDetailsScreen = () => {
           config={listItemConfigNoImageNoSubtitle}
           headerTitleTestId={TestIDs.STATEMENT_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.STATEMENT_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <StatementDetailsContent data={data} />
         </DetailsView>

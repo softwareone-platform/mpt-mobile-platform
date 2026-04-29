@@ -242,6 +242,11 @@ export const TestIDs = {
   BUYER_DETAILS_HEADER_TITLE: 'buyer-details-header-title',
   BUYER_DETAILS_HEADER_STATUS: 'buyer-details-header-status',
 
+  // User Accounts Screen
+  USER_ACCOUNTS_LOADING_INDICATOR: 'user-accounts-loading-indicator',
+  USER_ACCOUNTS_ERROR_STATE: 'user-accounts-error-state',
+  USER_ACCOUNTS_EMPTY_STATE: 'user-accounts-empty-state',
+
   // Clients Screen
   CLIENTS_LOADING_INDICATOR: 'clients-loading-indicator',
   CLIENTS_ERROR_STATE: 'clients-error-state',

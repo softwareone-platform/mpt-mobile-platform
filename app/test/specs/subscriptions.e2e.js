@@ -2,29 +2,33 @@ const { expect } = require('@wdio/globals');
 
 const subscriptionsPage = require('../pageobjects/subscriptions.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Subscriptions Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasSubscriptionsData = false;
   let hasEmptyState = false;
   let apiSubscriptionsAvailable = false;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     // Navigate to Subscriptions page to check data state
     await subscriptionsPage.ensureSubscriptionsPage();
 
     // Check data state ONCE and cache the results
     hasSubscriptionsData = await subscriptionsPage.hasSubscriptions();
     hasEmptyState = !hasSubscriptionsData && await subscriptionsPage.emptyState.isDisplayed().catch(() => false);
-    apiSubscriptionsAvailable = !!process.env.API_OPS_TOKEN;
+    apiSubscriptionsAvailable = !!api;
 
     console.info(`📊 Subscriptions data state: hasSubscriptions=${hasSubscriptionsData}, emptyState=${hasEmptyState}, apiAvailable=${apiSubscriptionsAvailable}`);
   });
@@ -188,7 +192,7 @@ describe('Subscriptions Page', () => {
       }
 
       try {
-        const apiSubscriptions = await apiClient.getSubscriptions({ limit: 100 });
+        const apiSubscriptions = await api.getSubscriptions({ limit: 100 });
         const apiSubscriptionsList = apiSubscriptions.data || apiSubscriptions;
         const apiCount = apiSubscriptionsList.length;
         
@@ -213,7 +217,7 @@ describe('Subscriptions Page', () => {
       }
 
       try {
-        const apiSubscriptions = await apiClient.getSubscriptions({ limit: 10 });
+        const apiSubscriptions = await api.getSubscriptions({ limit: 10 });
         const apiSubscriptionsList = apiSubscriptions.data || apiSubscriptions;
         const uiSubscriptionIds = await subscriptionsPage.getVisibleSubscriptionIds();
         const uiSubscriptionsWithStatus = await subscriptionsPage.getVisibleSubscriptionsWithStatus();

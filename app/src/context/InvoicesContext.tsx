@@ -12,6 +12,8 @@ interface InvoicesContextValue {
   invoicesError: boolean;
   isUnauthorised: boolean;
   fetchInvoices: () => void;
+  refetchInvoices: () => void;
+  isInvoicesRefetching: boolean;
 }
 
 interface InvoiceProviderProps {
@@ -35,6 +37,8 @@ export const InvoicesProvider = ({ children, query }: InvoiceProviderProps) => {
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useInvoicesData(userId, currentAccountId, query);
 
   const invoices = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -49,6 +53,8 @@ export const InvoicesProvider = ({ children, query }: InvoiceProviderProps) => {
         invoicesError: isError,
         isUnauthorised,
         fetchInvoices: fetchNextPage,
+        refetchInvoices: refetch,
+        isInvoicesRefetching: isRefetching,
       }}
     >
       {children}

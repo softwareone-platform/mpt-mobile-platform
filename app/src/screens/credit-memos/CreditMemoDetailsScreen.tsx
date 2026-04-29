@@ -20,11 +20,8 @@ const CreditMemoDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useCreditMemoDetailsData(
-    id,
-    userId,
-    currentAccountId,
-  );
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
+    useCreditMemoDetailsData(id, userId, currentAccountId);
 
   return (
     <StatusMessage
@@ -44,6 +41,8 @@ const CreditMemoDetailsScreen = () => {
           config={listItemConfigNoImageNoSubtitle}
           headerTitleTestId={TestIDs.CREDIT_MEMO_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.CREDIT_MEMO_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <CreditMemoDetailsContent data={data} />
         </DetailsView>

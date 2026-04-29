@@ -3,13 +3,15 @@ const { expect } = require('@wdio/globals');
 const usersPage = require('../pageobjects/users.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Users Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasUsersData = false;
   let hasEmptyState = false;
   let apiUsersAvailable = false;
@@ -27,8 +29,10 @@ describe('Users Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
 
     // Check if Users menu item is available for this user
     await usersPage.footer.moreTab.click();
@@ -47,7 +51,7 @@ describe('Users Page', () => {
     // Check data state ONCE and cache the results
     hasUsersData = await usersPage.hasUsers();
     hasEmptyState = !hasUsersData && await usersPage.emptyState.isDisplayed().catch(() => false);
-    apiUsersAvailable = !!process.env.API_OPS_TOKEN;
+    apiUsersAvailable = !!api;
 
     console.info(`📊 Users data state: hasUsers=${hasUsersData}, emptyState=${hasEmptyState}, apiAvailable=${apiUsersAvailable}`);
   });
@@ -217,7 +221,7 @@ describe('Users Page', () => {
         return;
       }
       try {
-        const apiUsers = await apiClient.getUsers({ limit: 100 });
+        const apiUsers = await api.getUsers({ limit: 100 });
         const apiUsersList = apiUsers.data || apiUsers;
         const apiCount = apiUsersList.length;
         const uiCount = await usersPage.getVisibleUsersCount();
@@ -237,7 +241,7 @@ describe('Users Page', () => {
         return;
       }
       try {
-        const apiUsers = await apiClient.getUsers({ limit: 10 });
+        const apiUsers = await api.getUsers({ limit: 10 });
         const apiUsersList = apiUsers.data || apiUsers;
         const uiUserIds = await usersPage.getVisibleUserIds();
         const uiUsersWithStatus = await usersPage.getVisibleUsersWithStatus();

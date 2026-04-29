@@ -21,6 +21,8 @@ const AgreementsListContent = ({ contentContainerStyle }: ListProps) => {
     hasMoreAgreements,
     isUnauthorised,
     fetchAgreements,
+    refetchAgreements,
+    isAgreementsRefetching,
   } = useAgreements();
 
   const { t } = useTranslation();
@@ -45,6 +47,8 @@ const AgreementsListContent = ({ contentContainerStyle }: ListProps) => {
         hasMore={hasMoreAgreements}
         fetchNext={fetchAgreements}
         config={listItemConfigNoImage}
+        onRefresh={refetchAgreements}
+        isRefreshing={isAgreementsRefetching}
         contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('agreementDetails', {

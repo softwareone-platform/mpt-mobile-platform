@@ -216,7 +216,7 @@ const STATUSES = {
   LICENSEE: ['Enabled', 'Disabled'],
 
   /** Valid statuses that can appear for buyers in the UI */
-  BUYER: ['Active', 'Unassigned'],
+  BUYER: ['Active', 'Enabled', 'Unassigned'],
 
   /** Valid statuses that can appear for products in the UI */
   PRODUCT: ['Published', 'Unpublished', 'Pending'],

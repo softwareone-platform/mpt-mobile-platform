@@ -28,22 +28,25 @@ class SubscriptionDetailsPage extends DetailsPage {
 
   /**
    * Get all visible subscription details as an object (uses base helpers)
+   * @param {object} [options] - Options
+   * @param {boolean} [options.autoRenew] - Whether the subscription auto-renews (determines "Renewal date" vs "Expiration" label)
    * @returns {Promise<Object>} Subscription details object
    */
-  async getAllSubscriptionDetails() {
+  async getAllSubscriptionDetails({ autoRenew } = {}) {
     await this.scrollToTop();
+    const renewalLabel = autoRenew === false ? 'Expiration' : 'Renewal date';
     return {
       subscriptionId: await this.getItemId(),
       status: await this.getStatus(),
       product: await this.getCompositeFieldValueByLabel('Product', true),
       agreement: await this.getCompositeFieldValueByLabel('Agreement', true),
-      client: await this.getCompositeFieldValueByLabel('Client', true),
+      client: await this.getCompositeFieldValueByLabel('Client', false),
       terms: await this.getSimpleFieldValue('Terms', true),
-      renewalDate: await this.getSimpleFieldValue('Renewal date', true),
+      renewalDate: await this.getSimpleFieldValue(renewalLabel, true),
       billingModel: await this.getSimpleFieldValue('Billing model', true),
       quantity: await this.getSimpleFieldValue('Quantity', true),
-      averageYield: await this.getSimpleFieldValue('Average yield', true),
-      defaultYield: await this.getSimpleFieldValue('Default yield', true),
+      averageYield: await this.getSimpleFieldValue('Average yield', false),
+      defaultYield: await this.getSimpleFieldValue('Default yield', false),
     };
   }
 }

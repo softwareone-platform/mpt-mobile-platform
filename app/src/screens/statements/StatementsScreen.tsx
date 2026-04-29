@@ -20,6 +20,8 @@ const StatementsScreenContent = () => {
     hasMoreStatements,
     isUnauthorised,
     fetchStatements,
+    refetchStatements,
+    isStatementsRefetching,
   } = useStatements();
 
   const { t } = useTranslation();
@@ -44,6 +46,8 @@ const StatementsScreenContent = () => {
         hasMore={hasMoreStatements}
         fetchNext={fetchStatements}
         config={listItemConfigNoImageNoSubtitle}
+        onRefresh={refetchStatements}
+        isRefreshing={isStatementsRefetching}
         onItemPress={(id) => {
           navigation.navigate('statementDetails', {
             id,

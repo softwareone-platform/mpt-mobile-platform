@@ -20,7 +20,7 @@ const OrderDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useOrderDetailsData(
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useOrderDetailsData(
     id,
     userId,
     currentAccountId,
@@ -44,6 +44,8 @@ const OrderDetailsScreen = () => {
           config={listItemConfigNoImageNoSubtitle}
           headerTitleTestId={TestIDs.ORDER_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.ORDER_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <OrderDetailsContent data={data} />
         </DetailsView>

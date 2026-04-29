@@ -3,13 +3,15 @@ const { expect } = require('@wdio/globals');
 const buyersPage = require('../pageobjects/buyers.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Buyers Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasBuyersData = false;
   let hasEmptyState = false;
   let apiBuyersAvailable = false;
@@ -29,9 +31,11 @@ describe('Buyers Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     
     // Check if Buyers menu item is available for this user
     await buyersPage.footer.moreTab.click();
@@ -50,7 +54,7 @@ describe('Buyers Page', () => {
     // Check data state ONCE and cache the results
     hasBuyersData = await buyersPage.hasBuyers();
     hasEmptyState = !hasBuyersData && await buyersPage.emptyState.isDisplayed().catch(() => false);
-    apiBuyersAvailable = !!process.env.API_OPS_TOKEN;
+    apiBuyersAvailable = !!api;
 
     console.info(`📊 Buyers data state: hasBuyers=${hasBuyersData}, emptyState=${hasEmptyState}, apiAvailable=${apiBuyersAvailable}`);
   });
@@ -254,7 +258,7 @@ describe('Buyers Page', () => {
       }
 
       try {
-        const apiBuyers = await apiClient.getBuyers({ limit: 100 });
+        const apiBuyers = await api.getBuyers({ limit: 100 });
         const apiBuyersList = apiBuyers.data || apiBuyers;
         const apiCount = apiBuyersList.length;
         
@@ -272,42 +276,43 @@ describe('Buyers Page', () => {
       }
     });
 
-    it('should verify first 10 buyer IDs and statuses match API data', async function () {
+    it('should verify first 10 buyers have valid IDs, known statuses, and no Deleted items', async function () {
       if (!apiBuyersAvailable || !hasBuyersData) {
         this.skip();
         return;
       }
 
       try {
-        const apiBuyers = await apiClient.getBuyers({ limit: 10 });
+        const apiBuyers = await api.getBuyers({ limit: 10 });
         const apiBuyersList = apiBuyers.data || apiBuyers;
         const uiBuyerIds = await buyersPage.getVisibleBuyerIds();
         const uiBuyersWithStatus = await buyersPage.getVisibleBuyersWithStatus();
-        
-        // Compare each API buyer with UI and log results
-        const comparisons = [];
-        for (let i = 0; i < Math.min(apiBuyersList.length, 10); i++) {
+
+        const compareCount = Math.min(apiBuyersList.length, uiBuyersWithStatus.length, 10);
+
+        if (compareCount === 0) {
+          this.skip();
+          return;
+        }
+
+        // Log for informational comparison — sequential ID matching is unreliable
+        // because ne(status,"Deleted")&order=name may differ by token scope.
+        for (let i = 0; i < compareCount; i++) {
           const apiBuyer = apiBuyersList[i];
-          const apiBuyerId = apiBuyer.buyerId || apiBuyer.id;
+          const apiBuyerId = apiBuyer.id || apiBuyer.buyerId;
           const apiStatus = apiBuyer.status;
           const uiBuyer = uiBuyersWithStatus[i] || {};
           const uiBuyerId = uiBuyer.buyerId;
           const uiStatus = uiBuyer.status;
-          
-          const idMatches = apiBuyerId === uiBuyerId;
-          const statusMatches = apiStatus === uiStatus;
-          
-          console.info(`[${i + 1}] ID: ${apiBuyerId} vs ${uiBuyerId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
-          comparisons.push({ apiBuyerId, uiBuyerId, idMatches, apiStatus, uiStatus, statusMatches });
+          console.info(`[${i + 1}] ID: ${apiBuyerId} vs ${uiBuyerId} | Status: ${apiStatus} vs ${uiStatus}`);
         }
-        
-        const idMatchCount = comparisons.filter(c => c.idMatches).length;
-        const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
-        
-        // Verify all visible UI buyers have valid format (3-group)
+
+        // Assert: UI buyers have valid ID format and known statuses (Deleted is excluded by app)
         for (const uiBuyerId of uiBuyerIds.slice(0, 10)) {
           expect(uiBuyerId).toMatch(REGEX.BUYER_ID);
+        }
+        for (const uiBuyer of uiBuyersWithStatus.slice(0, 10)) {
+          expect(STATUSES.BUYER).toContain(uiBuyer.status);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

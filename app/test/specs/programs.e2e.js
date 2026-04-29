@@ -3,13 +3,15 @@ const { expect } = require('@wdio/globals');
 const programsPage = require('../pageobjects/programs.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Programs Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasProgramsData = false;
   let hasEmptyState = false;
   let apiProgramsAvailable = false;
@@ -28,16 +30,18 @@ describe('Programs Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     // Navigate to Programs page via More menu
     await navigateToPrograms();
 
     // Check data state ONCE and cache the results
     hasProgramsData = await programsPage.hasPrograms();
     hasEmptyState = !hasProgramsData && await programsPage.emptyState.isDisplayed().catch(() => false);
-    apiProgramsAvailable = !!process.env.API_OPS_TOKEN;
+    apiProgramsAvailable = !!api;
 
     console.info(`📊 Programs data state: hasPrograms=${hasProgramsData}, emptyState=${hasEmptyState}, apiAvailable=${apiProgramsAvailable}`);
   });
@@ -237,7 +241,7 @@ describe('Programs Page', () => {
       }
 
       try {
-        const apiPrograms = await apiClient.getPrograms({ limit: 100 });
+        const apiPrograms = await api.getPrograms({ limit: 100 });
         const apiProgramsList = apiPrograms.data || apiPrograms;
         const apiCount = apiProgramsList.length;
         
@@ -262,7 +266,7 @@ describe('Programs Page', () => {
       }
 
       try {
-        const apiPrograms = await apiClient.getPrograms({ limit: 10 });
+        const apiPrograms = await api.getPrograms({ limit: 10 });
         const apiProgramsList = apiPrograms.data || apiPrograms;
         const uiProgramIds = await programsPage.getVisibleProgramIds();
         const uiProgramsWithStatus = await programsPage.getVisibleProgramsWithStatus();

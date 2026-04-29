@@ -39,34 +39,19 @@ class PersonalInformationPage extends BasePage {
 
   // ========== User Details Section ==========
   get userDetailsLabel() {
-    return $(selectors.byText('USER DETAILS'));
+    return $(selectors.byText('Personal Information'));
   }
 
   get firstNameField() {
-    return $(
-      getSelector({
-        ios: '//*[contains(@name, "First Name,")]',
-        android: '//*[contains(@content-desc, "First Name,") or contains(@text, "First Name")]',
-      }),
-    );
+    return $(selectors.byText('First Name'));
   }
 
   get lastNameField() {
-    return $(
-      getSelector({
-        ios: '//*[contains(@name, "Last Name,")]',
-        android: '//*[contains(@content-desc, "Last Name,") or contains(@text, "Last Name")]',
-      }),
-    );
+    return $(selectors.byText('Last Name'));
   }
 
   get emailField() {
-    return $(
-      getSelector({
-        ios: '//*[contains(@name, "E-mail,")]',
-        android: '//*[contains(@content-desc, "E-mail,") or contains(@text, "E-mail")]',
-      }),
-    );
+    return $(selectors.byText('E-mail'));
   }
 
   get phoneNumberField() {
@@ -80,53 +65,48 @@ class PersonalInformationPage extends BasePage {
 
   // ========== Value Extraction Helpers ==========
   /**
-   * Gets the first name value from the First Name field
-   * The field has format "First Name, <value>"
+   * Gets the first name value from the element following the First Name label
    */
   async getFirstName() {
     const element = this.firstNameField;
     await element.waitForDisplayed();
-
-    if (this.isIOS()) {
-      const name = await element.getAttribute('name');
-      // Format: "First Name, Marketplatform"
-      return name.replace('First Name, ', '');
-    } else {
-      const desc = await element.getAttribute('content-desc');
-      return desc.replace('First Name, ', '');
-    }
+    const valueElement = $(
+      getSelector({
+        ios: '//XCUIElementTypeStaticText[@name="First Name"]/following-sibling::XCUIElementTypeStaticText[1]',
+        android: '//android.widget.TextView[@text="First Name"]/following-sibling::android.widget.TextView[1]',
+      }),
+    );
+    return await valueElement.getText();
   }
 
   /**
-   * Gets the last name value from the Last Name field
+   * Gets the last name value from the element following the Last Name label
    */
   async getLastName() {
     const element = this.lastNameField;
     await element.waitForDisplayed();
-
-    if (this.isIOS()) {
-      const name = await element.getAttribute('name');
-      return name.replace('Last Name, ', '');
-    } else {
-      const desc = await element.getAttribute('content-desc');
-      return desc.replace('Last Name, ', '');
-    }
+    const valueElement = $(
+      getSelector({
+        ios: '//XCUIElementTypeStaticText[@name="Last Name"]/following-sibling::XCUIElementTypeStaticText[1]',
+        android: '//android.widget.TextView[@text="Last Name"]/following-sibling::android.widget.TextView[1]',
+      }),
+    );
+    return await valueElement.getText();
   }
 
   /**
-   * Gets the email value from the E-mail field
+   * Gets the email value from the element following the E-mail label
    */
   async getEmail() {
     const element = this.emailField;
     await element.waitForDisplayed();
-
-    if (this.isIOS()) {
-      const name = await element.getAttribute('name');
-      return name.replace('E-mail, ', '');
-    } else {
-      const desc = await element.getAttribute('content-desc');
-      return desc.replace('E-mail, ', '');
-    }
+    const valueElement = $(
+      getSelector({
+        ios: '//XCUIElementTypeStaticText[@name="E-mail"]/following-sibling::XCUIElementTypeStaticText[1]',
+        android: '//android.widget.TextView[@text="E-mail"]/following-sibling::android.widget.TextView[1]',
+      }),
+    );
+    return await valueElement.getText();
   }
 
   /**

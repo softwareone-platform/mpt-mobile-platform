@@ -4,7 +4,9 @@ import { DataSource } from '@/types/api';
 import { AccountType } from '@/types/common';
 import { ModuleName } from '@/types/modules';
 
-type ScreenParams = { query?: string; accountId?: string; source?: DataSource } | undefined;
+type ScreenParams =
+  | { query?: string; accountId?: string; userId?: string; source?: DataSource }
+  | undefined;
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -29,6 +31,7 @@ export type SecondaryTabsParamList = {
   statements: ScreenParams;
   users: ScreenParams;
   allUsers: ScreenParams;
+  accounts: ScreenParams;
   programs: ScreenParams;
   enrollments: ScreenParams;
   certificates: ScreenParams;
@@ -47,7 +50,7 @@ export type AppScreensParamList = {
   journalDetails: { id: string | undefined };
   orderDetails: { id: string | undefined };
   accountDetails: { id: string | undefined; type?: 'client' | 'vendor' | 'operations' | 'account' };
-  userDetails: { id: string | undefined };
+  userDetails: { id: string | undefined; showAccounts?: boolean };
   buyerDetails: { id: string | undefined };
   sellerDetails: { id: string | undefined };
   agreementDetails: { id: string | undefined };
@@ -160,5 +163,6 @@ export interface SubListItem {
   roles: AccountType[];
   query?: string;
   accountId?: string;
+  userId?: string;
   source?: DataSource;
 }

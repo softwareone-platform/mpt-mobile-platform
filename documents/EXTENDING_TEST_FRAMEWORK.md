@@ -677,8 +677,29 @@ suites: {
     welcome: ['./test/specs/welcome.e2e.js'],
     home: ['./test/specs/home.e2e.js'],
     navigation: ['./test/specs/navigation.e2e.js'],
-    newFeature: ['./test/specs/new-feature.e2e.js']
+    newFeature: ['./test/specs/new-feature.e2e.js'],
+
+    // Combined suites that group multiple related specs
+    clientScoped: [
+        './test/specs/orders.e2e.js',
+        './test/specs/subscriptions.e2e.js',
+        // ...all client-account-required specs
+    ],
+    opsScoped: [
+        './test/specs/statements.e2e.js',
+        './test/specs/journals.e2e.js',
+        // ...all ops-account-required specs
+    ],
 }
+```
+
+Run a suite with:
+```bash
+# Single suite
+./scripts/run-local-test.sh --platform ios newFeature
+
+# Multiple suites at once (comma-separated, no spaces)
+./scripts/run-local-test.sh --platform ios clientScoped,opsScoped
 ```
 
 ## Running Tests
@@ -746,13 +767,18 @@ suites: {
     home: ['./test/specs/home.e2e.js'],
     navigation: ['./test/specs/navigation.e2e.js'],
     newFeature: ['./test/specs/new-feature.e2e.js'],  // Add your suite here
+    // Combined suites: clientScoped, opsScoped, screenshots (see wdio.conf.js)
 }
 ```
 
 Then run with:
 ```bash
+# Single suite
 ./scripts/run-local-test.sh --platform ios newFeature
 ./scripts/run-local-test.sh --platform android newFeature
+
+# Multiple suites in one run (comma-separated, no spaces)
+./scripts/run-local-test.sh --platform ios clientScoped,opsScoped
 ```
 
 > 📚 **Official Docs:** [WebDriverIO CLI](https://webdriver.io/docs/clioptions/) | [Test Execution](https://webdriver.io/docs/organizingsuites/)
@@ -1058,6 +1084,148 @@ adb devices
 # View device logs
 adb logcat | grep -i "ReactNative\|Appium"
 ```
+
+## Account Context Pattern
+
+Many test specs require a specific account to be active in the app before running. The framework provides helpers in `app/test/pageobjects/utils/account.helper.js` to ensure the correct account is selected.
+
+### When to Use
+
+| Spec category | Helper to call | Requires env var |
+|---------------|---------------|-----------------|
+| Orders, subscriptions, agreements, invoices, credit memos, products, programs, enrollments, buyers, users, spotlight, profile | `ensureClientAccount()` | `CLIENT_ACCOUNT_ID` |
+| Statements, journals, licensees | `ensureOperationsAccount()` | `OPS_ACCOUNT_ID` (defaults to `ACC-4850-1126`) |
+
+### Usage in a Spec
+
+Call the helper in the `before()` hook of your spec:
+
+```javascript
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
+const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+
+describe('Orders', () => {
+    before(async function () {
+        this.timeout(150000);
+        await ensureLoggedIn();
+        await ensureClientAccount();
+    });
+
+    it('should display orders list', async () => { /* ... */ });
+});
+```
+
+For ops-scoped specs:
+
+```javascript
+const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
+
+describe('Statements', () => {
+    before(async function () {
+        this.timeout(150000);
+        await ensureLoggedIn();
+        await ensureOperationsAccount();
+    });
+});
+```
+
+### How It Works
+
+The helpers open the in-app profile/account-switcher, detect the currently active account by looking for a checkmark indicator, and tap the target account only if a switch is needed. The account IDs are read from environment variables (`CLIENT_ACCOUNT_ID`, `OPS_ACCOUNT_ID`).
+
+> **Note:** `CLIENT_ACCOUNT_ID` has no hardcoded default because it varies between environments. Set it in `app/.env` before running client-scoped specs.
+
+---
+
+## API Client Pattern
+
+Specs that validate test data against the backend API use the centralised API client in `app/test/utils/api-client.js`. The client auto-initialises multi-scoped tokens at session start via `initAccountTokens()` (called once from the `before()` hook in `wdio.conf.js`).
+
+### Available Clients
+
+| Export | Scope | Use for |
+|--------|-------|---------|
+| `apiClient` | Default / ops token (`API_OPS_TOKEN`) | General-purpose, ops-scoped data |
+| `clientApiClient` | Client-account token (`API_CLIENT_TOKEN`) | Data filtered to the client account |
+| `opsApiClient` | Ops token (alias for `apiClient`) | Ops-scoped data (statements, journals, licensees) |
+| `vendorApiClient` | Vendor token (`API_VENDOR_TOKEN`) | Vendor-scoped data (optional) |
+
+### `getClientApi()` Helper
+
+Use `getClientApi()` instead of `apiClient` directly in client-scoped specs. It returns `clientApiClient` when the token is available, falling back gracefully to `apiClient`:
+
+```javascript
+const { getClientApi } = require('../utils/api-client');
+
+describe('Orders', () => {
+    it('should match the first order shown in the UI', async () => {
+        const api = getClientApi();
+        const { data } = await api.getOrders();
+        // data[0].id matches what the app shows for the logged-in client account
+    });
+});
+```
+
+For ops-scoped specs, import `opsApiClient` directly:
+
+```javascript
+const { opsApiClient } = require('../utils/api-client');
+
+const { data } = await opsApiClient.getStatements();
+```
+
+### Default RQL Filters
+
+All list methods in `api-client.js` embed the same default query parameters the app's service layer uses, so API counts and sort order are directly comparable to the UI. For example:
+
+- `getInvoices()` → `filter(group.buyers)&order=-audit.created.at`
+- `getProducts()` → `ne(status,"Draft")&order=name`
+- `getJournals()` → `ne(status,"Deleted")&order=-audit.created.at`
+
+You do not need to pass these filters manually when writing new validation tests.
+
+---
+
+## Screenshots Suite
+
+The `screenshots` suite captures App Store screenshots by navigating through a sequence of pages defined in a JSON file.
+
+### How It Works
+
+1. The journey is defined in `app/test/config/screenshot-journey.json`
+2. `screenshots.page.js` reads the JSON and provides `navigateToPage()` and `executeAction()` methods
+3. `screenshots.e2e.js` iterates the steps, navigates to each page, runs optional actions, and saves a PNG to `appstore-screenshots/`
+
+### Running the Screenshots Suite
+
+```bash
+# Requires an authenticated app session (logged-in user)
+./scripts/run-local-test.sh screenshots
+```
+
+### Adding a New Screenshot
+
+Add a step object to `app/test/config/screenshot-journey.json`:
+
+```json
+{
+  "id": "my-page",
+  "description": "My feature page",
+  "page": "myPage",
+  "actions": [
+    { "type": "pause", "duration": 1000 }
+  ],
+  "screenshot": "10_my_page"
+}
+```
+
+Supported `page` keys (handled by `screenshots.page.js`): `home`, `chat`, `orders`, `products`, `agreements`, `subscriptions`, `invoices`, `creditMemos`, `users`, `programs`, `enrollments`, `licensees`, `buyers`, `statements`, `more`, `profile`, `userSettings`, `personalInfo`.
+
+Supported `action` types: `tap`, `tapFirstOrder`, `scrollDown`, `scrollUp`, `swipe`, `pause`, `waitForElement`.
+
+To support a new page key, add a `case` to the `navigateToPage()` switch in `app/test/pageobjects/screenshots.page.js`.
+
+---
 
 ## Feature Flag Testing
 

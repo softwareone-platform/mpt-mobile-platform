@@ -12,6 +12,8 @@ interface ProductContextValue {
   isProductsError: boolean;
   isUnauthorised: boolean;
   fetchProductsNextPage: () => void;
+  refetchProducts: () => void;
+  isProductsRefetching: boolean;
 }
 
 const ProductContext = createContext<ProductContextValue | undefined>(undefined);
@@ -30,6 +32,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useProductsData(userId, currentAccountId);
 
   const products = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -44,6 +48,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         isProductsError: isError,
         isUnauthorised,
         fetchProductsNextPage: fetchNextPage,
+        refetchProducts: refetch,
+        isProductsRefetching: isRefetching,
       }}
     >
       {children}

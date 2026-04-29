@@ -20,7 +20,7 @@ const SellerDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useSellerDetailsData(
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useSellerDetailsData(
     id,
     userId,
     currentAccountId,
@@ -44,6 +44,8 @@ const SellerDetailsScreen = () => {
           config={listItemConfigFull}
           headerTitleTestId={TestIDs.SELLER_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.SELLER_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <SellerDetailsContent data={data} />
         </DetailsView>

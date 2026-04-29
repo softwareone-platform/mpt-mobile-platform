@@ -4,14 +4,16 @@ const creditMemoDetailsPage = require('../pageobjects/credit-memo-details.page')
 const creditMemosPage = require('../pageobjects/credit-memos.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 // E2E tests for Credit Memo Details Page, modeled after agreement-details.e2e.js
 // API call: apiClient.getCreditMemoById(creditMemoId)
 
 describe('Credit Memo Details Page', () => {
+  let api;
   let hasCreditMemosData = false;
   let apiAvailable = false;
   let testCreditMemoId = null;
@@ -20,9 +22,11 @@ describe('Credit Memo Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     // Navigate to Credit Memos page via More menu
     await creditMemosPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
@@ -39,7 +43,7 @@ describe('Credit Memo Details Page', () => {
     await creditMemosPage.waitForScreenReady();
 
     hasCreditMemosData = await creditMemosPage.hasCreditMemos();
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     if (hasCreditMemosData) {
       const creditMemoIds = await creditMemosPage.getVisibleCreditMemoIds();
@@ -48,7 +52,7 @@ describe('Credit Memo Details Page', () => {
       // Pre-fetch API data for validation tests
       if (apiAvailable && testCreditMemoId) {
         try {
-          apiCreditMemoData = await apiClient.getCreditMemoById(testCreditMemoId); // <-- API call
+          apiCreditMemoData = await api.getCreditMemoById(testCreditMemoId); // <-- API call
           console.info(`📊 Pre-fetched API data for credit memo: ${testCreditMemoId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);

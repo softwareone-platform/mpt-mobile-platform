@@ -20,7 +20,7 @@ const ProductDetailsScreen = () => {
   const userId = userData?.id;
   const currentAccountId = userData?.currentAccount?.id;
 
-  const { data, isLoading, isError, isUnauthorised } = useProductDetailsData(
+  const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useProductDetailsData(
     id,
     userId,
     currentAccountId,
@@ -44,6 +44,8 @@ const ProductDetailsScreen = () => {
           config={listItemConfigFull}
           headerTitleTestId={TestIDs.PRODUCT_DETAILS_HEADER_TITLE}
           headerStatusTestId={TestIDs.PRODUCT_DETAILS_HEADER_STATUS}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
         >
           <ProductDetailsContent data={data} />
         </DetailsView>

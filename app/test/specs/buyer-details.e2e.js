@@ -4,13 +4,16 @@ const buyerDetailsPage = require('../pageobjects/buyer-details.page');
 const buyersPage = require('../pageobjects/buyers.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX, DEFAULTS } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
+const { selectors } = require('../pageobjects/utils/selectors');
 
 // E2E tests for Buyer Details Page, modeled after user-details/agreement-details e2e.js
 
 describe('Buyer Details Page', () => {
+  let api;
   let hasBuyersData = false;
   let apiAvailable = false;
   let testBuyerId = null;
@@ -19,9 +22,11 @@ describe('Buyer Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     // Navigate to Buyers page via More menu
     await buyersPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
@@ -38,7 +43,7 @@ describe('Buyer Details Page', () => {
     await buyersPage.waitForScreenReady();
 
     hasBuyersData = await buyersPage.hasBuyers();
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     if (hasBuyersData) {
       const buyerIds = await buyersPage.getVisibleBuyerIds();
@@ -47,7 +52,7 @@ describe('Buyer Details Page', () => {
       // Pre-fetch API data for validation tests
       if (apiAvailable && testBuyerId) {
         try {
-          apiBuyerData = await apiClient.getBuyerById(testBuyerId);
+          apiBuyerData = await api.getBuyerById(testBuyerId);
           console.info(`📊 Pre-fetched API data for buyer: ${testBuyerId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);
@@ -76,12 +81,18 @@ describe('Buyer Details Page', () => {
     });
 
     it('should display the Buyer name', async function () {
-      if (!hasBuyersData) {
+      if (!hasBuyersData || !apiAvailable || !apiBuyerData) {
         this.skip();
         return;
       }
-      const name = await buyerDetailsPage.getSimpleFieldValue('Websparks Pte Ltd', true);
-      expect(name).toBeTruthy();
+      const buyerName = (apiBuyerData.name || '').trim();
+      if (!buyerName) {
+        this.skip();
+        return;
+      }
+      const nameElement = $(selectors.byContainsText(buyerName));
+      const isDisplayed = await nameElement.isDisplayed().catch(() => false);
+      expect(isDisplayed).toBe(true);
     });
 
     it('should display the Buyer ID', async function () {
@@ -109,6 +120,11 @@ describe('Buyer Details Page', () => {
         return;
       }
       const scu = await buyerDetailsPage.getSimpleFieldValue('SCU identifier', true);
+      if (!scu && apiAvailable && apiBuyerData && !apiBuyerData.externalIds?.erpCustomer) {
+        console.info('⚠️ No SCU identifier in API data, field may show empty value');
+        this.skip();
+        return;
+      }
       expect(scu).toBeTruthy();
     });
 
@@ -167,11 +183,11 @@ describe('Buyer Details Page', () => {
         this.skip();
         return;
       }
-      // TODO: label needs to be dynamic!!!
-      const uiName = await buyerDetailsPage.getSimpleFieldValue('Websparks Pte Ltd', true);
-      // API name may have extra spaces, trim for comparison
       const apiName = (apiBuyerData.name || '').trim();
-      expect(uiName).toBe(apiName);
+      const nameElement = $(selectors.byContainsText(apiName));
+      const isDisplayed = await nameElement.isDisplayed().catch(() => false);
+      console.info(`[Name] API: ${apiName} | Visible: ${isDisplayed}`);
+      expect(isDisplayed).toBe(true);
     });
 
     it('should match SCU identifier with API response', async function () {
@@ -181,7 +197,11 @@ describe('Buyer Details Page', () => {
       }
       const uiScu = await buyerDetailsPage.getSimpleFieldValue('SCU identifier', true);
       const apiScu = apiBuyerData.externalIds?.erpCustomer;
-      expect(uiScu).toBe(apiScu);
+      if (!apiScu) {
+        expect(uiScu === '' || uiScu === DEFAULTS.DASH_FOR_EMPTY).toBe(true);
+      } else {
+        expect(uiScu).toBe(apiScu);
+      }
     });
 
     it('should match address fields with API response', async function () {

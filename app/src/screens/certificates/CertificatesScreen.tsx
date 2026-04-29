@@ -10,8 +10,17 @@ import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 const CertificatesScreenContent = () => {
-  const { items, isLoading, isError, isFetchingNext, hasMore, isUnauthorised, fetchNextPage } =
-    useCertificates();
+  const {
+    items,
+    isLoading,
+    isError,
+    isFetchingNext,
+    hasMore,
+    isUnauthorised,
+    fetchNextPage,
+    refetch,
+    isRefetching,
+  } = useCertificates();
 
   const { t } = useTranslation();
 
@@ -35,6 +44,8 @@ const CertificatesScreenContent = () => {
         hasMore={hasMore}
         fetchNext={fetchNextPage}
         config={listItemConfigNoImage}
+        onRefresh={refetch}
+        isRefreshing={isRefetching}
         onItemPress={(id) => {
           navigation.navigate('certificateDetails', { id });
         }}

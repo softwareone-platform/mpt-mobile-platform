@@ -158,6 +158,9 @@ The `run-local-test.sh` script provides the most streamlined testing experience:
 # Fast workflow - reuse last build and test (recommended for iteration)
 ./scripts/run-local-test.sh --skip-build welcome
 
+# Run multiple suites in one command (comma-separated, no spaces)
+./scripts/run-local-test.sh orders,subscriptions,agreements
+
 # Available options:
 #   --platform, -p        Target platform: ios or android (default: ios)
 #   --build, -b           Build release version of the app before testing
@@ -360,6 +363,20 @@ AIRTABLE_BASE_ID=your_airtable_base_id
 AIRTABLE_TABLE_NAME=your_airtable_table_id
 AIRTABLE_FROM_EMAIL=no-reply.test@softwareone.com
 
+# API Configuration (for E2E test data validation against the backend)
+API_BASE_URL=https://api.s1.show/public/
+API_OPS_TOKEN=your_ops_api_token
+# API token scoped to a Client/Buyer account (same user, client account selected)
+API_CLIENT_TOKEN=your_client_api_token
+# API token scoped to a Vendor account (optional, only needed for vendor-scoped tests)
+API_VENDOR_TOKEN=your_vendor_api_token
+
+# Account IDs (for account switching in E2E tests)
+# ACC- ID of the Operations account for this environment (default: ACC-4850-1126 on TEST)
+OPS_ACCOUNT_ID=ACC-4850-1126
+# ACC- ID of the Client/Buyer test account for this environment
+CLIENT_ACCOUNT_ID=your_client_account_id
+
 # Optional Appium Configuration (auto-detected if not set)
 APPIUM_HOST=localhost
 APPIUM_PORT=4723
@@ -418,6 +435,30 @@ List all available tests without running them:
 ```
 
 This is useful for discovering available tests before running them, or for CI/CD pipelines that need to know test counts.
+
+### Combined Suites
+
+Two pre-defined combined suites group specs by account access level:
+
+| Suite | Description | Requires |
+|-------|-------------|---------|
+| `clientScoped` | Orders, subscriptions, agreements, invoices, credit memos, products, programs, enrollments, buyers, users, spotlight, profile | `CLIENT_ACCOUNT_ID`, `API_CLIENT_TOKEN` |
+| `opsScoped` | Statements, journals, licensees | `OPS_ACCOUNT_ID`, `API_OPS_TOKEN` |
+| `screenshots` | Captures App Store screenshots via `test/config/screenshot-journey.json` | Authenticated session |
+
+```bash
+# Run all client-scoped tests
+./scripts/run-local-test.sh clientScoped
+
+# Run all ops-scoped tests
+./scripts/run-local-test.sh opsScoped
+
+# Run client + ops together (comma-separated, no spaces)
+./scripts/run-local-test.sh clientScoped,opsScoped
+
+# Capture App Store screenshots
+./scripts/run-local-test.sh screenshots
+```
 
 The setup script will automatically:
 - Load values from `app/.env` 

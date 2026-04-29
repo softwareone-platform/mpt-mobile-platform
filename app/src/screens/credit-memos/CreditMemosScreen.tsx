@@ -18,6 +18,8 @@ const CreditMemosScreenContent = () => {
     hasMoreCreditMemos,
     isUnauthorised,
     fetchCreditMemos,
+    refetchCreditMemos,
+    isCreditMemosRefetching,
   } = useBilling();
 
   const { t } = useTranslation();
@@ -42,6 +44,8 @@ const CreditMemosScreenContent = () => {
         hasMore={hasMoreCreditMemos}
         fetchNext={fetchCreditMemos}
         config={listItemConfigNoImageNoSubtitle}
+        onRefresh={refetchCreditMemos}
+        isRefreshing={isCreditMemosRefetching}
         onItemPress={(id) => {
           navigation.navigate('creditMemoDetails', {
             id,

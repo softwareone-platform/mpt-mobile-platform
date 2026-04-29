@@ -41,8 +41,9 @@ describe('Statement Details Page', () => {
     apiAvailable = !!process.env.API_OPS_TOKEN;
 
     if (hasStatementsData) {
-      const statementIds = await statementsPage.getVisibleStatementIds();
-      testStatementId = statementIds[0];
+      const statementsWithStatus = await statementsPage.getVisibleStatementsWithStatus();
+      const issuedStatement = statementsWithStatus.find((s) => s.status === 'Issued');
+      testStatementId = issuedStatement ? issuedStatement.id : statementsWithStatus[0]?.id;
 
       if (apiAvailable && testStatementId) {
         try {

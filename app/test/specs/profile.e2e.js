@@ -3,11 +3,13 @@ const { expect } = require('@wdio/globals');
 const headingPage = require('../pageobjects/base/heading.page');
 const profilePage = require('../pageobjects/profile.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Profile Page', () => {
+  let api;
   let userId;
   let userInfo;
   let userAccounts;
@@ -18,10 +20,12 @@ describe('Profile Page', () => {
   before(async function () {
     // Set timeout for login flow
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
     await ensureLoggedIn();
 
     // Navigate to Profile page
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     await headingPage.navAccountButton.click();
     await profilePage.profileHeaderTitle.waitForDisplayed({ timeout: TIMEOUT.ELEMENT_DISPLAYED });
 
@@ -37,7 +41,7 @@ describe('Profile Page', () => {
 
     // Fetch user information from API
     try {
-      userInfo = await apiClient.getUserInformation(userId);
+      userInfo = await api.getUserInformation(userId);
       userAccounts = userInfo.data || userInfo.accounts || userInfo;
       if (Array.isArray(userAccounts)) {
         console.info(`📊 Loaded ${userAccounts.length} accounts from API for user ${userId}`);

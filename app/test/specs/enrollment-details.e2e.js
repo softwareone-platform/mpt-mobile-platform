@@ -4,11 +4,13 @@ const enrollmentDetailsPage = require('../pageobjects/enrollment-details.page');
 const enrollmentsPage = require('../pageobjects/enrollments.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 describe('Enrollment Details Page', () => {
+  let api;
   let hasEnrollmentsData = false;
   let apiAvailable = false;
   let testEnrollmentId = null;
@@ -17,9 +19,11 @@ describe('Enrollment Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
 
     await enrollmentsPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
@@ -34,7 +38,7 @@ describe('Enrollment Details Page', () => {
     await enrollmentsPage.waitForScreenReady();
 
     hasEnrollmentsData = await enrollmentsPage.hasEnrollments();
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     if (hasEnrollmentsData) {
       const enrollmentIds = await enrollmentsPage.getVisibleEnrollmentIds();
@@ -42,7 +46,7 @@ describe('Enrollment Details Page', () => {
 
       if (apiAvailable && testEnrollmentId) {
         try {
-          apiEnrollmentData = await apiClient.getEnrollmentById(testEnrollmentId);
+          apiEnrollmentData = await api.getEnrollmentById(testEnrollmentId);
           console.info(`📊 Pre-fetched API data for enrollment: ${testEnrollmentId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);

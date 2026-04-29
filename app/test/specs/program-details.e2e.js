@@ -4,11 +4,13 @@ const programDetailsPage = require('../pageobjects/program-details.page');
 const programsPage = require('../pageobjects/programs.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 describe('Program Details Page', () => {
+  let api;
   let hasProgramsData = false;
   let apiAvailable = false;
   let testProgramId = null;
@@ -17,9 +19,11 @@ describe('Program Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
 
     await programsPage.footer.moreTab.click();
     await browser.pause(PAUSE.NAVIGATION);
@@ -34,7 +38,7 @@ describe('Program Details Page', () => {
     await programsPage.waitForScreenReady();
 
     hasProgramsData = await programsPage.hasPrograms();
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     if (hasProgramsData) {
       const programIds = await programsPage.getVisibleProgramIds();
@@ -42,7 +46,7 @@ describe('Program Details Page', () => {
 
       if (apiAvailable && testProgramId) {
         try {
-          apiProgramData = await apiClient.getProgramById(testProgramId);
+          apiProgramData = await api.getProgramById(testProgramId);
           console.info(`📊 Pre-fetched API data for program: ${testProgramId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to fetch API data: ${error.message}`);
