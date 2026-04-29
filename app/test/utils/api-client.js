@@ -729,10 +729,8 @@ class ApiClient {
    * @param {Object} options - Query parameters
    * @param {number} [options.limit] - Maximum number of products to return
    * @param {number} [options.offset] - Offset for pagination
-    * @param {string} [options.status] - Filter by product status (Published, Unpublished, Pending, Draft)
-    * @param {boolean} [options.excludeDraft] - Exclude products with Draft status (UI behavior)
-    * @param {string} [options.order] - Ordering expression (e.g., 'name')
-    * @param {string} [options.select] - Select projection expression (e.g., '-*,id,name,status,icon')
+   * @param {string} [options.status] - Filter by product status (Published, Unpublished, Pending, Draft)
+   * @param {string} [options.select] - Select projection expression (e.g., '-*,id,name,status,icon')
    * @returns {Promise<object>} - Products list response
    */
   async getProducts(options = {}) {
@@ -1516,8 +1514,9 @@ async function getOrCreateAccountToken(accountId, accountType) {
  * 3. Wait for propagation if new tokens were created (60 seconds)
  * 4. Create ApiClient instances for each account type
  *
- * After calling this, `clientApiClient` and `vendorApiClient` module exports
- * will be populated and usable by test specs.
+ * After calling this, `clientApiClient` will be populated if CLIENT_ACCOUNT_ID is configured.
+ * `vendorApiClient` is not populated by this function — it is only available when
+ * API_VENDOR_TOKEN is set via environment variable at startup.
  *
  * @returns {Promise<{clientApiClient: ApiClient|null, vendorApiClient: ApiClient|null}>}
  */

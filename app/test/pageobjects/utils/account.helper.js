@@ -27,9 +27,14 @@ const OPS_ACCOUNT_ID = getEnv('OPS_ACCOUNT_ID', OPS_ACCOUNT_IDS.test);
  * ACC- IDs for the Client/Buyer test account, keyed by environment.
  * Used to detect and switch to the client account for tests that validate
  * client-scoped data (agreements, orders, subscriptions, etc.).
+ *
+ * Unlike OPS_ACCOUNT_IDS, there is no universal client test account to hardcode here.
+ * When CLIENT_ACCOUNT_ID is not set via env var, ensureClientAccount() will log a
+ * warning and skip the account switch — tests will run under whichever account is
+ * currently active.
  */
 const CLIENT_ACCOUNT_IDS = {
-  test: '',
+  test: '', // No default — must be supplied via CLIENT_ACCOUNT_ID env var
 };
 
 const CLIENT_ACCOUNT_ID = getEnv('CLIENT_ACCOUNT_ID', CLIENT_ACCOUNT_IDS.test);
