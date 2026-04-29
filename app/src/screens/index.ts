@@ -34,6 +34,7 @@ export { default as CertificateDetailsScreen } from './certificates/CertificateD
 export { default as ChatScreen } from './chat/ChatScreen';
 export { default as ChatConversationScreen } from './chat/ChatConversationScreen';
 export { default as CreateChatModal } from './chat/create-chat/CreateChatWizard';
+export { default as SearchScreen } from './search/SearchScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

@@ -120,6 +120,7 @@ const SpotlightScreen = () => {
         filterKeys={filterKeys}
         selectedFilter={selectedFilter}
         onFilterPress={handleFilterPress}
+        translationPrefix="spotlightScreen.group"
         testIDPrefix={TestIDs.SPOTLIGHT_FILTER_PREFIX}
       />
       <ScrollView

@@ -1,4 +1,4 @@
-import { FlatList, ActivityIndicator } from 'react-native';
+import { FlatList, ActivityIndicator, StyleProp, ViewStyle } from 'react-native';
 
 import ListItemWithStatus from '@/components/list-item/ListItemWithStatus';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
@@ -13,6 +13,7 @@ type ListViewProps<T extends { id: string }> = {
   isFetchingNext?: boolean;
   hasMore?: boolean;
   fetchNext?: () => void;
+  contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 export function ListView<T extends { id: string }>({
@@ -22,6 +23,7 @@ export function ListView<T extends { id: string }>({
   isFetchingNext,
   hasMore,
   fetchNext,
+  contentContainerStyle,
 }: ListViewProps<T>) {
   if (data.length === 0) return null;
 
@@ -29,7 +31,7 @@ export function ListView<T extends { id: string }>({
     <FlatList
       data={data}
       keyExtractor={(item) => String((item as Record<string, unknown>)[config.id])}
-      contentContainerStyle={screenStyle.containerMain}
+      contentContainerStyle={[screenStyle.containerMain, contentContainerStyle]}
       renderItem={({ item, index }) => {
         const isFirst = index === 0;
         const isLast = index === data.length - 1;
