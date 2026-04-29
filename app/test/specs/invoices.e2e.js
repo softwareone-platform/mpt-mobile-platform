@@ -3,13 +3,15 @@ const { expect } = require('@wdio/globals');
 const invoicesPage = require('../pageobjects/invoices.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { testPageStructure } = require('../utils/shared-tests');
 const { PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 
 describe('Invoices Page', () => {
   // Data state flags - set once in before() to avoid redundant checks
+  let api;
   let hasInvoicesData = false;
   let hasEmptyState = false;
   let apiInvoicesAvailable = false;
@@ -29,9 +31,11 @@ describe('Invoices Page', () => {
 
   before(async function () {
     this.timeout(150000);
+    api = getClientApi();
     await ensureLoggedIn();
     // Navigate to home page once after login
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     
     // Check if Invoices menu item is available for this user
     await invoicesPage.footer.moreTab.click();
@@ -50,7 +54,7 @@ describe('Invoices Page', () => {
     // Check data state ONCE and cache the results
     hasInvoicesData = await invoicesPage.hasInvoices();
     hasEmptyState = !hasInvoicesData && await invoicesPage.emptyState.isDisplayed().catch(() => false);
-    apiInvoicesAvailable = !!process.env.API_OPS_TOKEN;
+    apiInvoicesAvailable = !!api;
 
     console.info(`📊 Invoices data state: hasInvoices=${hasInvoicesData}, emptyState=${hasEmptyState}, apiAvailable=${apiInvoicesAvailable}`);
   });
@@ -223,7 +227,7 @@ describe('Invoices Page', () => {
       }
 
       try {
-        const apiInvoices = await apiClient.getInvoices({ limit: 100 });
+        const apiInvoices = await api.getInvoices({ limit: 100 });
         const apiInvoicesList = apiInvoices.data || apiInvoices;
         const apiCount = apiInvoicesList.length;
         
@@ -241,42 +245,44 @@ describe('Invoices Page', () => {
       }
     });
 
-    it('should verify first 10 invoices IDs and statuses match API data', async function () {
+    it('should verify first 10 invoices have valid IDs and known statuses', async function () {
       if (!apiInvoicesAvailable || !hasInvoicesData) {
         this.skip();
         return;
       }
 
       try {
-        const apiInvoices = await apiClient.getInvoices({ limit: 10 });
+        const apiInvoices = await api.getInvoices({ limit: 10 });
         const apiInvoicesList = apiInvoices.data || apiInvoices;
         const uiInvoiceIds = await invoicesPage.getVisibleInvoiceIds();
         const uiInvoicesWithStatus = await invoicesPage.getVisibleInvoicesWithStatus();
-        
-        // Compare each API invoice with UI and log results
-        const comparisons = [];
-        for (let i = 0; i < Math.min(apiInvoicesList.length, 10); i++) {
+
+        const compareCount = Math.min(apiInvoicesList.length, uiInvoicesWithStatus.length, 10);
+
+        if (compareCount === 0) {
+          this.skip();
+          return;
+        }
+
+        // Log for informational comparison — sequential ID matching is unreliable
+        // because filter(group.buyers) scopes to the token's buyer group, which may
+        // differ from the logged-in app user's scope.
+        for (let i = 0; i < compareCount; i++) {
           const apiInvoice = apiInvoicesList[i];
-          const apiInvoiceId = apiInvoice.invoiceId || apiInvoice.id;
+          const apiInvoiceId = apiInvoice.id || apiInvoice.invoiceId;
           const apiStatus = apiInvoice.status;
           const uiInvoice = uiInvoicesWithStatus[i] || {};
           const uiInvoiceId = uiInvoice.invoiceId;
           const uiStatus = uiInvoice.status;
-          
-          const idMatches = apiInvoiceId === uiInvoiceId;
-          const statusMatches = apiStatus === uiStatus;
-          
-          console.info(`[${i + 1}] ID: ${apiInvoiceId} vs ${uiInvoiceId} ${idMatches ? '✓' : '✗'} | Status: ${apiStatus} vs ${uiStatus} ${statusMatches ? '✓' : '✗'}`);
-          comparisons.push({ apiInvoiceId, uiInvoiceId, idMatches, apiStatus, uiStatus, statusMatches });
+          console.info(`[${i + 1}] ID: ${apiInvoiceId} vs ${uiInvoiceId} | Status: ${apiStatus} vs ${uiStatus}`);
         }
-        
-        const idMatchCount = comparisons.filter(c => c.idMatches).length;
-        const statusMatchCount = comparisons.filter(c => c.statusMatches).length;
-        console.info(`Match summary - IDs: ${idMatchCount}/${comparisons.length}, Statuses: ${statusMatchCount}/${comparisons.length}`);
-        
-        // Verify all visible UI invoices have valid format (4-group)
+
+        // Assert: UI invoices have valid ID format and recognized statuses
         for (const uiInvoiceId of uiInvoiceIds.slice(0, 10)) {
           expect(uiInvoiceId).toMatch(REGEX.INVOICE_ID);
+        }
+        for (const uiInvoice of uiInvoicesWithStatus.slice(0, 10)) {
+          expect(STATUSES.INVOICE).toContain(uiInvoice.status);
         }
       } catch (error) {
         console.warn('API verification skipped:', error.message);

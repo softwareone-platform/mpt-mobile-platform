@@ -3,15 +3,17 @@ const { expect } = require('@wdio/globals');
 const productDetailsPage = require('../pageobjects/product-details.page');
 const productsPage = require('../pageobjects/products.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 function normalizeText(value) {
   return (value || '').replace(/\s+/g, ' ').trim();
 }
 
 describe('Product Details Page', () => {
+  let api;
   let hasProductsData = false;
   let apiAvailable = false;
   let testProductId = null;
@@ -19,13 +21,15 @@ describe('Product Details Page', () => {
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
     await productsPage.ensureProductsPage();
 
     hasProductsData = await productsPage.hasProducts();
-    apiAvailable = !!process.env.API_OPS_TOKEN;
+    apiAvailable = !!api;
 
     if (hasProductsData) {
       const productIds = await productsPage.getVisibleProductIds();
@@ -33,7 +37,7 @@ describe('Product Details Page', () => {
 
       if (apiAvailable && testProductId) {
         try {
-          apiProductData = await apiClient.getProductById(testProductId);
+          apiProductData = await api.getProductById(testProductId);
         } catch (error) {
           console.warn(`Failed to fetch product details from API: ${error.message}`);
         }

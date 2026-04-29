@@ -511,6 +511,41 @@ exports.config = {
         menuNavigation: ['./test/specs/menu-navigation.e2e.js'],
         // Experimental tests — known CI limitations, run separately and allowed to fail
         experimental: ['./test/specs/session-restart.e2e.js'],
+        // Combined suites for running multiple access-level groups together
+        clientScoped: [
+            './test/specs/orders.e2e.js',
+            './test/specs/order-details.e2e.js',
+            './test/specs/subscriptions.e2e.js',
+            './test/specs/subscription-details.e2e.js',
+            './test/specs/agreements.e2e.js',
+            './test/specs/agreement-details.e2e.js',
+            './test/specs/invoices.e2e.js',
+            './test/specs/invoice-details.e2e.js',
+            './test/specs/credit-memos.e2e.js',
+            './test/specs/credit-memo-details.e2e.js',
+            './test/specs/products.e2e.js',
+            './test/specs/product-details.e2e.js',
+            './test/specs/programs.e2e.js',
+            './test/specs/program-details.e2e.js',
+            './test/specs/enrollments.e2e.js',
+            './test/specs/enrollment-details.e2e.js',
+            './test/specs/buyers.e2e.js',
+            './test/specs/buyer-details.e2e.js',
+            './test/specs/users.e2e.js',
+            './test/specs/user-details.e2e.js',
+            './test/specs/spotlight-filters.e2e.js',
+            './test/specs/spotlight-navigation.e2e.js',
+            './test/specs/profile.e2e.js',
+            './test/specs/personal-information.e2e.js',
+        ],
+        opsScoped: [
+            './test/specs/statements.e2e.js',
+            './test/specs/statement-details.e2e.js',
+            './test/specs/journals.e2e.js',
+            './test/specs/journal-details.e2e.js',
+            './test/specs/licensees.e2e.js',
+            './test/specs/licensee-details.e2e.js',
+        ],
     },
     //
     // ============
@@ -816,10 +851,16 @@ exports.config = {
      * @param {Array.<String>} specs        List of spec file paths that are to be run
      * @param {object}         browser      instance of created browser/device session
      */
-    before: function (capabilities, specs) {
+    before: async function (capabilities, specs) {
         // Suppress MaxListenersExceededWarning from WDIO/Appium TLS
         // socket reuse — harmless in a test runner process.
         require('events').EventEmitter.defaultMaxListeners = 50;
+
+        // Initialize account-scoped API tokens for E2E test validation.
+        // Creates/reuses tokens via the OPS token so client-scoped specs
+        // can validate API data against the correct account context.
+        const { initAccountTokens } = require('./test/utils/api-client');
+        await initAccountTokens();
 
         // Log spec file being executed
         const specFile = specs && specs.length > 0 ? specs[0] : 'unknown';

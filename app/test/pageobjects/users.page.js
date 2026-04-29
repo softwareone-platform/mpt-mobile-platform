@@ -55,7 +55,7 @@ class UsersPage extends ListPage {
   async getItemDetails(itemElement) {
     const label =
       (await itemElement.getAttribute('name')) || (await itemElement.getAttribute('content-desc'));
-    const idMatch = label.match(REGEX.USER_ID);
+    const idMatch = label.match(REGEX.USER_ID_EXTRACT);
     const id = idMatch ? idMatch[0] : '';
     // Extract name (everything before the ID)
     const name = id ? label.split(`, ${id}`)[0].trim() : '';

@@ -1159,6 +1159,15 @@ elif [[ "$TEST_TARGET" == *.js ]]; then
     TEST_ARGS="--spec $TEST_TARGET"
     log ""
     log "🚀 Starting WebDriver tests with spec: $TEST_TARGET"
+elif [[ "$TEST_TARGET" == *,* ]]; then
+    # Comma-separated suite names: convert to multiple --suite flags
+    TEST_ARGS=""
+    IFS=',' read -ra SUITES <<< "$TEST_TARGET"
+    for s in "${SUITES[@]}"; do
+        TEST_ARGS="$TEST_ARGS --suite $s"
+    done
+    log ""
+    log "🚀 Starting WebDriver tests with suites: $TEST_TARGET"
 else
     TEST_ARGS="--suite $TEST_TARGET"
     log ""

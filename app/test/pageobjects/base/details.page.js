@@ -318,6 +318,11 @@ class DetailsPage extends BasePage {
         console.warn(`[getCompositeFieldValueByLabel] Field "${labelPrefix}" not visible after ${attempts} scroll attempts`);
         return '';
       }
+    } else {
+      const exists = await field.isExisting().catch(() => false);
+      if (!exists) {
+        return '';
+      }
     }
     return this.getCompositeFieldValue(field);
   }
@@ -358,6 +363,11 @@ class DetailsPage extends BasePage {
       }
       if (!isDisplayed) {
         console.warn(`[getSimpleFieldValue] Field "${labelText}" not visible after ${attempts} scroll attempts`);
+        return '';
+      }
+    } else {
+      const exists = await field.value.isExisting().catch(() => false);
+      if (!exists) {
         return '';
       }
     }

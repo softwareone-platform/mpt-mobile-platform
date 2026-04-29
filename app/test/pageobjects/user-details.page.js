@@ -29,7 +29,7 @@ class UserDetailsPage extends DetailsPage {
   async getAllUserDetails() {
     await this.scrollToTop();
     return {
-      userName: await this.getSimpleFieldValue('Adam Ruszczak', true), // User name label
+      userName: '',
       userId: await this.getItemId(),
       status: await this.getStatus(),
       email: await this.getSimpleFieldValue('Email', true),

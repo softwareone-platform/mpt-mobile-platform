@@ -3,10 +3,11 @@ const { expect, $ } = require('@wdio/globals');
 const headingPage = require('../pageobjects/base/heading.page');
 const spotlightsPage = require('../pageobjects/spotlights.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
+const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 const { ensureHomePage } = require('../pageobjects/utils/navigation.page');
 const { getSelector, isAndroid } = require('../pageobjects/utils/selectors');
-const { apiClient } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 
 /**
  * Spotlight Navigation Tests
@@ -20,15 +21,18 @@ const { apiClient } = require('../utils/api-client');
  * - Navigation is verified by checking for the back button and/or the entity ID on the destination.
  */
 describe('Spotlight Navigation', () => {
+  let api;
   let hasSpotlightsData = false;
   let sectionData = {};
   let firstAvailableCardType = null;
 
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    api = getClientApi();
 
     await ensureLoggedIn();
     await ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
 
     hasSpotlightsData = await spotlightsPage.hasSpotlights();
 
@@ -38,7 +42,7 @@ describe('Spotlight Navigation', () => {
     }
 
     try {
-      sectionData = await apiClient.getSpotlightDataAvailability();
+      sectionData = await api.getSpotlightDataAvailability();
       console.info('📊 Spotlight section data (from API):', {
         hasOrders: sectionData.hasOrders,
         hasSubscriptions: sectionData.hasSubscriptions,
