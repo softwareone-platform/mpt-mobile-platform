@@ -257,6 +257,11 @@ export const TestIDs = {
   VENDORS_ERROR_STATE: 'vendors-error-state',
   VENDORS_EMPTY_STATE: 'vendors-empty-state',
 
+  // Sellers Screen
+  SELLERS_LOADING_INDICATOR: 'sellers-loading-indicator',
+  SELLERS_ERROR_STATE: 'sellers-error-state',
+  SELLERS_EMPTY_STATE: 'sellers-empty-state',
+
   // Account Details Screen
   ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
   ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',

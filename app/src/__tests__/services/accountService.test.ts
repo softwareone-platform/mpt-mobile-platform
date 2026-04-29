@@ -27,6 +27,16 @@ import {
   mockVendorItem3,
   mockVendorItem4,
 } from '../__mocks__/services/vendor';
+import {
+  mockSellerListId1,
+  mockSellerListId2,
+  mockSellerListId3,
+  mockSellerListId4,
+  mockSellerListItem1,
+  mockSellerListItem2,
+  mockSellerListItem3,
+  mockSellerListItem4,
+} from '../__mocks__/services/seller';
 
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAccountApi } from '@/services/accountService';
@@ -563,6 +573,145 @@ describe('useAccountApi - getVendors', () => {
     mockGet.mockRejectedValueOnce(mockNetworkError);
 
     await expect(api.getVendors()).rejects.toThrow('Network error');
+  });
+});
+
+describe('useAccountApi - getSellers', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const expectedUrlBase = `/v1/accounts/sellers` + `?select=id,name,status,icon` + '&order=name';
+
+  it('calls getSellers with default offset and limit', async () => {
+    const api = setup();
+
+    const mockEmptyResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: DEFAULT_OFFSET,
+          limit: DEFAULT_PAGE_SIZE,
+          total: 0,
+        },
+      },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockEmptyResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSellers();
+    });
+
+    const expectedUrl =
+      expectedUrlBase + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockEmptyResponse);
+  });
+
+  it('calls getSellers with custom offset and limit', async () => {
+    const api = setup();
+
+    const mockSellersMultipleResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: 50,
+          limit: 25,
+          total: 2,
+        },
+      },
+      data: [mockSellerListItem1, mockSellerListItem2],
+    };
+
+    mockGet.mockResolvedValueOnce(mockSellersMultipleResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSellers(50, 25);
+    });
+
+    const expectedUrl = expectedUrlBase + `&offset=50` + `&limit=25`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual(mockSellersMultipleResponse);
+  });
+
+  it('handles multiple calls correctly with 2 items per page', async () => {
+    const api = setup();
+
+    const mockResponse1: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 0, limit: 2, total: 4 } },
+      data: [mockSellerListItem1 as ListItemFull, mockSellerListItem2 as ListItemFull],
+    };
+
+    const mockResponse2: PaginatedResponse<ListItemFull> = {
+      $meta: { pagination: { offset: 2, limit: 2, total: 4 } },
+      data: [mockSellerListItem3 as ListItemFull, mockSellerListItem4 as ListItemFull],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse1);
+    mockGet.mockResolvedValueOnce(mockResponse2);
+
+    let res1: PaginatedResponse<ListItemFull> | undefined;
+    let res2: PaginatedResponse<ListItemFull> | undefined;
+
+    await act(async () => {
+      res1 = await api.getSellers(0, 2);
+    });
+
+    await act(async () => {
+      res2 = await api.getSellers(2, 2);
+    });
+
+    expect(res1).toBeDefined();
+    expect(res1!.data.length).toBe(2);
+    expect(res1!.data.map((item) => item.id)).toEqual([mockSellerListId1, mockSellerListId2]);
+    expect(res1!.data.map((item) => item.status)).toEqual(['Active', 'Disabled']);
+
+    expect(res2).toBeDefined();
+    expect(res2!.data.length).toBe(2);
+    expect(res2!.data.map((item) => item.id)).toEqual([mockSellerListId3, mockSellerListId4]);
+    expect(res2!.data.map((item) => item.status)).toEqual(['Offline', 'Deleted']);
+  });
+
+  it('returns correct seller data structure', async () => {
+    const api = setup();
+
+    const mockSingleResponse: PaginatedResponse<ListItemFull> = {
+      $meta: {
+        pagination: {
+          offset: 0,
+          limit: 10,
+          total: 1,
+        },
+      },
+      data: [mockSellerListItem1],
+    };
+
+    mockGet.mockResolvedValueOnce(mockSingleResponse);
+
+    let res;
+    await act(async () => {
+      res = await api.getSellers();
+    });
+
+    expect(res).toEqual(mockSingleResponse);
+    expect(res!.data[0]).toMatchObject({
+      id: mockSellerListItem1.id,
+      name: mockSellerListItem1.name,
+      status: mockSellerListItem1.status,
+      icon: mockSellerListItem1.icon,
+    });
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getSellers()).rejects.toThrow('Network error');
   });
 });
 

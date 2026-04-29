@@ -171,6 +171,23 @@ export function useAccountApi() {
     [api],
   );
 
+  const getSellers = useCallback(
+    async (
+      offset: number = DEFAULT_OFFSET,
+      limit: number = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedResponse<ListItemFull>> => {
+      const endpoint =
+        `/v1/accounts/sellers` +
+        `?select=id,name,status,icon` +
+        '&order=name' +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
+
+      return api.get<PaginatedResponse<ListItemFull>>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getUserData,
@@ -184,6 +201,7 @@ export function useAccountApi() {
       getAccountData,
       getClients,
       getVendors,
+      getSellers,
     }),
     [
       getUserData,
@@ -197,6 +215,7 @@ export function useAccountApi() {
       getAccountData,
       getClients,
       getVendors,
+      getSellers,
     ],
   );
 }

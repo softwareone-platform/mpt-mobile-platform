@@ -15,6 +15,7 @@ import {
   BuyersScreen,
   ClientsScreen,
   VendorsScreen,
+  SellersScreen,
   ProductsScreen,
   CreditMemoDetailsScreen,
   JournalDetailsScreen,
@@ -85,6 +86,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         name: 'vendors',
         icon: 'storefront',
         component: VendorsScreen,
+        modules: ['platform-account-management'],
+        roles: ['Operations'],
+      },
+      {
+        name: 'sellers',
+        icon: 'contacts', // TODO: Change to 'globe' when icon is added
+        component: SellersScreen,
         modules: ['platform-account-management'],
         roles: ['Operations'],
       },
@@ -212,6 +220,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         roles: ['Client'],
       },
       {
+        name: 'sellers',
+        icon: 'contacts', // TODO: Change to 'globe' when icon is added
+        component: SellersScreen,
+        modules: ['account-management'],
+        roles: ['Client'],
+      },
+      {
         name: 'users',
         icon: 'group',
         component: UsersScreen,
@@ -243,6 +258,7 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'allBuyers', component: BuyersScreen },
   { name: 'clients', component: ClientsScreen },
   { name: 'vendors', component: VendorsScreen },
+  { name: 'sellers', component: SellersScreen },
   { name: 'products', component: ProductsScreen },
   { name: 'orders', component: OrdersScreen },
   { name: 'subscriptions', component: SubscriptionsScreen },
