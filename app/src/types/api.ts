@@ -13,6 +13,7 @@ export interface UserAccount {
   id: string;
   name: string;
   type: string;
+  status?: string;
   icon?: string;
   invitation?: {
     status: string;

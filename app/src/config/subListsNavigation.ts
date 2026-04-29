@@ -95,3 +95,13 @@ export const getOrderSubList = (id: string): SubListItem[] => {
     },
   ];
 };
+
+export const getUserSubList = (id: string): SubListItem[] => {
+  return [
+    {
+      name: 'accounts',
+      roles: ['Operations'],
+      userId: id,
+    },
+  ];
+};

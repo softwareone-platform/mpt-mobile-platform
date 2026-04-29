@@ -15,6 +15,7 @@ This document outlines the coding conventions and patterns used in the MPT Mobil
 - [Hook Patterns](#hook-patterns)
 - [Service Patterns](#service-patterns)
 - [Screen Patterns](#screen-patterns)
+  - [Pull-to-Refresh](#pull-to-refresh)
 - [Testing Patterns](#testing-patterns)
 - [Error Handling](#error-handling)
 - [TestID Patterns](#testid-patterns)
@@ -403,13 +404,13 @@ export const buttonStyle = {
 
 Not all numeric values in styles require a design token. The rule depends on **what the value represents**:
 
-| Value type                              | Where to define         | Token required? |
-| --------------------------------------- | ----------------------- | --------------- |
-| **Spacing** (margin, padding, gap)      | `@/styles/components/`  | ✅ Yes          |
-| **Color**                               | `@/styles/components/`  | ✅ Yes          |
-| **Typography** (fontSize, lineHeight)   | `@/styles/components/`  | ✅ Yes          |
-| **Border radius**                       | `@/styles/components/`  | ✅ Yes          |
-| **Intrinsic sizing** (width, height)    | `@/styles/components/`  | ❌ Raw is fine  |
+| Value type                            | Where to define        | Token required? |
+| ------------------------------------- | ---------------------- | --------------- |
+| **Spacing** (margin, padding, gap)    | `@/styles/components/` | ✅ Yes          |
+| **Color**                             | `@/styles/components/` | ✅ Yes          |
+| **Typography** (fontSize, lineHeight) | `@/styles/components/` | ✅ Yes          |
+| **Border radius**                     | `@/styles/components/` | ✅ Yes          |
+| **Intrinsic sizing** (width, height)  | `@/styles/components/` | ❌ Raw is fine  |
 
 **Intrinsic sizing** refers to dimensions that are specific to a single component's visual identity (e.g., the size of a checkbox or an icon container). These may use raw numeric values because they have no corresponding design token — but they must still be defined in `@/styles/components/`, not in the component's `StyleSheet.create()`.
 
@@ -630,6 +631,63 @@ const InvoicesScreen = () => (
 );
 
 export default InvoicesScreen;
+```
+
+### Pull-to-Refresh
+
+Every list screen and detail screen supports pull-to-refresh. The pattern is consistent across the codebase:
+
+1. **Context** — expose `refetch` and `isRefetching` from the query hook in the context value.
+2. **Screen** — destructure them from the context hook and pass directly to `ListView` or `DetailsView`.
+
+```typescript
+// Context (e.g. InvoicesContext.tsx)
+interface InvoicesContextValue {
+  // ...
+  refetchInvoices: () => void;
+  isInvoicesRefetching: boolean;
+}
+
+// map from query hook inside the provider:
+const { refetch: refetchInvoices, isRefetching: isInvoicesRefetching } = useInvoicesData(...);
+```
+
+```typescript
+// List screen
+const { invoices, refetchInvoices, isInvoicesRefetching } = useInvoices();
+
+<ListView
+  data={invoices}
+  onRefresh={refetchInvoices}
+  isRefreshing={isInvoicesRefetching}
+  // ...
+/>
+```
+
+```typescript
+// Detail screen (uses DetailsView instead of ListView)
+const { data, refetch, isRefetching } = useInvoiceDetailsData(...);
+
+<DetailsView
+  data={data}
+  onRefresh={refetch}
+  isRefreshing={isRefetching}
+>
+  ...
+</DetailsView>
+```
+
+Both `ListView` and `DetailsView` render the shared `@/components/common/RefreshControl` component internally — **never import `RefreshControl` from `react-native` directly**. The custom wrapper applies brand colours and works around a React Native Fabric bug on iOS (see its inline comment).
+
+When a screen merges multiple data sources (e.g. `UserDetailsScreen` fetches user details and SSO status), combine the refetch calls in a `useCallback`:
+
+```typescript
+const handleRefresh = useCallback(() => {
+  void refetch();
+  void refetchSso();
+}, [refetch, refetchSso]);
+
+<DetailsView onRefresh={handleRefresh} isRefreshing={isRefetching || isSsoRefetching}>
 ```
 
 ### Route Params Handling

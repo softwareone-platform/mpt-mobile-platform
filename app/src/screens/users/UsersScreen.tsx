@@ -13,7 +13,7 @@ type UsersScreenRouteProp =
   | RouteProp<RootStackParamList, 'users'>
   | RouteProp<RootStackParamList, 'allUsers'>;
 
-const UsersScreenContent = () => {
+const UsersScreenContent = ({ showAccounts }: { showAccounts: boolean }) => {
   const {
     users,
     usersLoading,
@@ -53,6 +53,7 @@ const UsersScreenContent = () => {
         onItemPress={(id) => {
           navigation.navigate('userDetails', {
             id,
+            showAccounts,
           });
         }}
       />
@@ -69,7 +70,7 @@ const UsersScreen = () => {
 
   return (
     <UsersProvider showAllUsers={showAllUsers} query={query} accountId={accountId}>
-      <UsersScreenContent />
+      <UsersScreenContent showAccounts={showAllUsers} />
     </UsersProvider>
   );
 };

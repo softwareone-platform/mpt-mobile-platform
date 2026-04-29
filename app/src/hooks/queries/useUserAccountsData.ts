@@ -3,7 +3,7 @@ import { useAccountApi } from '@/services/accountService';
 import type { UserAccount } from '@/types/api';
 
 export const useUserAccountsData = (userId: string | undefined) => {
-  const { getUserAccountsData } = useAccountApi();
+  const { getAccountsForUser } = useAccountApi();
 
   return usePaginatedQuery<UserAccount>({
     queryKey: ['userAccountsData', userId],
@@ -11,7 +11,7 @@ export const useUserAccountsData = (userId: string | undefined) => {
       if (!userId) {
         throw new Error('userId is required for fetching accounts');
       }
-      return getUserAccountsData(userId, offset, limit);
+      return getAccountsForUser(userId, offset, limit);
     },
     enabled: !!userId,
   });

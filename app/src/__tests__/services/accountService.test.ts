@@ -107,7 +107,7 @@ describe('useAccountApi', () => {
 
     const expectedUrl =
       `/v1/accounts/users/555/accounts` +
-      `?select=id,name,type,icon,favorite,audit.access.at,-*` +
+      `?select=id,name,type,status,icon,favorite,audit.access.at,-*` +
       `&eq(invitation.status,"Active")` +
       `&order=name` +
       `&offset=${DEFAULT_OFFSET}` +
@@ -128,7 +128,7 @@ describe('useAccountApi', () => {
 
     const expectedUrl =
       `/v1/accounts/users/555/accounts` +
-      `?select=id,name,type,icon,favorite,audit.access.at,-*` +
+      `?select=id,name,type,status,icon,favorite,audit.access.at,-*` +
       `&eq(invitation.status,"Active")` +
       `&order=name` +
       `&offset=10` +
@@ -563,5 +563,52 @@ describe('useAccountApi - getVendors', () => {
     mockGet.mockRejectedValueOnce(mockNetworkError);
 
     await expect(api.getVendors()).rejects.toThrow('Network error');
+  });
+});
+
+describe('useAccountApi - getAccountsForUser', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const mockUserId = 'USR-1960-6520';
+
+  const expectedBaseUrl =
+    `/v1/accounts/users/${mockUserId}/accounts` + `?select=groups,audit` + `&order=name`;
+
+  it('calls with default offset and limit', async () => {
+    const api = setup();
+    mockGet.mockResolvedValueOnce({ data: [] });
+
+    let res;
+    await act(async () => {
+      res = await api.getAccountsForUser(mockUserId);
+    });
+
+    const expectedUrl =
+      expectedBaseUrl + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+    expect(res).toEqual({ data: [] });
+  });
+
+  it('calls with custom offset and limit', async () => {
+    const api = setup();
+    mockGet.mockResolvedValueOnce({ data: [] });
+
+    let res;
+    await act(async () => {
+      res = await api.getAccountsForUser(mockUserId, 10, 5);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedBaseUrl + `&offset=10` + `&limit=5`);
+    expect(res).toEqual({ data: [] });
+  });
+
+  it('handles API errors correctly', async () => {
+    const api = setup();
+    mockGet.mockRejectedValueOnce(mockNetworkError);
+
+    await expect(api.getAccountsForUser(mockUserId)).rejects.toThrow('Network error');
   });
 });
