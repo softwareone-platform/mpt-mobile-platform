@@ -5,13 +5,12 @@ on:
   workflow_dispatch:
     inputs:
       version_bump:
-        description: 'Version bump type'
+        description: 'Semantic version bump (build number is always assembled from the CI run number)'
         required: false
-        default: 'build'
+        default: 'none (build)'
         type: choice
         options:
-          - none
-          - build
+          - 'none (build)'
           - patch
           - minor
           - major
@@ -136,68 +135,62 @@ jobs:
           fi
           echo "Auth0 configuration validated ✓"
 
-      - name: Increment build number
+      - name: Resolve version and build number
         id: version
         run: |
-          # Get current version and build number from app.config.js
+          # Read current semver from app.config.js (build number is no longer kept in source)
           cat > read_config.mjs << 'SCRIPT'
           import config from './app.config.js';
-          console.log(JSON.stringify({
-            version: config.expo.version,
-            buildNumber: config.expo.ios?.buildNumber || "1"
-          }));
+          console.log(config.expo.version);
           SCRIPT
-          CONFIG_JSON=$(node read_config.mjs)
+          CURRENT_VERSION=$(node read_config.mjs)
           rm read_config.mjs
 
-          CURRENT_VERSION=$(echo $CONFIG_JSON | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")
-          CURRENT_BUILD=$(echo $CONFIG_JSON | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).buildNumber")
-
           echo "Current version: $CURRENT_VERSION"
-          echo "Current build number: $CURRENT_BUILD"
 
           VERSION_BUMP="${{ inputs.version_bump }}"
           if [ -z "$VERSION_BUMP" ]; then
-            VERSION_BUMP="build"
+            VERSION_BUMP="none (build)"
           fi
 
           case "$VERSION_BUMP" in
             major)
               NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1+1".0.0"}')
-              NEW_BUILD=1
               ;;
             minor)
               NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2+1".0"}')
-              NEW_BUILD=1
               ;;
             patch)
               NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{print $1"."$2"."$3+1}')
-              NEW_BUILD=1
               ;;
-            none)
+            *)
               NEW_VERSION=$CURRENT_VERSION
-              NEW_BUILD=$CURRENT_BUILD
-              ;;
-            build|*)
-              NEW_VERSION=$CURRENT_VERSION
-              NEW_BUILD=$((CURRENT_BUILD + 1))
               ;;
           esac
 
+          # Build number = github.run_number. iOS run numbers are already past the
+          # legacy hand-bumped floor (33), so no offset is needed here. CFBundleVersion
+          # only has to be monotonic within a CFBundleShortVersionString.
+          NEW_BUILD="${{ github.run_number }}"
+
           echo "New version: $NEW_VERSION"
-          echo "New build number: $NEW_BUILD"
+          echo "New build number: $NEW_BUILD (run #${{ github.run_number }})"
 
-          # Update version and buildNumber in app.config.js
-          # Handle both single and double quotes in the config file
-          node -e "
-            const fs = require('fs');
-            let configContent = fs.readFileSync('app.config.js', 'utf8');
-            configContent = configContent.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$NEW_VERSION'\");
-            configContent = configContent.replace(/buildNumber: ['\"][^'\"]+['\"]/, \"buildNumber: '$NEW_BUILD'\");
-            fs.writeFileSync('app.config.js', configContent);
-          "
+          # Only persist version changes to source. Build number flows in via the
+          # BUILD_NUMBER env var consumed by app.config.js at prebuild time.
+          if [ "$VERSION_BUMP" != "none (build)" ]; then
+            node -e "
+              const fs = require('fs');
+              let configContent = fs.readFileSync('app.config.js', 'utf8');
+              configContent = configContent.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$NEW_VERSION'\");
+              fs.writeFileSync('app.config.js', configContent);
+            "
+            echo "Updated app.config.js with version $NEW_VERSION"
+          fi
 
-          echo "Updated app.config.js with version $NEW_VERSION and build number $NEW_BUILD"
+          # Expose BUILD_NUMBER to subsequent steps so app.config.js (and therefore
+          # `expo prebuild`) generates Info.plist with the right CFBundleVersion.
+          echo "BUILD_NUMBER=$NEW_BUILD" >> $GITHUB_ENV
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
 
@@ -455,55 +448,52 @@ jobs:
           retention-days: 30
 
       - name: Create version bump PR
-        if: success() && inputs.version_bump != 'none'
+        if: success() && inputs.version_bump != 'none (build)'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           BUILD="${{ steps.version.outputs.build }}"
-          BRANCH_NAME="chore/version-bump-${VERSION}-build${BUILD}"
+          BRANCH_NAME="chore/version-bump-${VERSION}"
 
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          # Always create version bump PR from main branch
-          # This ensures the PR only contains version changes, even when deploying from a feature branch
-          # Discard local changes (version was bumped for build) before switching to main
+          # Always create the PR off a clean main so it only contains the semver bump,
+          # even when this workflow was dispatched from a feature branch.
           git fetch origin main
           git checkout -f main
           git reset --hard origin/main
 
-          # Apply version bump to main branch
+          # Apply semver bump to main. Build number is no longer persisted to source.
           node -e "
             const fs = require('fs');
             let configContent = fs.readFileSync('app.config.js', 'utf8');
             configContent = configContent.replace(/version: ['\"][^'\"]+['\"]/, \"version: '$VERSION'\");
-            configContent = configContent.replace(/buildNumber: ['\"][^'\"]+['\"]/, \"buildNumber: '$BUILD'\");
             fs.writeFileSync('app.config.js', configContent);
           "
 
-          # Create a new branch for the version bump
           git checkout -b "$BRANCH_NAME"
           git add app.config.js
-          git commit -m "chore: bump version to ${VERSION} build ${BUILD} [skip ci]"
+          git commit -m "chore: bump version to ${VERSION} [skip ci]"
           git push origin "$BRANCH_NAME"
 
-          # Create PR using gh cli
           gh pr create \
-            --title "chore: bump version to ${VERSION} build ${BUILD}" \
+            --title "chore: bump version to ${VERSION}" \
             --body "$(cat <<EOF
           ## Version Bump
 
           This PR was automatically created by the TestFlight deployment workflow.
 
           - **Version:** ${VERSION}
-          - **Build Number:** ${BUILD}
+          - **Build Number:** ${BUILD} (CI run #${{ github.run_number }})
           - **Environment:** ${{ inputs.environment }}
 
           ### Changes
-          - Updated version/buildNumber in \`app/app.config.js\`
+          - Updated \`expo.version\` in \`app/app.config.js\`
 
-          This PR should be merged to keep the version numbers in sync with TestFlight.
+          The build number is generated automatically from the CI run number and is
+          not stored in source.
           EOF
           )" \
             --base main \
@@ -514,7 +504,7 @@ jobs:
       - name: Create release tag
         if: success()
         run: |
-          TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-${{ inputs.environment }}"
+          TAG="v${{ steps.version.outputs.version }}-build${{ steps.version.outputs.build }}-run${{ github.run_number }}-${{ inputs.environment }}"
           BUILD_COMMIT="${{ steps.build_commit.outputs.sha }}"
 
           # Check if tag already exists
@@ -522,7 +512,7 @@ jobs:
             echo "::warning::Tag $TAG already exists, skipping tag creation"
           else
             # Create tag on the original build commit, not current HEAD
-            git tag -a "$TAG" "$BUILD_COMMIT" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }} (${{ inputs.environment }})"
+            git tag -a "$TAG" "$BUILD_COMMIT" -m "TestFlight release ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build }} (run #${{ github.run_number }}, ${{ inputs.environment }})"
             git push origin "$TAG"
             echo "Created tag $TAG on commit $BUILD_COMMIT"
           fi
@@ -545,12 +535,16 @@ jobs:
           echo "## TestFlight Deployment Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Build Number:** ${{ steps.version.outputs.build }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Number:** ${{ steps.version.outputs.build }} (CI run #${{ github.run_number }})" >> $GITHUB_STEP_SUMMARY
           echo "**Bundle ID:** ${{ vars.APP_BUNDLE_ID }}" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. Wait 10-15 minutes for App Store Connect processing" >> $GITHUB_STEP_SUMMARY
           echo "2. Check TestFlight: [App Store Connect](${{ steps.build_url.outputs.url }})" >> $GITHUB_STEP_SUMMARY
-          echo "3. Merge the version bump PR to sync build numbers" >> $GITHUB_STEP_SUMMARY
-          echo "4. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.version_bump }}" != "none (build)" ]; then
+            echo "3. Merge the version bump PR to sync the semantic version" >> $GITHUB_STEP_SUMMARY
+            echo "4. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "3. Add internal/external testers as needed" >> $GITHUB_STEP_SUMMARY
+          fi
