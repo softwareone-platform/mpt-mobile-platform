@@ -68,7 +68,7 @@ export default {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: bundleId,
-      versionCode: 32,
+      versionCode: 33,
       blockedPermissions: [
         'android.permission.SYSTEM_ALERT_WINDOW',
         'android.permission.VIBRATE',
