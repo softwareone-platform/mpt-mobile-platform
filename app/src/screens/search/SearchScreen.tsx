@@ -37,15 +37,15 @@ const SearchScreen = () => {
             placeholder={t('search.placeholder')}
           />
         </SubHeaderContainer>
-        {/* <View> */}
-        <FiltersHorizontal
-          filterKeys={categories}
-          selectedFilter={activeCategory}
-          onFilterPress={(key) => setActiveCategory(key as SearchCategory)}
-          translationPrefix="searchScreen.filter"
-          testIDPrefix={TestIDs.SEARCH_FILTER}
-        />
-        {/* </View> */}
+        <View>
+          <FiltersHorizontal
+            filterKeys={categories}
+            selectedFilter={activeCategory}
+            onFilterPress={(key) => setActiveCategory(key as SearchCategory)}
+            translationPrefix="searchScreen.filter"
+            testIDPrefix={TestIDs.SEARCH_FILTER}
+          />
+        </View>
 
         {hasSearchTerm ? (
           <View style={styles.container}>
