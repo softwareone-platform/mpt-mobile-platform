@@ -91,7 +91,7 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
       },
       {
         name: 'sellers',
-        icon: 'public', 
+        icon: 'public',
         component: SellersScreen,
         modules: ['platform-account-management'],
         roles: ['Operations'],

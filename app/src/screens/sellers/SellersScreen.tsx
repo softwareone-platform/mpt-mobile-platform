@@ -47,9 +47,8 @@ const SellersScreenContent = () => {
         onRefresh={refetch}
         isRefreshing={isRefetching}
         onItemPress={(id) => {
-          navigation.navigate('accountDetails', {
+          navigation.navigate('sellerDetails', {
             id,
-            type: 'seller',
           });
         }}
       />

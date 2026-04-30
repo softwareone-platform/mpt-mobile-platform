@@ -18,16 +18,6 @@ import {
 } from '../__mocks__/services/client';
 import { mockNetworkError } from '../__mocks__/services/common';
 import {
-  mockVendorId1,
-  mockVendorId2,
-  mockVendorId3,
-  mockVendorId4,
-  mockVendorItem1,
-  mockVendorItem2,
-  mockVendorItem3,
-  mockVendorItem4,
-} from '../__mocks__/services/vendor';
-import {
   mockSellerListId1,
   mockSellerListId2,
   mockSellerListId3,
@@ -37,6 +27,16 @@ import {
   mockSellerListItem3,
   mockSellerListItem4,
 } from '../__mocks__/services/seller';
+import {
+  mockVendorId1,
+  mockVendorId2,
+  mockVendorId3,
+  mockVendorId4,
+  mockVendorItem1,
+  mockVendorItem2,
+  mockVendorItem3,
+  mockVendorItem4,
+} from '../__mocks__/services/vendor';
 
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAccountApi } from '@/services/accountService';
