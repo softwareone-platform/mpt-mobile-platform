@@ -91,7 +91,7 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
       },
       {
         name: 'sellers',
-        icon: 'contacts', // TODO: Change to 'globe' when icon is added
+        icon: 'public', 
         component: SellersScreen,
         modules: ['platform-account-management'],
         roles: ['Operations'],
@@ -221,7 +221,7 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
       },
       {
         name: 'sellers',
-        icon: 'contacts', // TODO: Change to 'globe' when icon is added
+        icon: 'public',
         component: SellersScreen,
         modules: ['account-management'],
         roles: ['Client'],
