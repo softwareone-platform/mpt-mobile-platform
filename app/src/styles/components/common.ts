@@ -47,6 +47,11 @@ export const screenStyle = {
     flexDirection: 'row',
     paddingVertical: Spacing.spacing2,
   },
+  subHeaderContainer: {
+    backgroundColor: Color.brand.white,
+    paddingHorizontal: Spacing.spacing2,
+    paddingBottom: Spacing.spacing2,
+  },
   noPaddingTop: {
     paddingTop: 0,
   },
@@ -64,6 +69,12 @@ export const spacingStyle = {
   },
   marginTop1: {
     marginTop: Spacing.spacing1,
+  },
+  paddingHorizontal8: {
+    paddingHorizontal: Spacing.spacing8,
+  },
+  paddingVertical2: {
+    paddingVertical: Spacing.spacing2,
   },
   paddingVertical4: {
     paddingVertical: Spacing.spacing4,

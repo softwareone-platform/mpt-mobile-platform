@@ -7,10 +7,17 @@ type Props = {
   filterKeys: string[];
   selectedFilter: string;
   onFilterPress: (key: string) => void;
+  translationPrefix: string;
   testIDPrefix?: string;
 };
 
-const FiltersHorizontal = ({ filterKeys, selectedFilter, onFilterPress, testIDPrefix }: Props) => {
+const FiltersHorizontal = ({
+  filterKeys,
+  selectedFilter,
+  onFilterPress,
+  translationPrefix,
+  testIDPrefix,
+}: Props) => {
   const { t } = useTranslation();
 
   return (
@@ -31,7 +38,7 @@ const FiltersHorizontal = ({ filterKeys, selectedFilter, onFilterPress, testIDPr
             style={[styles.chip, isActive && styles.chipActive]}
           >
             <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-              {t(`spotlightScreen.group.${key}`)}
+              {t(`${translationPrefix}.${key}`)}
             </Text>
           </TouchableOpacity>
         );

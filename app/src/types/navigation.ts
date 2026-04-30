@@ -18,6 +18,7 @@ export type RootStackParamList = {
 
 export type MainTabsParamList = {
   spotlight: ScreenParams;
+  search: ScreenParams;
   chat: ScreenParams;
   more: ScreenParams;
 };
@@ -89,7 +90,7 @@ export type AuthStackParamList = {
 
 export type AppScreenRouteName = keyof RootStackParamList;
 
-export type StackRootName = 'spotlightRoot' | 'chatRoot' | 'moreRoot';
+export type StackRootName = 'spotlightRoot' | 'searchRoot' | 'chatRoot' | 'moreRoot';
 
 export type MainTabItem = {
   name: MainTabRouteName;

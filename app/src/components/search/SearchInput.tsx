@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -14,15 +13,17 @@ import OutlinedIcon from '@/components/common/OutlinedIcon';
 import { inputSearchStyle } from '@/styles';
 
 type SearchInputProps = {
+  value: string;
   placeholder?: string;
-  isSearchMode: boolean;
+  isSearchMode?: boolean;
   showCancel?: boolean;
-  onSearchModeChange: (value: boolean) => void;
+  onSearchModeChange?: (value: boolean) => void;
   onChangeText?: (text: string) => void;
   testID?: string;
 };
 
 const SearchInput = ({
+  value,
   placeholder,
   isSearchMode,
   showCancel,
@@ -30,36 +31,29 @@ const SearchInput = ({
   onSearchModeChange,
   testID,
 }: SearchInputProps) => {
-  const [value, setValue] = useState('');
-
   const { t } = useTranslation();
 
   const handleChange = (text: string) => {
-    setValue(text);
     onChangeText?.(text);
   };
 
   const clearInput = () => {
-    setValue('');
     onChangeText?.('');
   };
 
   const handleFocus = () => {
-    onSearchModeChange(true);
+    onSearchModeChange?.(true);
   };
 
   const handleCancel = () => {
     clearInput();
     Keyboard.dismiss();
-    onSearchModeChange(false);
+    onSearchModeChange?.(false);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.searchWrapper}>
-        <View style={styles.leftIcon}>
-          <OutlinedIcon name="search" size={24} color={inputSearchStyle.searchIconColor} />
-        </View>
         <TextInput
           value={value}
           onChangeText={handleChange}
@@ -69,6 +63,9 @@ const SearchInput = ({
           onFocus={handleFocus}
           testID={testID}
         />
+        <View style={styles.leftIcon}>
+          <OutlinedIcon name="search" size={24} color={inputSearchStyle.searchIconColor} />
+        </View>
         {value.length > 0 && (
           <Pressable onPress={clearInput} style={styles.rightIcon} testID={`${testID}-clear`}>
             <OutlinedIcon name="close" size={24} color={inputSearchStyle.searchIconColor} />
