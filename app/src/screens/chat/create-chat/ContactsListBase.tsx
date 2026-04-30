@@ -27,11 +27,9 @@ const ContactsListBase = ({ renderItem, header, showCancel }: ContactsListBasePr
   const userId = userData?.id;
 
   const debouncedSearch = useDebounce(searchQuery);
+  const query = debouncedSearch.trim() || undefined;
 
-  const { data, isFetchingNextPage, hasNextPage, fetchNextPage } = useContactsData(
-    userId,
-    debouncedSearch || undefined,
-  );
+  const { data, isFetchingNextPage, hasNextPage, fetchNextPage } = useContactsData(userId, query);
 
   const contacts = data?.pages.flatMap((page) => page.data) ?? [];
 
@@ -39,7 +37,8 @@ const ContactsListBase = ({ renderItem, header, showCancel }: ContactsListBasePr
     <View style={styles.container}>
       <View style={styles.marginBottom}>
         <SearchInput
-          placeholder={t('createChatWizard.searchPlaceholder')}
+          value={searchQuery}
+          placeholder={t('search.placeholder')}
           onChangeText={setSearchQuery}
           isSearchMode={isSearchMode}
           showCancel={showCancel}

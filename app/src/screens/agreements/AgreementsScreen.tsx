@@ -6,12 +6,13 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImage } from '@/config/list';
 import { useAgreements, AgreementsProvider } from '@/context/AgreementsContext';
+import type { ListProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type AgreementsScreenRouteProp = RouteProp<RootStackParamList, 'agreements'>;
 
-const AgreementsScreenContent = () => {
+const AgreementsListContent = ({ contentContainerStyle }: ListProps) => {
   const {
     agreements,
     agreementsLoading,
@@ -48,6 +49,7 @@ const AgreementsScreenContent = () => {
         config={listItemConfigNoImage}
         onRefresh={refetchAgreements}
         isRefreshing={isAgreementsRefetching}
+        contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('agreementDetails', {
             id,
@@ -58,16 +60,17 @@ const AgreementsScreenContent = () => {
   );
 };
 
-const AgreementsScreen = () => {
-  const route = useRoute<AgreementsScreenRouteProp>();
-
-  const query = route.params?.query;
-
+export const AgreementsList = ({ query, contentContainerStyle }: ListProps) => {
   return (
     <AgreementsProvider query={query}>
-      <AgreementsScreenContent />
+      <AgreementsListContent contentContainerStyle={contentContainerStyle} />
     </AgreementsProvider>
   );
+};
+
+const AgreementsScreen = () => {
+  const route = useRoute<AgreementsScreenRouteProp>();
+  return <AgreementsList query={route.params?.query} />;
 };
 
 export default AgreementsScreen;

@@ -35,6 +35,7 @@ import {
   ChatScreen,
   ChatConversationScreen,
   CertificatesScreen,
+  SearchScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -47,6 +48,12 @@ export const TAB_BAR_CONTENT_HEIGHT = 65;
 
 export const mainTabsData: MainTabItem[] = [
   { name: 'spotlight', icon: 'flare', component: SpotlightScreen, stackRootName: 'spotlightRoot' },
+  {
+    name: 'search',
+    icon: 'search',
+    component: SearchScreen,
+    stackRootName: 'searchRoot',
+  },
   {
     name: 'chat',
     icon: 'chat-bubble',
