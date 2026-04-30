@@ -549,6 +549,197 @@ class ApiClient {
     }
   }
 
+  // ========== Chat Methods ==========
+
+  /**
+   * Get chats list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of chats to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @returns {Promise<object>} - Chats list response
+   */
+  async getChats(options = {}) {
+    const userId = this.getTokenUserId();
+    let endpoint = '/public/v1/helpdesk/chats';
+
+    const queryParams = [
+      'select=participants,lastMessage,lastMessage.audit,lastMessage.sender',
+      'order=-lastMessage.audit.created.at',
+    ];
+    if (userId) {
+      queryParams.push(
+        `and(any(participants,eq(identity.id,"${userId}")),any(participants,ne(status,"Exited")))`,
+      );
+    }
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+
+    endpoint += '?' + queryParams.join('&');
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific chat by ID
+   * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
+   * @returns {Promise<object>} - Chat details response
+   */
+  async getChatById(chatId) {
+    return this.get(`/public/v1/helpdesk/chats/${chatId}?select=participants`);
+  }
+
+  /**
+   * Check if the user has any chats
+   * @returns {Promise<boolean>}
+   */
+  async hasChats() {
+    try {
+      const response = await this.getChats({ limit: 1 });
+      const data = response.data || response;
+      return Array.isArray(data) ? data.length > 0 : false;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get contacts available for adding to a chat (excludes the current user)
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=5] - Maximum number of contacts to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @returns {Promise<object>} - Contacts list response
+   */
+  async getContacts(options = {}) {
+    const userId = this.getTokenUserId();
+    const baseFilter = userId
+      ? `and(and(and(eq(chat,true),ne(status,"deleted")),ne(identity.id,"${userId}")),any(directories))`
+      : `and(and(eq(chat,true),ne(status,"deleted")),any(directories))`;
+
+    const queryParams = [
+      'select=identity',
+      baseFilter,
+      'order=identity.name',
+      `limit=${options.limit || 5}`,
+    ];
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+
+    return this.get(`/public/v1/notifications/contacts?${queryParams.join('&')}`);
+  }
+
+  /**
+   * Send a message to a chat
+   * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
+   * @param {string} content - Message text
+   * @returns {Promise<object>} - Created message response
+   */
+  async sendChatMessage(chatId, content) {
+    const payload = { content, visibility: 'Public', isDeleted: false, links: [] };
+    console.info(`📨 [sendChatMessage] POST /public/v1/helpdesk/chats/${chatId}/messages\n${JSON.stringify(payload, null, 2)}`);
+    const response = await this.post(`/public/v1/helpdesk/chats/${chatId}/messages`, payload);
+    console.info(`📨 [sendChatMessage] Response:\n${JSON.stringify(response, null, 2)}`);
+    return response;
+  }
+
+  /**
+   * Create a Group chat via the API
+   * @param {string} name - Display name for the group chat
+   * @param {string[]} participantContactIds - CON- IDs of contacts to add as participants
+   * @returns {Promise<object>} - Created chat response (includes id and name)
+   */
+  async createGroupChat(name, participantContactIds = []) {
+    const payload = {
+      type: 'Group',
+      name,
+      participants: participantContactIds.map((id) => ({ contact: { id } })),
+    };
+    console.info(`🔧 [createGroupChat] POST /public/v1/helpdesk/chats\n${JSON.stringify(payload, null, 2)}`);
+    const response = await this.post('/public/v1/helpdesk/chats', payload);
+    console.info(`🔧 [createGroupChat] Response:\n${JSON.stringify(response, null, 2)}`);
+    return response;
+  }
+
+  /**
+   * Find the most recent QA chat whose name starts with the given prefix.
+   * Uses an API-side name filter so only matching chats are returned —
+   * this avoids pagination issues with chats ordered by lastMessage date.
+   * @param {string} namePrefix - Name prefix to search for (e.g. "MPT-QA-portal")
+   * @returns {Promise<object|null>} - Matching chat with { id, name }, or null if not found
+   */
+  async findChatByNamePrefix(namePrefix) {
+    const sanitized = namePrefix.replace(/["\\()]/g, '');
+    const queryParams = [
+      'select=name,id',
+      `ilike(name,"${sanitized}*")`,
+      'limit=10',
+    ];
+    const url = `/public/v1/helpdesk/chats?${queryParams.join('&')}`;
+    console.info(`🔍 [findChatByNamePrefix] GET ${url}`);
+
+    try {
+      const response = await this.get(url);
+      console.info(`🔍 [findChatByNamePrefix] Response:\n${JSON.stringify(response, null, 2)}`);
+      const data = response.data || response;
+      if (!Array.isArray(data)) {
+        console.info(`🔍 [findChatByNamePrefix] Unexpected response shape — no array in data`);
+        return null;
+      }
+      console.info(`🔍 [findChatByNamePrefix] Candidates: ${data.length} item(s)`);
+      return data.find((chat) => chat.name && chat.name.startsWith(namePrefix)) || null;
+    } catch (error) {
+      console.warn(`⚠️ [findChatByNamePrefix] Query failed: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Find an existing QA group chat by name prefix, or create a new one.
+   *
+   * Chats cannot be deleted via the API, so this reuses existing QA chats to avoid
+   * polluting the helpdesk list on repeated runs. A new chat is only created when no
+   * chat matching the given prefix exists.
+   *
+   * @param {string} namePrefix - Prefix used to detect existing QA chats (e.g. "MPT-QA-portal")
+   * @returns {Promise<object|null>} - Chat object with at least { id, name }, or null on failure
+   */
+  async ensureQaGroupChat(namePrefix) {
+    try {
+      const existing = await this.findChatByNamePrefix(namePrefix);
+      if (existing) {
+        console.info(`✅ [ensureQaGroupChat] Reusing existing QA chat: ${existing.name} (${existing.id})`);
+        return existing;
+      }
+
+      const contactsResponse = await this.getContacts({ limit: 1 });
+      const contacts = contactsResponse.data || contactsResponse;
+      const participantContactIds =
+        Array.isArray(contacts) && contacts.length > 0 ? [contacts[0].id] : [];
+
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/[-:T]/g, '')
+        .slice(0, 14);
+      const chatName = `${namePrefix}-${timestamp}`;
+
+      console.info(`🔧 [ensureQaGroupChat] Creating new QA group chat: "${chatName}"...`);
+      const chat = await this.createGroupChat(chatName, participantContactIds);
+      const chatWithName = { ...chat, name: chat.name || chatName };
+      console.info(`✅ [ensureQaGroupChat] Created QA group chat: ${chatWithName.name} (${chatWithName.id})`);
+
+      console.info(`📨 [ensureQaGroupChat] Sending setup message to bring chat to top of list...`);
+      try {
+        await this.sendChatMessage(chatWithName.id, 'QA test setup — automated');
+        console.info(`✅ [ensureQaGroupChat] Setup message sent`);
+      } catch (msgError) {
+        console.warn(`⚠️ [ensureQaGroupChat] Setup message failed (chat will sort to bottom): ${msgError.message}`);
+      }
+
+      return chatWithName;
+    } catch (error) {
+      console.warn(`⚠️ [ensureQaGroupChat] Could not ensure QA chat: ${error.message}`);
+      return null;
+    }
+  }
+
   // ========== Agreements Methods ==========
 
   /**
