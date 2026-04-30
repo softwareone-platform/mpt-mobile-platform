@@ -1,12 +1,12 @@
 import { usePaginatedQuery } from '@/hooks/queries/usePaginatedQuery';
-import { useAccountApi } from '@/services/accountService';
+import { useSellerApi } from '@/services/sellerService';
 import type { ListItemFull } from '@/types/api';
 
 export const useSellersData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
 ) => {
-  const { getSellers } = useAccountApi();
+  const { getSellers } = useSellerApi();
 
   return usePaginatedQuery<ListItemFull>({
     queryKey: ['sellers', userId, currentAccountId],
