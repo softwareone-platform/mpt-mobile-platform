@@ -37,15 +37,15 @@ const SearchScreen = () => {
             placeholder={t('search.placeholder')}
           />
         </SubHeaderContainer>
-        <View>
-          <FiltersHorizontal
-            filterKeys={categories}
-            selectedFilter={activeCategory}
-            onFilterPress={(key) => setActiveCategory(key as SearchCategory)}
-            translationPrefix="searchScreen.filter"
-            testIDPrefix={TestIDs.SEARCH_FILTER}
-          />
-        </View>
+        {/* <View> */}
+        <FiltersHorizontal
+          filterKeys={categories}
+          selectedFilter={activeCategory}
+          onFilterPress={(key) => setActiveCategory(key as SearchCategory)}
+          translationPrefix="searchScreen.filter"
+          testIDPrefix={TestIDs.SEARCH_FILTER}
+        />
+        {/* </View> */}
 
         {hasSearchTerm ? (
           <View style={styles.container}>
@@ -54,7 +54,7 @@ const SearchScreen = () => {
             )}
           </View>
         ) : (
-          <View style={styles.emptySateContainer}>
+          <View style={styles.emptyStateContainer}>
             <EmptyState
               icon={{
                 name: 'search',
@@ -70,13 +70,13 @@ const SearchScreen = () => {
   );
 };
 
-export default SearchScreen;
-
 const styles = StyleSheet.create({
   container: screenStyle.containerFlex,
-  emptySateContainer: {
+  emptyStateContainer: {
     ...screenStyle.containerFlex,
     ...spacingStyle.paddingHorizontal8,
   },
   noPaddingTop: screenStyle.noPaddingTop,
 });
+
+export default SearchScreen;
