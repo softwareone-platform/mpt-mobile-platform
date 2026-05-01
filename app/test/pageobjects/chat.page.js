@@ -3,7 +3,7 @@ const { $, $$ } = require('@wdio/globals');
 const BasePage = require('./base/base.page');
 const footerPage = require('./base/footer.page');
 const headingPage = require('./base/heading.page');
-const { selectors, isAndroid, getSelector } = require('./utils/selectors');
+const { selectors, getSelector } = require('./utils/selectors');
 const { PAUSE, TIMEOUT, SCROLL } = require('./utils/constants');
 
 /**

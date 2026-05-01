@@ -3,7 +3,7 @@ const { $, expect } = require('@wdio/globals');
 const chatPage = require('../pageobjects/chat.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { apiClient, getClientApi } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { isAndroid, selectors } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 const { TEST_ENV_LABEL } = require('../utils/env');
@@ -14,7 +14,6 @@ describe('Chat Page', () => {
   let hasChatsData = false;
   let hasEmptyState = false;
   let apiAvailable = false;
-  let qaChat = null;
 
   async function navigateToChat() {
     await chatPage.footer.chatTab.click();
@@ -27,7 +26,7 @@ describe('Chat Page', () => {
     await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
 
-    qaChat = await getClientApi().ensureQaGroupChat(QA_CHAT_NAME_PREFIX);
+    await getClientApi().ensureQaGroupChat(QA_CHAT_NAME_PREFIX);
 
     await navigateToChat();
 

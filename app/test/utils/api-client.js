@@ -557,6 +557,13 @@ class ApiClient {
    * @param {number} [options.limit] - Maximum number of chats to return
    * @param {number} [options.offset] - Offset for pagination
    * @returns {Promise<object>} - Chats list response
+   *
+   * @example
+   * // Get all chats
+   * const chats = await apiClient.getChats();
+   *
+   * // Get first page of chats
+   * const chats = await apiClient.getChats({ limit: 10, offset: 0 });
    */
   async getChats(options = {}) {
     const userId = this.getTokenUserId();
@@ -583,14 +590,23 @@ class ApiClient {
    * Get a specific chat by ID
    * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
    * @returns {Promise<object>} - Chat details response
+   *
+   * @example
+   * const chat = await apiClient.getChatById('CHT-1234-5678-9012');
    */
   async getChatById(chatId) {
+    if (!chatId || !/^CHT-\d{4}-\d{4}-\d{4}$/.test(chatId)) {
+      throw new Error(`Invalid chatId format: "${chatId}". Expected format: CHT-XXXX-XXXX-XXXX`);
+    }
     return this.get(`/public/v1/helpdesk/chats/${chatId}?select=participants`);
   }
 
   /**
    * Check if the user has any chats
    * @returns {Promise<boolean>}
+   *
+   * @example
+   * const hasChats = await apiClient.hasChats();
    */
   async hasChats() {
     try {
@@ -608,6 +624,13 @@ class ApiClient {
    * @param {number} [options.limit=5] - Maximum number of contacts to return
    * @param {number} [options.offset] - Offset for pagination
    * @returns {Promise<object>} - Contacts list response
+   *
+   * @example
+   * // Get up to 5 contacts
+   * const contacts = await apiClient.getContacts();
+   *
+   * // Get first page with pagination
+   * const contacts = await apiClient.getContacts({ limit: 10, offset: 0 });
    */
   async getContacts(options = {}) {
     const userId = this.getTokenUserId();
@@ -631,8 +654,14 @@ class ApiClient {
    * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
    * @param {string} content - Message text
    * @returns {Promise<object>} - Created message response
+   *
+   * @example
+   * const message = await apiClient.sendChatMessage('CHT-1234-5678-9012', 'Hello from QA');
    */
   async sendChatMessage(chatId, content) {
+    if (!chatId || !/^CHT-\d{4}-\d{4}-\d{4}$/.test(chatId)) {
+      throw new Error(`Invalid chatId format: "${chatId}". Expected format: CHT-XXXX-XXXX-XXXX`);
+    }
     const payload = { content, visibility: 'Public', isDeleted: false, links: [] };
     console.info(`📨 [sendChatMessage] POST /public/v1/helpdesk/chats/${chatId}/messages\n${JSON.stringify(payload, null, 2)}`);
     const response = await this.post(`/public/v1/helpdesk/chats/${chatId}/messages`, payload);
@@ -645,6 +674,9 @@ class ApiClient {
    * @param {string} name - Display name for the group chat
    * @param {string[]} participantContactIds - CON- IDs of contacts to add as participants
    * @returns {Promise<object>} - Created chat response (includes id and name)
+   *
+   * @example
+   * const chat = await apiClient.createGroupChat('MPT-QA-test', ['CON-1234-5678']);
    */
   async createGroupChat(name, participantContactIds = []) {
     const payload = {
@@ -664,6 +696,10 @@ class ApiClient {
    * this avoids pagination issues with chats ordered by lastMessage date.
    * @param {string} namePrefix - Name prefix to search for (e.g. "MPT-QA-portal")
    * @returns {Promise<object|null>} - Matching chat with { id, name }, or null if not found
+   *
+   * @example
+   * const chat = await apiClient.findChatByNamePrefix('MPT-QA-portal');
+   * if (chat) console.log(chat.id); // 'CHT-1234-5678-9012'
    */
   async findChatByNamePrefix(namePrefix) {
     const sanitized = namePrefix.replace(/["\\()]/g, '');
@@ -700,6 +736,10 @@ class ApiClient {
    *
    * @param {string} namePrefix - Prefix used to detect existing QA chats (e.g. "MPT-QA-portal")
    * @returns {Promise<object|null>} - Chat object with at least { id, name }, or null on failure
+   *
+   * @example
+   * const chat = await apiClient.ensureQaGroupChat('MPT-QA-portal');
+   * if (chat) await apiClient.sendChatMessage(chat.id, 'setup message');
    */
   async ensureQaGroupChat(namePrefix) {
     try {

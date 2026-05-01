@@ -5,7 +5,7 @@ const chatConversationPage = require('../pageobjects/chat-conversation.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
-const { apiClient, getClientApi } = require('../utils/api-client');
+const { getClientApi } = require('../utils/api-client');
 const { TEST_ENV_LABEL } = require('../utils/env');
 
 const QA_CHAT_NAME_PREFIX = `MPT-QA-${TEST_ENV_LABEL}`;
@@ -88,7 +88,7 @@ describe('Chat Conversation Page', () => {
   });
 
   describe('Page Structure', () => {
-    it('should display the chat name as header', async () => {
+    it('should display the chat name as header', async function () {
       const isDisplayed = await chatConversationPage.conversationTitle.isDisplayed().catch(() => false);
       if (!isDisplayed) {
         this.skip();

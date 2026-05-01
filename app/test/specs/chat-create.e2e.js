@@ -4,7 +4,7 @@ const chatPage = require('../pageobjects/chat.page');
 const createChatPage = require('../pageobjects/create-chat.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Create Chat Wizard', () => {
   async function navigateToChatList() {
@@ -130,7 +130,7 @@ describe('Create Chat Wizard', () => {
         (await firstItem.getAttribute('name')) ||
         (await firstItem.getAttribute('content-desc')) ||
         '';
-      expect(label).toMatch(/,\s*USR-\d{4}-\d{4},/);
+      expect(label).toMatch(REGEX.USER_ID_IN_LABEL);
     });
 
     it('should enable Create button after selecting a participant', async () => {
