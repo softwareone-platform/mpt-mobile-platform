@@ -30,12 +30,7 @@ class ProfilePage extends BasePage {
 
   // ========== Your Profile Section ==========
   get yourProfileLabel() {
-    return $(
-      getSelector({
-        ios: '~User Profile',
-        android: '//*[@resource-id="profile-section-yourprofile-text"]',
-      }),
-    );
+    return $(selectors.byText('User Profile'));
   }
 
   get currentUserCard() {
@@ -72,12 +67,7 @@ class ProfilePage extends BasePage {
 
   // ========== Switch Account Section ==========
   get switchAccountLabel() {
-    return $(
-      getSelector({
-        ios: '~Switch Account',
-        android: '//*[@resource-id="profile-section-switchaccount-text"]',
-      }),
-    );
+    return $(selectors.byText('Switch Account'));
   }
 
   // ========== Account Tabs (FEATURE_ACCOUNT_TABS) ==========
