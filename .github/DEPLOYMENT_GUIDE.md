@@ -1,279 +1,173 @@
-# Deployment Guide — Test, QA & Production
+# Deployment Guide - Test, QA, and Production
 
-This document explains how builds are promoted through environments (test → QA → prod) using the deployment workflows for both **iOS** and **Android**.
+This document explains how builds are promoted through `test`, `qa`, and `prod` using the iOS and Android deployment workflows.
 
 ## Key Concepts
 
 | Concept | Description |
 |---------|-------------|
-| **Source of truth for version** | `app/app.config.js` — `version`, `ios.buildNumber`, and `android.versionCode` fields |
-| **iOS deployment workflow** | `.github/workflows/ios-testflight.yml` — manual dispatch only |
-| **Android deployment workflow** | `.github/workflows/android-google-play.yml` — manual dispatch only |
-| **Version bump types** | `none`, `build`, `patch`, `minor`, `major` |
-| **Environments** | `test`, `qa`, `prod` — each with its own secrets/variables |
-| **iOS git tags** | e.g. `v1.4.1-build8-test` |
-| **Android git tags** | e.g. `v1.4.1-vc8-test-android` |
-| **Chore PR** | Auto-created when version is bumped, to sync `app.config.js` back to `main` |
+| **Semantic version source** | `app/app.config.js` -> `expo.version` (`x.y.z`) |
+| **Build number source** | GitHub Actions run number, exported as `BUILD_NUMBER` during deployment |
+| **iOS deployment workflow** | `.github/workflows/ios-testflight.yml` - manual dispatch only |
+| **Android deployment workflow** | `.github/workflows/android-google-play.yml` - manual dispatch only |
+| **Version bump choices** | `none (build)`, `patch`, `minor`, `major` |
+| **Environments** | `test`, `qa`, `prod` - each with its own secrets and variables |
+| **iOS git tags** | e.g. `v1.4.2-build94-run94-test` |
+| **Android git tags** | e.g. `v1.4.2-vc113-run13-test-android` |
+| **Chore PR** | Auto-created only for `patch`, `minor`, or `major`; updates `expo.version` only |
 
-### Platform-Specific Build Counters
+## Version vs Build Identifier
 
-Both platforms share the `version` field (e.g. `1.4.1`) but maintain independent build counters:
+The semantic version and build identifier are intentionally separate:
 
-| Platform | Field | Type | Bumped by |
-|----------|-------|------|-----------|
-| iOS | `ios.buildNumber` | string | `ios-testflight.yml` |
-| Android | `android.versionCode` | integer | `android-google-play.yml` |
+| Platform | Store field | Generated value | Persisted in source? |
+|----------|-------------|-----------------|----------------------|
+| iOS | `CFBundleShortVersionString` / `expo.version` | `app.config.js` semantic version | Yes |
+| iOS | `CFBundleVersion` / `ios.buildNumber` | `github.run_number` | No |
+| Android | `versionName` / `expo.version` | `app.config.js` semantic version | Yes |
+| Android | `versionCode` / `android.versionCode` | `github.run_number + ANDROID_VERSION_CODE_OFFSET` | No |
 
-Each workflow only modifies its own counter, so iOS and Android deployments don't conflict.
+`app.config.js` still exposes `ios.buildNumber` and `android.versionCode`, but they read from `process.env.BUILD_NUMBER`. The fallback value of `1` is only for local builds where CI has not set `BUILD_NUMBER`.
+
+Android adds the workflow-level `ANDROID_VERSION_CODE_OFFSET` because Google Play requires `versionCode` to increase globally forever for a package. iOS does not need an offset because TestFlight requires build numbers to increase only within a semantic version.
 
 ## How the Workflows Work
 
-Both workflows are triggered manually from the **Actions** tab. You select:
+Both deployment workflows are triggered manually from the **Actions** tab. You select:
 
-1. **Version bump type** — determines how the version/build number changes
-2. **Target environment** — `test`, `qa`, or `prod`
+1. **Version bump** - whether to keep the current semantic version or bump it.
+2. **Target environment** - `test`, `qa`, or `prod`.
 
 On every run the workflow:
 
-1. Checks out the selected ref (branch or tag)
-2. Runs tests
-3. Bumps the version in `app.config.js` (unless `none`)
-4. Builds, signs, and uploads the app (IPA to TestFlight / AAB to Google Play internal testing)
-5. Tags the **build commit** (iOS: `v1.4.1-build8-qa` / Android: `v1.4.1-vc8-qa-android`)
-6. Creates a chore PR to merge the version bump back to `main` (only when bump ≠ `none`)
+1. Checks out the selected ref.
+2. Runs tests.
+3. Resolves the semantic version.
+4. Generates a build identifier from the CI run number.
+5. Exports `BUILD_NUMBER` before `expo prebuild` so native project files receive the generated build identifier.
+6. Builds, signs, and uploads the app.
+7. Creates a release tag on the build commit.
+8. Creates a chore PR only when the semantic version changed.
+
+The same commit may produce different build numbers in `test`, `qa`, and `prod`. That is expected: each deployment run has its own CI run number, and that run number is the traceable build identifier.
 
 ---
 
-## Option A: Sequential Deployment (Recommended)
+## Recommended Promotion Flow
 
-Deploy from `main` branch, promoting through environments sequentially. The version bump PR is merged between the first deployment and subsequent ones.
+Deploy from `main`, merge the semantic-version chore PR after the first bumped deployment, then promote with `none (build)`.
 
-> The flow below applies identically to both iOS (TestFlight) and Android (Google Play). The only difference is the workflow you trigger and the tag/counter names.
-
-### Flow Diagram
-
-```
- main branch
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 1: Deploy to TEST                                   │
-   │  │   Trigger: main branch                                   │
-   │  │   Version bump: build / patch / minor / major            │
-   │  │                                                          │
-   │  │   iOS  → TestFlight (test), tag: v1.5.0-build1-test     │
-   │  │   Android → Google Play (test), tag: v1.5.0-vc1-test-android
-   │  │   → Creates chore PR to bump version                     │
-   │  └──────────────────────────────────────────────────────────┘
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 2: Merge the chore PR                               │
-   │  │                                                          │
-   │  │   main now has the bumped version in app.config.js       │
-   │  └──────────────────────────────────────────────────────────┘
-   │
-   ▼
- main (version synced)
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 3: Deploy to QA                                     │
-   │  │   Trigger: main branch                                   │
-   │  │   Version bump: none  ← important!                       │
-   │  │                                                          │
-   │  │   iOS  → TestFlight (qa), tag: v1.5.0-build1-qa         │
-   │  │   Android → Google Play (qa), tag: v1.5.0-vc1-qa-android│
-   │  │   → No chore PR (bump = none)                            │
-   │  └──────────────────────────────────────────────────────────┘
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 4: Deploy to PROD                                   │
-   │  │   Trigger: main branch                                   │
-   │  │   Version bump: none  ← important!                       │
-   │  │                                                          │
-   │  │   iOS  → TestFlight (prod), tag: v1.5.0-build1-prod     │
-   │  │   Android → Google Play (prod), tag: v1.5.0-vc1-prod-android
-   │  │   → No chore PR (bump = none)                            │
-   │  └──────────────────────────────────────────────────────────┘
+```text
+main branch
+  |
+  | Step 1: Deploy to test
+  |   Version bump: patch / minor / major
+  |   iOS tag example:     v1.4.2-build94-run94-test
+  |   Android tag example: v1.4.2-vc113-run13-test-android
+  |   Chore PR: updates expo.version to 1.4.2
+  |
+  | Step 2: Merge the chore PR
+  |   main now contains expo.version = 1.4.2
+  |
+  | Step 3: Deploy to QA
+  |   Version bump: none (build)
+  |   Same semantic version, new CI-generated build identifier
+  |
+  | Step 4: Deploy to prod
+  |   Version bump: none (build)
+  |   Same semantic version, new CI-generated build identifier
 ```
 
-### Step-by-Step
+### Deploy to Test with a Semantic Version Bump
 
-#### 1. Deploy to Test (with version bump)
-
-1. Go to **Actions** → Select the deployment workflow:
+1. Go to **Actions** and select the deployment workflow:
    - **iOS TestFlight Deployment** for iOS
    - **Android Google Play Deployment** for Android
-2. Click **Run workflow**
-3. Select branch: `main`
-4. Version bump: choose `build`, `patch`, `minor`, or `major`
-5. Environment: `test`
-6. Click **Run workflow**
+2. Click **Run workflow**.
+3. Select branch: `main`.
+4. Version bump: choose `patch`, `minor`, or `major`.
+5. Environment: `test`.
+6. Click **Run workflow**.
 
 After success:
-- The build is uploaded to TestFlight / Google Play internal testing under the **test** environment
-- A git tag is created on the build commit
-- A chore PR is opened to sync the version back to `main`
 
-#### 2. Merge the Chore PR
+- The build is uploaded to TestFlight or Google Play internal testing.
+- A git tag is created on the build commit.
+- A chore PR is opened to persist the new semantic version on `main`.
+- The chore PR changes only `expo.version` in `app/app.config.js`.
 
-Review and merge the auto-generated PR. This updates `app.config.js` on `main` so the source code version matches what was deployed.
+### Merge the Chore PR
 
-> **Multi-platform note:** If deploying both iOS and Android, each creates its own chore PR (one for `buildNumber`, one for `versionCode`). Merge them in sequence — they modify different fields so there should be no conflict.
+Review and merge the auto-generated PR. This keeps `main` aligned with the semantic version that was deployed.
 
-#### 3. Deploy to QA (no version bump)
+Do not expect the PR to contain `buildNumber` or `versionCode` changes. Those values are generated by each CI run and are not stored in source.
 
-1. Go to **Actions** → Select the deployment workflow
-2. Select branch: `main` (now contains the merged version bump)
-3. Version bump: **`none`**
-4. Environment: `qa`
-5. Click **Run workflow**
+### Deploy to QA and Prod
 
-Because `main` already has the correct version and bump is `none`, the identical version is built. No chore PR is created.
+1. Go to **Actions** and select the same deployment workflow.
+2. Select branch: `main` after the chore PR has been merged.
+3. Version bump: `none (build)`.
+4. Environment: `qa` or `prod`.
+5. Click **Run workflow**.
 
-#### 4. Deploy to Prod (no version bump)
+`none (build)` keeps the semantic version from `main` and still creates a fresh build identifier from the CI run number. No chore PR is created.
 
-Same as QA but select environment: `prod`.
+## Rebuilds Without a Semantic Version Change
 
-### Why This Works
+Use `none (build)` when you want another build of the current semantic version, for example:
 
-- The version bump happens once (test deployment) and is merged to `main`
-- QA and prod deployments use `none` — they read the already-bumped version from `main`
-- All three environments end up with the **same version and build number** on App Store Connect
-- Only **one chore PR** is created for the entire promotion cycle
+- Rebuilding after a failed upload.
+- Rebuilding because signing or environment configuration changed.
+- Promoting an already-merged semantic version to another environment.
 
----
+Every `none (build)` run still creates a new iOS build number or Android versionCode from the workflow run number.
 
-## Option B: Deploy from Git Tag
+## Multi-Platform Releases
 
-Use the git tag created by a prior deployment to deploy the exact same commit to another environment. This is useful when you want to guarantee the same commit is deployed everywhere, regardless of what has landed on `main` since.
+iOS and Android share the same `expo.version`, so coordinate semantic bumps across platforms.
 
-### Flow Diagram
+Recommended sequence:
 
-```
- main branch
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 1: Deploy to TEST (same as Option A)                │
-   │  │   Trigger: main branch                                   │
-   │  │   Version bump: patch (e.g. 1.4.1 → 1.5.0)              │
-   │  │                                                          │
-   │  │   → Tag created: v1.5.0-build1-test                      │
-   │  │   → Chore PR created                                     │
-   │  └──────────────────────────────────────────────────────────┘
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 2: Merge the chore PR                               │
-   │  └──────────────────────────────────────────────────────────┘
-   │
-   ▼
- Tag: v1.5.0-build1-test  (points to the original build commit)
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 3: Deploy to QA from TAG                            │
-   │  │   Trigger: tag v1.5.0-build1-test                        │
-   │  │   Version bump: same as step 1 (e.g. patch)  ← critical │
-   │  │                                                          │
-   │  │   → Tag created: v1.5.0-build1-qa                        │
-   │  │   → Chore PR created (IGNORE — already merged)           │
-   │  └──────────────────────────────────────────────────────────┘
-   │
-   │  ┌──────────────────────────────────────────────────────────┐
-   │  │ Step 4: Deploy to PROD from TAG                          │
-   │  │   Trigger: tag v1.5.0-build1-test                        │
-   │  │   Version bump: same as step 1 (e.g. patch)  ← critical │
-   │  │                                                          │
-   │  │   → Tag created: v1.5.0-build1-prod                      │
-   │  │   → Chore PR created (IGNORE — already merged)           │
-   │  └──────────────────────────────────────────────────────────┘
+```text
+1. iOS or Android: deploy to test with bump=patch/minor/major -> creates semver chore PR
+2. Merge the semver chore PR
+3. Other platform: deploy to test with bump=none (build) -> same semver, platform-specific build identifier
+4. iOS: deploy to QA/prod with bump=none (build)
+5. Android: deploy to QA/prod with bump=none (build)
 ```
 
-### Step-by-Step
+If both platforms are dispatched with the same semantic bump before the chore PR is merged, both may upload the intended semantic version. The first workflow creates the chore PR; later runs detect the existing open PR for the same version-bump branch and skip PR creation with a notice.
 
-#### 1. Deploy to Test (with version bump)
+## Version Bump Choices
 
-Same as Option A step 1. A git tag is created on success.
+| Choice | Example from `1.4.1` | Chore PR? | When to use |
+|--------|----------------------|-----------|-------------|
+| `none (build)` | `1.4.1` with a new CI build identifier | No | Rebuild current semver or promote after the semver PR is merged |
+| `patch` | `1.4.2` with a new CI build identifier | Yes | Bug fixes and small changes |
+| `minor` | `1.5.0` with a new CI build identifier | Yes | New features or notable enhancements |
+| `major` | `2.0.0` with a new CI build identifier | Yes | Breaking changes or major redesigns |
 
-#### 2. Merge the Chore PR
-
-Same as Option A step 2.
-
-#### 3. Deploy to QA from the Git Tag
-
-1. Go to **Actions** → **iOS TestFlight Deployment** → **Run workflow**
-2. **Select the git tag** (e.g. `v1.5.0-build1-test`) as the ref — not `main`
-3. Version bump: **use the same bump type as step 1** (e.g. `patch`)
-4. Environment: `qa`
-5. Click **Run workflow**
-
-#### 4. Deploy to Prod from the Git Tag
-
-Same as step 3 but select environment: `prod`.
-
-### Why You Must Repeat the Same Version Bump
-
-The git tag points to the commit **before** the chore PR was merged. At that commit, `app.config.js` still has the **old** version number. The workflow bumps the version during the build, so:
-
-- `none` → old version is used → **version mismatch** on App Store Connect
-- Same bump type → version is re-calculated to the same value → **versions match**
-
-The build artifact is identical in both cases (same source commit, same dependencies), but App Store Connect requires version/build numbers to match across environments.
-
-### Handling Duplicate Chore PRs
-
-When deploying from a tag with a version bump, the workflow creates a new chore PR for each environment. Since the chore PR from the test deployment was already merged, these subsequent PRs are redundant.
-
-**Action required:** Close the duplicate chore PRs without merging. They will target `main` with the same version change that's already there.
-
-> **Tip:** You can identify duplicate PRs by their title — they'll all say `chore: bump version to X.Y.Z build N`. Only the first one (from the test deployment) needs to be merged.
-
----
-
-## Option A vs Option B — When to Use Which
-
-| | Option A (Sequential) | Option B (Git Tag) |
-|---|---|---|
-| **Guarantees same commit** | Only if no new commits land on `main` between deployments | Yes — always the exact same commit |
-| **Chore PRs to manage** | 1 (from test) | 1 real + 1–2 to close (from QA/prod) |
-| **Version bump selection** | `none` for QA/prod | Must repeat same bump type |
-| **Complexity** | Simpler | Slightly more involved |
-| **Best for** | Fast promotion when `main` is stable | When `main` has moved ahead and you want to deploy a specific commit |
-
-**Recommendation:** Use **Option A** for most releases. Use **Option B** when you need to guarantee the exact commit deployed to test is what goes to QA/prod, especially if `main` has received new merges since the test deployment.
-
----
-
-## Version Bump Types Reference
-
-| Type | Example (from 1.4.1 build 7) | When to use |
-|------|------|-------------|
-| `major` | → 2.0.0 build 1 | Breaking changes, major redesigns |
-| `minor` | → 1.5.0 build 1 | New features, significant enhancements |
-| `patch` | → 1.4.2 build 1 | Bug fixes, small improvements |
-| `build` | → 1.4.1 build 8 | Same version, new build (default) |
-| `none` | → 1.4.1 build 7 | Re-deploy same version (promotion) |
-
-> `major`, `minor`, and `patch` bumps reset the build number to 1.
-
----
+Build identifiers are not reset by semantic version bumps. They come from the workflow run number every time.
 
 ## Git Tags
 
-Every successful deployment creates a tag on the **build commit** (the commit that was checked out for the build), not on `main` after the chore PR merge.
+Every successful deployment creates a tag on the build commit, not on the later chore PR merge commit.
 
 ### iOS Tag Format
 
-```
-v{version}-build{buildNumber}-{environment}
+```text
+v{version}-build{buildNumber}-run{runNumber}-{environment}
 ```
 
-Examples: `v1.5.0-build1-test`, `v1.5.0-build1-qa`, `v1.5.0-build1-prod`
+Examples: `v1.4.2-build94-run94-test`, `v1.4.2-build95-run95-qa`, `v1.4.2-build96-run96-prod`
 
 ### Android Tag Format
 
-```
-v{version}-vc{versionCode}-{environment}-android
+```text
+v{version}-vc{versionCode}-run{runNumber}-{environment}-android
 ```
 
-Examples: `v1.5.0-vc1-test-android`, `v1.5.0-vc1-qa-android`, `v1.5.0-vc1-prod-android`
+Examples: `v1.4.2-vc113-run13-test-android`, `v1.4.2-vc114-run14-qa-android`, `v1.4.2-vc115-run15-prod-android`
 
 ### Listing Tags
 
@@ -283,100 +177,112 @@ git tag -l "v*-android"              # Android deployment tags
 git tag -l "v*"                      # All deployment tags
 ```
 
----
+Tags are traceability markers for the source commit and CI run. For normal promotion, use `main` after merging the semantic-version chore PR rather than replaying an older release tag.
 
-## End-to-End Example
+## Deploying from a Git Tag
 
-### iOS Example
+Use tag-based deployment only when you intentionally need to rebuild the exact source commit referenced by a tag.
 
-Starting from version `1.4.1 build 7` in `app.config.js` on `main`:
+Important caveat: release tags created by a `patch`, `minor`, or `major` deployment point to the original build commit. The generated semantic version was applied during the workflow and then persisted later through the chore PR. If you replay that tag with `none (build)`, the workflow reads the old semantic version from the tagged commit.
 
-#### Using Option A
+For routine test -> QA -> prod promotion, prefer the recommended `main` flow. It is simpler and avoids stale semantic-version source.
 
-```
-1. Deploy to test:   main, bump=patch  → builds 1.4.2 build 1, tag: v1.4.2-build1-test, chore PR opened
-2. Merge chore PR:   main now has 1.4.2 build 1
-3. Deploy to QA:     main, bump=none   → builds 1.4.2 build 1, tag: v1.4.2-build1-qa
-4. Deploy to prod:   main, bump=none   → builds 1.4.2 build 1, tag: v1.4.2-build1-prod
+## End-to-End Examples
 
-Result: all environments have 1.4.2 (1), one chore PR merged.
-```
+### iOS
 
-#### Using Option B
+Starting from `expo.version = 1.4.1` on `main` and an iOS workflow run number of `94`:
 
-```
-1. Deploy to test:   main, bump=patch  → builds 1.4.2 build 1, tag: v1.4.2-build1-test, chore PR opened
-2. Merge chore PR:   main now has 1.4.2 build 1
-3. Deploy to QA:     tag v1.4.2-build1-test, bump=patch  → builds 1.4.2 build 1, tag: v1.4.2-build1-qa, duplicate PR (close it)
-4. Deploy to prod:   tag v1.4.2-build1-test, bump=patch  → builds 1.4.2 build 1, tag: v1.4.2-build1-prod, duplicate PR (close it)
+```text
+1. Deploy to test: main, bump=patch
+   -> uploads 1.4.2 build 94
+   -> tag v1.4.2-build94-run94-test
+   -> chore PR updates expo.version to 1.4.2
 
-Result: all environments have 1.4.2 (1), one chore PR merged, two duplicate PRs closed.
-```
+2. Merge chore PR
+   -> main now has expo.version = 1.4.2
 
-### Android Example
+3. Deploy to QA: main, bump=none (build)
+   -> uploads 1.4.2 build 95
+   -> tag v1.4.2-build95-run95-qa
 
-Starting from version `1.4.1 versionCode 29` in `app.config.js` on `main`:
-
-#### Using Option A
-
-```
-1. Deploy to test:   main, bump=patch  → builds 1.4.2 vc 1, tag: v1.4.2-vc1-test-android, chore PR opened
-2. Merge chore PR:   main now has 1.4.2 versionCode 1
-3. Deploy to QA:     main, bump=none   → builds 1.4.2 vc 1, tag: v1.4.2-vc1-qa-android
-4. Deploy to prod:   main, bump=none   → builds 1.4.2 vc 1, tag: v1.4.2-vc1-prod-android
-
-Result: all environments have 1.4.2 (vc 1), one chore PR merged.
+4. Deploy to prod: main, bump=none (build)
+   -> uploads 1.4.2 build 96
+   -> tag v1.4.2-build96-run96-prod
 ```
 
-### Multi-Platform Release
+Result: all environments have semantic version `1.4.2`; each environment has its own CI-generated build number.
 
-To release both iOS and Android with the same version:
+### Android
 
+Starting from `expo.version = 1.4.1` on `main`, an Android workflow run number of `13`, and `ANDROID_VERSION_CODE_OFFSET = 100`:
+
+```text
+1. Deploy to test: main, bump=patch
+   -> uploads 1.4.2 versionCode 113
+   -> tag v1.4.2-vc113-run13-test-android
+   -> chore PR updates expo.version to 1.4.2
+
+2. Merge chore PR
+   -> main now has expo.version = 1.4.2
+
+3. Deploy to QA: main, bump=none (build)
+   -> uploads 1.4.2 versionCode 114
+   -> tag v1.4.2-vc114-run14-qa-android
+
+4. Deploy to prod: main, bump=none (build)
+   -> uploads 1.4.2 versionCode 115
+   -> tag v1.4.2-vc115-run15-prod-android
 ```
-1. iOS: Deploy to test,   bump=patch  → 1.4.2 build 1,  merge chore PR
-2. Android: Deploy to test, bump=patch  → 1.4.2 vc 1,    merge chore PR
-3. iOS: Deploy to QA,     bump=none   → 1.4.2 build 1
-4. Android: Deploy to QA,   bump=none   → 1.4.2 vc 1
-5. iOS: Deploy to prod,   bump=none   → 1.4.2 build 1
-6. Android: Deploy to prod,  bump=none   → 1.4.2 vc 1
-```
 
-Both platforms end up with version `1.4.2` across all environments.
+Result: all environments have semantic version `1.4.2`; each environment has its own CI-generated versionCode.
 
 ---
 
 ## Troubleshooting
 
-### QA/Prod build has a different version than test
+### QA or prod has the old semantic version
 
-**Cause:** Used Option A but forgot to merge the chore PR before deploying to QA/prod, so `main` still had the old version.
+**Cause:** QA/prod was deployed from `main` before the semantic-version chore PR was merged, or a release tag was replayed with `none (build)` even though the tag points to pre-bump source.
 
-**Fix:** Merge the chore PR first, then re-deploy to QA/prod with `bump=none`.
+**Fix:** Merge the semantic-version chore PR, then deploy QA/prod from `main` with `none (build)`.
 
-### QA/Prod build from tag has the old version
+### Another semantic bump run finds an existing chore PR
 
-**Cause:** Used Option B with `bump=none`. The tag points to the pre-bump commit, so the old version was used.
+**Cause:** A previous `patch`, `minor`, or `major` deployment already opened a chore PR for the target version.
 
-**Fix:** Re-deploy from the same tag with the **same bump type** used for the test deployment.
+**Fix:** No workflow fix is needed when an open PR exists; the workflow skips creating a duplicate. Use the existing chore PR as the source of truth. Merge it if the semantic version is correct, or close it before intentionally creating a replacement.
 
-### Duplicate chore PR conflicts with main
+### Version bump branch exists without an open PR
 
-**Cause:** Deployed from tag (Option B) and the chore PR shows merge conflicts because `main` already has the version bump.
+**Cause:** A stale `chore/version-bump-*` or `chore/android-version-bump-*` branch exists on the remote, but there is no open PR for it.
 
-**Fix:** Close the duplicate PR without merging — the version is already correct on `main`.
+**Fix:** Delete the stale branch or open a PR from it before rerunning the deployment.
 
-### Tag already exists error
+### Build numbers differ between environments
 
-**Cause:** Deploying the same version+build+environment combination twice.
+**Cause:** Each environment deployment is a separate CI run.
 
-**Fix:** The workflow handles this gracefully with a warning. The existing tag is preserved.
+**Fix:** No fix needed. This is expected. Use the run number in the release tag and workflow summary to trace the build.
+
+### Android upload fails because versionCode has already been used
+
+**Cause:** Google Play has already consumed the generated versionCode, or the workflow offset is below the app's current Play Console floor.
+
+**Fix:** Confirm the workflow run number and `ANDROID_VERSION_CODE_OFFSET`. If the Play Console floor has moved beyond `run_number + offset`, increase the offset in `.github/workflows/android-google-play.yml` before retrying.
+
+### Tag already exists
+
+**Cause:** The same semantic version, generated build identifier, environment, and platform were already tagged.
+
+**Fix:** The workflow handles this with a warning and preserves the existing tag.
 
 ---
 
 ## Related Documentation
 
-- [TestFlight Setup Checklist](.github/TESTFLIGHT_SETUP.md) — iOS secrets, certificates, and first-time setup
-- [Google Play Setup Checklist](.github/GOOGLE_PLAY_SETUP.md) — Android signing, service account, and first-time setup
-- [iOS TestFlight Workflow](.github/workflows/ios-testflight.yml) — the iOS workflow source
-- [Android Google Play Workflow](.github/workflows/android-google-play.yml) — the Android workflow source
-- [CONVENTIONS.md](CONVENTIONS.md) — commit and PR naming conventions
+- [TestFlight Setup Checklist](TESTFLIGHT_SETUP.md) - iOS secrets, certificates, and first-time setup
+- [Google Play Setup Checklist](GOOGLE_PLAY_SETUP.md) - Android signing, service account, and first-time setup
+- [iOS TestFlight Workflow](workflows/ios-testflight.yml) - the iOS workflow source
+- [Android Google Play Workflow](workflows/android-google-play.yml) - the Android workflow source
+- [CONVENTIONS.md](../CONVENTIONS.md) - commit and PR naming conventions
