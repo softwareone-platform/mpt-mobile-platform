@@ -27,11 +27,6 @@ on:
 env:
   NODE_VERSION: '20'
   JAVA_VERSION: '17'
-  # Google Play requires versionCode to be globally monotonic forever per package.
-  # The legacy hand-bumped floor for com.softwareone.marketplaceMobile is 33, while
-  # this workflow's github.run_number starts much lower. The offset clears that
-  # floor so versionCode = run_number + offset stays above any prior upload.
-  ANDROID_VERSION_CODE_OFFSET: '100'
 
 permissions:
   contents: write
@@ -178,12 +173,13 @@ jobs:
               ;;
           esac
 
-          # versionCode = github.run_number + offset to clear the legacy hand-bumped
-          # floor on Google Play (see ANDROID_VERSION_CODE_OFFSET env at top of file).
-          NEW_VC=$(( ${{ github.run_number }} + ${ANDROID_VERSION_CODE_OFFSET} ))
+          # versionCode = github.run_number. Google Play enforces a globally monotonic
+          # versionCode per package; the workflow's run_number is past the prior floor,
+          # so no offset is needed.
+          NEW_VC="${{ github.run_number }}"
 
           echo "New version: $NEW_VERSION"
-          echo "New versionCode: $NEW_VC (run #${{ github.run_number }} + offset ${ANDROID_VERSION_CODE_OFFSET})"
+          echo "New versionCode: $NEW_VC (run #${{ github.run_number }})"
 
           # Only persist version changes to source. versionCode flows in via the
           # BUILD_NUMBER env var consumed by app.config.js at prebuild time.
@@ -420,7 +416,7 @@ jobs:
           echo "## Android Google Play Deployment Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Version Code:** ${{ steps.version.outputs.version_code }} (CI run #${{ github.run_number }} + offset ${ANDROID_VERSION_CODE_OFFSET})" >> $GITHUB_STEP_SUMMARY
+          echo "**Version Code:** ${{ steps.version.outputs.version_code }} (CI run #${{ github.run_number }})" >> $GITHUB_STEP_SUMMARY
           echo "**Package:** ${{ vars.APP_BUNDLE_ID }}" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
           echo "**Track:** Internal Testing" >> $GITHUB_STEP_SUMMARY
