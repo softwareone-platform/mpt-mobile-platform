@@ -25,11 +25,11 @@ The semantic version and build identifier are intentionally separate:
 | iOS | `CFBundleShortVersionString` / `expo.version` | `app.config.js` semantic version | Yes |
 | iOS | `CFBundleVersion` / `ios.buildNumber` | `github.run_number` | No |
 | Android | `versionName` / `expo.version` | `app.config.js` semantic version | Yes |
-| Android | `versionCode` / `android.versionCode` | `github.run_number + ANDROID_VERSION_CODE_OFFSET` | No |
+| Android | `versionCode` / `android.versionCode` | `github.run_number` | No |
 
 `app.config.js` still exposes `ios.buildNumber` and `android.versionCode`, but they read from `process.env.BUILD_NUMBER`. The fallback value of `1` is only for local builds where CI has not set `BUILD_NUMBER`.
 
-Android adds the workflow-level `ANDROID_VERSION_CODE_OFFSET` because Google Play requires `versionCode` to increase globally forever for a package. iOS does not need an offset because TestFlight requires build numbers to increase only within a semantic version.
+Both platforms use `github.run_number` directly. iOS works trivially because TestFlight only requires `CFBundleVersion` to be monotonic within a semantic version. For Android, Google Play requires `versionCode` to increase globally forever per package; the Android workflow's `run_number` was burned past Play's prior versionCode floor as a one-time migration (MPT-20667), so bare `run_number` stays above it from now on.
 
 ## How the Workflows Work
 
@@ -215,24 +215,24 @@ Result: all environments have semantic version `1.4.2`; each environment has its
 
 ### Android
 
-Starting from `expo.version = 1.4.1` on `main`, an Android workflow run number of `13`, and `ANDROID_VERSION_CODE_OFFSET = 100`:
+Starting from `expo.version = 1.4.1` on `main` and an Android workflow run number of `36`:
 
 ```text
 1. Deploy to test: main, bump=patch
-   -> uploads 1.4.2 versionCode 113
-   -> tag v1.4.2-vc113-run13-test-android
+   -> uploads 1.4.2 versionCode 36
+   -> tag v1.4.2-vc36-run36-test-android
    -> chore PR updates expo.version to 1.4.2
 
 2. Merge chore PR
    -> main now has expo.version = 1.4.2
 
 3. Deploy to QA: main, bump=none (build)
-   -> uploads 1.4.2 versionCode 114
-   -> tag v1.4.2-vc114-run14-qa-android
+   -> uploads 1.4.2 versionCode 37
+   -> tag v1.4.2-vc37-run37-qa-android
 
 4. Deploy to prod: main, bump=none (build)
-   -> uploads 1.4.2 versionCode 115
-   -> tag v1.4.2-vc115-run15-prod-android
+   -> uploads 1.4.2 versionCode 38
+   -> tag v1.4.2-vc38-run38-prod-android
 ```
 
 Result: all environments have semantic version `1.4.2`; each environment has its own CI-generated versionCode.
@@ -267,9 +267,9 @@ Result: all environments have semantic version `1.4.2`; each environment has its
 
 ### Android upload fails because versionCode has already been used
 
-**Cause:** Google Play has already consumed the generated versionCode, or the workflow offset is below the app's current Play Console floor.
+**Cause:** Google Play has already consumed the generated versionCode for this package.
 
-**Fix:** Confirm the workflow run number and `ANDROID_VERSION_CODE_OFFSET`. If the Play Console floor has moved beyond `run_number + offset`, increase the offset in `.github/workflows/android-google-play.yml` before retrying.
+**Fix:** Confirm the workflow `run_number` and the highest versionCode consumed in Google Play (visible in Play Console release history). If the Play Console floor has somehow moved past the workflow's current `run_number`, dispatch and immediately cancel the Android workflow until `run_number` clears the floor — the same approach used in MPT-20667 to clear the legacy hand-bumped 33.
 
 ### Tag already exists
 

@@ -290,9 +290,9 @@ REVIEW_ENV_AUTH0_CLIENT_ID                 # Reviewer Auth0 client ID
 - Verify the service account email in Play Console → Users and permissions
 
 **Issue: "Upload failed 403: APK specifies a version code that has already been used"**
-- Android `versionCode` is generated from `github.run_number + ANDROID_VERSION_CODE_OFFSET`
-- Confirm the generated value is higher than any versionCode already consumed in Google Play
-- If the Play Console floor is higher than the generated value, increase `ANDROID_VERSION_CODE_OFFSET` in `.github/workflows/android-google-play.yml` before retrying
+- Android `versionCode` equals `github.run_number` directly
+- Confirm `github.run_number` is higher than any versionCode already consumed in Google Play
+- If the Play Console floor has somehow moved past the workflow's current `run_number`, dispatch and immediately cancel the Android workflow until `run_number` clears the floor (the same approach used in MPT-20667 to clear the legacy hand-bumped 33)
 
 **Issue: "Upload failed 400: The Android App Bundle was not signed"**
 - Verify `ANDROID_KEYSTORE_BASE64` is correctly base64-encoded
