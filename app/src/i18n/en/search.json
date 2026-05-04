@@ -1,0 +1,12 @@
+{
+  "search": {
+    "placeholder": "Search"
+  },
+  "searchScreen": {
+    "emptyStateTitle": "Start your search",
+    "emptyStateDescription": "Type in the search bar to find what you are looking for",
+    "filter": {
+      "agreements": "Agreements"
+    }
+  }
+}
