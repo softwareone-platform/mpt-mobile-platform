@@ -5,6 +5,7 @@ import {
   getBuyerSubList,
   getSubscriptionSubList,
   getUserSubList,
+  getOrderSubList,
 } from '@/config/subListsNavigation';
 
 describe('subListsNavigation (queries)', () => {
@@ -101,6 +102,23 @@ describe('subListsNavigation (queries)', () => {
         'Vendor',
         'Operations',
       ]);
+    });
+  });
+
+  describe('getOrderSubList', () => {
+    it('returns subscriptions item with correct source and roles', () => {
+      const result = getOrderSubList(id);
+
+      expect(result).toHaveLength(1);
+
+      expect(result[0].name).toBe('subscriptions');
+
+      expect(result[0].source).toEqual({
+        type: 'order',
+        id,
+      });
+
+      expect(result[0].roles).toEqual(['Client', 'Operations']);
     });
   });
 

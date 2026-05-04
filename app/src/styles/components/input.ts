@@ -70,14 +70,14 @@ export const inputSearchStyle = {
   },
   search: {
     borderRadius: BorderRadius.md,
-    backgroundColor: Color.fills.tertiary,
+    backgroundColor: Color.gray.gray2,
     paddingLeft: ICON_OFFSET_HORIZONTAL,
     paddingRight: ICON_OFFSET_HORIZONTAL,
     paddingVertical: Spacing.spacing1,
     fontSize: Typography.fontSize.font3,
   },
   searchIconColor: Color.gray.gray4,
-  placeholderTextColor: Color.gray.gray3,
+  placeholderTextColor: Color.gray.gray4,
   leftIcon: {
     position: 'absolute',
     left: 8,

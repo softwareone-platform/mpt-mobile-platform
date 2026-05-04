@@ -9,6 +9,7 @@ import home from './home.json';
 import marketplace from './marketplace.json';
 import navigation from './navigation.json';
 import program from './program.json';
+import search from './search.json';
 import settings from './settings.json';
 import shared from './shared.json';
 import status from './status.json';
@@ -52,6 +53,9 @@ const en = {
 
   // Module Administration (buyers, sellers)
   ...admin,
+
+  // Module Search
+  ...search,
 };
 
 export default en;

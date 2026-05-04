@@ -1,3 +1,5 @@
+import type { StyleProp, ViewStyle } from 'react-native';
+
 import type { AvatarItem } from '@/types/chat';
 
 export type Status = 'default' | 'info' | 'warning' | 'danger' | 'success';
@@ -45,4 +47,9 @@ export interface DetailsListItemProps {
   hideImage?: boolean;
   isLast?: boolean;
   onPress?: () => void;
+}
+
+export interface ListProps {
+  query?: string;
+  contentContainerStyle?: StyleProp<ViewStyle>;
 }
