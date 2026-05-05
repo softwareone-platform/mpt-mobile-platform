@@ -145,16 +145,13 @@ describe('Chat Conversation Page', () => {
         this.skip();
         return;
       }
-      const isOnConversation = await chatConversationPage.isOnConversationPage();
-      if (!isOnConversation) {
-        await navigateToChatList();
-        const found = await chatPage.tapChatByNamePrefix(QA_PM_CHAT_PREFIX);
-        if (!found) {
-          this.skip();
-          return;
-        }
-        await chatConversationPage.waitForScreenReady();
+      await navigateToChatList();
+      const found = await chatPage.tapChatByNamePrefix(QA_PM_CHAT_PREFIX);
+      if (!found) {
+        this.skip();
+        return;
       }
+      await chatConversationPage.waitForScreenReady();
     });
 
     it('should display the private message indicator on a private message', async function () {
@@ -206,16 +203,13 @@ describe('Chat Conversation Page', () => {
         this.skip();
         return;
       }
-      const isOnConversation = await chatConversationPage.isOnConversationPage();
-      if (!isOnConversation) {
-        await navigateToChatList();
-        const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
-        if (!found) {
-          this.skip();
-          return;
-        }
-        await chatConversationPage.waitForScreenReady();
+      await navigateToChatList();
+      const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
+      if (!found) {
+        this.skip();
+        return;
       }
+      await chatConversationPage.waitForScreenReady();
     });
 
     it('should render bold markdown text as plain visible text', async function () {
@@ -264,16 +258,13 @@ describe('Chat Conversation Page', () => {
         this.skip();
         return;
       }
-      const isOnConversation = await chatConversationPage.isOnConversationPage();
-      if (!isOnConversation) {
-        await navigateToChatList();
-        const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
-        if (!found) {
-          this.skip();
-          return;
-        }
-        await chatConversationPage.waitForScreenReady();
+      await navigateToChatList();
+      const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
+      if (!found) {
+        this.skip();
+        return;
       }
+      await chatConversationPage.waitForScreenReady();
     });
 
     it('should display the link name in a link-preview card', async function () {
