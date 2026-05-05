@@ -6,9 +6,7 @@ const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
 const { isAndroid, selectors } = require('../pageobjects/utils/selectors');
 const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
-const { TEST_ENV_LABEL } = require('../utils/env');
-
-const QA_CHAT_NAME_PREFIX = `MPT-QA-${TEST_ENV_LABEL}`;
+const { QA_CHAT_NAME_PREFIX } = require('../pageobjects/utils/chat.helper');
 
 describe('Chat Page', () => {
   let hasChatsData = false;

@@ -5,14 +5,9 @@ const createChatPage = require('../pageobjects/create-chat.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { navigateToChatList } = require('../pageobjects/utils/chat.helper');
 
 describe('Create Chat Wizard', () => {
-  async function navigateToChatList() {
-    await chatPage.footer.chatTab.click();
-    await browser.pause(PAUSE.NAVIGATION);
-    await chatPage.waitForScreenReady();
-  }
-
   async function openWizard() {
     const isOnChat = await chatPage.isOnChatPage();
     if (!isOnChat) {

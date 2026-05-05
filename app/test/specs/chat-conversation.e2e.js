@@ -6,19 +6,11 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const { getClientApi } = require('../utils/api-client');
-const { TEST_ENV_LABEL } = require('../utils/env');
-
-const QA_CHAT_NAME_PREFIX = `MPT-QA-${TEST_ENV_LABEL}`;
+const { navigateToChatList, QA_CHAT_NAME_PREFIX } = require('../pageobjects/utils/chat.helper');
 
 describe('Chat Conversation Page', () => {
   let hasChatData = false;
   let qaChat = null;
-
-  async function navigateToChatList() {
-    await chatPage.footer.chatTab.click();
-    await browser.pause(PAUSE.NAVIGATION);
-    await chatPage.waitForScreenReady();
-  }
 
   async function navigateToFirstConversation() {
     const isOnChat = await chatPage.isOnChatPage();
