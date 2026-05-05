@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -6,10 +6,13 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigFull } from '@/config/list';
 import { useProducts, ProductProvider } from '@/context/ProductContext';
+import type { ListProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-const ProductsScreenContent = () => {
+type ProductsScreenRouteProp = RouteProp<RootStackParamList, 'products'>;
+
+const ProductsListContent = ({ contentContainerStyle }: ListProps) => {
   const {
     products,
     isProductsLoading,
@@ -46,6 +49,7 @@ const ProductsScreenContent = () => {
         config={listItemConfigFull}
         onRefresh={refetchProducts}
         isRefreshing={isProductsRefetching}
+        contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('productDetails', {
             id,
@@ -56,10 +60,15 @@ const ProductsScreenContent = () => {
   );
 };
 
-const ProductsScreen = () => (
-  <ProductProvider>
-    <ProductsScreenContent />
+export const ProductsList = ({ query, contentContainerStyle }: ListProps) => (
+  <ProductProvider query={query}>
+    <ProductsListContent contentContainerStyle={contentContainerStyle} />
   </ProductProvider>
 );
+
+const ProductsScreen = () => {
+  const route = useRoute<ProductsScreenRouteProp>();
+  return <ProductsList query={route.params?.query} />;
+};
 
 export default ProductsScreen;
