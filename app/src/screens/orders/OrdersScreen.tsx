@@ -6,12 +6,13 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useOrders, OrdersProvider } from '@/context/OrdersContext';
+import type { ListProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type OrdersScreenRouteProp = RouteProp<RootStackParamList, 'orders'>;
 
-const OrdersScreenContent = () => {
+const OrdersListContent = ({ contentContainerStyle }: ListProps) => {
   const {
     orders,
     ordersLoading,
@@ -48,6 +49,7 @@ const OrdersScreenContent = () => {
         config={listItemConfigNoImageNoSubtitle}
         onRefresh={refetchOrders}
         isRefreshing={isOrdersRefetching}
+        contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('orderDetails', { id });
         }}
@@ -56,15 +58,15 @@ const OrdersScreenContent = () => {
   );
 };
 
+export const OrdersList = ({ query, contentContainerStyle }: ListProps) => (
+  <OrdersProvider query={query}>
+    <OrdersListContent contentContainerStyle={contentContainerStyle} />
+  </OrdersProvider>
+);
+
 const OrdersScreen = () => {
   const route = useRoute<OrdersScreenRouteProp>();
-  const query = route.params?.query;
-
-  return (
-    <OrdersProvider query={query}>
-      <OrdersScreenContent />
-    </OrdersProvider>
-  );
+  return <OrdersList query={route.params?.query} />;
 };
 
 export default OrdersScreen;
