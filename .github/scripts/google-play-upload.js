@@ -222,12 +222,18 @@ async function cmdUpload(aabPath) {
 
   let versionCode;
   try {
-    // Try with 'completed' status first (normal flow for verified apps)
+    // Primary path: publish with status 'completed' so the release is immediately
+    // visible to internal testers. This is the expected path now that the
+    // SoftwareOne Play Console developer account has been org-verified.
     versionCode = await runEditFlow(token, aabPath, 'completed');
   } catch (err) {
     if (err.message.includes('draft app')) {
-      // App hasn't passed org verification yet — Google Play only allows draft releases
-      process.stderr.write('\nApp is in draft state (org verification pending). Retrying with draft status...\n\n');
+      // Defensive fallback: a brand-new app whose store listing is incomplete
+      // (or any future scenario where Play forces a draft release) still lands
+      // the upload but surfaces a workflow-log warning so the path doesn't
+      // silently become the norm again.
+      process.stderr.write('::warning::Google Play required draft status for this upload. Investigate the target app\'s store listing / verification state — this fallback should not be the steady-state path.\n');
+      process.stderr.write('App is in draft state. Retrying with draft status...\n\n');
       versionCode = await runEditFlow(token, aabPath, 'draft');
     } else {
       throw err;

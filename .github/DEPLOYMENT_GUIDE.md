@@ -167,7 +167,7 @@ Examples: `v1.4.2-build94-run94-test`, `v1.4.2-build95-run95-qa`, `v1.4.2-build9
 v{version}-vc{versionCode}-run{runNumber}-{environment}-android
 ```
 
-Examples: `v1.4.2-vc113-run13-test-android`, `v1.4.2-vc114-run14-qa-android`, `v1.4.2-vc115-run15-prod-android`
+Examples: `v1.4.2-vc36-run36-test-android`, `v1.4.2-vc37-run37-qa-android`, `v1.4.2-vc38-run38-prod-android`
 
 ### Listing Tags
 
