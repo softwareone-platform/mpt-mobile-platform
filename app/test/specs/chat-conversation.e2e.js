@@ -145,6 +145,10 @@ describe('Chat Conversation Page', () => {
         this.skip();
         return;
       }
+      const isOnConversation = await chatConversationPage.isOnConversationPage();
+      if (isOnConversation) {
+        await chatConversationPage.goBack();
+      }
       await navigateToChatList();
       const found = await chatPage.tapChatByNamePrefix(QA_PM_CHAT_PREFIX);
       if (!found) {
@@ -203,6 +207,10 @@ describe('Chat Conversation Page', () => {
         this.skip();
         return;
       }
+      const isOnConversation = await chatConversationPage.isOnConversationPage();
+      if (isOnConversation) {
+        await chatConversationPage.goBack();
+      }
       await navigateToChatList();
       const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
       if (!found) {
@@ -257,6 +265,10 @@ describe('Chat Conversation Page', () => {
       if (!linkChat) {
         this.skip();
         return;
+      }
+      const isOnConversation = await chatConversationPage.isOnConversationPage();
+      if (isOnConversation) {
+        await chatConversationPage.goBack();
       }
       await navigateToChatList();
       const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
