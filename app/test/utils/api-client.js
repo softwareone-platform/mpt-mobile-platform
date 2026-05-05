@@ -671,7 +671,6 @@ class ApiClient {
   }
 
   /**
-  /**
    * Send a message with structured link-preview attachments to a chat.
    * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
    * @param {string} content - Message text
