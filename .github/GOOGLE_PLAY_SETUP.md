@@ -23,7 +23,7 @@ This document provides step-by-step instructions to set up automated Android dep
 Before starting, ensure:
 - [x] Google Play Console account exists (Organization: SoftwareOne, Account ID: `7391522668074010822`)
 - [x] Apps created on Google Play Console (one per environment)
-- [ ] Organization verification completed (required for promoting releases out of `Draft`)
+- [x] Organization verification completed (2026-05-05)
 
 ### Google Play Console Apps
 
@@ -35,7 +35,9 @@ Before starting, ensure:
 
 > **Note:** Each environment maps to a separate app on Google Play with its own package name, just like iOS uses separate apps on App Store Connect.
 >
-> **Important:** Until the organization verification is completed in Google Play Console, every release lands on the internal testing track in `Draft` status. The CI/CD workflow handles this transparently — `google-play-upload.js` automatically retries with `status: draft` when the API rejects `completed`. Once verification clears, the workflow's primary path (`completed`) will succeed and releases will become visible to internal testers immediately.
+> **Important:** Org verification was completed on 2026-05-05. Releases now land on the internal testing track as `completed` directly — internal testers see them immediately. The `google-play-upload.js` draft fallback is retained as a defensive path (e.g. for the first AAB into a brand-new app whose store listing is still incomplete); when it engages it surfaces a `::warning::` in the workflow log so it doesn't go unnoticed.
+>
+> The pre-verification rows in the Status column above (`Draft (...)`) reflect the state at the time of those uploads and are kept as a historical record. They will become `Internal testing (CI/CD deployment successful)` after the next dispatch on each environment.
 
 ---
 
