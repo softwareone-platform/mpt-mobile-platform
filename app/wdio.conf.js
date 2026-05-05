@@ -486,6 +486,11 @@ exports.config = {
             './test/specs/journals.e2e.js',
             './test/specs/journal-details.e2e.js',
         ],
+        chat: [
+            './test/specs/chat.e2e.js',
+            './test/specs/chat-conversation.e2e.js',
+            './test/specs/chat-create.e2e.js',
+        ],
         buyers: [
             './test/specs/buyers.e2e.js',
             './test/specs/buyer-details.e2e.js',
