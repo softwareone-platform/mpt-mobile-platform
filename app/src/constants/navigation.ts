@@ -83,6 +83,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         roles: ['Operations'],
       },
       {
+        name: 'sellers',
+        icon: 'public',
+        component: SellersScreen,
+        modules: ['platform-account-management'],
+        roles: ['Operations'],
+      },
+      {
         name: 'allUsers',
         icon: 'group',
         component: UsersScreen,
@@ -93,13 +100,6 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         name: 'vendors',
         icon: 'storefront',
         component: VendorsScreen,
-        modules: ['platform-account-management'],
-        roles: ['Operations'],
-      },
-      {
-        name: 'sellers',
-        icon: 'public',
-        component: SellersScreen,
         modules: ['platform-account-management'],
         roles: ['Operations'],
       },
