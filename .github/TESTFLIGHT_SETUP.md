@@ -161,7 +161,8 @@ Once secrets are configured:
 2. Select **iOS TestFlight Deployment**
 3. Click **Run workflow**
 4. Configure:
-   - Version bump: `build` (safest for first test)
+   - Version bump: `none (build)` to test deployment without changing `expo.version`
+   - Use `patch`, `minor`, or `major` only when you intentionally want a semantic-version chore PR
    - Environment: `test`
 5. Click **Run workflow**
 6. Monitor the workflow execution (~30-45 minutes)
@@ -203,8 +204,9 @@ Once secrets are configured:
    - Report any issues
 
 4. **Monitor Future Deployments:**
-   - Each deployment creates a git tag (e.g., `v4.0.0-build123`)
-   - Build number auto-increments in `app.json`
+   - Each deployment creates a git tag (e.g., `v4.0.0-build123-run123-test`)
+   - Build number is generated from the GitHub Actions run number and is not stored in source
+   - Semantic version changes are persisted through chore PRs that update `expo.version` only
    - IPA and dSYMs available as artifacts for 30 days
 
 ## 🔗 Useful Links
