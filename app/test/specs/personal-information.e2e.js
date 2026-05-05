@@ -8,7 +8,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX, PAUSE } = require('../pageobjects/utils/constants');
 
 describe('Personal Information Page', () => {
   let api;
@@ -145,6 +145,32 @@ describe('Personal Information Page', () => {
       if (apiEmail) {
         expect(uiEmail).toBe(apiEmail);
       }
+    });
+  });
+
+  describe('Non-Interactive Fields (MPT-17258)', () => {
+    it('should not navigate away when First Name field is tapped', async () => {
+      await personalInformationPage.firstNameField.click();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+      await expect(personalInformationPage.headerTitle).toBeDisplayed();
+    });
+
+    it('should not navigate away when Last Name field is tapped', async () => {
+      await personalInformationPage.lastNameField.click();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+      await expect(personalInformationPage.headerTitle).toBeDisplayed();
+    });
+
+    it('should not navigate away when E-mail field is tapped', async () => {
+      await personalInformationPage.emailField.click();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+      await expect(personalInformationPage.headerTitle).toBeDisplayed();
+    });
+
+    it('should not navigate away when Phone number field is tapped', async () => {
+      await personalInformationPage.phoneNumberField.click();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+      await expect(personalInformationPage.headerTitle).toBeDisplayed();
     });
   });
 });

@@ -23,19 +23,21 @@ This document provides step-by-step instructions to set up automated Android dep
 Before starting, ensure:
 - [x] Google Play Console account exists (Organization: SoftwareOne, Account ID: `7391522668074010822`)
 - [x] Apps created on Google Play Console (one per environment)
-- [ ] Organization verification completed (required for publishing and creating 3rd app)
+- [x] Organization verification completed (2026-05-05)
 
 ### Google Play Console Apps
 
 | Environment | App Name | Package Name | Play Console App ID | Status |
 |-------------|----------|-------------|---------------------|--------|
-| `test` | SoftwareOne Marketplace Show | `com.softwareone.marketplaceMobile.show` | `4972295263680711295` | Draft (initial AAB uploaded) |
-| `qa` | *(to be created after org verification)* | TBD | — | — |
+| `test` | SoftwareOne Marketplace Show | `com.softwareone.marketplaceMobile.show` | `4972295263680711295` | Draft (CI/CD deployment successful) |
+| `qa` | SoftwareOne Marketplace Live | `com.softwareone.marketplaceMobile.live` | `4974014456018789326` | Draft (CI/CD deployment successful, MPT-20697) |
 | `prod` | SoftwareOne Marketplace | `com.softwareone.marketplaceMobile` | `4974790650410287751` | Draft (initial AAB uploaded) |
 
 > **Note:** Each environment maps to a separate app on Google Play with its own package name, just like iOS uses separate apps on App Store Connect.
 >
-> **Important:** Publishing to any track (including internal testing) is blocked until the organization verification is completed in Google Play Console. The CI/CD workflow will work end-to-end once verification clears.
+> **Important:** Org verification was completed on 2026-05-05. Releases now land on the internal testing track as `completed` directly — internal testers see them immediately. The `google-play-upload.js` draft fallback is retained as a defensive path (e.g. for the first AAB into a brand-new app whose store listing is still incomplete); when it engages it surfaces a `::warning::` in the workflow log so it doesn't go unnoticed.
+>
+> The pre-verification rows in the Status column above (`Draft (...)`) reflect the state at the time of those uploads and are kept as a historical record. They will become `Internal testing (CI/CD deployment successful)` after the next dispatch on each environment.
 
 ---
 
@@ -239,21 +241,21 @@ The Android workflow reuses the same environment variables as iOS. Verify these 
 
 ---
 
-## Step 6: Test the Workflow -- BLOCKED (org verification)
+## Step 6: Test the Workflow -- DONE
 
-> **Blocker:** Publishing to any track (including internal testing) requires completing the organization verification in Google Play Console. Once verification clears, the workflow can be tested.
+The workflow has been validated end-to-end against `test` (run #11), `qa` (run #36, MPT-20697), and `prod` (run #12). Each run lands on the internal testing track as `Draft` until org verification clears.
 
-Once verification is completed:
+How to dispatch a deployment:
 
 1. Go to **Actions** tab
 2. Select **Android Google Play Deployment**
 3. Click **Run workflow**
 4. Configure:
-   - Version bump: `none (build)` to test deployment without changing `expo.version`
+   - Version bump: `none (build)` to deploy without changing `expo.version`
    - Use `patch`, `minor`, or `major` only when you intentionally want a semantic-version chore PR
-   - Environment: `test`
+   - Environment: `test`, `qa`, or `prod`
 5. Click **Run workflow**
-6. Monitor the workflow (~20-30 minutes)
+6. Monitor the workflow (~10-15 minutes)
 7. Check Google Play Console → Internal testing for the new build
 
 ---

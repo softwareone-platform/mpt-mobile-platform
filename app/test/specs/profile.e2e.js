@@ -213,4 +213,26 @@ describe('Profile Page', () => {
       }
     });
   });
+
+  describe('Account Switcher Restyling (MPT-20283)', () => {
+    it('should display User Profile section header as card header text', async () => {
+      await expect(profilePage.yourProfileLabel).toBeDisplayed();
+      const text = await profilePage.yourProfileLabel.getText();
+      expect(text).toBe('User Profile');
+    });
+
+    it('should display Switch Account section header as card header text', async function () {
+      if (!hasAccountsData && !hasEmptyState) {
+        this.skip();
+        return;
+      }
+      await expect(profilePage.switchAccountLabel).toBeDisplayed();
+      const text = await profilePage.switchAccountLabel.getText();
+      expect(text).toBe('Switch Account');
+    });
+
+    it('should display profile screen with header title "Account"', async () => {
+      await expect(profilePage.profileHeaderTitle).toBeDisplayed();
+    });
+  });
 });

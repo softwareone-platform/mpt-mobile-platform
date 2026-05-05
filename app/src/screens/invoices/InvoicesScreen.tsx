@@ -6,12 +6,13 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImageNoSubtitle } from '@/config/list';
 import { useInvoices, InvoicesProvider } from '@/context/InvoicesContext';
+import type { ListProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type InvoicesScreenRouteProp = RouteProp<RootStackParamList, 'invoices'>;
 
-const InvoicesScreenContent = () => {
+const InvoicesListContent = ({ contentContainerStyle }: ListProps) => {
   const {
     invoices,
     invoicesLoading,
@@ -48,6 +49,7 @@ const InvoicesScreenContent = () => {
         config={listItemConfigNoImageNoSubtitle}
         onRefresh={refetchInvoices}
         isRefreshing={isInvoicesRefetching}
+        contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('invoiceDetails', {
             id,
@@ -58,16 +60,15 @@ const InvoicesScreenContent = () => {
   );
 };
 
+export const InvoicesList = ({ query, contentContainerStyle }: ListProps) => (
+  <InvoicesProvider query={query}>
+    <InvoicesListContent contentContainerStyle={contentContainerStyle} />
+  </InvoicesProvider>
+);
+
 const InvoicesScreen = () => {
   const route = useRoute<InvoicesScreenRouteProp>();
-
-  const query = route.params?.query;
-
-  return (
-    <InvoicesProvider query={query}>
-      <InvoicesScreenContent />
-    </InvoicesProvider>
-  );
+  return <InvoicesList query={route.params?.query} />;
 };
 
 export default InvoicesScreen;
