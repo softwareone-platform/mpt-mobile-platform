@@ -55,7 +55,7 @@ export const inputWithIconStyle = {
   },
   input: {
     paddingVertical: Spacing.spacing2,
-    flexShrink: 1,
+    flex: 1,
     fontSize: Typography.fontSize.font3,
   },
 } as const;
