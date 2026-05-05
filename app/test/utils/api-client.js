@@ -653,19 +653,43 @@ class ApiClient {
    * Send a message to a chat
    * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
    * @param {string} content - Message text
+   * @param {string} [visibility='Public'] - Message visibility ('Public' | 'Private')
    * @returns {Promise<object>} - Created message response
    *
    * @example
    * const message = await apiClient.sendChatMessage('CHT-1234-5678-9012', 'Hello from QA');
    */
-  async sendChatMessage(chatId, content) {
+  async sendChatMessage(chatId, content, visibility = 'Public') {
     if (!chatId || !/^CHT-\d{4}-\d{4}-\d{4}$/.test(chatId)) {
       throw new Error(`Invalid chatId format: "${chatId}". Expected format: CHT-XXXX-XXXX-XXXX`);
     }
-    const payload = { content, visibility: 'Public', isDeleted: false, links: [] };
+    const payload = { content, visibility, isDeleted: false, links: [] };
     console.info(`📨 [sendChatMessage] POST /public/v1/helpdesk/chats/${chatId}/messages\n${JSON.stringify(payload, null, 2)}`);
     const response = await this.post(`/public/v1/helpdesk/chats/${chatId}/messages`, payload);
     console.info(`📨 [sendChatMessage] Response:\n${JSON.stringify(response, null, 2)}`);
+    return response;
+  }
+
+  /**
+   * Send a message with structured link-preview attachments to a chat.
+   * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
+   * @param {string} content - Message text
+   * @param {Array<{name: string, uri: string, icon?: string}>} links - Link card attachments
+   * @returns {Promise<object>} - Created message response
+   */
+  async sendChatMessageWithLinks(chatId, content, links = []) {
+    if (!chatId || !/^CHT-\d{4}-\d{4}-\d{4}$/.test(chatId)) {
+      throw new Error(`Invalid chatId format: "${chatId}". Expected format: CHT-XXXX-XXXX-XXXX`);
+    }
+    const payload = {
+      content,
+      visibility: 'Public', // always Public — extend if Private messages with links are needed
+      isDeleted: false,
+      links: links.map((l) => ({ name: l.name, uri: l.uri, icon: l.icon ?? '' })),
+    };
+    console.info(`📎 [sendChatMessageWithLinks] POST /public/v1/helpdesk/chats/${chatId}/messages\n${JSON.stringify(payload, null, 2)}`);
+    const response = await this.post(`/public/v1/helpdesk/chats/${chatId}/messages`, payload);
+    console.info(`📎 [sendChatMessageWithLinks] Response:\n${JSON.stringify(response, null, 2)}`);
     return response;
   }
 
@@ -735,13 +759,15 @@ class ApiClient {
    * chat matching the given prefix exists.
    *
    * @param {string} namePrefix - Prefix used to detect existing QA chats (e.g. "MPT-QA-portal")
+   * @param {object} [options={}]
+   * @param {number} [options.participantOffset=0] - Index into the contacts list for the participant seed; use different values per QA chat to avoid concurrency collisions
    * @returns {Promise<object|null>} - Chat object with at least { id, name }, or null on failure
    *
    * @example
    * const chat = await apiClient.ensureQaGroupChat('MPT-QA-portal');
    * if (chat) await apiClient.sendChatMessage(chat.id, 'setup message');
    */
-  async ensureQaGroupChat(namePrefix) {
+  async ensureQaGroupChat(namePrefix, { participantOffset = 0 } = {}) {
     try {
       const existing = await this.findChatByNamePrefix(namePrefix);
       if (existing) {
@@ -749,10 +775,12 @@ class ApiClient {
         return existing;
       }
 
-      const contactsResponse = await this.getContacts({ limit: 1 });
+      const contactsResponse = await this.getContacts({ limit: 5 });
       const contacts = contactsResponse.data || contactsResponse;
-      const participantContactIds =
-        Array.isArray(contacts) && contacts.length > 0 ? [contacts[0].id] : [];
+      const contact = Array.isArray(contacts) && contacts.length > 0
+        ? contacts[Math.min(participantOffset, contacts.length - 1)]
+        : null;
+      const participantContactIds = contact ? [contact.id] : [];
 
       const timestamp = new Date()
         .toISOString()

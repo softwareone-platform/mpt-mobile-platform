@@ -97,6 +97,63 @@ class ChatConversationPage extends BasePage {
     );
   }
 
+  /**
+   * Visibility toggle icon (lock / public globe) in the message input footer.
+   * Only rendered for Operations users.
+   */
+  get visibilityToggleButton() {
+    return $(
+      getSelector({
+        ios: '(//XCUIElementTypeButton[@name="lock"] | //XCUIElementTypeButton[@name="public"])',
+        android: '(//*[@content-desc="lock"] | //*[@content-desc="public"])',
+      }),
+    );
+  }
+
+  /**
+   * Private message indicator badge visible on messages sent with visibility=Private
+   * when viewed by an Operations-role user.
+   * Text is the i18n string: "Only my account"
+   */
+  get privateMessageIndicator() {
+    return $(
+      getSelector({
+        ios: '//XCUIElementTypeStaticText[@name="Only my account"]',
+        android: '//android.widget.TextView[@text="Only my account"]',
+      }),
+    );
+  }
+
+  /**
+   * First visible link-preview card in the conversation.
+   * @param {string} [linkName] - Optional link name to match. If omitted, returns the first card found.
+   */
+  getLinkPreviewCard(linkName) {
+    if (linkName) {
+      return $(
+        getSelector({
+          ios: `//XCUIElementTypeStaticText[@name="${linkName}"]`,
+          android: `//android.widget.TextView[@text="${linkName}"]`,
+        }),
+      );
+    }
+    return $(selectors.byResourceId('chat-link-preview-card'));
+  }
+
+  /**
+   * Find a rendered message element that contains the given text.
+   * @param {string} text - Text to search for (the plain-text content after markdown conversion)
+   * @returns {WebdriverIO.Element}
+   */
+  getMessageByContent(text) {
+    return $(
+      getSelector({
+        ios: `//XCUIElementTypeScrollView//XCUIElementTypeStaticText[@name="${text}"]`,
+        android: `//android.widget.ScrollView//android.widget.TextView[@text="${text}"]`,
+      }),
+    );
+  }
+
   // ========== Scroll View ==========
 
   get messagesScrollView() {
