@@ -8,7 +8,9 @@
     "filter": {
       "agreements": "Agreements",
       "invoices": "Invoices",
-      "orders": "Orders"
+      "orders": "Orders",
+      "products": "Products",
+      "subscriptions": "Subscriptions"
     }
   }
 }

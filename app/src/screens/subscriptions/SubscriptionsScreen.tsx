@@ -6,12 +6,13 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImage } from '@/config/list';
 import { useSubscriptions, SubscriptionsProvider } from '@/context/SubscriptionsContext';
+import type { ListProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
 type SubscriptionsScreenRouteProp = RouteProp<RootStackParamList, 'subscriptions'>;
 
-const SubscriptionsScreenContent = () => {
+const SubscriptionsListContent = ({ contentContainerStyle }: ListProps) => {
   const {
     subscriptions,
     subscriptionsLoading,
@@ -48,6 +49,7 @@ const SubscriptionsScreenContent = () => {
         config={listItemConfigNoImage}
         onRefresh={refetchSubscriptions}
         isRefreshing={isSubscriptionsRefetching}
+        contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('subscriptionDetails', {
             id,
@@ -58,16 +60,18 @@ const SubscriptionsScreenContent = () => {
   );
 };
 
-const SubscriptionsScreen = () => {
-  const route = useRoute<SubscriptionsScreenRouteProp>();
-  const query = route.params?.query;
-  const source = route.params?.source;
-
+export const SubscriptionsList = ({ query, source, contentContainerStyle }: ListProps) => {
   return (
     <SubscriptionsProvider query={query} source={source}>
-      <SubscriptionsScreenContent />
+      <SubscriptionsListContent contentContainerStyle={contentContainerStyle} />
     </SubscriptionsProvider>
   );
+};
+
+const SubscriptionsScreen = () => {
+  const route = useRoute<SubscriptionsScreenRouteProp>();
+
+  return <SubscriptionsList query={route.params?.query} source={route.params?.source} />;
 };
 
 export default SubscriptionsScreen;
