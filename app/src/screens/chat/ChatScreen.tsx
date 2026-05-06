@@ -12,9 +12,9 @@ import { useAccount } from '@/context/AccountContext';
 import { useChats, ChatsProvider } from '@/context/ChatsContext';
 import { useSignalR } from '@/context/SignalRContext';
 import CreateChatWizard from '@/screens/chat/create-chat/CreateChatWizard';
+import { screenStyle } from '@/styles/components';
 import type { RootStackParamList } from '@/types/navigation';
 import type { EntitySubscription } from '@/types/signalr';
-import { screenStyle } from '@/styles/components';
 import { TestIDs } from '@/utils/testID';
 
 const CHAT_SUBSCRIPTIONS: EntitySubscription[] = [
