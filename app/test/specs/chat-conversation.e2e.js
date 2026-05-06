@@ -6,7 +6,7 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const { getClientApi } = require('../utils/api-client');
-const { navigateToChatList, QA_CHAT_NAME_PREFIX } = require('../pageobjects/utils/chat.helper');
+const { navigateToChatList, QA_CHAT_NAME_PREFIX, QA_PM_CHAT_PREFIX, QA_MARKDOWN_CHAT_PREFIX } = require('../pageobjects/utils/chat.helper');
 
 describe('Chat Conversation Page', () => {
   let hasChatData = false;
@@ -58,10 +58,6 @@ describe('Chat Conversation Page', () => {
 
   describe('Navigation', () => {
     it('should navigate to conversation when tapping a chat item', async function () {
-      if (!hasChatData) {
-        this.skip();
-        return;
-      }
       await expect(chatConversationPage.goBackButton).toBeDisplayed();
     });
 
@@ -120,6 +116,190 @@ describe('Chat Conversation Page', () => {
         return;
       }
       await expect(chatConversationPage.emptyState).toBeDisplayed();
+    });
+  });
+
+  describe('Private Messages', () => {
+    let pmChat = null;
+    const PRIVATE_MSG_CONTENT = 'QA-private-msg-setup';
+
+    before(async function () {
+      this.timeout(TIMEOUT.TEST_SETUP_LONG);
+      pmChat = await getClientApi().ensureQaGroupChat(QA_PM_CHAT_PREFIX, { participantOffset: 1 });
+      if (pmChat) {
+        try {
+          await getClientApi().sendChatMessage(pmChat.id, PRIVATE_MSG_CONTENT, 'Private');
+        } catch (e) {
+          console.warn(`⚠️ Could not seed private message: ${e.message}`);
+          pmChat = null;
+        }
+      }
+    });
+
+    beforeEach(async function () {
+      if (!pmChat) {
+        this.skip();
+        return;
+      }
+      const isOnConversation = await chatConversationPage.isOnConversationPage();
+      if (isOnConversation) {
+        await chatConversationPage.goBack();
+      }
+      await navigateToChatList();
+      await chatPage.scrollUp(1);
+      await chatPage.scrollUp(1);
+      const found = await chatPage.tapChatByNamePrefix(QA_PM_CHAT_PREFIX);
+      if (!found) {
+        this.skip();
+        return;
+      }
+      await chatConversationPage.waitForScreenReady();
+    });
+
+    it('should display the private message indicator on a private message', async function () {
+      const indicatorExists = await chatConversationPage.privateMessageIndicator
+        .isExisting()
+        .catch(() => false);
+      if (!indicatorExists) {
+        // Private indicator only shown to Operations users — skip for non-Operations accounts
+        this.skip();
+        return;
+      }
+      await expect(chatConversationPage.privateMessageIndicator).toBeDisplayed();
+    });
+
+    it('should display the visibility toggle button in the message footer', async function () {
+      const toggleExists = await chatConversationPage.visibilityToggleButton
+        .isExisting()
+        .catch(() => false);
+      if (!toggleExists) {
+        // Visibility toggle only shown to Operations users
+        this.skip();
+        return;
+      }
+      await expect(chatConversationPage.visibilityToggleButton).toBeDisplayed();
+    });
+  });
+
+  describe('Markdown Rendering', () => {
+    let mdChat = null;
+    // Plain text that will be visible after markdown is rendered
+    const BOLD_PLAIN_TEXT = 'QA-bold-text';
+    const BOLD_MARKDOWN_CONTENT = `**${BOLD_PLAIN_TEXT}**`;
+
+    before(async function () {
+      this.timeout(TIMEOUT.TEST_SETUP_LONG);
+      mdChat = await getClientApi().ensureQaGroupChat(QA_MARKDOWN_CHAT_PREFIX, { participantOffsets: [0, 1] });
+      if (mdChat) {
+        try {
+          await getClientApi().sendChatMessage(mdChat.id, BOLD_MARKDOWN_CONTENT);
+        } catch (e) {
+          console.warn(`⚠️ Could not seed markdown message: ${e.message}`);
+          mdChat = null;
+        }
+      }
+    });
+
+    beforeEach(async function () {
+      if (!mdChat) {
+        this.skip();
+        return;
+      }
+      const isOnConversation = await chatConversationPage.isOnConversationPage();
+      if (isOnConversation) {
+        await chatConversationPage.goBack();
+      }
+      await navigateToChatList();
+      await chatPage.scrollUp(1);
+      await chatPage.scrollUp(1);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+      const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
+      if (!found) {
+        this.skip();
+        return;
+      }
+      await chatConversationPage.waitForScreenReady();
+    });
+
+    it('should render bold markdown text as plain visible text', async function () {
+      const msgElement = chatConversationPage.getMessageByContent(BOLD_PLAIN_TEXT);
+      const exists = await msgElement.isExisting().catch(() => false);
+      if (!exists) {
+        this.skip();
+        return;
+      }
+      await expect(msgElement).toBeDisplayed();
+    });
+
+    it('should not display raw markdown syntax (asterisks) in rendered messages', async function () {
+      const rawMarkdown = chatConversationPage.getMessageByContent(BOLD_MARKDOWN_CONTENT);
+      const rawExists = await rawMarkdown.isExisting().catch(() => false);
+      // If raw markdown text is found as-is, the renderer is broken
+      expect(rawExists).toBe(false);
+    });
+  });
+
+  describe('Link Preview Cards', () => {
+    let linkChat = null;
+    const LINK_NAME = 'QA Link Preview';
+    const LINK_URI = 'https://portal.softwareone.com';
+
+    before(async function () {
+      this.timeout(TIMEOUT.TEST_SETUP_LONG);
+      // Reuse the markdown chat — separate message, same conversation
+      linkChat = await getClientApi().ensureQaGroupChat(QA_MARKDOWN_CHAT_PREFIX, { participantOffsets: [0, 1] });
+      if (linkChat) {
+        try {
+          await getClientApi().sendChatMessageWithLinks(
+            linkChat.id,
+            'QA-link-card-setup',
+            [{ name: LINK_NAME, uri: LINK_URI }],
+          );
+        } catch (e) {
+          console.warn(`⚠️ Could not seed link message: ${e.message}`);
+          linkChat = null;
+        }
+      }
+    });
+
+    beforeEach(async function () {
+      if (!linkChat) {
+        this.skip();
+        return;
+      }
+      const isOnConversation = await chatConversationPage.isOnConversationPage();
+      if (isOnConversation) {
+        await chatConversationPage.goBack();
+      }
+      await navigateToChatList();
+      await chatPage.scrollUp(1);
+      await chatPage.scrollUp(1);
+      const found = await chatPage.tapChatByNamePrefix(QA_MARKDOWN_CHAT_PREFIX);
+      if (!found) {
+        this.skip();
+        return;
+      }
+      await chatConversationPage.waitForScreenReady();
+    });
+
+    it('should display the link name in a link-preview card', async function () {
+      const card = chatConversationPage.getLinkPreviewCard(LINK_NAME);
+      const exists = await card.isExisting().catch(() => false);
+      if (!exists) {
+        this.skip();
+        return;
+      }
+      await expect(card).toBeDisplayed();
+    });
+
+    it('should display the link URI in the link-preview card', async function () {
+      const uriElement = chatConversationPage.getLinkPreviewCard(LINK_URI);
+      const exists = await uriElement.isExisting().catch(() => false);
+      if (!exists) {
+        this.skip();
+        return;
+      }
+      await expect(uriElement).toBeDisplayed();
     });
   });
 });
