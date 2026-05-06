@@ -118,8 +118,8 @@ class ChatConversationPage extends BasePage {
   get privateMessageIndicator() {
     return $(
       getSelector({
-        ios: '//XCUIElementTypeStaticText[@name="Only my account"]',
-        android: '//android.widget.TextView[@text="Only my account"]',
+        ios: '(//XCUIElementTypeStaticText[@name="Only my account"])[last()]',
+        android: '(//android.widget.TextView[@text="Only my account"])[last()]',
       }),
     );
   }
