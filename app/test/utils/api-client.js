@@ -805,25 +805,6 @@ class ApiClient {
         }
       }
 
-      const existing = await this.findChatByNamePrefix(namePrefix);
-      if (existing) {
-        // Verify the expected participant is present — a chat created with a different
-        // participantOffset will not be visible to the test UI user.
-        if (contact) {
-          const chatDetails = await this.getChatById(existing.id);
-          const participants = chatDetails?.data?.participants ?? chatDetails?.participants ?? [];
-          const hasParticipant = participants.some((p) => p?.contact?.id === contact.id);
-          if (hasParticipant) {
-            console.info(`✅ [ensureQaGroupChat] Reusing existing QA chat: ${existing.name} (${existing.id})`);
-            return existing;
-          }
-          console.warn(`⚠️ [ensureQaGroupChat] Existing chat ${existing.id} missing expected participant ${contact.id}, creating new chat...`);
-        } else {
-          console.info(`✅ [ensureQaGroupChat] Reusing existing QA chat: ${existing.name} (${existing.id})`);
-          return existing;
-        }
-      }
-
       const timestamp = new Date()
         .toISOString()
         .replace(/[-:T]/g, '')
