@@ -3,6 +3,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useCallback, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import ListViewChat from '@/components/list/ListViewChat';
@@ -11,6 +12,7 @@ import { useAccount } from '@/context/AccountContext';
 import { useChats, ChatsProvider } from '@/context/ChatsContext';
 import { useSignalR } from '@/context/SignalRContext';
 import CreateChatWizard from '@/screens/chat/create-chat/CreateChatWizard';
+import { screenStyle } from '@/styles/components';
 import type { RootStackParamList } from '@/types/navigation';
 import type { EntitySubscription } from '@/types/signalr';
 import { TestIDs } from '@/utils/testID';
@@ -78,32 +80,34 @@ const ChatScreenContent = () => {
   );
 
   return (
-    <StatusMessage
-      isLoading={chatsLoading}
-      isError={!!chatsError}
-      isEmpty={chats.length === 0}
-      isUnauthorised={isUnauthorised}
-      loadingTestId={TestIDs.CHATS_LOADING_INDICATOR}
-      errorTestId={TestIDs.CHATS_ERROR_STATE}
-      emptyTestId={TestIDs.CHATS_EMPTY_STATE}
-      emptyTitle={t('chatsScreen.emptyStateTitle')}
-      emptyDescription={t('chatsScreen.emptyStateDescription')}
-    >
-      <ListViewChat
-        userId={userId || ''}
-        accountType={accountType}
-        data={chats}
-        isFetchingNext={chatsFetchingNext}
-        hasMore={hasMoreChats}
-        fetchNext={fetchChats}
-        onItemPress={(id) => {
-          navigation.navigate('chatConversation', {
-            id,
-          });
-        }}
-      />
+    <View style={screenStyle.containerFlex}>
+      <StatusMessage
+        isLoading={chatsLoading}
+        isError={!!chatsError}
+        isEmpty={chats.length === 0}
+        isUnauthorised={isUnauthorised}
+        loadingTestId={TestIDs.CHATS_LOADING_INDICATOR}
+        errorTestId={TestIDs.CHATS_ERROR_STATE}
+        emptyTestId={TestIDs.CHATS_EMPTY_STATE}
+        emptyTitle={t('chatsScreen.emptyStateTitle')}
+        emptyDescription={t('chatsScreen.emptyStateDescription')}
+      >
+        <ListViewChat
+          userId={userId || ''}
+          accountType={accountType}
+          data={chats}
+          isFetchingNext={chatsFetchingNext}
+          hasMore={hasMoreChats}
+          fetchNext={fetchChats}
+          onItemPress={(id) => {
+            navigation.navigate('chatConversation', {
+              id,
+            });
+          }}
+        />
+      </StatusMessage>
       <CreateChatWizard visible={isCreateChatVisible} onClose={() => setCreateChatVisible(false)} />
-    </StatusMessage>
+    </View>
   );
 };
 
