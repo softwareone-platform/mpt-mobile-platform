@@ -3,7 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import CardHeader from '@/components/card/CardHeader';
 import CardWithHeader from '@/components/card/CardWithHeader';
@@ -43,6 +44,7 @@ const ProfileScreen = () => {
     isAccountsRefetching,
   } = useAccount();
   const { isEnabled } = useFeatureFlags();
+  const insets = useSafeAreaInsets();
 
   const lastUserDataRef = useRef(userData);
 
@@ -204,6 +206,9 @@ const ProfileScreen = () => {
   return (
     <FlatList
       style={styles.containerMain}
+      contentContainerStyle={
+        Platform.OS === 'android' ? { paddingBottom: insets.bottom } : undefined
+      }
       data={accountsToDisplay}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
