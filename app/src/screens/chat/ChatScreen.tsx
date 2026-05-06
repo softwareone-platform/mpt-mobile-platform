@@ -3,7 +3,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useCallback, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import ListViewChat from '@/components/list/ListViewChat';
@@ -14,6 +14,7 @@ import { useSignalR } from '@/context/SignalRContext';
 import CreateChatWizard from '@/screens/chat/create-chat/CreateChatWizard';
 import type { RootStackParamList } from '@/types/navigation';
 import type { EntitySubscription } from '@/types/signalr';
+import { screenStyle } from '@/styles/components';
 import { TestIDs } from '@/utils/testID';
 
 const CHAT_SUBSCRIPTIONS: EntitySubscription[] = [
@@ -79,7 +80,7 @@ const ChatScreenContent = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={screenStyle.containerFlex}>
       <StatusMessage
         isLoading={chatsLoading}
         isError={!!chatsError}
@@ -117,9 +118,5 @@ const ChatScreen = () => {
     </ChatsProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-});
 
 export default ChatScreen;
