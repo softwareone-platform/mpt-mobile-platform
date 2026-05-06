@@ -177,6 +177,7 @@ const REGEX = {
   CHAT_ID: /^CHT-\d{4}-\d{4}-\d{4}$/,
   CHAT_ID_EXTRACT: /(CHT-\d{4}-\d{4}-\d{4})/,
   USER_ID_IN_LABEL: /,\s*USR-\d{4}-\d{4},/,
+  ACCOUNT_ID: /^ACC-\d{4}-\d{4}$/,
 };
 
 // ============ Default / Sentinel Constants ============

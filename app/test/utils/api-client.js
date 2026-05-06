@@ -671,6 +671,7 @@ class ApiClient {
   }
 
   /**
+  /**
    * Send a message with structured link-preview attachments to a chat.
    * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
    * @param {string} content - Message text
@@ -1312,6 +1313,92 @@ class ApiClient {
     
     const response = await this.getBuyers({ status });
     return response.data || response;
+  }
+
+  // ========== Clients Methods ==========
+
+  /**
+   * Get clients list (Operations role only)
+   * Matches app endpoint: /v1/accounts/accounts?eq(type,"Client")&order=name
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum number of clients to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Clients list response
+   */
+  async getClients(options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/accounts` +
+      `?select=-*,id,name,status,icon` +
+      `&eq(type,%22Client%22)` +
+      `&order=name` +
+      `&offset=${offset}` +
+      `&limit=${limit}`;
+    return this.get(endpoint);
+  }
+
+  /**
+   * Check if there are any clients
+   * @returns {Promise<boolean>}
+   */
+  async hasClients() {
+    const response = await this.getClients({ limit: 1 });
+    const total = response.pagination?.total ?? response.$meta?.pagination?.total;
+    if (total !== undefined) return total > 0;
+    const data = response.data || response;
+    return Array.isArray(data) && data.length > 0;
+  }
+
+  // ========== Vendors Methods ==========
+
+  /**
+   * Get vendors list (Operations role only)
+   * Matches app endpoint: /v1/accounts/accounts?eq(type,"Vendor")&order=name
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum number of vendors to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Vendors list response
+   */
+  async getVendors(options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/accounts` +
+      `?select=-*,id,name,status,icon` +
+      `&eq(type,%22Vendor%22)` +
+      `&order=name` +
+      `&offset=${offset}` +
+      `&limit=${limit}`;
+    return this.get(endpoint);
+  }
+
+  /**
+   * Check if there are any vendors
+   * @returns {Promise<boolean>}
+   */
+  async hasVendors() {
+    const response = await this.getVendors({ limit: 1 });
+    const total = response.pagination?.total ?? response.$meta?.pagination?.total;
+    if (total !== undefined) return total > 0;
+    const data = response.data || response;
+    return Array.isArray(data) && data.length > 0;
+  }
+
+  // ========== User Accounts Methods ==========
+
+  /**
+   * Get the list of accounts for a specific user (Operations role only)
+   * Used to validate the UserAccountsScreen content accessed from User Details.
+   * @param {string} userId - User ID in format USR-XXXX-XXXX
+   * @returns {Promise<Array>} - Array of account objects
+   */
+  async getUserAccounts(userId) {
+    if (!userId || !/^USR-\d{4}-\d{4}$/.test(userId)) {
+      throw new Error(`Invalid userId format: "${userId}". Expected format: USR-XXXX-XXXX`);
+    }
+    const response = await this.get(`/public/v1/accounts/users/${userId}?select=accounts`);
+    return response.accounts || response.data?.accounts || [];
   }
 
   // ========== Spotlight Methods ==========
