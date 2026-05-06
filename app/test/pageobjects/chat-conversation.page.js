@@ -132,8 +132,12 @@ class ChatConversationPage extends BasePage {
     if (linkName) {
       return $(
         getSelector({
-          ios: `//XCUIElementTypeStaticText[@name="${linkName}"]`,
-          android: `//android.widget.TextView[@text="${linkName}"]`,
+          // TouchableOpacity renders as XCUIElementTypeButton on iOS and absorbs its child
+          // Text nodes — the button's accessibility name becomes the concatenated text content.
+          // Use contains(@name) on any element type within the scroll view to cover both
+          // StaticText (if children are accessible) and Button (if they are merged).
+          ios: `//XCUIElementTypeScrollView//*[contains(@name, "${linkName}")]`,
+          android: `//android.widget.ScrollView//*[contains(@content-desc, "${linkName}") or contains(@text, "${linkName}")]`,
         }),
       );
     }

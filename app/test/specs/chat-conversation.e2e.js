@@ -297,7 +297,7 @@ describe('Chat Conversation Page', () => {
     });
 
     it('should display the link URI in the link-preview card', async function () {
-      const uriElement = chatConversationPage.getMessageByContent(LINK_URI);
+      const uriElement = chatConversationPage.getLinkPreviewCard(LINK_URI);
       const exists = await uriElement.isExisting().catch(() => false);
       if (!exists) {
         this.skip();
