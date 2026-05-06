@@ -58,10 +58,6 @@ describe('Chat Conversation Page', () => {
 
   describe('Navigation', () => {
     it('should navigate to conversation when tapping a chat item', async function () {
-      if (!hasChatData) {
-        this.skip();
-        return;
-      }
       await expect(chatConversationPage.goBackButton).toBeDisplayed();
     });
 
