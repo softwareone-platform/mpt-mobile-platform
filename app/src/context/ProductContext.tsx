@@ -18,7 +18,12 @@ interface ProductContextValue {
 
 const ProductContext = createContext<ProductContextValue | undefined>(undefined);
 
-export const ProductProvider = ({ children }: { children: ReactNode }) => {
+interface ProductProviderProps {
+  children: ReactNode;
+  query?: string;
+}
+
+export const ProductProvider = ({ children, query }: ProductProviderProps) => {
   const { userData } = useAccount();
 
   const userId = userData?.id;
@@ -34,7 +39,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     fetchNextPage,
     refetch,
     isRefetching,
-  } = useProductsData(userId, currentAccountId);
+  } = useProductsData(userId, currentAccountId, query);
 
   const products = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

@@ -7,27 +7,36 @@ import KeyboardWrapper from '@/components/common/KeyboardWrapper';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import SubHeaderContainer from '@/components/header/SubHeaderContainer';
 import SearchInput from '@/components/search/SearchInput';
-import { searchQuery } from '@/config/searchQuery';
-import type { SearchCategory } from '@/config/searchQuery';
+import { searchConfig } from '@/config/search';
+import type { SearchCategory } from '@/config/search';
 import { KEYBOARD_VERTICAL_OFFSET_FULL_SCREEN } from '@/constants';
+import { useAccountType } from '@/hooks/useAccountType';
 import { useDebounce } from '@/hooks/useDebounce';
 import { AgreementsList } from '@/screens/agreements/AgreementsScreen';
 import { InvoicesList } from '@/screens/invoices/InvoicesScreen';
 import { OrdersList } from '@/screens/orders/OrdersScreen';
+import { ProductsList } from '@/screens/products/ProductsScreen';
+import { SubscriptionsList } from '@/screens/subscriptions/SubscriptionsScreen';
 import { screenStyle, spacingStyle } from '@/styles';
+import type { AccountType } from '@/types/common';
 import { TestIDs } from '@/utils/testID';
 
 const SearchScreen = () => {
   const { t } = useTranslation();
+  const { accountType } = useAccountType();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<SearchCategory>('agreements');
 
-  const categories = Object.keys(searchQuery) as SearchCategory[];
+  const categories = (Object.keys(searchConfig) as SearchCategory[]).filter((category) =>
+    searchConfig[category].roles.includes(accountType as AccountType),
+  );
 
   const debouncedSearchTerm = useDebounce(searchTerm).trim();
   const hasSearchTerm = debouncedSearchTerm.length > 0;
-  const query = hasSearchTerm ? searchQuery[activeCategory](debouncedSearchTerm) : undefined;
+  const query = hasSearchTerm
+    ? searchConfig[activeCategory].getQuery(debouncedSearchTerm)
+    : undefined;
 
   return (
     <KeyboardWrapper keyboardOffset={KEYBOARD_VERTICAL_OFFSET_FULL_SCREEN}>
@@ -59,6 +68,12 @@ const SearchScreen = () => {
             )}
             {activeCategory === 'orders' && (
               <OrdersList query={query} contentContainerStyle={styles.noPaddingTop} />
+            )}
+            {activeCategory === 'products' && (
+              <ProductsList query={query} contentContainerStyle={styles.noPaddingTop} />
+            )}
+            {activeCategory === 'subscriptions' && (
+              <SubscriptionsList query={query} contentContainerStyle={styles.noPaddingTop} />
             )}
           </View>
         ) : (
