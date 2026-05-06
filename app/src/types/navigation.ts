@@ -40,6 +40,7 @@ export type SecondaryTabsParamList = {
   allBuyers: ScreenParams;
   clients: ScreenParams;
   vendors: ScreenParams;
+  sellers: ScreenParams;
   products: ScreenParams;
   orders: ScreenParams;
   subscriptions: ScreenParams;
@@ -49,7 +50,10 @@ export type AppScreensParamList = {
   creditMemoDetails: { id: string | undefined };
   journalDetails: { id: string | undefined };
   orderDetails: { id: string | undefined };
-  accountDetails: { id: string | undefined; type?: 'client' | 'vendor' | 'operations' | 'account' };
+  accountDetails: {
+    id: string | undefined;
+    type?: 'client' | 'vendor' | 'seller' | 'operations' | 'account';
+  };
   userDetails: { id: string | undefined; showAccounts?: boolean };
   buyerDetails: { id: string | undefined };
   sellerDetails: { id: string | undefined };
