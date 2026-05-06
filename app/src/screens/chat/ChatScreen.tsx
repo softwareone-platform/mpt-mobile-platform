@@ -32,6 +32,8 @@ const ChatScreenContent = () => {
     hasMoreChats,
     isUnauthorised,
     fetchChats,
+    refetchChats,
+    isRefetchingChats,
   } = useChats();
 
   const [isCreateChatVisible, setCreateChatVisible] = useState(false);
@@ -99,6 +101,8 @@ const ChatScreenContent = () => {
           isFetchingNext={chatsFetchingNext}
           hasMore={hasMoreChats}
           fetchNext={fetchChats}
+          onRefresh={refetchChats}
+          isRefreshing={isRefetchingChats}
           onItemPress={(id) => {
             navigation.navigate('chatConversation', {
               id,

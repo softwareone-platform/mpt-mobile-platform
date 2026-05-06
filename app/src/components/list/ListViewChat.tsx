@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { FlatList, ActivityIndicator } from 'react-native';
 
+import RefreshControl from '@/components/common/RefreshControl';
 import ListItemChat from '@/components/list-item/ListItemChat';
 import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { screenStyle } from '@/styles';
@@ -16,6 +17,8 @@ type Props = {
   isFetchingNext?: boolean;
   hasMore?: boolean;
   fetchNext?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 };
 
 const ListViewChat = ({
@@ -26,6 +29,8 @@ const ListViewChat = ({
   isFetchingNext,
   hasMore,
   fetchNext,
+  onRefresh,
+  isRefreshing,
 }: Props) => {
   const { i18n } = useTranslation();
 
@@ -61,6 +66,11 @@ const ListViewChat = ({
       onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
       ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
+        ) : undefined
+      }
     />
   );
 };
