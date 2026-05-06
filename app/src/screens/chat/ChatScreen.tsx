@@ -3,7 +3,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useCallback, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import ListViewChat from '@/components/list/ListViewChat';
@@ -79,7 +79,7 @@ const ChatScreenContent = () => {
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <StatusMessage
         isLoading={chatsLoading}
         isError={!!chatsError}
@@ -117,5 +117,9 @@ const ChatScreen = () => {
     </ChatsProvider>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 
 export default ChatScreen;
