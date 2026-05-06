@@ -3,6 +3,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useCallback, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
 import ListViewChat from '@/components/list/ListViewChat';
@@ -78,32 +79,34 @@ const ChatScreenContent = () => {
   );
 
   return (
-    <StatusMessage
-      isLoading={chatsLoading}
-      isError={!!chatsError}
-      isEmpty={chats.length === 0}
-      isUnauthorised={isUnauthorised}
-      loadingTestId={TestIDs.CHATS_LOADING_INDICATOR}
-      errorTestId={TestIDs.CHATS_ERROR_STATE}
-      emptyTestId={TestIDs.CHATS_EMPTY_STATE}
-      emptyTitle={t('chatsScreen.emptyStateTitle')}
-      emptyDescription={t('chatsScreen.emptyStateDescription')}
-    >
-      <ListViewChat
-        userId={userId || ''}
-        accountType={accountType}
-        data={chats}
-        isFetchingNext={chatsFetchingNext}
-        hasMore={hasMoreChats}
-        fetchNext={fetchChats}
-        onItemPress={(id) => {
-          navigation.navigate('chatConversation', {
-            id,
-          });
-        }}
-      />
+    <View style={{ flex: 1 }}>
+      <StatusMessage
+        isLoading={chatsLoading}
+        isError={!!chatsError}
+        isEmpty={chats.length === 0}
+        isUnauthorised={isUnauthorised}
+        loadingTestId={TestIDs.CHATS_LOADING_INDICATOR}
+        errorTestId={TestIDs.CHATS_ERROR_STATE}
+        emptyTestId={TestIDs.CHATS_EMPTY_STATE}
+        emptyTitle={t('chatsScreen.emptyStateTitle')}
+        emptyDescription={t('chatsScreen.emptyStateDescription')}
+      >
+        <ListViewChat
+          userId={userId || ''}
+          accountType={accountType}
+          data={chats}
+          isFetchingNext={chatsFetchingNext}
+          hasMore={hasMoreChats}
+          fetchNext={fetchChats}
+          onItemPress={(id) => {
+            navigation.navigate('chatConversation', {
+              id,
+            });
+          }}
+        />
+      </StatusMessage>
       <CreateChatWizard visible={isCreateChatVisible} onClose={() => setCreateChatVisible(false)} />
-    </StatusMessage>
+    </View>
   );
 };
 
