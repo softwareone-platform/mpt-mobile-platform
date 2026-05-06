@@ -727,6 +727,34 @@ class SpotlightsPage extends BasePage {
 
   // ========== Navigation Methods ==========
   /**
+   * Trigger pull-to-refresh on the spotlight screen.
+   * Uses a downward drag from near the top of the scroll view.
+   */
+  async pullToRefresh() {
+    if (isAndroid()) {
+      const { width } = await browser.getWindowRect();
+      await browser.execute('mobile: swipeGesture', {
+        left: 100,
+        top: 200,
+        width: width - 200,
+        height: 400,
+        direction: 'down',
+        percent: 0.8,
+      });
+    } else {
+      await browser.execute('mobile: dragFromToForDuration', {
+        fromX: 200,
+        fromY: 200,
+        toX: 200,
+        toY: 550,
+        duration: 1.5,
+      });
+    }
+    await browser.pause(PAUSE.ANIMATION_SETTLE);
+  }
+
+  // ========== Navigation Methods ==========
+  /**
    * Navigate to a tab
    * @param {string} tabName - 'spotlight', 'chat', 'subscriptions', 'more'
    */
