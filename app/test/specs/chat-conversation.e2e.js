@@ -193,7 +193,7 @@ describe('Chat Conversation Page', () => {
 
     before(async function () {
       this.timeout(TIMEOUT.TEST_SETUP_LONG);
-      mdChat = await getClientApi().ensureQaGroupChat(QA_MARKDOWN_CHAT_PREFIX, { participantOffset: 1 });
+      mdChat = await getClientApi().ensureQaGroupChat(QA_MARKDOWN_CHAT_PREFIX, { participantOffsets: [0, 1] });
       if (mdChat) {
         try {
           await getClientApi().sendChatMessage(mdChat.id, BOLD_MARKDOWN_CONTENT);
@@ -251,7 +251,7 @@ describe('Chat Conversation Page', () => {
     before(async function () {
       this.timeout(TIMEOUT.TEST_SETUP_LONG);
       // Reuse the markdown chat — separate message, same conversation
-      linkChat = await getClientApi().ensureQaGroupChat(QA_MARKDOWN_CHAT_PREFIX, { participantOffset: 1 });
+      linkChat = await getClientApi().ensureQaGroupChat(QA_MARKDOWN_CHAT_PREFIX, { participantOffsets: [0, 1] });
       if (linkChat) {
         try {
           await getClientApi().sendChatMessageWithLinks(

@@ -767,28 +767,38 @@ class ApiClient {
    * const chat = await apiClient.ensureQaGroupChat('MPT-QA-portal');
    * if (chat) await apiClient.sendChatMessage(chat.id, 'setup message');
    */
-  async ensureQaGroupChat(namePrefix, { participantOffset = 0 } = {}) {
+  async ensureQaGroupChat(namePrefix, { participantOffset = 0, participantOffsets = null } = {}) {
+    // participantOffsets (array) takes priority over the legacy scalar participantOffset.
+    // Passing multiple offsets adds all matching contacts as participants, creating a true
+    // Group chat (3+ members) which the API will not deduplicate with a 2-person Direct chat.
+    const offsets = Array.isArray(participantOffsets) ? participantOffsets : [participantOffset];
     try {
       const contactsResponse = await this.getContacts({ limit: 5 });
       const contacts = contactsResponse.data || contactsResponse;
-      const contact = Array.isArray(contacts) && contacts.length > 0
-        ? contacts[Math.min(participantOffset, contacts.length - 1)]
-        : null;
-      const participantContactIds = contact ? [contact.id] : [];
+      const selectedContacts = Array.isArray(contacts) && contacts.length > 0
+        ? [...new Set(offsets.map((o) => Math.min(o, contacts.length - 1)))]
+            .map((i) => contacts[i])
+            .filter(Boolean)
+        : [];
+      const participantContactIds = selectedContacts.map((c) => c.id);
 
       const existing = await this.findChatByNamePrefix(namePrefix);
       if (existing) {
-        // Verify the expected participant is present — a chat created with a different
-        // participantOffset will not be visible to the test UI user.
-        if (contact) {
+        // Verify ALL expected participants are present — a chat created with a different
+        // participant set may not be visible to the test UI user or may be the wrong chat.
+        if (selectedContacts.length > 0) {
           const chatDetails = await this.getChatById(existing.id);
           const participants = chatDetails?.data?.participants ?? chatDetails?.participants ?? [];
-          const hasParticipant = participants.some((p) => p?.contact?.id === contact.id);
-          if (hasParticipant) {
+          const allPresent = selectedContacts.every(
+            (c) => participants.some((p) => p?.contact?.id === c.id),
+          );
+          if (allPresent) {
             console.info(`✅ [ensureQaGroupChat] Reusing existing QA chat: ${existing.name} (${existing.id})`);
             return existing;
           }
-          console.warn(`⚠️ [ensureQaGroupChat] Existing chat ${existing.id} missing expected participant ${contact.id}, creating new chat...`);
+          console.warn(
+            `⚠️ [ensureQaGroupChat] Existing chat ${existing.id} missing one or more expected participants, creating new chat...`,
+          );
         } else {
           console.info(`✅ [ensureQaGroupChat] Reusing existing QA chat: ${existing.name} (${existing.id})`);
           return existing;
