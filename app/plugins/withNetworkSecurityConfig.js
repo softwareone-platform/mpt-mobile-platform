@@ -20,8 +20,8 @@ const NETWORK_SECURITY_CONFIG = `<?xml version="1.0" encoding="utf-8"?>
         <domain includeSubdomains="false">10.0.2.2</domain>
     </domain-config>
     
-    <!-- Base config: allow cleartext in debug for Metro -->
-    <base-config cleartextTrafficPermitted="true">
+    <!-- Base config: block cleartext traffic (Android 9+ default, explicit for clarity) -->
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
