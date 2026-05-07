@@ -66,11 +66,7 @@ const ChatMessageContent: React.FC<ChatMessageContentProps> = ({ content, color,
     }
   }, []);
 
-  const html = useMemo(() => {
-    const sanitized = parseMarkdownToHtml(content);
-    logger.info('ChatMessageContent', { raw: content, sanitized });
-    return sanitized;
-  }, [content]);
+  const html = useMemo(() => parseMarkdownToHtml(content), [content]);
 
   const baseStyle = useMemo(() => ({ ...chatMarkdownStyle.baseText, color }), [color]);
 
