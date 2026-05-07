@@ -219,6 +219,8 @@ describe('Chat Conversation Page', () => {
         return;
       }
       await chatConversationPage.waitForScreenReady();
+      await chatConversationPage.scrollUp(1);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
     it('should render bold markdown text as plain visible text', async function () {
@@ -280,6 +282,8 @@ describe('Chat Conversation Page', () => {
         return;
       }
       await chatConversationPage.waitForScreenReady();
+      await chatConversationPage.scrollUp(1);
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
     it('should display the link name in a link-preview card', async function () {
