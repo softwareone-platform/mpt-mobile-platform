@@ -1,0 +1,6 @@
+{
+  "salesOrdersScreen": {
+    "emptyStateTitle": "No sales orders",
+    "emptyStateDescription": "No sales orders found."
+  }
+}

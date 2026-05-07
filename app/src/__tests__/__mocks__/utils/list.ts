@@ -16,6 +16,18 @@ export const baseItem = {
   icon: '/path/to/image.png',
 };
 
+export const baseItemWithNestedFields = {
+  ...baseItem,
+  externalIds: {
+    operations: 'US-SCO-1668259',
+  },
+  nested: {
+    level1: {
+      level2: 'nested-value',
+    },
+  },
+};
+
 export const itemWithNumericField = {
   id: 123,
   name: 'Test Item',
