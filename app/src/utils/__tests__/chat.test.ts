@@ -92,7 +92,9 @@ describe('parseMarkdownToHtml', () => {
     });
 
     it('strips event handler attributes from injected img tags', () => {
-      const result = parseMarkdownToHtml('<img src="https://example.com/img.png" onerror="alert(1)">');
+      const result = parseMarkdownToHtml(
+        '<img src="https://example.com/img.png" onerror="alert(1)">',
+      );
 
       expect(result).not.toContain('onerror');
       expect(result).toContain('src="https://example.com/img.png"');
