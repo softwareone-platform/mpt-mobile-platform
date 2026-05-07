@@ -44,6 +44,7 @@ export type SecondaryTabsParamList = {
   products: ScreenParams;
   orders: ScreenParams;
   subscriptions: ScreenParams;
+  salesOrders: ScreenParams;
 };
 
 export type AppScreensParamList = {
@@ -120,6 +121,7 @@ export type SecondaryTabGroupTitle =
   | 'helpdesk'
   | 'marketplace'
   | 'program'
+  | 'procurement'
   | 'settings';
 
 export type SecondaryTabGroup = {

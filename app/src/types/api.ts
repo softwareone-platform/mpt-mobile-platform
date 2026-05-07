@@ -198,6 +198,12 @@ export interface ListItemNoImageNoSubtitle {
   status?: string;
 }
 
+export interface ListItemNoImageWithExternalIds extends ListItemNoImageNoSubtitle {
+  externalIds: {
+    operations: string;
+  };
+}
+
 export interface AccountDetails {
   id: string;
   name: string;

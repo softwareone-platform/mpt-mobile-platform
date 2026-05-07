@@ -8,6 +8,7 @@ import details from './details.json';
 import home from './home.json';
 import marketplace from './marketplace.json';
 import navigation from './navigation.json';
+import procurement from './procurement.json';
 import program from './program.json';
 import search from './search.json';
 import settings from './settings.json';
@@ -53,6 +54,9 @@ const en = {
 
   // Module Administration (buyers, sellers)
   ...admin,
+
+  // Module: Procurement (erp items, sales orders, sales quotes)
+  ...procurement,
 
   // Module Search
   ...search,
