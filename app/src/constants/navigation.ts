@@ -37,6 +37,7 @@ import {
   ChatConversationScreen,
   CertificatesScreen,
   SearchScreen,
+  SalesOrdersScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -217,6 +218,18 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
     ],
   },
   {
+    title: 'procurement',
+    items: [
+      {
+        name: 'salesOrders',
+        icon: 'orders',
+        component: SalesOrdersScreen,
+        modules: ['procurement', 'new-procurement', 'digital-supply-chain'],
+        roles: ['Client', 'Operations'],
+      },
+    ],
+  },
+  {
     title: 'settings',
     items: [
       {
@@ -286,4 +299,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'enrollmentDetails', component: EnrollmentDetailsScreen },
   { name: 'certificateDetails', component: CertificateDetailsScreen },
   { name: 'chatConversation', component: ChatConversationScreen },
+  { name: 'salesOrders', component: SalesOrdersScreen },
 ];

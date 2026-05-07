@@ -45,7 +45,8 @@
     "programDetails": "Program",
     "enrollmentDetails": "Enrollment",
     "certificateDetails": "Certificate",
-    "chatConversation": "Chat"
+    "chatConversation": "Chat",
+    "salesOrders": "Sales Orders"
   },
   "tabGroups": {
     "administration": "Administration",
@@ -54,6 +55,7 @@
     "helpdesk": "Helpdesk",
     "marketplace": "Marketplace",
     "program": "Program",
-    "settings": "Settings"
+    "settings": "Settings",
+    "procurement": "Procurement"
   }
 }
