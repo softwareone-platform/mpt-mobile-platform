@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import { filterXSS } from 'xss';
 
 import { MIN_NUMBER_OF_CHAT_AVATARS, MAX_NUMBER_OF_CHAT_AVATARS, EMPTY_STRING } from '@/constants';
 import { MESSAGE_VISIBILITY } from '@/types/chat';
@@ -29,11 +30,6 @@ export const isSafeUri = (uri: string): boolean => {
   }
 };
 
-/**
- * Converts markdown/HTML content to a plain text string by running it
- * through the markdown parser and then stripping all HTML tags.
- * Intended for single-line preview contexts (e.g. chat list subtitles).
- */
 export const stripMarkdown = (text: string): string => {
   const html = marked(text) as string;
   return html
@@ -176,14 +172,34 @@ export const mapToChatListItemProps = (
   };
 };
 
+// Only the tags marked legitimately produces; values validated by isSafeUri at render time
+const xssWhiteList = {
+  a: ['href'],
+  img: ['src', 'alt'],
+  p: [], br: [], hr: [],
+  h1: [], h2: [], h3: [], h4: [], h5: [], h6: [],
+  strong: [], b: [], em: [], i: [], del: [], s: [], u: [], sub: [], sup: [],
+  code: [], pre: [], blockquote: [],
+  ul: [], ol: [], li: [],
+  table: [], thead: [], tbody: [], tfoot: [], tr: [], th: [], td: [],
+};
+
+const sanitizeMarkdownHtml = (html: string): string =>
+  filterXSS(html, {
+    whiteList: xssWhiteList,
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ['script', 'style'],
+  });
+
 export const parseMarkdownToHtml = (content: string): string => {
   const raw = marked(content) as string;
-  return raw.replace(/<ul>([\s\S]*?)<\/ul>/g, (match, inner: string) => {
+  const withCheckboxes = raw.replace(/<ul>([\s\S]*?)<\/ul>/g, (match, inner: string) => {
     if (!/<input[^>]*type="checkbox"/.test(inner)) return match;
     return inner
       .replace(/<li>\s*<input[^>]*checked[^>]*>([\s\S]*?)<\/li>/g, '<p>☑ $1</p>')
       .replace(/<li>\s*<input[^>]*type="checkbox"[^>]*>([\s\S]*?)<\/li>/g, '<p>☐ $1</p>');
   });
+  return sanitizeMarkdownHtml(withCheckboxes);
 };
 
 export const stripLinkMarkdown = (content: string, uris: string[]): string => {
