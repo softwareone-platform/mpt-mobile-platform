@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { FlatList, ActivityIndicator } from 'react-native';
+import { FlatList } from 'react-native';
 
-import RefreshControl from '@/components/common/RefreshControl';
+import { usePaginatedListProps } from '@/components/list/usePaginatedListProps';
 import ListItemChat from '@/components/list-item/ListItemChat';
-import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { screenStyle } from '@/styles';
 import type { ChatItem } from '@/types/chat';
 import type { AccountType } from '@/types/common';
@@ -33,6 +32,13 @@ const ListViewChat = ({
   isRefreshing,
 }: Props) => {
   const { i18n } = useTranslation();
+  const paginatedProps = usePaginatedListProps({
+    isFetchingNext,
+    hasMore,
+    fetchNext,
+    onRefresh,
+    isRefreshing,
+  });
 
   if (data.length === 0) {
     return null;
@@ -58,19 +64,7 @@ const ListViewChat = ({
           />
         );
       }}
-      onEndReached={() => {
-        if (hasMore && !isFetchingNext) {
-          fetchNext?.();
-        }
-      }}
-      onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
-      ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
-        ) : undefined
-      }
+      {...paginatedProps}
     />
   );
 };
