@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import { ActivityIndicator } from 'react-native';
 
 import RefreshControl from '@/components/common/RefreshControl';
@@ -18,17 +19,22 @@ export function usePaginatedListProps({
   onRefresh,
   isRefreshing,
 }: Params) {
-  return {
-    onEndReached: () => {
-      if (hasMore && !isFetchingNext) {
-        fetchNext?.();
-      }
-    },
-    onEndReachedThreshold: FLATLIST_END_REACHED_THRESHOLD,
-    ListFooterComponent: isFetchingNext ? <ActivityIndicator /> : null,
-    showsVerticalScrollIndicator: false,
-    refreshControl: onRefresh ? (
-      <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
-    ) : undefined,
-  };
+  const onEndReached = useCallback(() => {
+    if (hasMore && !isFetchingNext) {
+      fetchNext?.();
+    }
+  }, [hasMore, isFetchingNext, fetchNext]);
+
+  return useMemo(
+    () => ({
+      onEndReached,
+      onEndReachedThreshold: FLATLIST_END_REACHED_THRESHOLD,
+      ListFooterComponent: isFetchingNext ? <ActivityIndicator /> : null,
+      showsVerticalScrollIndicator: false,
+      refreshControl: onRefresh ? (
+        <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
+      ) : undefined,
+    }),
+    [onEndReached, isFetchingNext, onRefresh, isRefreshing],
+  );
 }
