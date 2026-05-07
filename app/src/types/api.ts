@@ -198,9 +198,9 @@ export interface ListItemNoImageNoSubtitle {
   status?: string;
 }
 
-export interface ListItemNoImageWithExternalIds extends ListItemNoImage {
+export interface ListItemNoImageWithExternalIds extends ListItemNoImageNoSubtitle {
   externalIds: {
-    opeations: string;
+    operations: string;
   };
 }
 
