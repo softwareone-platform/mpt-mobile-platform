@@ -419,4 +419,37 @@ describe('Spotlight Filter Chips', () => {
       await expect(spotlightsPage.filterAll).toBeDisplayed();
     });
   });
+
+  describe('Pull to Refresh', () => {
+    it('should reload content when pulled to refresh on All filter', async function () {
+      if (!hasSpotlightsData) {
+        console.info('Skipping - no spotlight data available');
+        this.skip();
+        return;
+      }
+      await spotlightsPage.resetFilterScrollPosition();
+      await spotlightsPage.selectFilter('all');
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+
+      await spotlightsPage.pullToRefresh();
+
+      await expect(spotlightsPage.filterAll).toBeDisplayed();
+    });
+
+    it('should reload content when pulled to refresh on a specific active filter', async function () {
+      if (!hasSpotlightsData) {
+        console.info('Skipping - no spotlight data available');
+        this.skip();
+        return;
+      }
+      await spotlightsPage.resetFilterScrollPosition();
+      await spotlightsPage.selectFilter('agreements');
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+
+      await spotlightsPage.pullToRefresh();
+
+      await spotlightsPage.resetFilterScrollPosition();
+      await expect(spotlightsPage.filterAll).toBeDisplayed();
+    });
+  });
 });

@@ -19,7 +19,7 @@ const App = () => {
             <AppInsightsProvider>
               <AccountProvider>
                 <Navigation />
-                <StatusBar style="auto" />
+                <StatusBar style="dark" />
               </AccountProvider>
             </AppInsightsProvider>
           </SignalRProvider>

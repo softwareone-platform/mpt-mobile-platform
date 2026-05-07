@@ -671,7 +671,6 @@ class ApiClient {
   }
 
   /**
-  /**
    * Send a message with structured link-preview attachments to a chat.
    * @param {string} chatId - Chat ID (CHT-XXXX-XXXX-XXXX)
    * @param {string} content - Message text
@@ -720,11 +719,11 @@ class ApiClient {
    * Uses an API-side name filter so only matching chats are returned —
    * this avoids pagination issues with chats ordered by lastMessage date.
    * @param {string} namePrefix - Name prefix to search for (e.g. "MPT-QA-portal")
-   * @returns {Promise<object|null>} - Matching chat with { id, name }, or null if not found
+   * @returns {Promise<object[]>} - Array of matching chats with { id, name }, empty if none found
    *
    * @example
-   * const chat = await apiClient.findChatByNamePrefix('MPT-QA-portal');
-   * if (chat) console.log(chat.id); // 'CHT-1234-5678-9012'
+   * const chats = await apiClient.findChatByNamePrefix('MPT-QA-portal');
+   * if (chats.length) console.log(chats[0].id); // 'CHT-1234-5678-9012'
    */
   async findChatByNamePrefix(namePrefix) {
     const sanitized = namePrefix.replace(/["\\()]/g, '');
@@ -742,13 +741,14 @@ class ApiClient {
       const data = response.data || response;
       if (!Array.isArray(data)) {
         console.info(`🔍 [findChatByNamePrefix] Unexpected response shape — no array in data`);
-        return null;
+        return [];
       }
-      console.info(`🔍 [findChatByNamePrefix] Candidates: ${data.length} item(s)`);
-      return data.find((chat) => chat.name && chat.name.startsWith(namePrefix)) || null;
+      const matches = data.filter((chat) => chat.name && chat.name.startsWith(namePrefix));
+      console.info(`🔍 [findChatByNamePrefix] Matches: ${matches.length} of ${data.length} candidate(s)`);
+      return matches;
     } catch (error) {
       console.warn(`⚠️ [findChatByNamePrefix] Query failed: ${error.message}`);
-      return null;
+      return [];
     }
   }
 
@@ -783,10 +783,8 @@ class ApiClient {
         : [];
       const participantContactIds = selectedContacts.map((c) => c.id);
 
-      const existing = await this.findChatByNamePrefix(namePrefix);
-      if (existing) {
-        // Verify ALL expected participants are present — a chat created with a different
-        // participant set may not be visible to the test UI user or may be the wrong chat.
+      const candidates = await this.findChatByNamePrefix(namePrefix);
+      for (const existing of candidates) {
         if (selectedContacts.length > 0) {
           const chatDetails = await this.getChatById(existing.id);
           const participants = chatDetails?.data?.participants ?? chatDetails?.participants ?? [];
@@ -798,7 +796,7 @@ class ApiClient {
             return existing;
           }
           console.warn(
-            `⚠️ [ensureQaGroupChat] Existing chat ${existing.id} missing one or more expected participants, creating new chat...`,
+            `⚠️ [ensureQaGroupChat] Chat ${existing.id} missing expected participants, checking next candidate...`,
           );
         } else {
           console.info(`✅ [ensureQaGroupChat] Reusing existing QA chat: ${existing.name} (${existing.id})`);
