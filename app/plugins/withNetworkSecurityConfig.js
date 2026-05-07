@@ -3,26 +3,22 @@ const path = require('path');
 
 const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 
-const NETWORK_SECURITY_CONFIG = `<?xml version="1.0" encoding="utf-8"?>
+// Release build: block all cleartext, trust system certs only
+const NETWORK_SECURITY_CONFIG_MAIN = `<?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Debug builds: trust user-installed certificates (for corporate proxies like Zscaler) -->
-    <debug-overrides>
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
-            <certificates src="user" />
             <certificates src="system" />
         </trust-anchors>
-    </debug-overrides>
-    
-    <!-- Allow cleartext for local development (Metro bundler) -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">localhost</domain>
-        <domain includeSubdomains="false">127.0.0.1</domain>
-        <domain includeSubdomains="false">10.0.2.2</domain>
-    </domain-config>
-    
-    <!-- Base config: allow cleartext in debug for Metro -->
+    </base-config>
+</network-security-config>`;
+
+// Debug build: allow cleartext (Metro bundler), trust user certs (Zscaler/corporate proxies)
+const NETWORK_SECURITY_CONFIG_DEBUG = `<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
+            <certificates src="user" />
             <certificates src="system" />
         </trust-anchors>
     </base-config>
@@ -35,22 +31,22 @@ function withNetworkSecurityConfigFile(config) {
   return withDangerousMod(config, [
     'android',
     async (config) => {
-      const xmlDir = path.join(
-        config.modRequest.platformProjectRoot,
-        'app',
-        'src',
-        'main',
-        'res',
-        'xml',
+      const platformRoot = config.modRequest.platformProjectRoot;
+
+      const mainXmlDir = path.join(platformRoot, 'app', 'src', 'main', 'res', 'xml');
+      const debugXmlDir = path.join(platformRoot, 'app', 'src', 'debug', 'res', 'xml');
+
+      fs.mkdirSync(mainXmlDir, { recursive: true });
+      fs.mkdirSync(debugXmlDir, { recursive: true });
+
+      fs.writeFileSync(
+        path.join(mainXmlDir, 'network_security_config.xml'),
+        NETWORK_SECURITY_CONFIG_MAIN,
       );
-
-      // Create xml directory if it doesn't exist
-      if (!fs.existsSync(xmlDir)) {
-        fs.mkdirSync(xmlDir, { recursive: true });
-      }
-
-      const filePath = path.join(xmlDir, 'network_security_config.xml');
-      fs.writeFileSync(filePath, NETWORK_SECURITY_CONFIG);
+      fs.writeFileSync(
+        path.join(debugXmlDir, 'network_security_config.xml'),
+        NETWORK_SECURITY_CONFIG_DEBUG,
+      );
 
       return config;
     },
@@ -67,6 +63,7 @@ function withNetworkSecurityConfigManifest(config) {
 
     if (application) {
       application.$['android:networkSecurityConfig'] = '@xml/network_security_config';
+      application.$['android:allowBackup'] = 'false';
     }
 
     return config;
@@ -74,9 +71,8 @@ function withNetworkSecurityConfigManifest(config) {
 }
 
 /**
- * Combined plugin that adds network security configuration for:
- * - Trusting user-installed certificates (for Zscaler/corporate proxies)
- * - Allowing cleartext traffic for Metro bundler in development
+ * Adds network security config: release blocks cleartext, debug allows it (Metro + Zscaler).
+ * Uses Android source sets (src/main vs src/debug) so no runtime flag needed.
  */
 module.exports = function withNetworkSecurityConfig(config) {
   config = withNetworkSecurityConfigFile(config);
