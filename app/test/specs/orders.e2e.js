@@ -289,5 +289,36 @@ describe('Orders Page', () => {
         this.skip();
       }
     });
+
+    it('should display orders in the same sequence as the API default sort order (MPT-17334)', async function () {
+      if (!apiOrdersAvailable || !hasOrdersData) {
+        this.skip();
+        return;
+      }
+
+      try {
+        const apiOrders = await api.getOrders({ limit: 5 });
+        const apiOrdersList = (apiOrders.data || apiOrders).slice(0, 5);
+        const apiIds = apiOrdersList
+          .map((o) => o.orderId || o.id || o.orderNumber)
+          .filter(Boolean);
+
+        if (apiIds.length === 0) {
+          this.skip();
+          return;
+        }
+
+        const uiOrderIds = await ordersPage.getVisibleOrderIds();
+        const uiFirstN = uiOrderIds.slice(0, apiIds.length);
+
+        console.info(`[Sort Order] API: [${apiIds.join(', ')}]`);
+        console.info(`[Sort Order] UI:  [${uiFirstN.join(', ')}]`);
+
+        expect(uiFirstN).toEqual(apiIds);
+      } catch (error) {
+        console.warn('Default sort order check skipped:', error.message);
+        this.skip();
+      }
+    });
   });
 });

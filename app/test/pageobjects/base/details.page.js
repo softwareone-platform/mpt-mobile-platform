@@ -374,6 +374,52 @@ class DetailsPage extends BasePage {
     const text = await field.value.getText();
     return text.trim();
   }
+
+  /**
+   * Long-press a simple field value to trigger the native copy menu, then tap "Copy".
+   *
+   * Uses the native OS text-selection mechanism (React Native `selectable` prop on
+   * `ListItemWithLabelAndText` and `DetailsHeader` components). After copying the
+   * method returns the value string that was copied so callers can assert on it.
+   *
+   * iOS: triggers the native context menu — "Copy" is accessible via `~Copy`.
+   * Android: triggers the contextual action bar — "Copy" is accessible via `@text="Copy"`.
+   *
+   * @param {string} label - The field label text (e.g., 'Website', 'Name')
+   * @param {boolean} [scroll=true] - Whether to scroll to the field first
+   * @returns {Promise<string>} The text value that was long-pressed
+   */
+  async longPressCopyField(label, scroll = true) {
+    const value = await this.getSimpleFieldValue(label, scroll);
+
+    const valueElement = $(
+      getSelector({
+        ios: `//XCUIElementTypeStaticText[@name="${value}"]`,
+        android: `//*[@text="${value}"]`,
+      }),
+    );
+
+    await browser.action('pointer')
+      .move({ duration: 0, origin: valueElement, x: 0, y: 0 })
+      .down({ button: 0 })
+      .pause(1500)
+      .up({ button: 0 })
+      .perform();
+
+    await browser.pause(PAUSE.ANIMATION_SETTLE);
+
+    const copyButton = $(
+      getSelector({
+        ios: '~Copy',
+        android: '//*[@text="Copy"]',
+      }),
+    );
+    await copyButton.waitForDisplayed({ timeout: TIMEOUT.SHORT_WAIT });
+    await copyButton.click();
+    await browser.pause(PAUSE.ANIMATION_SETTLE);
+
+    return value;
+  }
 }
 
 module.exports = DetailsPage;
