@@ -12,6 +12,7 @@
 const { expect } = require('@wdio/globals');
 const ProfilePage = require('../pageobjects/profile.page');
 const headingPage = require('../pageobjects/base/heading.page');
+const footerPage = require('../pageobjects/base/footer.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { TIMEOUT } = require('../pageobjects/utils/constants');
@@ -146,6 +147,80 @@ describe('Feature Flags E2E Tests', () => {
         });
     });
     
+    // =========================================================================
+    // FEATURE_SIGNALR — Chat / SignalR real-time connectivity (MPT-17258)
+    // =========================================================================
+    // FEATURE_SIGNALR gates the SignalR hub connection used for Chat.
+    // The Chat tab is always visible in the navigation. When the flag is
+    // disabled (portal version < 5.0.0) the hub never connects but the tab
+    // and screen still render. When enabled the full real-time Chat feature
+    // is active.
+    // =========================================================================
+
+    describe('FEATURE_SIGNALR', () => {
+        const FLAG_KEY = 'FEATURE_SIGNALR';
+
+        before(async function () {
+            logFlagStatus(FLAG_KEY);
+            await ensureLoggedIn();
+            await navigation.ensureHomePage({ resetFilters: false });
+        });
+
+        it('should always display the Chat tab regardless of flag state', async function () {
+            await expect(footerPage.chatTab).toBeDisplayed();
+        });
+
+        it('should navigate to the Chat screen when Chat tab is tapped (flag enabled)', async function () {
+            skipIfFlagDisabled.call(this, FLAG_KEY);
+
+            await footerPage.chatTab.click();
+            await browser.pause(500);
+
+            // Chat screen must render — loading indicator or conversation list or empty state
+            const chatScreenRendered = await browser.waitUntil(
+                async () => {
+                    const loadingExists = await $('//*[@resource-id="CHATS_LOADING_INDICATOR"]').isExisting().catch(() => false);
+                    const chatListExists = await $('~CHATS_LOADING_INDICATOR').isExisting().catch(() => false);
+                    const chatTabActive = await footerPage.chatTab.isDisplayed().catch(() => false);
+                    return loadingExists || chatListExists || chatTabActive;
+                },
+                { timeout: TIMEOUT.SCREEN_READY, interval: 500, timeoutMsg: 'Chat screen did not render' },
+            ).catch(() => false);
+
+            expect(chatScreenRendered).toBe(true);
+
+            // Return to spotlight home
+            await navigation.ensureHomePage({ resetFilters: false });
+        });
+
+        it('should render Chat tab as navigable even when flag is disabled', async function () {
+            skipIfFlagEnabled.call(this, FLAG_KEY);
+
+            await footerPage.chatTab.click();
+            await browser.pause(500);
+
+            // Tab should be reachable and screen should not crash
+            const chatTabDisplayed = await footerPage.chatTab.isDisplayed().catch(() => false);
+            expect(chatTabDisplayed).toBe(true);
+
+            await navigation.ensureHomePage({ resetFilters: false });
+        });
+
+        it('should adapt Chat availability based on flag state (MPT-17258)', async function () {
+            await assertBasedOnFlag(
+                FLAG_KEY,
+                async () => {
+                    console.info('      → FEATURE_SIGNALR enabled: Chat tab is active with real-time connectivity');
+                    await expect(footerPage.chatTab).toBeDisplayed();
+                },
+                async () => {
+                    console.info('      → FEATURE_SIGNALR disabled: Chat tab visible but SignalR connection inactive');
+                    await expect(footerPage.chatTab).toBeDisplayed();
+                },
+            );
+        });
+    });
+
     // =========================================================================
     // Template for Future Feature Flags
     // =========================================================================

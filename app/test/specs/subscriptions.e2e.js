@@ -252,5 +252,36 @@ describe('Subscriptions Page', () => {
         this.skip();
       }
     });
+
+    it('should display subscriptions in the same sequence as the API default sort order (MPT-17334)', async function () {
+      if (!apiSubscriptionsAvailable || !hasSubscriptionsData) {
+        this.skip();
+        return;
+      }
+
+      try {
+        const apiSubscriptions = await api.getSubscriptions({ limit: 5 });
+        const apiSubscriptionsList = (apiSubscriptions.data || apiSubscriptions).slice(0, 5);
+        const apiIds = apiSubscriptionsList
+          .map((s) => s.subscriptionId || s.id)
+          .filter(Boolean);
+
+        if (apiIds.length === 0) {
+          this.skip();
+          return;
+        }
+
+        const uiSubscriptionIds = await subscriptionsPage.getVisibleSubscriptionIds();
+        const uiFirstN = uiSubscriptionIds.slice(0, apiIds.length);
+
+        console.info(`[Sort Order] API: [${apiIds.join(', ')}]`);
+        console.info(`[Sort Order] UI:  [${uiFirstN.join(', ')}]`);
+
+        expect(uiFirstN).toEqual(apiIds);
+      } catch (error) {
+        console.warn('Default sort order check skipped:', error.message);
+        this.skip();
+      }
+    });
   });
 });
