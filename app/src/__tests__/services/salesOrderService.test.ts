@@ -1,5 +1,13 @@
 import { renderHook, act } from '@testing-library/react-native';
 
+import {
+  mockSalesOrderId1,
+  mockSalesOrderId2,
+  mockSalesOrderData,
+  mockSalesOrderResponse1,
+  mockSalesOrderResponse2,
+} from '../__mocks__/services/salesOrder';
+
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useSalesOrderApi } from '@/services/salesOrderService';
 import type { PaginatedResponse, ListItemNoImageWithExternalIds } from '@/types/api';
@@ -286,5 +294,58 @@ describe('useSalesOrderApi - getSalesOrders with optional query', () => {
       `&limit=${DEFAULT_PAGE_SIZE}`;
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+
+  const expectedSalesOrderUrl1 = `/v1/procurement/sales-orders/${mockSalesOrderId1}?select=vendors,products`;
+
+  const expectedSalesOrderUrl2 = `/v1/procurement/sales-orders/${mockSalesOrderId2}?select=vendors,products`;
+
+  it('getSalesOrderDetails - calls with correct endpoint and returns data required for details view', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockSalesOrderData);
+
+    await act(async () => {
+      res = await api.getSalesOrderDetails(mockSalesOrderId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedSalesOrderUrl1);
+    expect(res).toEqual(mockSalesOrderData);
+  });
+
+  it('getSalesOrderDetails - handles API errors correctly', async () => {
+    const api = setup();
+    const mockError = new Error('Network error');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getSalesOrderDetails(mockSalesOrderId1)).rejects.toThrow('Network error');
+  });
+
+  it('getSalesOrderDetails - handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockSalesOrderResponse1);
+    mockGet.mockResolvedValueOnce(mockSalesOrderResponse2);
+
+    await act(async () => {
+      res1 = await api.getSalesOrderDetails(mockSalesOrderId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getSalesOrderDetails(mockSalesOrderId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedSalesOrderUrl1);
+
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedSalesOrderUrl2);
+
+    expect(res1).toEqual(mockSalesOrderResponse1);
+    expect(res2).toEqual(mockSalesOrderResponse2);
   });
 });
