@@ -1,5 +1,14 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useContext, useCallback, useState, ReactNode, useMemo } from 'react';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useState,
+  ReactNode,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
 
 import { AnalyticsEvents } from '@/constants/analytics';
 import { MAX_RECENT_ACCOUNTS } from '@/constants/api';
@@ -40,6 +49,24 @@ interface AccountContextValue {
 }
 
 const AccountContext = createContext<AccountContextValue | undefined>(undefined);
+
+const useLegacyAccountSync = (
+  jwtAccountId: string | undefined,
+  isMultiAccountEnabled: boolean,
+  queryClient: QueryClient,
+  userId: string | undefined,
+) => {
+  const prevAccountIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (isMultiAccountEnabled) return;
+    if (!jwtAccountId) return;
+    const prev = prevAccountIdRef.current;
+    prevAccountIdRef.current = jwtAccountId;
+    if (prev === undefined || prev === jwtAccountId) return;
+    void queryClient.invalidateQueries({ queryKey: ['userData', userId] });
+    void queryClient.invalidateQueries({ queryKey: ['spotlightData', userId] });
+  }, [jwtAccountId, isMultiAccountEnabled, queryClient, userId]);
+};
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
   const { user, accountId: storedAccountId, accountType: tokenAccountType } = useAuth();
@@ -101,6 +128,9 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
   const switchAccountMutation = useSwitchAccount(userId);
   const queryClient = useQueryClient();
+
+  useLegacyAccountSync(jwtAccountId, isMultiAccountEnabled, queryClient, userId);
+
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false);
   const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
 

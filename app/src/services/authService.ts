@@ -33,6 +33,12 @@ export interface Auth0PasswordlessResponse {
   message?: string;
 }
 
+interface Auth0RefreshTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  token_type: string;
+  expires_in: number;
+}
 
 interface JWTPayload {
   exp?: number;
@@ -164,7 +170,7 @@ class AuthenticationService {
             throw new Error(`Token refresh failed: ${response.status} ${errorBody}`);
           }
 
-          return (await response.json()) as { access_token: string; refresh_token?: string; token_type: string; expires_in: number };
+          return (await response.json()) as Auth0RefreshTokenResponse;
         },
         'refreshAccessToken',
         {
