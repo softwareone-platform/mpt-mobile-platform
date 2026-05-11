@@ -45,9 +45,11 @@ export type DetailsListItemValue = {
 export interface DetailsListItemProps {
   label: string;
   data?: DetailsListItemValue;
+  items?: DetailsListItemValue[];
   hideImage?: boolean;
   isLast?: boolean;
   onPress?: () => void;
+  subtitle?: string;
 }
 
 export interface ListProps {

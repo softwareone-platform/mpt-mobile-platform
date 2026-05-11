@@ -437,13 +437,13 @@ describe('Spotlight Filter Chips', () => {
     });
 
     it('should reload content when pulled to refresh on a specific active filter', async function () {
-      if (!hasSpotlightsData) {
-        console.info('Skipping - no spotlight data available');
+      if (!hasSpotlightsData || !sectionData.hasOrders) {
+        console.info('Skipping - no spotlight/orders data available');
         this.skip();
         return;
       }
       await spotlightsPage.resetFilterScrollPosition();
-      await spotlightsPage.selectFilter('agreements');
+      await spotlightsPage.selectFilter('orders');
       await browser.pause(PAUSE.ANIMATION_SETTLE);
 
       await spotlightsPage.pullToRefresh();
