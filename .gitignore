@@ -120,3 +120,4 @@ android/
 documents/.plans/
 app/.editorconfig
 .gitattributes
+.claude/
