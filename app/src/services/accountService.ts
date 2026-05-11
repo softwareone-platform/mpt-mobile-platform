@@ -4,6 +4,7 @@ import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/co
 import { useAuth } from '@/context/AuthContext';
 import { useApi } from '@/hooks/useApi';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import credentialStorageService from '@/services/credentialStorageService';
 import { logger } from '@/services/loggerService';
 import type {
   UserAccount,
@@ -95,6 +96,10 @@ export function useAccountApi() {
 
       const isMultiAccountEnabled = isEnabled('FEATURE_MULTI_ACCOUNT');
 
+      const previousAccountId = isMultiAccountEnabled
+        ? await credentialStorageService.loadAccountId()
+        : null;
+
       if (isMultiAccountEnabled) {
         await updateStoredAccountId(accountId);
       }
@@ -103,7 +108,15 @@ export function useAccountApi() {
         currentAccount: { id: accountId },
       };
       const endpoint = `/v1/accounts/users/${userId}`;
-      await api.put<void, SwitchAccountBody>(endpoint, body);
+
+      try {
+        await api.put<void, SwitchAccountBody>(endpoint, body);
+      } catch (error) {
+        if (isMultiAccountEnabled && previousAccountId) {
+          await updateStoredAccountId(previousAccountId);
+        }
+        throw error;
+      }
 
       try {
         await refreshAuth();
@@ -120,24 +133,6 @@ export function useAccountApi() {
     async (accountId: string): Promise<AccountDetails> => {
       const endpoint = `/v1/accounts/accounts/${accountId}?select=audit,groups`;
       return api.get<AccountDetails>(endpoint);
-    },
-    [api],
-  );
-
-  const getAccountsForUser = useCallback(
-    async (
-      userId: string,
-      offset: number = DEFAULT_OFFSET,
-      limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedUserAccounts> => {
-      const endpoint =
-        `/v1/accounts/users/${userId}/accounts` +
-        `?select=groups,audit` +
-        `&order=name` +
-        `&offset=${offset}` +
-        `&limit=${limit}`;
-
-      return api.get<PaginatedUserAccounts>(endpoint);
     },
     [api],
   );
@@ -184,7 +179,6 @@ export function useAccountApi() {
       getCurrentAccountIcon,
       getAllUserAccounts,
       getUserAccountsData,
-      getAccountsForUser,
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,
@@ -197,7 +191,6 @@ export function useAccountApi() {
       getCurrentAccountIcon,
       getAllUserAccounts,
       getUserAccountsData,
-      getAccountsForUser,
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,

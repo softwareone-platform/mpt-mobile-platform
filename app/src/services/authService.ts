@@ -10,7 +10,7 @@ import {
 import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { appInsightsService } from '@/services/appInsightsService';
 import { logger } from '@/services/loggerService';
-import { retryAuth0Operation } from '@/utils/retryAuth0';
+import { retryAuth0Operation, ErrorWithStatus } from '@/utils/retryAuth0';
 
 export interface AuthTokens {
   accessToken: string;
@@ -117,14 +117,13 @@ class AuthenticationService {
     }
   }
 
-  async verifyPasswordlessOtp(email: string, otp: string, accountId?: string): Promise<AuthTokens> {
+  async verifyPasswordlessOtp(email: string, otp: string): Promise<AuthTokens> {
     try {
       const result = await this.auth0.auth.loginWithEmail({
         email,
         code: otp,
         audience: this.audience,
         scope: this.scope,
-        ...(accountId && { additionalParameters: { marketplaceAccountId: accountId } }),
       });
 
       const expiresAt = this.getExpiryFromJWT(result.accessToken);
@@ -159,18 +158,30 @@ class AuthenticationService {
     try {
       const result = await retryAuth0Operation(
         async () => {
-          const response = await fetch(tokenUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody),
-          });
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), AUTH0_REQUEST_TIMEOUT_MS);
 
-          if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`Token refresh failed: ${response.status} ${errorBody}`);
+          try {
+            const response = await fetch(tokenUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestBody),
+              signal: controller.signal,
+            });
+
+            if (!response.ok) {
+              const errorBody = await response.text();
+              const fetchError = new Error(
+                `Token refresh failed: ${response.status} ${errorBody}`,
+              ) as ErrorWithStatus;
+              fetchError.status = response.status;
+              throw fetchError;
+            }
+
+            return (await response.json()) as Auth0RefreshTokenResponse;
+          } finally {
+            clearTimeout(timeoutId);
           }
-
-          return (await response.json()) as Auth0RefreshTokenResponse;
         },
         'refreshAccessToken',
         {

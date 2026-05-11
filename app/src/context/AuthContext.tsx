@@ -57,7 +57,7 @@ type AuthAction =
     }
   | { type: typeof AUTH_ACTIONS.SET_UNAUTHENTICATED }
   | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens }
-  | { type: typeof AUTH_ACTIONS.SET_ACCOUNT_ID; payload: string };
+  | { type: typeof AUTH_ACTIONS.SET_ACCOUNT_ID; payload: string | null };
 
 interface AuthReducerState {
   status: AuthState;
@@ -93,7 +93,6 @@ const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerSt
         ...state,
         user: updatedUser,
         tokens: action.payload,
-        // accountId intentionally not updated — SecureStore is the source of truth
       };
     }
     case AUTH_ACTIONS.SET_ACCOUNT_ID:
@@ -111,6 +110,27 @@ const initialState: AuthReducerState = {
   user: null,
   tokens: null,
   accountId: null,
+};
+
+const syncStoredAccountIdFromToken = (
+  storedAccountId: string | null,
+  tokenAccountId: string | undefined,
+): Promise<void> => {
+  if (storedAccountId && tokenAccountId && tokenAccountId !== storedAccountId) {
+    logger.warn('Token accountId does not match stored accountId', {
+      operation: 'syncStoredAccountIdFromToken',
+    });
+  }
+
+  if (tokenAccountId && tokenAccountId !== storedAccountId) {
+    return credentialStorageService.storeAccountId(tokenAccountId);
+  }
+
+  if (!tokenAccountId && storedAccountId) {
+    return credentialStorageService.clearAccountId();
+  }
+
+  return Promise.resolve();
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -153,17 +173,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       const newUser = authService.getUserFromToken(newTokens.accessToken);
       const tokenAccountId = newUser[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
 
-      // No stored accountId: first run or fresh install — accept what the backend returns.
-      // Stored accountId exists: it is the source of truth, token should match.
-      const resolvedAccountId = accountId ?? tokenAccountId ?? null;
+      await Promise.all([
+        credentialStorageService.storeTokens(newTokens),
+        syncStoredAccountIdFromToken(accountId, tokenAccountId),
+      ]);
 
-      const storageOps: Promise<void>[] = [credentialStorageService.storeTokens(newTokens)];
-      if (!accountId && tokenAccountId) {
-        storageOps.push(credentialStorageService.storeAccountId(tokenAccountId));
-      }
-      await Promise.all(storageOps);
-
-      setAuthenticated(newUser, newTokens, resolvedAccountId);
+      setAuthenticated(newUser, newTokens, tokenAccountId ?? null);
     } catch (error) {
       logger.error('Failed to load stored auth', error, {
         operation: 'loadStoredAuth',
@@ -198,18 +213,25 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         throw new Error('No refresh token available');
       }
 
-      const accountId = await credentialStorageService.loadAccountId();
+      const storedAccountId = await credentialStorageService.loadAccountId();
       const newTokens = await authService.refreshAccessToken(
         authState.tokens.refreshToken,
-        accountId ?? undefined,
+        storedAccountId ?? undefined,
       );
 
-      await credentialStorageService.storeTokens(newTokens);
+      const newUser = authService.getUserFromToken(newTokens.accessToken);
+      const tokenAccountId = newUser[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
 
-      dispatch({
-        type: AUTH_ACTIONS.UPDATE_TOKENS,
-        payload: newTokens,
-      });
+      await Promise.all([
+        credentialStorageService.storeTokens(newTokens),
+        syncStoredAccountIdFromToken(storedAccountId, tokenAccountId),
+      ]);
+
+      if (storedAccountId && !tokenAccountId) {
+        dispatch({ type: AUTH_ACTIONS.SET_ACCOUNT_ID, payload: null });
+      }
+
+      dispatch({ type: AUTH_ACTIONS.UPDATE_TOKENS, payload: newTokens });
 
       return newTokens;
     } catch (error) {
