@@ -36,7 +36,7 @@ export default {
         'expo-build-properties',
         {
           android: {
-            minSdkVersion: 31,
+            minSdkVersion: 26,
             enableMinifyInReleaseBuilds: true,
             enableShrinkResourcesInReleaseBuilds: true,
           },
