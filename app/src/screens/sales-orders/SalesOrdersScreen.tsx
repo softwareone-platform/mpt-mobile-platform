@@ -1,4 +1,5 @@
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
 import StatusMessage from '@/components/common/EmptyStateHelper';
@@ -26,6 +27,8 @@ const SalesOrdersListContent = ({ contentContainerStyle }: ListProps) => {
 
   const { t } = useTranslation();
 
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   return (
     <StatusMessage
       isLoading={salesOrdersLoading}
@@ -47,7 +50,9 @@ const SalesOrdersListContent = ({ contentContainerStyle }: ListProps) => {
         onRefresh={refetchSalesOrders}
         isRefreshing={isSalesOrdersRefetching}
         contentContainerStyle={contentContainerStyle}
-        onItemPress={() => {}}
+        onItemPress={(id) => {
+          navigation.navigate('salesOrderDetails', { id });
+        }}
       />
     </StatusMessage>
   );

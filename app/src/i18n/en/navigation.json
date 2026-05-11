@@ -46,7 +46,8 @@
     "enrollmentDetails": "Enrollment",
     "certificateDetails": "Certificate",
     "chatConversation": "Chat",
-    "salesOrders": "Sales Orders"
+    "salesOrders": "Sales Orders",
+    "salesOrderDetails": "Sales Order"
   },
   "tabGroups": {
     "administration": "Administration",
