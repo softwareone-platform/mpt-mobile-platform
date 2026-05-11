@@ -4,9 +4,10 @@ const productDetailsPage = require('../pageobjects/product-details.page');
 const productsPage = require('../pageobjects/products.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
-const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
+const { TIMEOUT, REGEX, STATUSES, PAUSE } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
+const { isAndroid } = require('../pageobjects/utils/selectors');
 
 function normalizeText(value) {
   return (value || '').replace(/\s+/g, ' ').trim();
@@ -192,6 +193,67 @@ describe('Product Details Page', () => {
 
       const uiDetails = await productDetailsPage.getAllProductDetails();
       expect(uiDetails.productId).toBe(apiProductData.id);
+    });
+  });
+
+  describe('Long Press to Copy (MPT-17253)', () => {
+    it('should show the native Copy menu on long-press of the Name field value', async function () {
+      if (!hasProductsData) {
+        this.skip();
+        return;
+      }
+
+      const name = await productDetailsPage.getSimpleFieldValue('Name', true);
+      if (!name || name === '-') {
+        this.skip();
+        return;
+      }
+
+      const nameElement = await $(`~${name}`);
+      await browser.action('pointer')
+        .move({ duration: 0, origin: nameElement, x: 0, y: 0 })
+        .down({ button: 0 })
+        .pause(1500)
+        .up({ button: 0 })
+        .perform();
+
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+
+      const copyButton = isAndroid() ? await $('//*[@text="Copy"]') : await $('~Copy');
+      await expect(copyButton).toBeDisplayed();
+
+      // Dismiss native menu without clicking it
+      const { width, height } = await browser.getWindowRect();
+      await browser.action('pointer')
+        .move({ duration: 0, x: Math.floor(width * 0.1), y: Math.floor(height * 0.85) })
+        .down({ button: 0 })
+        .up({ button: 0 })
+        .perform();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+    });
+
+    it('should copy the Website field value to clipboard on long-press + Copy (MPT-17253)', async function () {
+      if (!hasProductsData) {
+        this.skip();
+        return;
+      }
+
+      const website = await productDetailsPage.getSimpleFieldValue('Website', true);
+      if (!website || website === '-') {
+        this.skip();
+        return;
+      }
+
+      const copiedValue = await productDetailsPage.longPressCopyField('Website', true);
+      expect(copiedValue).toBeTruthy();
+      expect(copiedValue).toBe(website);
+
+      // Verify clipboard content on iOS (Appium clipboard API not supported on Android E2E)
+      if (!isAndroid()) {
+        const clipboardBase64 = await browser.getClipboard('plaintext');
+        const clipboardText = Buffer.from(clipboardBase64, 'base64').toString('utf-8');
+        expect(clipboardText).toContain(copiedValue);
+      }
     });
   });
 });
