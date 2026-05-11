@@ -113,6 +113,7 @@ class BasePage {
    * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
    */
   async scrollDown(percent = SCROLL.DEFAULT_PERCENT) {
+    console.log(`[scrollDown] Swiping up (reveal content below), percent=${percent}`);
     await this._performSwipe('up', percent);
   }
 
@@ -121,6 +122,7 @@ class BasePage {
    * @param {number} percent - Scroll percentage (0.0 to 1.0, default 0.5)
    */
   async scrollUp(percent = SCROLL.DEFAULT_PERCENT) {
+    console.log(`[scrollUp] Swiping down (reveal content above), percent=${percent}`);
     await this._performSwipe('down', percent);
   }
 
