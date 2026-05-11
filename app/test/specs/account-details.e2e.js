@@ -408,6 +408,7 @@ describe('Account Details Page (Client)', () => {
         this.skip();
         return;
       }
+      await accountDetailsPage.scrollToTop();
       const uiPycId = await accountDetailsPage.getSimpleFieldValue('PYC ID', true).catch(() => '');
       expect(uiPycId).toBe(pyraTenantId);
     });
