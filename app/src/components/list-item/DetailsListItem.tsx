@@ -2,20 +2,46 @@ import ListItemWithImage from '@/components/list-item/ListItemWithImage';
 import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAndText';
 import type { DetailsListItemProps } from '@/types/lists';
 
-const DetailsListItem = ({ label, data, hideImage, isLast, onPress }: DetailsListItemProps) => {
+const DetailsListItem = ({
+  label,
+  data,
+  items,
+  hideImage,
+  isLast,
+  onPress,
+  subtitle,
+}: DetailsListItemProps) => {
   const disabled = !onPress;
-  if (!data) {
+
+  const count = items?.length ?? 0;
+
+  const item = items ? items[0] : data;
+
+  // Multiple items
+  if (items && count > 1) {
+    return (
+      <ListItemWithLabelAndText
+        title={label}
+        subtitle={`${count} ${label.toLowerCase()}`}
+        isLast={isLast}
+      />
+    );
+  }
+
+  // Empty state
+  if (!item) {
     return <ListItemWithLabelAndText title={label} subtitle={undefined} isLast={isLast} />;
   }
 
+  // Single item
   return (
     <ListItemWithImage
-      id={data.id || ''}
+      id={item.id || ''}
       title={label}
-      subtitle={data.name || ''}
-      subtitleLink={true}
+      subtitle={subtitle || item.name || ''}
+      subtitleLink
       hideImage={hideImage}
-      imagePath={data.icon}
+      imagePath={item.icon}
       onPress={onPress}
       disabled={disabled}
       isLast={isLast}

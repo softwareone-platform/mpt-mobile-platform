@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse, ListItemNoImageWithExternalIds } from '@/types/api';
+import type { SalesOrderDetails } from '@/types/procurement';
 
 export function useSalesOrderApi() {
   const api = useApi();
@@ -27,10 +28,20 @@ export function useSalesOrderApi() {
     [api],
   );
 
+  const getSalesOrderDetails = useCallback(
+    async (salesOrderId: string): Promise<SalesOrderDetails> => {
+      const endpoint = `/v1/procurement/sales-orders/${salesOrderId}?select=vendors,products`;
+
+      return api.get<SalesOrderDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getSalesOrders,
+      getSalesOrderDetails,
     }),
-    [getSalesOrders],
+    [getSalesOrders, getSalesOrderDetails],
   );
 }
