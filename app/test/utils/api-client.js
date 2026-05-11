@@ -1427,6 +1427,78 @@ class ApiClient {
     return Array.isArray(data) && data.length > 0;
   }
 
+  /**
+   * Get a single account by ID
+   * Matches app endpoint: /v1/accounts/accounts/{id}?select=audit,groups
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @returns {Promise<object>} - Account details object
+   */
+  async getAccountById(accountId) {
+    if (!accountId || !/^ACC-\d{4}-\d{4}$/.test(accountId)) {
+      throw new Error(`Invalid accountId format: "${accountId}". Expected format: ACC-XXXX-XXXX`);
+    }
+    return this.get(`/public/v1/accounts/accounts/${accountId}?select=audit,groups`);
+  }
+
+  /**
+   * Get buyers for a specific account (sublist)
+   * Matches portal endpoint: /v1/accounts/buyers?...eq(account.id,"{id}")&order=name
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum results to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Buyers list response
+   */
+  async getAccountBuyers(accountId, options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/buyers` +
+      `?select=sellers,audit.created.at,audit.updated.at,sellers.erpLink.status` +
+      `&and(ne(status,%22Deleted%22),eq(account.id,%22${accountId}%22))` +
+      `&order=name&offset=${offset}&limit=${limit}`;
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get licensees for a specific account (sublist)
+   * Matches portal endpoint: /v1/accounts/licensees?select=seller,buyer.status&eq(account.id,"{id}")&order=name
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum results to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Licensees list response
+   */
+  async getAccountLicensees(accountId, options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/licensees` +
+      `?select=seller,buyer.status` +
+      `&eq(account.id,%22${accountId}%22)` +
+      `&order=name&offset=${offset}&limit=${limit}`;
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get users for a specific account (sublist)
+   * Matches portal endpoint: /v1/accounts/accounts/{id}/users?select=audit,groups,modules,buyers&order=name
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum results to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Users list response
+   */
+  async getAccountUsers(accountId, options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/accounts/${accountId}/users` +
+      `?select=audit,groups,modules,buyers` +
+      `&order=name&offset=${offset}&limit=${limit}`;
+    return this.get(endpoint);
+  }
+
   // ========== Vendors Methods ==========
 
   /**
