@@ -343,6 +343,15 @@ class MorePage extends BasePage {
   }
 
   /**
+   * Navigate to Certificates page
+   */
+  async navigateToCertificates() {
+    await this.ensureMorePage();
+    await this.certificatesMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
    * Navigate to Licensees page
    * @deprecated Licensees is not in the More menu. Use Clients → Client Details → sub-list navigation instead.
    */

@@ -1143,6 +1143,85 @@ class ApiClient {
     return response.data || response;
   }
 
+  // ========== Certificates Methods ==========
+
+  /**
+   * Get certificates list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of certificates to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by certificate status (Active, Draft, Terminated)
+   * @returns {Promise<object>} - Certificates list response
+   *
+   * @example
+   * // Get all certificates
+   * const certificates = await apiClient.getCertificates();
+   *
+   * // Get certificates with pagination
+   * const certificates = await apiClient.getCertificates({ limit: 10, offset: 0 });
+   */
+  async getCertificates(options = {}) {
+    let endpoint = '/public/v1/program/certificates';
+
+    // Match app's default query (mirrors certificateService.ts: ne(status,"Deleted")&order=name)
+    const queryParams = ['select=-*,id,name,status', 'ne(status,"Deleted")', 'order=name'];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`eq(status,"${options.status}")`);
+
+    endpoint += '?' + queryParams.join('&');
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific certificate by ID
+   * @param {string} certificateId - Certificate ID in format CER-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Certificate details
+   *
+   * @example
+   * const certificate = await apiClient.getCertificateById('CER-3022-2070-2487');
+   */
+  async getCertificateById(certificateId) {
+    if (!certificateId || !/^CER-\d{4}-\d{4}-\d{4}$/.test(certificateId)) {
+      throw new Error(`Invalid certificateId format: "${certificateId}". Expected format: CER-XXXX-XXXX-XXXX`);
+    }
+
+    return this.get(`/public/v1/program/certificates/${certificateId}?select=id,name,status,applicableTo,expirationDate,program.id,program.name,vendor.id,vendor.name,licensee.account.id,template.id,terms`);
+  }
+
+  /**
+   * Get certificates count
+   * @returns {Promise<number>} - Total number of certificates
+   */
+  async getCertificatesCount() {
+    const response = await this.getCertificates({ limit: 1 });
+    return response.$meta?.pagination?.total || response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any certificates
+   * @returns {Promise<boolean>}
+   */
+  async hasCertificates() {
+    const count = await this.getCertificatesCount();
+    return count > 0;
+  }
+
+  /**
+   * Get certificates by status
+   * @param {string} status - Certificate status (Active, Draft, Terminated)
+   * @returns {Promise<Array>} - Array of certificates with the specified status
+   */
+  async getCertificatesByStatus(status) {
+    if (!STATUSES.CERTIFICATE.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.CERTIFICATE.join(', ')}`);
+    }
+
+    const response = await this.getCertificates({ status });
+    return response.data || response;
+  }
+
   // ========== Licensees Methods ==========
 
   /**
