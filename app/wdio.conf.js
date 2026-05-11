@@ -476,6 +476,10 @@ exports.config = {
             './test/specs/enrollments.e2e.js',
             './test/specs/enrollment-details.e2e.js',
         ],
+        certificates: [
+            './test/specs/certificates.e2e.js',
+            './test/specs/certificate-details.e2e.js',
+        ],
         licensees: [
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
@@ -542,6 +546,8 @@ exports.config = {
             './test/specs/program-details.e2e.js',
             './test/specs/enrollments.e2e.js',
             './test/specs/enrollment-details.e2e.js',
+            './test/specs/certificates.e2e.js',
+            './test/specs/certificate-details.e2e.js',
             './test/specs/buyers.e2e.js',
             './test/specs/buyer-details.e2e.js',
             './test/specs/users.e2e.js',
