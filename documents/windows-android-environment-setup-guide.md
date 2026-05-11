@@ -31,7 +31,7 @@ Throughout this guide, you'll encounter decision points marked with:
 |-----------|---------|---------|---------------------|
 | Java JDK | **17** (not 24+) | Android build toolchain | `java -version` |
 | Node.js | 20.x LTS or later | React Native & Appium | `node --version` |
-| Android SDK | API 34+ | Build & run Android apps | `adb --version` |
+| Android SDK | API 31+ | Build & run Android apps | `adb --version` |
 | Appium | 3.1.1 | E2E test automation | `appium --version` |
 | UiAutomator2 | Latest | Android test driver | `appium driver list --installed` |
 
@@ -408,9 +408,9 @@ Write-Host "`nInstalling SDK components (this may take 5-10 minutes)..." -Foregr
 
 & $sdkmanager "platform-tools"
 & $sdkmanager "emulator"  
-& $sdkmanager "platforms;android-34"
-& $sdkmanager "build-tools;34.0.0"
-& $sdkmanager "system-images;android-34;google_apis;x86_64"
+& $sdkmanager "platforms;android-31"
+& $sdkmanager "build-tools;31.0.0"
+& $sdkmanager "system-images;android-31;google_apis;x86_64"
 
 Write-Host "✅ SDK components installed" -ForegroundColor Green
 ```
@@ -420,9 +420,9 @@ Write-Host "✅ SDK components installed" -ForegroundColor Green
 |-----------|------|---------|
 | platform-tools | ~15MB | adb, fastboot |
 | emulator | ~400MB | Android emulator |
-| platforms;android-34 | ~70MB | Android 14 platform |
-| build-tools;34.0.0 | ~60MB | Build tools |
-| system-images;android-34;google_apis;x86_64 | ~1.2GB | Emulator image |
+| platforms;android-31 | ~70MB | Android 12 platform |
+| build-tools;31.0.0 | ~60MB | Build tools |
+| system-images;android-31;google_apis;x86_64 | ~1.2GB | Emulator image |
 
 ### 3.6 Verify Android SDK Installation
 
@@ -448,11 +448,11 @@ Version 35.0.x-xxxxxxx
 
 Checking installed packages...
 Installed packages:
-  build-tools;34.0.0    | 34.0.0       | Android SDK Build-Tools 34
+  build-tools;31.0.0    | 31.0.0       | Android SDK Build-Tools 31
   emulator              | 35.x.x       | Android Emulator
   platform-tools        | 35.x.x       | Android SDK Platform-Tools
-  platforms;android-34  | 3            | Android SDK Platform 34
-  system-images;android-34;google_apis;x86_64 | ...
+  platforms;android-31  | 3            | Android SDK Platform 31
+  system-images;android-31;google_apis;x86_64 | ...
 ```
 
 **❌ STOP IF:** adb --version fails or platform-tools not found. Re-run Step 3.5.
@@ -477,23 +477,23 @@ if ($avds) {
 }
 ```
 
-> **✅ SKIP TO Step 4.3 IF**: An emulator like `Pixel_8_API_34` already exists
+> **✅ SKIP TO Step 4.3 IF**: An emulator like `Pixel_8_API_31` already exists
 
 ### 4.2 Create New Emulator (AVD)
 
 ```powershell
 $avdmanager = "$env:ANDROID_HOME\cmdline-tools\latest\bin\avdmanager.bat"
 
-# Create a Pixel 8 emulator with Android 14 (API 34)
+# Create a Pixel 8 emulator with Android 12 (API 31)
 Write-Host "Creating Android emulator..." -ForegroundColor Yellow
 
 & $avdmanager create avd `
-    -n "Pixel_8_API_34" `
-    -k "system-images;android-34;google_apis;x86_64" `
+    -n "Pixel_8_API_31" `
+    -k "system-images;android-31;google_apis;x86_64" `
     -d "pixel_8" `
     --force
 
-Write-Host "✅ Emulator created: Pixel_8_API_34" -ForegroundColor Green
+Write-Host "✅ Emulator created: Pixel_8_API_31" -ForegroundColor Green
 ```
 
 **Expected Output:**
@@ -513,7 +513,7 @@ Do you wish to create a custom hardware profile? [no]
 
 **Expected Output:**
 ```
-Pixel_8_API_34
+Pixel_8_API_31
 ```
 
 ### 4.4 Start Emulator (Test)
@@ -523,14 +523,14 @@ Pixel_8_API_34
 ```powershell
 # Start emulator with software rendering (for compatibility)
 Start-Process -FilePath "$env:ANDROID_HOME\emulator\emulator.exe" `
-    -ArgumentList "-avd", "Pixel_8_API_34", "-gpu", "swiftshader_indirect" `
+    -ArgumentList "-avd", "Pixel_8_API_31", "-gpu", "swiftshader_indirect" `
     -WindowStyle Normal
 ```
 
 **Or use the project's helper script:**
 ```powershell
 # From project root
-.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_34"
+.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_31"
 ```
 
 ### 4.5 Verify Emulator is Running
@@ -841,7 +841,7 @@ emulator-5554   device
 > **🔄 IF no devices listed:**
 ```powershell
 # Start emulator
-.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_34"
+.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_31"
 ```
 
 ---
@@ -892,13 +892,13 @@ Write-Host "=========================" -ForegroundColor Cyan
 .\scripts\windows\run-local-test-android.ps1 -ListEmulators
 
 # Start emulator
-.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_34"
+.\scripts\windows\run-local-test-android.ps1 -StartEmulatorOnly -EmulatorName "Pixel_8_API_31"
 ```
 
 **Option 2: Direct emulator command**
 ```powershell
 # Start with software GPU (for compatibility)
-& "$env:ANDROID_HOME\emulator\emulator.exe" -avd Pixel_8_API_34 -gpu swiftshader_indirect
+& "$env:ANDROID_HOME\emulator\emulator.exe" -avd Pixel_8_API_31 -gpu swiftshader_indirect
 ```
 
 > **🤖 AI**: Start emulator as BACKGROUND process. Wait for `adb devices` to show `device` status.
@@ -963,7 +963,7 @@ Set-Location "c:\work\mpt-mobile-platform"
 REM From project root
 scripts\windows\run-local-test-android.bat welcome
 scripts\windows\run-local-test-android.bat --list-emulators
-scripts\windows\run-local-test-android.bat --start-emulator Pixel_8_API_34
+scripts\windows\run-local-test-android.bat --start-emulator Pixel_8_API_31
 ```
 
 ---
@@ -979,7 +979,7 @@ scripts\windows\run-local-test-android.bat --start-emulator Pixel_8_API_34
 | Check environment | `.\scripts\windows\setup-test-env.ps1` | `scripts\windows\setup-test-env.bat` |
 | List devices | `adb devices` | `adb devices` |
 | List emulators | `.\scripts\windows\setup-test-env.ps1 -ListEmulators` | `scripts\windows\setup-test-env.bat --list-emulators` |
-| Start emulator | `.\scripts\windows\setup-test-env.ps1 -StartEmulator "Pixel_8_API_34"` | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34` |
+| Start emulator | `.\scripts\windows\setup-test-env.ps1 -StartEmulator "Pixel_8_API_31"` | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_31` |
 | Start Appium | `.\scripts\windows\setup-test-env.ps1 -StartAppium` | `scripts\windows\setup-test-env.bat --start-appium` |
 | Stop Appium | `.\scripts\windows\setup-test-env.ps1 -StopAppium` | `scripts\windows\setup-test-env.bat --stop-appium` |
 | Run test suite | `.\scripts\windows\run-local-test-android.ps1 welcome` | `scripts\windows\run-local-test-android.bat welcome` |
@@ -1144,7 +1144,7 @@ npm install --legacy-peer-deps
 Write-Host "Checking virtualization support..." -ForegroundColor Yellow
 
 # Try starting with software rendering
-& "$env:ANDROID_HOME\emulator\emulator.exe" -avd Pixel_8_API_34 -gpu swiftshader_indirect
+& "$env:ANDROID_HOME\emulator\emulator.exe" -avd Pixel_8_API_31 -gpu swiftshader_indirect
 ```
 
 > **💡 If still slow**: Enable virtualization in BIOS (Intel VT-x or AMD-V)
@@ -1156,10 +1156,10 @@ Write-Host "Checking virtualization support..." -ForegroundColor Yellow
 $avdmanager = "$env:ANDROID_HOME\cmdline-tools\latest\bin\avdmanager.bat"
 
 # First, ensure system image is installed
-& "$env:ANDROID_HOME\cmdline-tools\latest\bin\sdkmanager.bat" "system-images;android-34;google_apis;x86_64"
+& "$env:ANDROID_HOME\cmdline-tools\latest\bin\sdkmanager.bat" "system-images;android-31;google_apis;x86_64"
 
 # Create AVD
-& $avdmanager create avd -n "Pixel_8_API_34" -k "system-images;android-34;google_apis;x86_64" -d "pixel_8" --force
+& $avdmanager create avd -n "Pixel_8_API_31" -k "system-images;android-31;google_apis;x86_64" -d "pixel_8" --force
 ```
 
 **Problem: Emulator shows but adb shows "offline"**
@@ -1289,8 +1289,8 @@ $emulatorOk = $env:ANDROID_HOME -and (Test-Path "$env:ANDROID_HOME\emulator\emul
 $results += [PSCustomObject]@{Component="Emulator installed"; Status=if($emulatorOk){"✅"}else{"❌"}; Note=""}
 
 # System image
-$sysImgOk = $env:ANDROID_HOME -and (Test-Path "$env:ANDROID_HOME\system-images\android-34")
-$results += [PSCustomObject]@{Component="System image"; Status=if($sysImgOk){"✅"}else{"❌"}; Note="android-34"}
+$sysImgOk = $env:ANDROID_HOME -and (Test-Path "$env:ANDROID_HOME\system-images\android-31")
+$results += [PSCustomObject]@{Component="System image"; Status=if($sysImgOk){"✅"}else{"❌"}; Note="android-31"}
 
 # AVD exists
 $avdOk = $false
@@ -1345,7 +1345,7 @@ if ($failedCount -eq 0) {
 - [ ] Android SDK command-line tools extracted to `C:\Android\cmdline-tools\latest\`
 - [ ] ANDROID_HOME environment variable set
 - [ ] SDK licenses accepted
-- [ ] SDK components installed (platform-tools, emulator, android-34, build-tools)
+- [ ] SDK components installed (platform-tools, emulator, android-31, build-tools)
 - [ ] System image installed for emulator
 - [ ] Android emulator AVD created
 - [ ] Appium 3.1.1 installed globally
@@ -1374,7 +1374,7 @@ if ($failedCount -eq 0) {
 - UiAutomator2: [version]
 
 ### Emulator
-- Name: Pixel_8_API_34
+- Name: Pixel_8_API_31
 - Status: [Running/Stopped]
 
 ### Project

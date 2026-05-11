@@ -54,7 +54,7 @@ scripts\windows\run-local-test-android.bat all
 |----------|---------|
 | Setup environment | `scripts\windows\setup-test-env.bat` |
 | List emulators | `scripts\windows\setup-test-env.bat --list-emulators` |
-| Start emulator | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_34` || Start Appium | `scripts\windows\setup-test-env.bat --start-appium` |
+| Start emulator | `scripts\windows\setup-test-env.bat --start-emulator Pixel_8_API_31` || Start Appium | `scripts\windows\setup-test-env.bat --start-appium` |
 | Stop Appium | `scripts\windows\setup-test-env.bat --stop-appium` || Build + test | `scripts\windows\run-local-test-android.bat --build welcome` |
 | Reuse last build | `scripts\windows\run-local-test-android.bat --skip-build welcome` |
 | Test specific file | `scripts\windows\run-local-test-android.bat .\test\specs\welcome.e2e.js` |
@@ -115,8 +115,8 @@ REM Should show your JDK installation path
 
 ```batch
 cd C:\Android\cmdline-tools\latest\bin
-sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-sdkmanager "system-images;android-34;google_apis;x86_64"
+sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+sdkmanager "system-images;android-31;google_apis;x86_64"
 sdkmanager --licenses
 ```
 
@@ -150,14 +150,14 @@ If you don't have a physical device, create an emulator:
 2. Go to **Tools > Device Manager**
 3. Click **Create Device**
 4. Select **Pixel 8** (or similar)
-5. Select **API 34** system image
+5. Select **API 31** system image
 6. Complete wizard and click **Finish**
 
 #### Using Command Line
 
 ```batch
 REM Create emulator
-avdmanager create avd -n Pixel_8_API_34 -k "system-images;android-34;google_apis;x86_64" -d "pixel_8"
+avdmanager create avd -n Pixel_8_API_31 -k "system-images;android-31;google_apis;x86_64" -d "pixel_8"
 
 REM List emulators to verify
 emulator -list-avds
@@ -259,7 +259,7 @@ REM Skip build, reuse last APK (fast iteration)
 scripts\windows\run-local-test-android.bat --skip-build welcome
 
 REM Use specific emulator
-scripts\windows\run-local-test-android.bat --emulator Pixel_8_API_34 welcome
+scripts\windows\run-local-test-android.bat --emulator Pixel_8_API_31 welcome
 ```
 
 ### Using PowerShell
@@ -274,7 +274,7 @@ Alternative with better error handling:
 .\scripts\windows\run-local-test-android.ps1 -SkipBuild welcome
 
 # Use specific emulator
-.\scripts\windows\run-local-test-android.ps1 -EmulatorName "Pixel_8_API_34" welcome
+.\scripts\windows\run-local-test-android.ps1 -EmulatorName "Pixel_8_API_31" welcome
 
 # Build and run (requires .env file with Auth0 configuration)
 .\scripts\windows\run-local-test-android.ps1 -Build welcome

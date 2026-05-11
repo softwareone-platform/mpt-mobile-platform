@@ -371,7 +371,7 @@ app/
 
 ## Device Requirements
 
-- **Android 5.0+ (API level 21+)** (minimum SDK version)
+- **Android 8+ (API level 26+)** (minimum SDK version)
 - **ARM or x86 processor** architecture
 - **USB debugging enabled**
 - **Sufficient storage space** for app installation

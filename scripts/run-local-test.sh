@@ -175,7 +175,7 @@ if [ "$PLATFORM" = "android" ]; then
     
     export DEVICE_UDID
     export DEVICE_NAME="${DEVICE_NAME:-Pixel 8}"
-    export PLATFORM_VERSION="${PLATFORM_VERSION:-14}"
+    export PLATFORM_VERSION="${PLATFORM_VERSION:-12}"
 else
     # iOS configuration (default)
     export PLATFORM_NAME="iOS"

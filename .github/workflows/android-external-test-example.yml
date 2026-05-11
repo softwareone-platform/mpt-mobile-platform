@@ -32,7 +32,7 @@ on:
         description: 'Android API level for emulator'
         required: false
         type: string
-        default: '34'
+        default: '31'
       device_profile:
         description: 'Android emulator device profile'
         required: false
@@ -57,7 +57,7 @@ jobs:
         with:
           # Use the provided download URL
           download_url: ${{ inputs.download_url }}
-          api_level: ${{ inputs.api_level || '34' }}
+          api_level: ${{ inputs.api_level || '31' }}
           device_profile: ${{ inputs.device_profile || 'pixel_6' }}
           
       # Test phase using composite action template  
@@ -66,7 +66,7 @@ jobs:
         with:
           device_serial: ${{ steps.install-android.outputs.device_serial }}
           package_name: ${{ steps.install-android.outputs.package_name }}
-          api_level: ${{ inputs.api_level || '34' }}
+          api_level: ${{ inputs.api_level || '31' }}
           device_name: ${{ inputs.device_profile || 'pixel_6' }}
           node_version: '20'
           appium_version: '3.1.1'

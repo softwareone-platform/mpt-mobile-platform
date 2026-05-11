@@ -10,7 +10,7 @@ inputs:
   api_level:
     description: 'Android API level for emulator'
     required: false
-    default: '34'
+    default: '31'
   device_profile:
     description: 'Android emulator device profile'
     required: false
