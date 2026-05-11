@@ -125,8 +125,8 @@ cd ~/Android/Sdk/cmdline-tools
 # Move extracted files to 'latest' directory
 
 # Install required components
-sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-sdkmanager "system-images;android-34;google_apis;arm64-v8a"
+sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+sdkmanager "system-images;android-31;google_apis;arm64-v8a"
 sdkmanager --licenses
 ```
 
@@ -174,20 +174,20 @@ If you don't have a physical device, create an emulator:
 2. Go to **Tools > Device Manager**
 3. Click **Create Device**
 4. Select **Pixel 8** (or similar)
-5. Select **API 34** system image
+5. Select **API 31** system image
 6. Complete wizard and click **Finish**
 
 #### Using Command Line
 
 ```bash
 # Create emulator
-avdmanager create avd -n Pixel_8_API_34 -k "system-images;android-34;google_apis;arm64-v8a" -d "pixel_8"
+avdmanager create avd -n Pixel_8_API_31 -k "system-images;android-31;google_apis;arm64-v8a" -d "pixel_8"
 
 # List emulators to verify
 emulator -list-avds
 
 # Start emulator
-emulator -avd Pixel_8_API_34
+emulator -avd Pixel_8_API_31
 ```
 
 ### 4. Install Node.js
@@ -311,7 +311,7 @@ Use the automated environment setup script for easy configuration:
 source ./scripts/setup-test-env.sh --platform android
 
 # Start an emulator by name
-source ./scripts/setup-test-env.sh --platform android --start-emulator "Pixel_8_API_34"
+source ./scripts/setup-test-env.sh --platform android --start-emulator "Pixel_8_API_31"
 
 # Start Appium server with inspector plugin
 source ./scripts/setup-test-env.sh --start-appium

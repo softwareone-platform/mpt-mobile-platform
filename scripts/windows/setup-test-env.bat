@@ -543,7 +543,7 @@ if not defined DEVICE_UDID (
 :android_device_done
 
 if not defined DEVICE_NAME set DEVICE_NAME=Pixel 8
-if not defined PLATFORM_VERSION set PLATFORM_VERSION=14
+if not defined PLATFORM_VERSION set PLATFORM_VERSION=12
 goto :platform_done
 
 :setup_ios
