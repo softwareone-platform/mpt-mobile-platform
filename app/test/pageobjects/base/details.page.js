@@ -165,13 +165,21 @@ class DetailsPage extends BasePage {
   // scrollDown(), scrollUp(), and _performSwipe() are inherited from BasePage
 
   /**
-   * Scroll to the top of the details view
-   * Useful before gathering all details to ensure we start from the top
+   * Scroll to the top of the details view.
+   * Useful before gathering all details to ensure we start from the top.
+   *
+   * Uses 'mobile: scroll' on iOS instead of 'mobile: swipe' to prevent
+   * triggering RefreshControl. 'mobile: scroll' does bounded, page-based
+   * scrolling that won't over-scroll past the content bounds, while
+   * 'mobile: swipe' can rubber-band and activate pull-to-refresh.
    */
   async scrollToTop(maxAttempts = 2) {
-    // Scroll up multiple times to ensure we're at the top
     for (let i = 0; i < maxAttempts; i++) {
-      await this.scrollUp();
+      if (this.isIOS()) {
+        await browser.execute('mobile: scroll', { direction: 'up' });
+      } else {
+        await this.scrollUp();
+      }
       await browser.pause(PAUSE.ANIMATION_SETTLE);
     }
   }

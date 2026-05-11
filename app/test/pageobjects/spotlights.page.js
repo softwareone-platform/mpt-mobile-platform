@@ -319,12 +319,13 @@ class SpotlightsPage extends BasePage {
    * Only scrolls if the top section is not already visible
    */
   async scrollToTop() {
-    // Check if we're already at the top by looking for the orders section header text
-    // If already visible, don't scroll
-    const ordersHeader = $(
+    // Check if we're already at the top by looking for the first card in the scroll view.
+    // The filter chips are OUTSIDE the ScrollView, so they can't indicate scroll position.
+    // We check for any visible card header as a "near top" indicator.
+    const topIndicator = $(
       selectors.byContainsTextAny('long-running orders', 'long running orders'),
     );
-    const isAlreadyAtTop = await ordersHeader.isDisplayed().catch(() => false);
+    const isAlreadyAtTop = await topIndicator.isDisplayed().catch(() => false);
     if (isAlreadyAtTop) {
       return; // Already at top, no need to scroll
     }
@@ -335,13 +336,11 @@ class SpotlightsPage extends BasePage {
       const scrollView = await $('//android.widget.ScrollView');
       const isScrollViewPresent = await scrollView.isExisting();
       if (isScrollViewPresent) {
-        // Perform multiple swipe gestures to scroll to top
         const maxScrolls = 10;
         for (let i = 0; i < maxScrolls; i++) {
-          const isVisible = await ordersHeader.isDisplayed().catch(() => false);
+          const isVisible = await topIndicator.isDisplayed().catch(() => false);
           if (isVisible) break;
 
-          // Swipe down gesture - finger moves down, content reveals top
           await browser.execute('mobile: swipeGesture', {
             left: 100,
             top: 500,
@@ -354,15 +353,22 @@ class SpotlightsPage extends BasePage {
         }
       }
     } else {
-      // iOS: Use mobile: swipe with direction 'down' multiple times
+      // iOS: Use 'mobile: scroll' instead of 'mobile: swipe' to prevent triggering
+      // RefreshControl. 'mobile: scroll' does bounded, page-based scrolling within the
+      // ScrollView and will NOT over-scroll past the content bounds. 'mobile: swipe'
+      // simulates a physical finger gesture that CAN rubber-band over-scroll, which
+      // activates the pull-to-refresh RefreshControl and causes test failures.
+      //
+      // IMPORTANT: 'mobile: scroll' direction semantics are INVERTED vs 'mobile: swipe':
+      //   mobile: swipe  direction: 'down' = finger moves DOWN = content scrolls UP (reveals top)
+      //   mobile: scroll direction: 'up'   = viewport moves UP = content scrolls UP (reveals top)
       const maxScrolls = 10;
       for (let i = 0; i < maxScrolls; i++) {
-        const isVisible = await ordersHeader.isDisplayed().catch(() => false);
+        const isVisible = await topIndicator.isDisplayed().catch(() => false);
         if (isVisible) break;
 
-        await browser.execute('mobile: swipe', {
-          direction: 'down',
-          velocity: 500,
+        await browser.execute('mobile: scroll', {
+          direction: 'up',
         });
         await browser.pause(PAUSE.TEXT_ENTRY);
       }
