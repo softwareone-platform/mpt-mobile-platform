@@ -293,6 +293,13 @@ export const TestIDs = {
   SALES_ORDERS_ERROR_STATE: 'sales-orders-error-state',
   SALES_ORDERS_EMPTY_STATE: 'sales-orders-empty-state',
 
+  // Sales Order Details Screen
+  SALES_ORDER_DETAILS_LOADING_INDICATOR: 'sales-order-details-loading-indicator',
+  SALES_ORDER_DETAILS_ERROR_STATE: 'sales-order-details-error-state',
+  SALES_ORDER_DETAILS_EMPTY_STATE: 'sales-order-details-empty-state',
+  SALES_ORDER_DETAILS_HEADER_TITLE: 'sales-order-details-header-title',
+  SALES_ORDER_DETAILS_HEADER_STATUS: 'sales-order-details-header-status',
+
   // Chats Screen
   CHATS_LOADING_INDICATOR: 'chats-loading-indicator',
   CHATS_ERROR_STATE: 'chats-error-state',
