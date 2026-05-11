@@ -3,7 +3,6 @@ import { jwtDecode } from 'jwt-decode';
 // Mock Auth0 for the Auth0-dependent methods
 let mockPasswordlessWithEmail: jest.Mock;
 let mockLoginWithEmail: jest.Mock;
-let _mockRefreshToken: jest.Mock;
 let mockRevoke: jest.Mock;
 let mockClearCredentials: jest.Mock;
 
@@ -24,18 +23,16 @@ jest.mock('../services/loggerService', () => ({
 jest.mock('react-native-auth0', () => {
   const passwordlessWithEmail = jest.fn();
   const loginWithEmail = jest.fn();
-  const refreshToken = jest.fn();
   const revoke = jest.fn();
   const clearCredentials = jest.fn();
 
   mockPasswordlessWithEmail = passwordlessWithEmail;
   mockLoginWithEmail = loginWithEmail;
-  _mockRefreshToken = refreshToken;
   mockRevoke = revoke;
   mockClearCredentials = clearCredentials;
 
   return jest.fn().mockImplementation(() => ({
-    auth: { passwordlessWithEmail, loginWithEmail, refreshToken, revoke },
+    auth: { passwordlessWithEmail, loginWithEmail, refreshToken: jest.fn(), revoke },
     credentialsManager: { clearCredentials },
   }));
 });
