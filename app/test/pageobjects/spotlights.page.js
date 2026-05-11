@@ -315,33 +315,30 @@ class SpotlightsPage extends BasePage {
   }
 
   /**
-   * Scroll content to top - useful for resetting scroll position after filter changes
-   * Only scrolls if the top section is not already visible
+   * Scroll content to top - useful for resetting scroll position after filter changes.
+   * Uses the first spotlight card header as the "at top" indicator. If no card header
+   * is found (e.g. content not loaded yet), performs a fixed number of scroll-ups.
+   *
+   * 'mobile: scroll' (iOS) is bounded and won't trigger RefreshControl.
+   * Direction semantics: 'up' = viewport moves up = reveals top content.
    */
   async scrollToTop() {
-    // Check if we're already at the top by looking for the orders section header text
-    // If already visible, don't scroll
-    const ordersHeader = $(
-      selectors.byContainsTextAny('long-running orders', 'long running orders'),
-    );
-    const isAlreadyAtTop = await ordersHeader.isDisplayed().catch(() => false);
+    // Use the first spotlight card header as the top indicator.
+    // This matches ANY section header (orders, subscriptions, etc.)
+    const topIndicator = $(selectors.byStartsWithResourceId('spotlight-card-header-'));
+    const isAlreadyAtTop = await topIndicator.isDisplayed().catch(() => false);
+    console.log(`[spotlights.scrollToTop] isAlreadyAtTop=${isAlreadyAtTop}`);
     if (isAlreadyAtTop) {
-      return; // Already at top, no need to scroll
+      return;
     }
 
+    const maxScrolls = 3;
     if (isAndroid()) {
-      // Android: Use mobile: scrollGesture with direction 'down' to scroll content down (reveal top)
-      // This is a controlled scroll within the ScrollView bounds
       const scrollView = await $('//android.widget.ScrollView');
       const isScrollViewPresent = await scrollView.isExisting();
       if (isScrollViewPresent) {
-        // Perform multiple swipe gestures to scroll to top
-        const maxScrolls = 10;
         for (let i = 0; i < maxScrolls; i++) {
-          const isVisible = await ordersHeader.isDisplayed().catch(() => false);
-          if (isVisible) break;
-
-          // Swipe down gesture - finger moves down, content reveals top
+          console.log(`[spotlights.scrollToTop] Android attempt ${i + 1}/${maxScrolls}`);
           await browser.execute('mobile: swipeGesture', {
             left: 100,
             top: 500,
@@ -351,20 +348,19 @@ class SpotlightsPage extends BasePage {
             percent: 0.75,
           });
           await browser.pause(PAUSE.TEXT_ENTRY);
+          const isVisible = await topIndicator.isDisplayed().catch(() => false);
+          if (isVisible) break;
         }
       }
     } else {
-      // iOS: Use mobile: swipe with direction 'down' multiple times
-      const maxScrolls = 10;
       for (let i = 0; i < maxScrolls; i++) {
-        const isVisible = await ordersHeader.isDisplayed().catch(() => false);
-        if (isVisible) break;
-
-        await browser.execute('mobile: swipe', {
-          direction: 'down',
-          velocity: 500,
+        console.log(`[spotlights.scrollToTop] iOS attempt ${i + 1}/${maxScrolls}`);
+        await browser.execute('mobile: scroll', {
+          direction: 'up',
         });
         await browser.pause(PAUSE.TEXT_ENTRY);
+        const isVisible = await topIndicator.isDisplayed().catch(() => false);
+        if (isVisible) break;
       }
     }
   }
@@ -536,15 +532,16 @@ class SpotlightsPage extends BasePage {
   }
 
   /**
-   * Check if any orders section is visible (long-running orders)
+   * Check if any orders section is visible (querying orders, quoted orders, long-running orders, etc.)
+   * Uses the generic order card resource ID prefix instead of a specific header text.
    * Does NOT scroll - only checks current view state
    */
   async isOrdersSectionVisible() {
     try {
-      const header = await this.longRunningOrdersHeader;
-      const isExisting = await header.isExisting();
+      const card = await this.getCardByType('orders');
+      const isExisting = await card.isExisting();
       if (!isExisting) return false;
-      return await header.isDisplayed();
+      return await card.isDisplayed();
     } catch {
       return false;
     }

@@ -39,7 +39,9 @@ export interface Price {
   defaultMargin?: number;
   SPxY?: number;
   SPxM?: number;
+  SPx1?: number;
   PPxY?: number;
+  PPx1?: number;
   PPxM?: number;
   billingCurrency?: string;
   source?: string;
