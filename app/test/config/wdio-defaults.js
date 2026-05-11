@@ -10,7 +10,7 @@ const WDIO_DEFAULTS = {
   IOS_BUNDLE_ID: 'com.softwareone.marketplaceMobile',
   IOS_DERIVED_DATA_PATH: '/tmp/wda-derived-data',
   ANDROID_DEVICE_NAME: 'Pixel 8',
-  ANDROID_PLATFORM_VERSION: '14',
+  ANDROID_PLATFORM_VERSION: '12',
   ANDROID_AUTOMATION_NAME: 'UiAutomator2',
   ANDROID_APP_PACKAGE: 'com.softwareone.marketplaceMobile',
   ANDROID_APP_ACTIVITY: '.MainActivity',
