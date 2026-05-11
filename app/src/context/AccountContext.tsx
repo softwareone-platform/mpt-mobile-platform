@@ -3,21 +3,26 @@ import { createContext, useContext, useCallback, useState, ReactNode, useMemo } 
 
 import { AnalyticsEvents } from '@/constants/analytics';
 import { MAX_RECENT_ACCOUNTS } from '@/constants/api';
+import { ACCOUNT_ID_CLAIM_KEY } from '@/constants/auth';
 import { useAuth } from '@/context/AuthContext';
 import { useSpotlightData } from '@/hooks/queries/useSpotlightData';
 import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
 import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
 import { useUserData } from '@/hooks/queries/useUserData';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { trackEvent } from '@/hooks/useTrackEvent';
 import { authService } from '@/services/authService';
 import { logger } from '@/services/loggerService';
 import { UserData, FormattedUserAccounts, SpotlightItem } from '@/types/api';
+import { AccountType } from '@/types/common';
 import { formatUserAccountsData } from '@/utils/account';
 
 interface AccountContextValue {
   userData: UserData | null;
   isUserDataLoading: boolean;
   isUserDataError: boolean;
+  currentAccountId: string | undefined;
+  currentAccountType: AccountType | undefined;
   userAccountsData: FormattedUserAccounts;
   accountsFetchingNext: boolean;
   hasMoreAccounts: boolean;
@@ -37,7 +42,8 @@ interface AccountContextValue {
 const AccountContext = createContext<AccountContextValue | undefined>(undefined);
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, accountId: storedAccountId, accountType: tokenAccountType } = useAuth();
+  const { isEnabled } = useFeatureFlags();
 
   const userId = authService.getUserIdFromUser(user);
 
@@ -45,11 +51,22 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     logger.error('User authentication token is missing required userId claim');
   }
 
+  const isMultiAccountEnabled = isEnabled('FEATURE_MULTI_ACCOUNT');
+  const jwtAccountId = user?.[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
+
   const {
     data: userData = null,
     isLoading: isUserDataLoading,
     isError: isUserDataError,
   } = useUserData(userId);
+
+  const currentAccountId = isMultiAccountEnabled
+    ? (storedAccountId ?? jwtAccountId ?? undefined)
+    : (userData?.currentAccount?.id ?? undefined);
+
+  const currentAccountType = isMultiAccountEnabled
+    ? (tokenAccountType ?? undefined)
+    : (userData?.currentAccount?.type as AccountType | undefined);
 
   const {
     data: spotlightDataRaw,
@@ -58,7 +75,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     fetchStatus,
     refetch: refetchSpotlight,
     isRefetching: isSpotlightRefetching,
-  } = useSpotlightData(userId);
+  } = useSpotlightData(userId, currentAccountId);
 
   const spotlightData = spotlightDataRaw ?? {};
 
@@ -121,6 +138,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         userData,
         isUserDataLoading,
         isUserDataError,
+        currentAccountId,
+        currentAccountType,
         userAccountsData,
         accountsFetchingNext,
         hasMoreAccounts: hasMoreAccounts ?? false,

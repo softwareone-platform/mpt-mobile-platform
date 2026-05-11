@@ -33,12 +33,6 @@ export interface Auth0PasswordlessResponse {
   message?: string;
 }
 
-export interface Auth0TokenResponse {
-  access_token: string;
-  refresh_token?: string;
-  token_type: string;
-  expires_in: number;
-}
 
 interface JWTPayload {
   exp?: number;
@@ -117,13 +111,14 @@ class AuthenticationService {
     }
   }
 
-  async verifyPasswordlessOtp(email: string, otp: string): Promise<AuthTokens> {
+  async verifyPasswordlessOtp(email: string, otp: string, accountId?: string): Promise<AuthTokens> {
     try {
       const result = await this.auth0.auth.loginWithEmail({
         email,
         code: otp,
         audience: this.audience,
         scope: this.scope,
+        ...(accountId && { additionalParameters: { marketplaceAccountId: accountId } }),
       });
 
       const expiresAt = this.getExpiryFromJWT(result.accessToken);
@@ -142,11 +137,34 @@ class AuthenticationService {
     }
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
+  async refreshAccessToken(refreshToken: string, accountId?: string): Promise<AuthTokens> {
+    // The react-native-auth0 library's refreshToken() does not forward additionalParameters
+    // into the request body, so we use a direct JSON fetch to pass marketplaceAccountId.
+    const tokenUrl = `https://${this.domain}/oauth/token`;
+    const requestBody: Record<string, string> = {
+      grant_type: 'refresh_token',
+      client_id: this.clientId,
+      refresh_token: refreshToken,
+      ...(this.audience && { audience: this.audience }),
+      ...(this.scope && { scope: this.scope }),
+      ...(accountId && { marketplaceAccountId: accountId }),
+    };
+
     try {
       const result = await retryAuth0Operation(
         async () => {
-          return await this.auth0.auth.refreshToken({ refreshToken });
+          const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`Token refresh failed: ${response.status} ${errorBody}`);
+          }
+
+          return (await response.json()) as { access_token: string; refresh_token?: string; token_type: string; expires_in: number };
         },
         'refreshAccessToken',
         {
@@ -154,12 +172,13 @@ class AuthenticationService {
           initialDelayMs: AUTH0_REFRESH_TOKEN_INITIAL_DELAY_MS,
         },
       );
-      const expiresAt = this.getExpiryFromJWT(result.accessToken);
+
+      const expiresAt = this.getExpiryFromJWT(result.access_token);
 
       return {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken || refreshToken,
-        tokenType: result.tokenType || 'Bearer',
+        accessToken: result.access_token,
+        refreshToken: result.refresh_token || refreshToken,
+        tokenType: result.token_type || 'Bearer',
         expiresAt,
       };
     } catch (error) {

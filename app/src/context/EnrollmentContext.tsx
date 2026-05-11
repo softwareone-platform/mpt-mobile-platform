@@ -24,10 +24,9 @@ interface EnrollmentProviderProps {
 const EnrollmentContext = createContext<EnrollmentContextValue | undefined>(undefined);
 
 export const EnrollmentProvider = ({ children, query }: EnrollmentProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

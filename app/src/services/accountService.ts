@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAuth } from '@/context/AuthContext';
 import { useApi } from '@/hooks/useApi';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { logger } from '@/services/loggerService';
 import type {
   UserAccount,
@@ -19,7 +20,8 @@ import type {
 
 export function useAccountApi() {
   const api = useApi();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, updateStoredAccountId } = useAuth();
+  const { isEnabled } = useFeatureFlags();
 
   const getUserData = useCallback(
     async (userId: string): Promise<UserData> => {
@@ -91,13 +93,18 @@ export function useAccountApi() {
         throw new Error('User ID is required to switch accounts');
       }
 
+      const isMultiAccountEnabled = isEnabled('FEATURE_MULTI_ACCOUNT');
+
+      if (isMultiAccountEnabled) {
+        await updateStoredAccountId(accountId);
+      }
+
       const body: SwitchAccountBody = {
         currentAccount: { id: accountId },
       };
-
       const endpoint = `/v1/accounts/users/${userId}`;
-
       await api.put<void, SwitchAccountBody>(endpoint, body);
+
       try {
         await refreshAuth();
       } catch (error) {
@@ -106,7 +113,7 @@ export function useAccountApi() {
         });
       }
     },
-    [api, refreshAuth],
+    [api, refreshAuth, isEnabled, updateStoredAccountId],
   );
 
   const getAccountData = useCallback(

@@ -59,7 +59,8 @@ export class FeatureFlagsService {
       return false;
     }
 
-    if (!portalVersion) {
+    if (!portalVersion || portalVersion.fullVersion === '') {
+      // Version not yet loaded — don't gate, let it through
       return config.enabled;
     }
 

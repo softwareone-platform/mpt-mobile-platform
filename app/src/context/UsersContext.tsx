@@ -32,11 +32,11 @@ export const UsersProvider = ({
   query,
   accountId,
 }: UsersProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId: contextAccountId, currentAccountType } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = accountId || userData?.currentAccount?.id;
-  const isOperations = userData?.currentAccount?.type === 'Operations';
+  const currentAccountId = accountId || contextAccountId;
+  const isOperations = currentAccountType === 'Operations';
   const shouldUseAllUsers = showAllUsers && isOperations;
 
   const accountUsersQuery = useUsersData(userId, currentAccountId, !shouldUseAllUsers, query);

@@ -21,9 +21,8 @@ const AccountDetailsScreen = () => {
   const { id, type } = useRoute<AccountDetailsRouteProp>().params;
   const navigation = useNavigation<AccountDetailsNavigationProp>();
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useAccountDetailsData(
     id,

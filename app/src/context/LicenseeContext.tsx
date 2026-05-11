@@ -24,10 +24,9 @@ interface LicenseeProviderProps {
 }
 
 export const LicenseeProvider = ({ children, query }: LicenseeProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

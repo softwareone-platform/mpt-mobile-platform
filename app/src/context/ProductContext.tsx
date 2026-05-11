@@ -19,10 +19,9 @@ interface ProductContextValue {
 const ProductContext = createContext<ProductContextValue | undefined>(undefined);
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,
