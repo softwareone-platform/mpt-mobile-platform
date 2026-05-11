@@ -27,6 +27,7 @@
     "allBuyers": "Buyers",
     "clients": "Clients",
     "vendors": "Vendors",
+    "sellers": "Sellers",
     "products": "Products",
     "orderDetails": "Order",
     "creditMemoDetails": "Credit Memo",
@@ -44,7 +45,8 @@
     "programDetails": "Program",
     "enrollmentDetails": "Enrollment",
     "certificateDetails": "Certificate",
-    "chatConversation": "Chat"
+    "chatConversation": "Chat",
+    "salesOrders": "Sales Orders"
   },
   "tabGroups": {
     "administration": "Administration",
@@ -53,6 +55,7 @@
     "helpdesk": "Helpdesk",
     "marketplace": "Marketplace",
     "program": "Program",
-    "settings": "Settings"
+    "settings": "Settings",
+    "procurement": "Procurement"
   }
 }

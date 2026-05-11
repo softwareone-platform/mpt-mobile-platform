@@ -230,12 +230,8 @@ export const chatMarkdownTagStyles: Record<string, MixedStyleDeclaration> = {
   em: { fontStyle: 'italic' },
   del: { textDecorationLine: 'line-through' },
   u: { textDecorationLine: 'underline' },
-  sub: {
-    fontSize: Typography.fontSizeSmall.font11,
-  },
-  sup: {
-    fontSize: Typography.fontSizeSmall.font11,
-  },
+  sub: { fontSize: Typography.fontSizeSmall.font11 },
+  sup: { fontSize: Typography.fontSizeSmall.font11 },
   h1: {
     fontSize: Typography.fontSize.font6,
     fontWeight: chatMarkdownStyle.headingBoldWeight,

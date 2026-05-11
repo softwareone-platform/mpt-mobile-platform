@@ -257,6 +257,11 @@ export const TestIDs = {
   VENDORS_ERROR_STATE: 'vendors-error-state',
   VENDORS_EMPTY_STATE: 'vendors-empty-state',
 
+  // Sellers Screen
+  SELLERS_LOADING_INDICATOR: 'sellers-loading-indicator',
+  SELLERS_ERROR_STATE: 'sellers-error-state',
+  SELLERS_EMPTY_STATE: 'sellers-empty-state',
+
   // Account Details Screen
   ACCOUNT_DETAILS_LOADING_INDICATOR: 'account-details-loading-indicator',
   ACCOUNT_DETAILS_ERROR_STATE: 'account-details-error-state',
@@ -282,6 +287,11 @@ export const TestIDs = {
   PRODUCTS_LOADING_INDICATOR: 'products-loading-indicator',
   PRODUCTS_ERROR_STATE: 'products-error-state',
   PRODUCTS_EMPTY_STATE: 'products-empty-state',
+
+  // Sales Orders Screen
+  SALES_ORDERS_LOADING_INDICATOR: 'sales-orders-loading-indicator',
+  SALES_ORDERS_ERROR_STATE: 'sales-orders-error-state',
+  SALES_ORDERS_EMPTY_STATE: 'sales-orders-empty-state',
 
   // Chats Screen
   CHATS_LOADING_INDICATOR: 'chats-loading-indicator',

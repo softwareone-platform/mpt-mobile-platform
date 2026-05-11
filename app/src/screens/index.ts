@@ -15,6 +15,7 @@ export { default as LicenseesScreen } from './licensees/LicenseesScreen';
 export { default as BuyersScreen } from './buyers/BuyersScreen';
 export { default as ClientsScreen } from './clients/ClientsScreen';
 export { default as VendorsScreen } from './vendors/VendorsScreen';
+export { default as SellersScreen } from './sellers/SellersScreen';
 export { default as ProductsScreen } from './products/ProductsScreen';
 export { default as CreditMemoDetailsScreen } from './credit-memos/CreditMemoDetailsScreen';
 export { default as JournalDetailsScreen } from './journals/JournalDetailsScreen';
@@ -36,6 +37,7 @@ export { default as ChatScreen } from './chat/ChatScreen';
 export { default as ChatConversationScreen } from './chat/ChatConversationScreen';
 export { default as CreateChatModal } from './chat/create-chat/CreateChatWizard';
 export { default as SearchScreen } from './search/SearchScreen';
+export { default as SalesOrdersScreen } from './sales-orders/SalesOrdersScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';

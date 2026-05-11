@@ -37,6 +37,7 @@ import MarkAsUnreadOutlined from './mark-as-unread';
 import MenuBookOutlined from './menu-book';
 import MoreHorizOutlined from './more-horiz';
 import NotificationsOutlined from './notifications';
+import OrdersOutlined from './orders';
 import PersonOutlined from './person';
 import PhotoCameraOutlined from './photo-camera';
 import PriceChangeOutlined from './price-change';
@@ -94,6 +95,7 @@ export const OutlinedIcons = {
   'menu-book': MenuBookOutlined,
   'more-horiz': MoreHorizOutlined,
   notifications: NotificationsOutlined,
+  orders: OrdersOutlined,
   person: PersonOutlined,
   'photo-camera': PhotoCameraOutlined,
   'price-change': PriceChangeOutlined,

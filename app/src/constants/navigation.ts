@@ -15,6 +15,7 @@ import {
   BuyersScreen,
   ClientsScreen,
   VendorsScreen,
+  SellersScreen,
   ProductsScreen,
   CreditMemoDetailsScreen,
   JournalDetailsScreen,
@@ -36,6 +37,7 @@ import {
   ChatConversationScreen,
   CertificatesScreen,
   SearchScreen,
+  SalesOrdersScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -78,6 +80,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         name: 'clients',
         icon: 'contacts',
         component: ClientsScreen,
+        modules: ['platform-account-management'],
+        roles: ['Operations'],
+      },
+      {
+        name: 'sellers',
+        icon: 'public',
+        component: SellersScreen,
         modules: ['platform-account-management'],
         roles: ['Operations'],
       },
@@ -209,12 +218,31 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
     ],
   },
   {
+    title: 'procurement',
+    items: [
+      {
+        name: 'salesOrders',
+        icon: 'orders',
+        component: SalesOrdersScreen,
+        modules: ['procurement', 'new-procurement', 'digital-supply-chain'],
+        roles: ['Client', 'Operations'],
+      },
+    ],
+  },
+  {
     title: 'settings',
     items: [
       {
         name: 'buyers',
         icon: 'shopping-cart-checkout',
         component: BuyersScreen,
+        modules: ['account-management'],
+        roles: ['Client'],
+      },
+      {
+        name: 'sellers',
+        icon: 'public',
+        component: SellersScreen,
         modules: ['account-management'],
         roles: ['Client'],
       },
@@ -250,6 +278,7 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'allBuyers', component: BuyersScreen },
   { name: 'clients', component: ClientsScreen },
   { name: 'vendors', component: VendorsScreen },
+  { name: 'sellers', component: SellersScreen },
   { name: 'products', component: ProductsScreen },
   { name: 'orders', component: OrdersScreen },
   { name: 'subscriptions', component: SubscriptionsScreen },
@@ -270,4 +299,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'enrollmentDetails', component: EnrollmentDetailsScreen },
   { name: 'certificateDetails', component: CertificateDetailsScreen },
   { name: 'chatConversation', component: ChatConversationScreen },
+  { name: 'salesOrders', component: SalesOrdersScreen },
 ];

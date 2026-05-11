@@ -15,6 +15,10 @@
     "emptyStateTitle": "No vendors",
     "emptyStateDescription": "No vendors found."
   },
+  "sellersScreen": {
+    "emptyStateTitle": "No sellers",
+    "emptyStateDescription": "No sellers found."
+  },
   "sellerDetailsScreen": {
     "emptyStateTitle": "No seller details",
     "emptyStateDescription": "No seller details found."

@@ -69,6 +69,61 @@ describe('parseMarkdownToHtml', () => {
       expect(result).not.toContain('<input');
     });
   });
+
+  describe('HTML sanitization', () => {
+    it('strips iframe tag markup', () => {
+      const result = parseMarkdownToHtml('<iframe src="https://evil.com"></iframe>');
+
+      expect(result).not.toContain('iframe');
+      expect(result).not.toContain('evil.com');
+    });
+
+    it('strips unknown tags like div', () => {
+      const result = parseMarkdownToHtml('<div>some text</div>');
+
+      expect(result).not.toContain('<div>');
+    });
+
+    it('strips script tags and their content', () => {
+      const result = parseMarkdownToHtml('<script>alert(1)</script>');
+
+      expect(result).not.toContain('script');
+      expect(result).not.toContain('alert(1)');
+    });
+
+    it('strips event handler attributes from injected img tags', () => {
+      const result = parseMarkdownToHtml(
+        '<img src="https://example.com/img.png" onerror="alert(1)">',
+      );
+
+      expect(result).not.toContain('onerror');
+      expect(result).toContain('src="https://example.com/img.png"');
+    });
+
+    it('strips disallowed attributes from anchor tags', () => {
+      const result = parseMarkdownToHtml('[link](https://example.com)');
+
+      expect(result).toContain('href="https://example.com"');
+      expect(result).not.toContain('target=');
+      expect(result).not.toContain('onclick');
+    });
+
+    it('preserves safe inline formatting after sanitization', () => {
+      const result = parseMarkdownToHtml('**bold** _italic_ ~~strike~~');
+
+      expect(result).toContain('<strong>bold</strong>');
+      expect(result).toContain('<em>italic</em>');
+      expect(result).toContain('<del>strike</del>');
+    });
+
+    it('passes through inline HTML tags allowed by the whitelist', () => {
+      const result = parseMarkdownToHtml('<u>underline</u> <sup>sup</sup> <sub>sub</sub>');
+
+      expect(result).toContain('<u>underline</u>');
+      expect(result).toContain('<sup>sup</sup>');
+      expect(result).toContain('<sub>sub</sub>');
+    });
+  });
 });
 
 describe('stripLinkMarkdown', () => {

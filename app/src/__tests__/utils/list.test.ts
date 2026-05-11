@@ -1,6 +1,7 @@
 import {
   statusList,
   baseItem,
+  baseItemWithNestedFields,
   expectedMappedItemFull,
   expectedMappedItemNoImage,
   expectedMappedItemNoImageNoSubtitle,
@@ -13,7 +14,7 @@ import {
   listItemConfigNoImageNoSubtitle,
 } from '@/config/list';
 import type { ListItemWithStatusProps } from '@/types/lists';
-import { getStatus, mapToListItemProps } from '@/utils/list';
+import { getStatus, getValueByPath, mapToListItemProps } from '@/utils/list';
 
 describe('getStatus with mock status list', () => {
   it('returns correct Status for keys in the mock', () => {
@@ -34,6 +35,45 @@ describe('getStatus with mock status list', () => {
     expect(getStatus(' accepted ', statusList)).toBe('default');
     expect(getStatus('REVIEW', statusList)).toBe('default');
     expect(getStatus('For_Sale', statusList)).toBe('default');
+  });
+});
+
+describe('getValueByPath', () => {
+  it('returns top-level values correctly', () => {
+    expect(getValueByPath(baseItemWithNestedFields, 'id')).toBe('123');
+    expect(getValueByPath(baseItemWithNestedFields, 'name')).toBe('Test Item');
+  });
+
+  it('resolves nested values using dot notation', () => {
+    expect(getValueByPath(baseItemWithNestedFields, 'externalIds.operations')).toBe(
+      'US-SCO-1668259',
+    );
+
+    expect(getValueByPath(baseItemWithNestedFields, 'nested.level1.level2')).toBe('nested-value');
+  });
+
+  it('returns undefined for non-existing paths', () => {
+    expect(getValueByPath(baseItemWithNestedFields, 'unknown')).toBeUndefined();
+    expect(getValueByPath(baseItemWithNestedFields, 'nested.wrong.path')).toBeUndefined();
+  });
+
+  it('handles missing intermediate objects safely', () => {
+    expect(getValueByPath(baseItemWithNestedFields, 'externalIds.missing')).toBeUndefined();
+  });
+
+  it('preserves falsy values correctly', () => {
+    const item = {
+      ...baseItemWithNestedFields,
+      zero: 0,
+      flag: false,
+    };
+
+    expect(getValueByPath(item, 'zero')).toBe(0);
+    expect(getValueByPath(item, 'flag')).toBe(false);
+  });
+
+  it('returns undefined for empty path', () => {
+    expect(getValueByPath(baseItemWithNestedFields, '')).toBeUndefined();
   });
 });
 

@@ -20,3 +20,8 @@ export const listItemConfigNoImageNoSubtitle: ListItemConfig = {
   title: 'id',
   status: 'status',
 };
+
+export const listItemConfigNoImageWithExternalIds: ListItemConfig = {
+  ...listItemConfigNoImageNoSubtitle,
+  subtitle: 'externalIds.operations',
+};

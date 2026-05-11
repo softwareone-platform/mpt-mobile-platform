@@ -15,6 +15,8 @@ interface ChatsContextValue {
   chatsError: boolean;
   isUnauthorised: boolean;
   fetchChats: () => void;
+  refetchChats: () => void;
+  isRefetchingChats: boolean;
 }
 
 interface ChatsProviderProps {
@@ -38,6 +40,8 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
     isError,
     isUnauthorised,
     fetchNextPage,
+    refetch,
+    isRefetching,
   } = useChatsData(userId, currentAccountId);
 
   const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
@@ -77,6 +81,8 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
         chatsError: isError,
         isUnauthorised,
         fetchChats: fetchNextPage,
+        refetchChats: refetch,
+        isRefetchingChats: isRefetching,
       }}
     >
       {children}

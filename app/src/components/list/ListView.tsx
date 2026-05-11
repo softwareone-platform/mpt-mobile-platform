@@ -1,8 +1,7 @@
-import { FlatList, ActivityIndicator, StyleProp, ViewStyle } from 'react-native';
+import { FlatList, StyleProp, ViewStyle } from 'react-native';
 
-import RefreshControl from '@/components/common/RefreshControl';
+import { usePaginatedListProps } from '@/components/list/usePaginatedListProps';
 import ListItemWithStatus from '@/components/list-item/ListItemWithStatus';
-import { FLATLIST_END_REACHED_THRESHOLD } from '@/constants/api';
 import { screenStyle } from '@/styles';
 import type { ListItemConfig } from '@/types/lists';
 import { mapToListItemProps } from '@/utils/list';
@@ -30,6 +29,14 @@ export function ListView<T extends { id: string }>({
   isRefreshing,
   contentContainerStyle,
 }: ListViewProps<T>) {
+  const paginatedProps = usePaginatedListProps({
+    isFetchingNext,
+    hasMore,
+    fetchNext,
+    onRefresh,
+    isRefreshing,
+  });
+
   if (data.length === 0) return null;
 
   return (
@@ -52,19 +59,7 @@ export function ListView<T extends { id: string }>({
           />
         );
       }}
-      onEndReached={() => {
-        if (hasMore && !isFetchingNext) {
-          fetchNext?.();
-        }
-      }}
-      onEndReachedThreshold={FLATLIST_END_REACHED_THRESHOLD}
-      ListFooterComponent={isFetchingNext ? <ActivityIndicator /> : null}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
-        ) : undefined
-      }
+      {...paginatedProps}
     />
   );
 }

@@ -197,6 +197,17 @@ describe('Users Page', () => {
       const emptyStateVisible = await usersPage.emptyState.isDisplayed().catch(() => false);
       expect(emptyStateVisible).toBe(false);
     });
+
+    it('should display each user ID only once (no duplicates from merged categories) (MPT-18527)', async function () {
+      if (!hasUsersData) {
+        this.skip();
+        return;
+      }
+      const userIds = await usersPage.getVisibleUserIds();
+      const uniqueIds = new Set(userIds);
+      console.info(`Users visible: ${userIds.length}, unique: ${uniqueIds.size}`);
+      expect(uniqueIds.size).toBe(userIds.length);
+    });
   });
 
   describe('Users by Status', () => {

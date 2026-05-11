@@ -11,6 +11,7 @@ export type ModuleName =
   | 'digital-supply-chain'
   | 'enterprise-agreements'
   | 'new-marketplace'
+  | 'new-procurement'
   | 'notification-administration'
   | 'notifications'
   | 'partner-management'

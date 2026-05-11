@@ -486,6 +486,11 @@ exports.config = {
             './test/specs/journals.e2e.js',
             './test/specs/journal-details.e2e.js',
         ],
+        chat: [
+            './test/specs/chat.e2e.js',
+            './test/specs/chat-conversation.e2e.js',
+            './test/specs/chat-create.e2e.js',
+        ],
         buyers: [
             './test/specs/buyers.e2e.js',
             './test/specs/buyer-details.e2e.js',
@@ -509,6 +514,12 @@ exports.config = {
         featureFlags: ['./test/specs/feature-flags.e2e.js'],
         // Menu navigation, group headings, module-gated visibility (MPT-17294, MPT-20232, MPT-20348, MPT-17165)
         menuNavigation: ['./test/specs/menu-navigation.e2e.js'],
+        // Clients list — accessible from More menu (Operations role, MPT-19251)
+        clients: ['./test/specs/clients.e2e.js'],
+        // Vendors list — accessible from More menu (Operations role, MPT-19251)
+        vendors: ['./test/specs/vendors.e2e.js'],
+        // User Accounts list — accessible from User Details via Accounts sub-list (Operations role, MPT-20672)
+        userAccounts: ['./test/specs/user-accounts.e2e.js'],
         // Experimental tests — known CI limitations, run separately and allowed to fail
         experimental: ['./test/specs/session-restart.e2e.js'],
         // Combined suites for running multiple access-level groups together
@@ -545,6 +556,9 @@ exports.config = {
             './test/specs/journal-details.e2e.js',
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
+            './test/specs/clients.e2e.js',
+            './test/specs/vendors.e2e.js',
+            './test/specs/user-accounts.e2e.js',
         ],
     },
     //
