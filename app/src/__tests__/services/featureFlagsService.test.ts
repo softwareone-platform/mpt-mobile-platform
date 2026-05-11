@@ -68,6 +68,21 @@ describe('FeatureFlagsService', () => {
     expect(result).toBe(true);
   });
 
+  it('enables feature when portal version is not yet loaded (fullVersion is empty)', () => {
+    const version: PortalVersionInfo = { fullVersion: '', major: 0, minor: 0, patch: 0 };
+    expect(service.isFeatureEnabled('FEATURE_ACCOUNT_TABS', version)).toBe(true);
+  });
+
+  it('enables FEATURE_MULTI_ACCOUNT when version meets minVersion', () => {
+    const version: PortalVersionInfo = { fullVersion: '5.0.5336', major: 5, minor: 0, patch: 5336 };
+    expect(service.isFeatureEnabled('FEATURE_MULTI_ACCOUNT', version)).toBe(true);
+  });
+
+  it('disables FEATURE_MULTI_ACCOUNT when version is below minVersion', () => {
+    const version: PortalVersionInfo = { fullVersion: '5.0.5335', major: 5, minor: 0, patch: 5335 };
+    expect(service.isFeatureEnabled('FEATURE_MULTI_ACCOUNT', version)).toBe(false);
+  });
+
   it('maintains singleton pattern', () => {
     const instance1 = FeatureFlagsService.getInstance();
     const instance2 = FeatureFlagsService.getInstance();

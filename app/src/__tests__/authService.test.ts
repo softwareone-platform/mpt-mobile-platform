@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 // Mock Auth0 for the Auth0-dependent methods
 let mockPasswordlessWithEmail: jest.Mock;
 let mockLoginWithEmail: jest.Mock;
-let mockRefreshToken: jest.Mock;
+let _mockRefreshToken: jest.Mock;
 let mockRevoke: jest.Mock;
 let mockClearCredentials: jest.Mock;
 
@@ -30,7 +30,7 @@ jest.mock('react-native-auth0', () => {
 
   mockPasswordlessWithEmail = passwordlessWithEmail;
   mockLoginWithEmail = loginWithEmail;
-  mockRefreshToken = refreshToken;
+  _mockRefreshToken = refreshToken;
   mockRevoke = revoke;
   mockClearCredentials = clearCredentials;
 
@@ -259,22 +259,64 @@ describe('authService', () => {
   });
 
   describe('refreshAccessToken', () => {
-    it('should refresh token successfully', async () => {
-      mockRefreshToken.mockResolvedValue({
-        accessToken: 'new-token',
-        refreshToken: 'new-refresh',
-        tokenType: 'Bearer',
+    const mockFetch = jest.fn();
+
+    beforeEach(() => {
+      global.fetch = mockFetch;
+    });
+
+    afterEach(() => {
+      mockFetch.mockReset();
+    });
+
+    it('should refresh token successfully via JSON fetch', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          access_token: 'new-token',
+          refresh_token: 'new-refresh',
+          token_type: 'Bearer',
+          expires_in: 3600,
+        }),
       });
       mockJwtDecode.mockReturnValue({ exp: 9876543210 });
 
       const result = await authService.refreshAccessToken('old-refresh');
 
       expect(result.accessToken).toBe('new-token');
+      expect(result.refreshToken).toBe('new-refresh');
       expect(result.expiresAt).toBe(9876543210);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.auth0.com/oauth/token',
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
     });
 
-    it('should reuse old refresh token if new one not provided', async () => {
-      mockRefreshToken.mockResolvedValue({ accessToken: 'new-token' });
+    it('should include marketplaceAccountId in body when accountId is provided', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          access_token: 'new-token',
+          token_type: 'Bearer',
+          expires_in: 3600,
+        }),
+      });
+      mockJwtDecode.mockReturnValue({ exp: 123 });
+
+      await authService.refreshAccessToken('old-refresh', 'acc-123');
+
+      const body = JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string);
+      expect(body.marketplaceAccountId).toBe('acc-123');
+    });
+
+    it('should reuse old refresh token when response omits refresh_token', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ access_token: 'new-token', token_type: 'Bearer', expires_in: 3600 }),
+      });
       mockJwtDecode.mockReturnValue({ exp: 123 });
 
       const result = await authService.refreshAccessToken('old-refresh');
@@ -283,8 +325,21 @@ describe('authService', () => {
       expect(result.tokenType).toBe('Bearer');
     });
 
-    it('should handle errors', async () => {
-      mockRefreshToken.mockRejectedValue('error');
+    it('should throw when fetch response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        text: async () => 'Unauthorized',
+      });
+
+      await expect(authService.refreshAccessToken('bad-token')).rejects.toThrow(
+        'Token refresh failed: 401 Unauthorized',
+      );
+    });
+
+    it('should throw when fetch rejects', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
       await expect(authService.refreshAccessToken('token')).rejects.toThrow();
     });
   });

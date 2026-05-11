@@ -47,6 +47,7 @@ jest.mock('@/hooks/useApi', () => ({
 jest.mock('@/context/AuthContext', () => ({
   useAuth: () => ({
     refreshAuth: mockRefreshAuth,
+    updateStoredAccountId: jest.fn(),
   }),
 }));
 

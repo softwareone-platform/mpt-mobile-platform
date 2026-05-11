@@ -352,6 +352,7 @@ describe('CredentialStorageService', () => {
         TOKENS: 'auth_tokens',
         REFRESH_TOKEN: 'auth_refresh_token',
         USER: 'auth_user',
+        ACCOUNT_ID: 'auth_account_id',
       });
     });
 
