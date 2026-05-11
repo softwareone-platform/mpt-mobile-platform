@@ -174,7 +174,9 @@ class DetailsPage extends BasePage {
    * 'mobile: swipe' can rubber-band and activate pull-to-refresh.
    */
   async scrollToTop(maxAttempts = 2) {
+    console.log(`[details.scrollToTop] Starting (maxAttempts=${maxAttempts}, platform=${this.isIOS() ? 'iOS' : 'Android'})`);
     for (let i = 0; i < maxAttempts; i++) {
+      console.log(`[details.scrollToTop] Scroll attempt ${i + 1}/${maxAttempts}`);
       if (this.isIOS()) {
         await browser.execute('mobile: scroll', { direction: 'up' });
       } else {
@@ -182,6 +184,7 @@ class DetailsPage extends BasePage {
       }
       await browser.pause(PAUSE.ANIMATION_SETTLE);
     }
+    console.log(`[details.scrollToTop] Done`);
   }
 
   // ========== Common Helper Methods ==========
@@ -274,7 +277,9 @@ class DetailsPage extends BasePage {
   async getCompositeFieldValue(element, scrollIfNeeded = false) {
     if (scrollIfNeeded) {
       const isDisplayed = await element.isDisplayed().catch(() => false);
+      console.log(`[getCompositeFieldValue] scrollIfNeeded=true, isDisplayed=${isDisplayed}`);
       if (!isDisplayed) {
+        console.log(`[getCompositeFieldValue] Element not visible, scrolling down`);
         await this.scrollDown();
         await browser.pause(PAUSE.NAVIGATION);
       }
@@ -315,11 +320,14 @@ class DetailsPage extends BasePage {
     const field = this.getCompositeField(labelPrefix);
     if (scrollIfNeeded) {
       let isDisplayed = await field.isDisplayed().catch(() => false);
+      console.log(`[getCompositeFieldValueByLabel] "${labelPrefix}" initial visibility=${isDisplayed}`);
       let attempts = 0;
       while (!isDisplayed && attempts < SCROLL.MAX_SCROLL_ATTEMPTS) {
+        console.log(`[getCompositeFieldValueByLabel] "${labelPrefix}" scroll attempt ${attempts + 1}/${SCROLL.MAX_SCROLL_ATTEMPTS}`);
         await this.scrollDown();
         await browser.pause(PAUSE.NAVIGATION);
         isDisplayed = await field.isDisplayed().catch(() => false);
+        console.log(`[getCompositeFieldValueByLabel] "${labelPrefix}" after scroll: visible=${isDisplayed}`);
         attempts++;
       }
       if (!isDisplayed) {
@@ -328,6 +336,7 @@ class DetailsPage extends BasePage {
       }
     } else {
       const exists = await field.isExisting().catch(() => false);
+      console.log(`[getCompositeFieldValueByLabel] "${labelPrefix}" exists=${exists} (no scroll)`);
       if (!exists) {
         return '';
       }
@@ -362,11 +371,14 @@ class DetailsPage extends BasePage {
     const field = this.getSimpleField(labelText);
     if (scrollIfNeeded) {
       let isDisplayed = await field.value.isDisplayed().catch(() => false);
+      console.log(`[getSimpleFieldValue] "${labelText}" initial visibility=${isDisplayed}`);
       let attempts = 0;
       while (!isDisplayed && attempts < SCROLL.MAX_SCROLL_ATTEMPTS) {
+        console.log(`[getSimpleFieldValue] "${labelText}" scroll attempt ${attempts + 1}/${SCROLL.MAX_SCROLL_ATTEMPTS}`);
         await this.scrollDown();
         await browser.pause(PAUSE.NAVIGATION);
         isDisplayed = await field.value.isDisplayed().catch(() => false);
+        console.log(`[getSimpleFieldValue] "${labelText}" after scroll: visible=${isDisplayed}`);
         attempts++;
       }
       if (!isDisplayed) {
@@ -375,6 +387,7 @@ class DetailsPage extends BasePage {
       }
     } else {
       const exists = await field.value.isExisting().catch(() => false);
+      console.log(`[getSimpleFieldValue] "${labelText}" exists=${exists} (no scroll)`);
       if (!exists) {
         return '';
       }
