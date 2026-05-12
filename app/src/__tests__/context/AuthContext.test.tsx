@@ -24,10 +24,10 @@ jest.mock('@/utils/moduleClaims', () => ({
   getAccountType: jest.fn(() => null),
 }));
 
-import authService from '@/services/authService';
-import credentialStorageService from '@/services/credentialStorageService';
 import { ACCOUNT_ID_CLAIM_KEY } from '@/constants/auth';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import authService from '@/services/authService';
+import credentialStorageService from '@/services/credentialStorageService';
 import { logger } from '@/services/loggerService';
 
 const mockAuthService = authService as jest.Mocked<typeof authService>;
