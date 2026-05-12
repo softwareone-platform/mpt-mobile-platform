@@ -197,6 +197,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get sellersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-sellers',
+        android: '//*[@resource-id="nav-menu-sellers"]',
+      }),
+    );
+  }
+
   // ========== Group Heading Elements ==========
 
   get administrationGroupHeading() {
