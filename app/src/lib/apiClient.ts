@@ -2,8 +2,8 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 
 import { forceRefreshTokenAsync, getAccessTokenAsync } from './tokenProvider';
 
-import { API_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import { configService } from '@/config/env.config';
+import { API_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import { appInsightsService } from '@/services/appInsightsService';
 import { createApiError } from '@/utils/apiError';
 

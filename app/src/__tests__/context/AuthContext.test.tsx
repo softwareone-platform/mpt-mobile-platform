@@ -227,7 +227,11 @@ describe('AuthContext - refreshAuth single-flight guard', () => {
 
     // Fire three concurrent refreshes
     const [p1, p2, p3] = await act(async () => {
-      return [result.current.refreshAuth(), result.current.refreshAuth(), result.current.refreshAuth()];
+      return [
+        result.current.refreshAuth(),
+        result.current.refreshAuth(),
+        result.current.refreshAuth(),
+      ];
     });
 
     resolveRefresh(makeTokens());
