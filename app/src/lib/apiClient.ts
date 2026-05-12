@@ -1,13 +1,17 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-import { getAccessTokenAsync } from './tokenProvider';
+import { forceRefreshTokenAsync, getAccessTokenAsync } from './tokenProvider';
 
+import { API_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import { configService } from '@/config/env.config';
 import { appInsightsService } from '@/services/appInsightsService';
 import { createApiError } from '@/utils/apiError';
 
+type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean; noAuth?: boolean };
+
 const apiClient: AxiosInstance = axios.create({
   baseURL: configService.get('AUTH0_API_URL'),
+  timeout: API_REQUEST_TIMEOUT_MS,
   headers: {
     Accept: 'application/json',
   },
@@ -19,7 +23,7 @@ export function updateApiClientBaseURL(): void {
 }
 
 apiClient.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig & { noAuth?: boolean }) => {
+  async (config: RetriableConfig) => {
     if (config.noAuth) {
       delete config.noAuth;
       return config;
@@ -53,7 +57,18 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetriableConfig | undefined;
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retried) {
+      originalRequest._retried = true;
+      const newToken = await forceRefreshTokenAsync();
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return apiClient.request(originalRequest);
+      }
+    }
+
     const apiError = createApiError(error);
 
     appInsightsService.trackException(

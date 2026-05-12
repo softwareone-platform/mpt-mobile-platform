@@ -11,7 +11,7 @@ jest.mock('@/hooks/queries/usePortalVersion', () => ({
   usePortalVersion: jest.fn(() => ({ data: undefined })),
 }));
 jest.mock('@/lib/tokenProvider', () => ({
-  tokenProvider: { register: jest.fn(() => jest.fn()) },
+  tokenProvider: { register: jest.fn(() => jest.fn()), registerRefresh: jest.fn(() => jest.fn()) },
 }));
 jest.mock('@/hooks/useTrackEvent', () => ({ trackEvent: jest.fn() }));
 jest.mock('@/services/environmentSwitcherService', () => ({
@@ -188,5 +188,55 @@ describe('AuthContext - logout', () => {
     expect(clearSpy).toHaveBeenCalledTimes(1);
     expect(mockAppInsights.clearUser).toHaveBeenCalledTimes(1);
     expect(result.current.status).toBe('unauthenticated');
+  });
+});
+
+describe('AuthContext - refreshAuth single-flight guard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCredentialStorage.storeTokens.mockResolvedValue();
+    mockCredentialStorage.storeAccountId.mockResolvedValue();
+    mockCredentialStorage.clearAccountId.mockResolvedValue();
+    mockCredentialStorage.clearAllCredentials.mockResolvedValue();
+    mockAuthService.isTokenExpired.mockReturnValue(false);
+    setupLoadStoredAuth('acc-1', 'acc-1');
+  });
+
+  it('deduplicates concurrent refresh calls — authService.refreshAccessToken called only once', async () => {
+    const { wrapper } = createWrapper();
+
+    let resolveRefresh!: (value: ReturnType<typeof makeTokens>) => void;
+    const refreshPromise = new Promise<ReturnType<typeof makeTokens>>((resolve) => {
+      resolveRefresh = resolve;
+    });
+
+    // First call blocks; subsequent concurrent calls should share the same promise
+    mockAuthService.refreshAccessToken
+      .mockResolvedValueOnce(makeTokens()) // initial loadStoredAuth on mount
+      .mockImplementationOnce(() => refreshPromise); // the deduplication target
+
+    mockCredentialStorage.loadAccountId.mockResolvedValue('acc-1');
+    mockAuthService.getUserFromToken.mockReturnValue(makeUser('acc-1'));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+
+    // Reset call count after initial mount refresh
+    mockAuthService.refreshAccessToken.mockClear();
+    mockAuthService.refreshAccessToken.mockImplementation(() => refreshPromise);
+
+    // Fire three concurrent refreshes
+    const [p1, p2, p3] = await act(async () => {
+      return [result.current.refreshAuth(), result.current.refreshAuth(), result.current.refreshAuth()];
+    });
+
+    resolveRefresh(makeTokens());
+
+    await act(async () => {
+      await Promise.all([p1, p2, p3]);
+    });
+
+    // Only one actual network call despite three concurrent calls
+    expect(mockAuthService.refreshAccessToken).toHaveBeenCalledTimes(1);
   });
 });

@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   PropsWithChildren,
 } from 'react';
 
@@ -140,6 +141,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [authState, dispatch] = useReducer(authReducer, initialState);
   const queryClient = useQueryClient();
+  const refreshInFlightRef = useRef<Promise<AuthTokens | null> | null>(null);
   const REFRESH_BUFFER_MINUTES = 5;
   const REFRESH_BUFFER_MS = REFRESH_BUFFER_MINUTES * 60 * 1000;
 
@@ -212,37 +214,48 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   }, [authState.tokens?.refreshToken, queryClient]);
 
-  const refreshAuth = useCallback(async (): Promise<AuthTokens | null> => {
-    try {
-      if (!authState.tokens?.refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      const storedAccountId = await credentialStorageService.loadAccountId();
-      const newTokens = await authService.refreshAccessToken(
-        authState.tokens.refreshToken,
-        storedAccountId ?? undefined,
-      );
-
-      const newUser = authService.getUserFromToken(newTokens.accessToken);
-      const tokenAccountId = newUser[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
-
-      await Promise.all([
-        credentialStorageService.storeTokens(newTokens),
-        syncStoredAccountIdFromToken(storedAccountId, tokenAccountId),
-      ]);
-
-      dispatch({ type: AUTH_ACTIONS.SET_ACCOUNT_ID, payload: tokenAccountId ?? null });
-      dispatch({ type: AUTH_ACTIONS.UPDATE_TOKENS, payload: newTokens });
-
-      return newTokens;
-    } catch (error) {
-      logger.error('Failed to refresh auth', error, {
-        operation: 'refreshAuth',
-      });
-      await logout();
-      return null;
+  const refreshAuth = useCallback((): Promise<AuthTokens | null> => {
+    if (refreshInFlightRef.current) {
+      return refreshInFlightRef.current;
     }
+
+    const promise = (async () => {
+      try {
+        if (!authState.tokens?.refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const storedAccountId = await credentialStorageService.loadAccountId();
+        const newTokens = await authService.refreshAccessToken(
+          authState.tokens.refreshToken,
+          storedAccountId ?? undefined,
+        );
+
+        const newUser = authService.getUserFromToken(newTokens.accessToken);
+        const tokenAccountId = newUser[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
+
+        await Promise.all([
+          credentialStorageService.storeTokens(newTokens),
+          syncStoredAccountIdFromToken(storedAccountId, tokenAccountId),
+        ]);
+
+        dispatch({ type: AUTH_ACTIONS.SET_ACCOUNT_ID, payload: tokenAccountId ?? null });
+        dispatch({ type: AUTH_ACTIONS.UPDATE_TOKENS, payload: newTokens });
+
+        return newTokens;
+      } catch (error) {
+        logger.error('Failed to refresh auth', error, {
+          operation: 'refreshAuth',
+        });
+        await logout();
+        return null;
+      } finally {
+        refreshInFlightRef.current = null;
+      }
+    })();
+
+    refreshInFlightRef.current = promise;
+    return promise;
   }, [authState.tokens?.refreshToken, logout]);
 
   const calculateTimeUntilRefresh = useCallback(
@@ -385,6 +398,17 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       unregister();
     };
   }, [getAccessToken]);
+
+  useEffect(() => {
+    const unregister = tokenProvider.registerRefresh(async () => {
+      const tokens = await refreshAuth();
+      return tokens?.accessToken ?? null;
+    });
+
+    return () => {
+      unregister();
+    };
+  }, [refreshAuth]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
