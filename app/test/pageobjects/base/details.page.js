@@ -148,6 +148,15 @@ class DetailsPage extends BasePage {
   }
 
   /**
+   * The avatar wrapper element in the details header (testID: details-header-avatar-wrapper).
+   * Only rendered on screens that use listItemConfigFull (Account, Buyer, Seller,
+   * Licensee, User, Product, Program). Use isExisting() to check presence/absence.
+   */
+  get headerAvatarWrapper() {
+    return $(selectors.byAccessibilityId('details-header-avatar-container'));
+  }
+
+  /**
    * Get a status element by its string value (robust for standalone status fields)
    * @param {string} statusValue - The status string (e.g., 'Paid', 'Issued', 'Overdue')
    * @returns {WebdriverIO.Element}

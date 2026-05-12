@@ -1,0 +1,3 @@
+[     216ms] [WARNING] Cannot listen for IPC event appium-language-changed in browser context @ http://localhost:4723/inspector/assets/index-Rtphek1g.js:13479
+[     352ms] [WARNING] Cannot listen for IPC event sessionfile:apply in browser context @ http://localhost:4723/inspector/assets/index-Rtphek1g.js:13479
+[     352ms] [WARNING] Cannot listen for IPC event sessionfile:download in browser context @ http://localhost:4723/inspector/assets/index-Rtphek1g.js:13479

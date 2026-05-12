@@ -216,6 +216,15 @@ describe('Subscription Details Page', () => {
       }
       expect(defaultYieldValue).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasSubscriptionsData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await subscriptionDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

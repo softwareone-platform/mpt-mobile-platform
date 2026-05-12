@@ -155,6 +155,14 @@ describe('Buyer Details Page', () => {
       const country = await buyerDetailsPage.getSimpleFieldValue('Country', true);
       expect(country).toBeDefined();
     });
+
+    it('should display an avatar in the header', async function () {
+      if (!hasBuyersData) {
+        this.skip();
+        return;
+      }
+      await expect(buyerDetailsPage.headerAvatarWrapper).toBeDisplayed();
+    });
   });
 
   describe('API Data Validation', () => {

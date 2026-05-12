@@ -136,6 +136,15 @@ describe('Certificate Details Page', () => {
       const expiration = await certificateDetailsPage.getSimpleFieldValue('Expiration', true);
       expect(expiration).toBeDefined();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasCertificatesData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await certificateDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

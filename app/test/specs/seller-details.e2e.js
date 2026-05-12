@@ -118,6 +118,14 @@ describe('Seller Details Page', () => {
       const hasAddressData = addressLine1 || city || country;
       expect(hasAddressData).toBeTruthy();
     });
+
+    it('should display an avatar in the header', async function () {
+      if (!hasSellersData) {
+        this.skip();
+        return;
+      }
+      await expect(sellerDetailsPage.headerAvatarWrapper).toBeDisplayed();
+    });
   });
 
   describe('API Data Validation', () => {
