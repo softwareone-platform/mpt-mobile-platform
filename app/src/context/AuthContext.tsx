@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   useContext,
@@ -13,6 +14,7 @@ import { ACCOUNT_ID_CLAIM_KEY } from '@/constants/auth';
 import { usePortalVersion } from '@/hooks/queries/usePortalVersion';
 import { trackEvent } from '@/hooks/useTrackEvent';
 import { tokenProvider } from '@/lib/tokenProvider';
+import { appInsightsService } from '@/services/appInsightsService';
 import authService, { AuthTokens, User } from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
 import { environmentSwitcherService } from '@/services/environmentSwitcherService';
@@ -137,6 +139,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [authState, dispatch] = useReducer(authReducer, initialState);
+  const queryClient = useQueryClient();
   const REFRESH_BUFFER_MINUTES = 5;
   const REFRESH_BUFFER_MS = REFRESH_BUFFER_MINUTES * 60 * 1000;
 
@@ -202,10 +205,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       });
     } finally {
       await credentialStorageService.clearAllCredentials();
+      queryClient.clear();
+      appInsightsService.clearUser();
       dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
       trackEvent(AnalyticsEvents.AUTH_LOGOUT);
     }
-  }, [authState.tokens?.refreshToken]);
+  }, [authState.tokens?.refreshToken, queryClient]);
 
   const refreshAuth = useCallback(async (): Promise<AuthTokens | null> => {
     try {
