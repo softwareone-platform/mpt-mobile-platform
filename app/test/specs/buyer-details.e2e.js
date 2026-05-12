@@ -4,6 +4,7 @@ const buyerDetailsPage = require('../pageobjects/buyer-details.page');
 const buyersPage = require('../pageobjects/buyers.page');
 const morePage = require('../pageobjects/more.page');
 const accountDetailsPage = require('../pageobjects/account-details.page');
+const sellerDetailsPage = require('../pageobjects/seller-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX, DEFAULTS } = require('../pageobjects/utils/constants');
@@ -276,6 +277,19 @@ describe('Buyer Details Page', () => {
       await browser.pause(PAUSE.NAVIGATION);
       await expect(accountDetailsPage.itemIdText).toBeDisplayed();
       await accountDetailsPage.goBack();
+      await buyerDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Seller Details when Seller field is tapped', async function () {
+      if (!hasBuyersData) { this.skip(); return; }
+      await buyerDetailsPage.scrollToTop(3);
+      const sellerField = buyerDetailsPage.getCompositeField('Seller');
+      const isDisplayed = await sellerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await sellerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(sellerDetailsPage.headerTitle).toBeDisplayed();
+      await sellerDetailsPage.goBack();
       await buyerDetailsPage.waitForPageReady();
     });
   });
