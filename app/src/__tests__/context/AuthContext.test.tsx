@@ -111,10 +111,9 @@ describe('AuthContext - syncStoredAccountIdFromToken', () => {
     renderHook(() => useAuth(), { wrapper });
 
     await waitFor(() => {
-      expect(logger.warn).toHaveBeenCalledWith(
-        'Token accountId does not match stored accountId',
-        { operation: 'syncStoredAccountIdFromToken' },
-      );
+      expect(logger.warn).toHaveBeenCalledWith('Token accountId does not match stored accountId', {
+        operation: 'syncStoredAccountIdFromToken',
+      });
     });
   });
 });
