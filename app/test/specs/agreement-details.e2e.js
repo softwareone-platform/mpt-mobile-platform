@@ -3,6 +3,7 @@ const { expect } = require('@wdio/globals');
 const agreementDetailsPage = require('../pageobjects/agreement-details.page');
 const agreementsPage = require('../pageobjects/agreements.page');
 const subscriptionsPage = require('../pageobjects/subscriptions.page');
+const ordersPage = require('../pageobjects/orders.page');
 const invoicesPage = require('../pageobjects/invoices.page');
 const statementsPage = require('../pageobjects/statements.page');
 const morePage = require('../pageobjects/more.page');
@@ -304,6 +305,13 @@ describe('[Client] Agreement Details Page', () => {
       expect(has).toBe(true);
     });
 
+    it('should display the Orders sublist navigation item', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      const has = await agreementDetailsPage.hasSubList('Orders');
+      expect(has).toBe(true);
+    });
+
     it('should display the Invoices sublist navigation item', async function () {
       if (!hasAgreementsData) { this.skip(); return; }
       await agreementDetailsPage.scrollToTop(3);
@@ -325,6 +333,16 @@ describe('[Client] Agreement Details Page', () => {
       await subscriptionsPage.waitForScreenReady();
       await expect(subscriptionsPage.headerTitle).toBeDisplayed();
       await subscriptionsPage.goBack();
+      await agreementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Orders list when Orders sublist tapped', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      await agreementDetailsPage.tapSubList('Orders');
+      await ordersPage.waitForScreenReady();
+      await expect(ordersPage.headerTitle).toBeDisplayed();
+      await ordersPage.goBack();
       await agreementDetailsPage.waitForPageReady();
     });
 
