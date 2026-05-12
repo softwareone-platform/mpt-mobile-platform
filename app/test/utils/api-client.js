@@ -1222,6 +1222,62 @@ class ApiClient {
     return response.data || response;
   }
 
+  // ========== Sales Orders Methods ==========
+
+  /**
+   * Get sales orders list
+   * Matches app endpoint: /v1/procurement/sales-orders?select=-*,id,externalIds.operations,status&order=-audit.created.at
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of sales orders to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.order] - Sort order (default '-audit.created.at')
+   * @returns {Promise<object>} - Sales orders list response
+   *
+   * @example
+   * const salesOrders = await apiClient.getSalesOrders();
+   * const salesOrders = await apiClient.getSalesOrders({ limit: 10, offset: 0 });
+   */
+  async getSalesOrders(options = {}) {
+    const order = options.order || '-audit.created.at';
+    const queryParams = [`select=-*,id,externalIds.operations,status`, `order=${order}`];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    return this.get(`/public/v1/procurement/sales-orders?${queryParams.join('&')}`);
+  }
+
+  /**
+   * Get a specific sales order by ID
+   * @param {string} salesOrderId - Sales Order ID (e.g., 'SLO-XXXX-XXXX-XXXX')
+   * @returns {Promise<object>} - Sales order details including vendors and products
+   *
+   * @example
+   * const salesOrder = await apiClient.getSalesOrderById('SLO-1234-5678-9012');
+   */
+  async getSalesOrderById(salesOrderId) {
+    if (!salesOrderId) {
+      throw new Error(`Invalid salesOrderId: "${salesOrderId}"`);
+    }
+    return this.get(`/public/v1/procurement/sales-orders/${salesOrderId}?select=vendors,products`);
+  }
+
+  /**
+   * Get sales orders count
+   * @returns {Promise<number>} - Total number of sales orders
+   */
+  async getSalesOrdersCount() {
+    const response = await this.getSalesOrders({ limit: 1 });
+    return response.$meta?.pagination?.total || response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if any sales orders exist
+   * @returns {Promise<boolean>} - True if sales orders exist
+   */
+  async hasSalesOrders() {
+    const count = await this.getSalesOrdersCount();
+    return count > 0;
+  }
+
   // ========== Sellers Methods ==========
 
   /**
