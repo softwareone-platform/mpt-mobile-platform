@@ -24,10 +24,9 @@ interface OrderProviderProps {
 }
 
 export const OrdersProvider = ({ children, query }: OrderProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

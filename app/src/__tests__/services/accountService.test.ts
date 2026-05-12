@@ -36,6 +36,9 @@ import type { PaginatedResponse, ListItemFull } from '@/types/api';
 const mockGet = jest.fn();
 const mockPut = jest.fn();
 const mockRefreshAuth = jest.fn();
+const mockUpdateStoredAccountId = jest.fn();
+const mockLoadAccountId = jest.fn();
+const mockIsEnabled = jest.fn().mockReturnValue(true);
 
 jest.mock('@/hooks/useApi', () => ({
   useApi: () => ({
@@ -47,7 +50,21 @@ jest.mock('@/hooks/useApi', () => ({
 jest.mock('@/context/AuthContext', () => ({
   useAuth: () => ({
     refreshAuth: mockRefreshAuth,
+    updateStoredAccountId: mockUpdateStoredAccountId,
   }),
+}));
+
+jest.mock('@/hooks/useFeatureFlags', () => ({
+  useFeatureFlags: () => ({ isEnabled: mockIsEnabled }),
+}));
+
+jest.mock('@/services/credentialStorageService', () => ({
+  __esModule: true,
+  default: {
+    loadAccountId: (...args: unknown[]) => mockLoadAccountId(...args),
+    storeAccountId: jest.fn(),
+    clearAccountId: jest.fn(),
+  },
 }));
 
 const setup = () => renderHook(() => useAccountApi()).result.current;
@@ -244,6 +261,50 @@ describe('useAccountApi', () => {
 
     expect(logger.warn).toHaveBeenCalledWith('Failed to refresh token after account switch', {
       operation: 'switchAccount',
+    });
+  });
+
+  describe('switchAccount - multi-account rollback', () => {
+    beforeEach(() => {
+      mockUpdateStoredAccountId.mockResolvedValue(undefined);
+      mockLoadAccountId.mockResolvedValue('previous-account');
+    });
+
+    it('restores previous accountId when PUT fails', async () => {
+      const api = setup();
+      mockPut.mockRejectedValueOnce(new Error('PUT failed'));
+
+      let thrownError: Error | undefined;
+      await act(async () => {
+        try {
+          await api.switchAccount('100', 'new-account');
+        } catch (e) {
+          thrownError = e as Error;
+        }
+      });
+
+      expect(thrownError?.message).toBe('PUT failed');
+      expect(mockUpdateStoredAccountId).toHaveBeenNthCalledWith(1, 'new-account');
+      expect(mockUpdateStoredAccountId).toHaveBeenNthCalledWith(2, 'previous-account');
+    });
+
+    it('does not roll back when PUT fails and no previous accountId exists', async () => {
+      const api = setup();
+      mockLoadAccountId.mockResolvedValue(null);
+      mockPut.mockRejectedValueOnce(new Error('PUT failed'));
+
+      let thrownError: Error | undefined;
+      await act(async () => {
+        try {
+          await api.switchAccount('100', 'new-account');
+        } catch (e) {
+          thrownError = e as Error;
+        }
+      });
+
+      expect(thrownError?.message).toBe('PUT failed');
+      expect(mockUpdateStoredAccountId).toHaveBeenCalledTimes(1);
+      expect(mockUpdateStoredAccountId).toHaveBeenCalledWith('new-account');
     });
   });
 
@@ -563,52 +624,5 @@ describe('useAccountApi - getVendors', () => {
     mockGet.mockRejectedValueOnce(mockNetworkError);
 
     await expect(api.getVendors()).rejects.toThrow('Network error');
-  });
-});
-
-describe('useAccountApi - getAccountsForUser', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  const mockUserId = 'USR-1960-6520';
-
-  const expectedBaseUrl =
-    `/v1/accounts/users/${mockUserId}/accounts` + `?select=groups,audit` + `&order=name`;
-
-  it('calls with default offset and limit', async () => {
-    const api = setup();
-    mockGet.mockResolvedValueOnce({ data: [] });
-
-    let res;
-    await act(async () => {
-      res = await api.getAccountsForUser(mockUserId);
-    });
-
-    const expectedUrl =
-      expectedBaseUrl + `&offset=${DEFAULT_OFFSET}` + `&limit=${DEFAULT_PAGE_SIZE}`;
-
-    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
-    expect(res).toEqual({ data: [] });
-  });
-
-  it('calls with custom offset and limit', async () => {
-    const api = setup();
-    mockGet.mockResolvedValueOnce({ data: [] });
-
-    let res;
-    await act(async () => {
-      res = await api.getAccountsForUser(mockUserId, 10, 5);
-    });
-
-    expect(mockGet).toHaveBeenCalledWith(expectedBaseUrl + `&offset=10` + `&limit=5`);
-    expect(res).toEqual({ data: [] });
-  });
-
-  it('handles API errors correctly', async () => {
-    const api = setup();
-    mockGet.mockRejectedValueOnce(mockNetworkError);
-
-    await expect(api.getAccountsForUser(mockUserId)).rejects.toThrow('Network error');
   });
 });

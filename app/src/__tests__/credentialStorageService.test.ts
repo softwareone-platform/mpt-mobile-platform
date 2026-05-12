@@ -91,6 +91,7 @@ describe('CredentialStorageService', () => {
       expect(mockAsyncStorage.removeItem).toHaveBeenCalledWith('auth_tokens');
       expect(mockAsyncStorage.removeItem).toHaveBeenCalledWith('auth_user');
       expect(mockSecureStore.deleteItemAsync).toHaveBeenCalledWith('auth_refresh_token');
+      expect(mockSecureStore.deleteItemAsync).toHaveBeenCalledWith('auth_account_id');
     });
 
     it('should check stored credentials existence', async () => {
@@ -344,6 +345,68 @@ describe('CredentialStorageService', () => {
     });
   });
 
+  describe('storeAccountId', () => {
+    it('should store account ID in SecureStore', async () => {
+      mockSecureStore.setItemAsync.mockResolvedValue();
+
+      await credentialStorageService.storeAccountId('ACC-123');
+
+      expect(mockSecureStore.setItemAsync).toHaveBeenCalledWith('auth_account_id', 'ACC-123');
+    });
+
+    it('should handle error when storing account ID', async () => {
+      mockSecureStore.setItemAsync.mockRejectedValue(new Error('SecureStore error'));
+
+      await expect(credentialStorageService.storeAccountId('ACC-123')).resolves.toBeUndefined();
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('loadAccountId', () => {
+    it('should return account ID from SecureStore', async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue('ACC-123');
+
+      const result = await credentialStorageService.loadAccountId();
+
+      expect(result).toBe('ACC-123');
+      expect(mockSecureStore.getItemAsync).toHaveBeenCalledWith('auth_account_id');
+    });
+
+    it('should return null when no account ID is stored', async () => {
+      mockSecureStore.getItemAsync.mockResolvedValue(null);
+
+      const result = await credentialStorageService.loadAccountId();
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle error and return null', async () => {
+      mockSecureStore.getItemAsync.mockRejectedValue(new Error('SecureStore error'));
+
+      const result = await credentialStorageService.loadAccountId();
+
+      expect(result).toBeNull();
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('clearAccountId', () => {
+    it('should delete account ID from SecureStore', async () => {
+      mockSecureStore.deleteItemAsync.mockResolvedValue();
+
+      await credentialStorageService.clearAccountId();
+
+      expect(mockSecureStore.deleteItemAsync).toHaveBeenCalledWith('auth_account_id');
+    });
+
+    it('should handle error when clearing account ID', async () => {
+      mockSecureStore.deleteItemAsync.mockRejectedValue(new Error('SecureStore error'));
+
+      await expect(credentialStorageService.clearAccountId()).resolves.toBeUndefined();
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
+
   describe('getStorageKeys', () => {
     it('should return storage keys', () => {
       const keys = credentialStorageService.getStorageKeys();
@@ -352,6 +415,7 @@ describe('CredentialStorageService', () => {
         TOKENS: 'auth_tokens',
         REFRESH_TOKEN: 'auth_refresh_token',
         USER: 'auth_user',
+        ACCOUNT_ID: 'auth_account_id',
       });
     });
 

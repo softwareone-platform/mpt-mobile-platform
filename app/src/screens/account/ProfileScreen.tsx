@@ -28,13 +28,13 @@ export const DEFAULT_ACCOUNT_FILTER = 'all';
 const FILTER_KEYS: (keyof FormattedUserAccounts)[] = ['all', 'favourites', 'recent'];
 
 const ProfileScreen = () => {
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [isSwitching, setIsSwitching] = useState(false);
   const [selectedTab, setSelectedTab] =
     useState<keyof FormattedUserAccounts>(DEFAULT_ACCOUNT_FILTER);
 
   const {
     userData,
+    currentAccountId,
     userAccountsData,
     switchAccount,
     accountsFetchingNext,
@@ -43,6 +43,10 @@ const ProfileScreen = () => {
     refetchAccounts,
     isAccountsRefetching,
   } = useAccount();
+
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
+    currentAccountId ?? null,
+  );
   const { isEnabled } = useFeatureFlags();
   const insets = useSafeAreaInsets();
 
@@ -73,10 +77,10 @@ const ProfileScreen = () => {
   );
 
   useEffect(() => {
-    if (userData?.currentAccount?.id) {
-      setSelectedAccountId(userData.currentAccount.id);
+    if (currentAccountId) {
+      setSelectedAccountId(currentAccountId);
     }
-  }, [userData]);
+  }, [currentAccountId]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -101,7 +105,7 @@ const ProfileScreen = () => {
 
   const handleSwitchAccount = useCallback(
     async (accountId: string) => {
-      if (accountId === selectedAccountId) return;
+      if (accountId === (selectedAccountId ?? currentAccountId)) return;
 
       setIsSwitching(true);
       setSelectedAccountId(accountId);
@@ -111,7 +115,7 @@ const ProfileScreen = () => {
         setIsSwitching(false);
       }
     },
-    [selectedAccountId, switchAccount],
+    [selectedAccountId, currentAccountId, switchAccount],
   );
 
   const listHeader = useMemo(

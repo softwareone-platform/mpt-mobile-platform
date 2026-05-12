@@ -3,6 +3,8 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE, DEFAULT_OFFSET, DEFAULT_SPOTLIGHT_LIMIT } from '@/constants/api';
 import { useAuth } from '@/context/AuthContext';
 import { useApi } from '@/hooks/useApi';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import credentialStorageService from '@/services/credentialStorageService';
 import { logger } from '@/services/loggerService';
 import type {
   UserAccount,
@@ -19,7 +21,8 @@ import type {
 
 export function useAccountApi() {
   const api = useApi();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, updateStoredAccountId } = useAuth();
+  const { isEnabled } = useFeatureFlags();
 
   const getUserData = useCallback(
     async (userId: string): Promise<UserData> => {
@@ -91,13 +94,30 @@ export function useAccountApi() {
         throw new Error('User ID is required to switch accounts');
       }
 
+      const isMultiAccountEnabled = isEnabled('FEATURE_MULTI_ACCOUNT');
+
+      const previousAccountId = isMultiAccountEnabled
+        ? await credentialStorageService.loadAccountId()
+        : null;
+
+      if (isMultiAccountEnabled) {
+        await updateStoredAccountId(accountId);
+      }
+
       const body: SwitchAccountBody = {
         currentAccount: { id: accountId },
       };
-
       const endpoint = `/v1/accounts/users/${userId}`;
 
-      await api.put<void, SwitchAccountBody>(endpoint, body);
+      try {
+        await api.put<void, SwitchAccountBody>(endpoint, body);
+      } catch (error) {
+        if (isMultiAccountEnabled && previousAccountId) {
+          await updateStoredAccountId(previousAccountId);
+        }
+        throw error;
+      }
+
       try {
         await refreshAuth();
       } catch (error) {
@@ -106,31 +126,13 @@ export function useAccountApi() {
         });
       }
     },
-    [api, refreshAuth],
+    [api, refreshAuth, isEnabled, updateStoredAccountId],
   );
 
   const getAccountData = useCallback(
     async (accountId: string): Promise<AccountDetails> => {
       const endpoint = `/v1/accounts/accounts/${accountId}?select=audit,groups`;
       return api.get<AccountDetails>(endpoint);
-    },
-    [api],
-  );
-
-  const getAccountsForUser = useCallback(
-    async (
-      userId: string,
-      offset: number = DEFAULT_OFFSET,
-      limit: number = DEFAULT_PAGE_SIZE,
-    ): Promise<PaginatedUserAccounts> => {
-      const endpoint =
-        `/v1/accounts/users/${userId}/accounts` +
-        `?select=groups,audit` +
-        `&order=name` +
-        `&offset=${offset}` +
-        `&limit=${limit}`;
-
-      return api.get<PaginatedUserAccounts>(endpoint);
     },
     [api],
   );
@@ -177,7 +179,6 @@ export function useAccountApi() {
       getCurrentAccountIcon,
       getAllUserAccounts,
       getUserAccountsData,
-      getAccountsForUser,
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,
@@ -190,7 +191,6 @@ export function useAccountApi() {
       getCurrentAccountIcon,
       getAllUserAccounts,
       getUserAccountsData,
-      getAccountsForUser,
       getSpotlightData,
       getSubscriptionsData,
       switchAccount,

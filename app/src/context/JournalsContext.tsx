@@ -19,10 +19,9 @@ interface JournalsContextValue {
 const JournalsContext = createContext<JournalsContextValue | undefined>(undefined);
 
 export const JournalsProvider = ({ children }: { children: ReactNode }) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

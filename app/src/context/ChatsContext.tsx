@@ -28,10 +28,9 @@ const ChatsContext = createContext<ChatsContextValue | undefined>(undefined);
 export const ChatsProvider = ({ children }: ChatsProviderProps) => {
   const queryClient = useQueryClient();
   const { addReconnectionListener } = useSignalR();
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

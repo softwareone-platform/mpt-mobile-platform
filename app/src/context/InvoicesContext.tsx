@@ -24,10 +24,9 @@ interface InvoiceProviderProps {
 const InvoicesContext = createContext<InvoicesContextValue | undefined>(undefined);
 
 export const InvoicesProvider = ({ children, query }: InvoiceProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

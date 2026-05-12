@@ -20,10 +20,9 @@ interface BillingContextValue {
 const BillingContext = createContext<BillingContextValue | undefined>(undefined);
 
 export const BillingProvider = ({ children }: { children: ReactNode }) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

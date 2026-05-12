@@ -9,8 +9,7 @@ type UseAccountTypeResult = {
 };
 
 export const useAccountType = (): UseAccountTypeResult => {
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type;
+  const { currentAccountType: accountType } = useAccount();
 
   return {
     accountType,

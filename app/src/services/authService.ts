@@ -10,7 +10,7 @@ import {
 import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { appInsightsService } from '@/services/appInsightsService';
 import { logger } from '@/services/loggerService';
-import { retryAuth0Operation } from '@/utils/retryAuth0';
+import { retryAuth0Operation, ErrorWithStatus } from '@/utils/retryAuth0';
 
 export interface AuthTokens {
   accessToken: string;
@@ -33,7 +33,7 @@ export interface Auth0PasswordlessResponse {
   message?: string;
 }
 
-export interface Auth0TokenResponse {
+interface Auth0RefreshTokenResponse {
   access_token: string;
   refresh_token?: string;
   token_type: string;
@@ -142,11 +142,46 @@ class AuthenticationService {
     }
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
+  async refreshAccessToken(refreshToken: string, accountId?: string): Promise<AuthTokens> {
+    // The react-native-auth0 library's refreshToken() does not forward additionalParameters
+    // into the request body, so we use a direct JSON fetch to pass marketplaceAccountId.
+    const tokenUrl = `https://${this.domain}/oauth/token`;
+    const requestBody: Record<string, string> = {
+      grant_type: 'refresh_token',
+      client_id: this.clientId,
+      refresh_token: refreshToken,
+      ...(this.audience && { audience: this.audience }),
+      ...(this.scope && { scope: this.scope }),
+      ...(accountId && { marketplaceAccountId: accountId }),
+    };
+
     try {
       const result = await retryAuth0Operation(
         async () => {
-          return await this.auth0.auth.refreshToken({ refreshToken });
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), AUTH0_REQUEST_TIMEOUT_MS);
+
+          try {
+            const response = await fetch(tokenUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestBody),
+              signal: controller.signal,
+            });
+
+            if (!response.ok) {
+              const errorBody = await response.text();
+              const fetchError = new Error(
+                `Token refresh failed: ${response.status} ${errorBody}`,
+              ) as ErrorWithStatus;
+              fetchError.status = response.status;
+              throw fetchError;
+            }
+
+            return (await response.json()) as Auth0RefreshTokenResponse;
+          } finally {
+            clearTimeout(timeoutId);
+          }
         },
         'refreshAccessToken',
         {
@@ -154,12 +189,13 @@ class AuthenticationService {
           initialDelayMs: AUTH0_REFRESH_TOKEN_INITIAL_DELAY_MS,
         },
       );
-      const expiresAt = this.getExpiryFromJWT(result.accessToken);
+
+      const expiresAt = this.getExpiryFromJWT(result.access_token);
 
       return {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken || refreshToken,
-        tokenType: result.tokenType || 'Bearer',
+        accessToken: result.access_token,
+        refreshToken: result.refresh_token || refreshToken,
+        tokenType: result.token_type || 'Bearer',
         expiresAt,
       };
     } catch (error) {
