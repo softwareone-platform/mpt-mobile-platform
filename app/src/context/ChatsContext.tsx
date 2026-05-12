@@ -1,17 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useMemo,
-  useEffect,
-  useRef,
-  useCallback,
-} from 'react';
+import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react';
 
 import { useAccount } from '@/context/AccountContext';
 import { useSignalR } from '@/context/SignalRContext';
 import { useChatsData } from '@/hooks/queries/useChatsData';
+import { useManualRefetch } from '@/hooks/useManualRefetch';
 import { logger } from '@/services/loggerService';
 import type { ChatItem } from '@/types/chat';
 
@@ -52,18 +45,7 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
     isRefetching,
   } = useChatsData(userId, currentAccountId);
 
-  const isManualRefreshingRef = useRef(false);
-
-  useEffect(() => {
-    if (!isRefetching) {
-      isManualRefreshingRef.current = false;
-    }
-  }, [isRefetching]);
-
-  const refetchChats = useCallback(() => {
-    isManualRefreshingRef.current = true;
-    void refetch();
-  }, [refetch]);
+  const { refetch: refetchChats, isManuallyRefetching } = useManualRefetch(refetch, isRefetching);
 
   const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
@@ -103,7 +85,7 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
         isUnauthorised,
         fetchChats: fetchNextPage,
         refetchChats,
-        isRefetchingChats: isRefetching && isManualRefreshingRef.current,
+        isRefetchingChats: isManuallyRefetching,
       }}
     >
       {children}

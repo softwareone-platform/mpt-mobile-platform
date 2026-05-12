@@ -19,6 +19,7 @@ import { useSwitchAccount } from '@/hooks/queries/useSwitchAccount';
 import { useUserAccountsData } from '@/hooks/queries/useUserAccountsData';
 import { useUserData } from '@/hooks/queries/useUserData';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useManualRefetch } from '@/hooks/useManualRefetch';
 import { trackEvent } from '@/hooks/useTrackEvent';
 import { authService } from '@/services/authService';
 import { logger } from '@/services/loggerService';
@@ -104,18 +105,8 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     isRefetching: isSpotlightRefetching,
   } = useSpotlightData(userId, currentAccountId);
 
-  const isManualSpotlightRefreshingRef = useRef(false);
-
-  useEffect(() => {
-    if (!isSpotlightRefetching) {
-      isManualSpotlightRefreshingRef.current = false;
-    }
-  }, [isSpotlightRefetching]);
-
-  const refetchSpotlight = useCallback(() => {
-    isManualSpotlightRefreshingRef.current = true;
-    void refetchSpotlightQuery();
-  }, [refetchSpotlightQuery]);
+  const { refetch: refetchSpotlight, isManuallyRefetching: isSpotlightManuallyRefetching } =
+    useManualRefetch(refetchSpotlightQuery, isSpotlightRefetching);
 
   const spotlightData = spotlightDataRaw ?? {};
 
@@ -196,7 +187,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         pendingAccountId,
         switchAccount,
         refetchSpotlight,
-        isSpotlightRefetching: isSpotlightRefetching && isManualSpotlightRefreshingRef.current,
+        isSpotlightRefetching: isSpotlightManuallyRefetching,
       }}
     >
       {children}
