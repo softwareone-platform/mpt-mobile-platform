@@ -490,7 +490,7 @@ if ($Platform -eq "android") {
     }
     
     if (-not $env:DEVICE_NAME) { $env:DEVICE_NAME = "Pixel 8" }
-    if (-not $env:PLATFORM_VERSION) { $env:PLATFORM_VERSION = "14" }
+    if (-not $env:PLATFORM_VERSION) { $env:PLATFORM_VERSION = "12" }
 } else {
     # iOS configuration (for future use)
     $env:PLATFORM_NAME = "iOS"

@@ -68,6 +68,7 @@ export type AppScreensParamList = {
   enrollmentDetails: { id: string | undefined };
   certificateDetails: { id: string | undefined };
   chatConversation: { id: string | undefined };
+  salesOrderDetails: { id: string | undefined };
 };
 
 export type SpotlightStackParamList = {
