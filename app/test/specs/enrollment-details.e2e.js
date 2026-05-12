@@ -3,6 +3,11 @@ const { expect } = require('@wdio/globals');
 const enrollmentDetailsPage = require('../pageobjects/enrollment-details.page');
 const enrollmentsPage = require('../pageobjects/enrollments.page');
 const morePage = require('../pageobjects/more.page');
+const programDetailsPage = require('../pageobjects/program-details.page');
+const certificateDetailsPage = require('../pageobjects/certificate-details.page');
+const buyerDetailsPage = require('../pageobjects/buyer-details.page');
+const licenseeDetailsPage = require('../pageobjects/licensee-details.page');
+const userDetailsPage = require('../pageobjects/user-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
@@ -185,6 +190,67 @@ describe('Enrollment Details Page', () => {
       console.info(`Assignee:      UI="${uiDetails.assignee}" | API="${apiEnrollmentData.assignee?.name}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.enrollmentId).toBe(apiEnrollmentData.id);
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Program Details when Program field is tapped', async function () {
+      if (!hasEnrollmentsData) { this.skip(); return; }
+      await enrollmentDetailsPage.scrollToTop(3);
+      const programField = enrollmentDetailsPage.getCompositeField('Program');
+      const isDisplayed = await programField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await programField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(programDetailsPage.headerTitle).toBeDisplayed();
+      await programDetailsPage.goBack();
+      await enrollmentDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Certificate Details when Certificate field is tapped', async function () {
+      if (!hasEnrollmentsData) { this.skip(); return; }
+      await enrollmentDetailsPage.scrollToTop(3);
+      const certificateField = enrollmentDetailsPage.getCompositeField('Certificate');
+      const isDisplayed = await certificateField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await certificateField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(certificateDetailsPage.headerTitle).toBeDisplayed();
+      await certificateDetailsPage.goBack();
+      await enrollmentDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to a certificant details screen when Certificant field is tapped', async function () {
+      if (!hasEnrollmentsData) { this.skip(); return; }
+      await enrollmentDetailsPage.scrollToTop(3);
+      const certificantField = enrollmentDetailsPage.getCompositeField('Certificant');
+      const isDisplayed = await certificantField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await certificantField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      // Certificant navigates to Buyer or Licensee depending on enrollment applicableTo
+      const onBuyerPage = await buyerDetailsPage.headerTitle.isDisplayed().catch(() => false);
+      const onLicenseePage = await licenseeDetailsPage.headerTitle.isDisplayed().catch(() => false);
+      expect(onBuyerPage || onLicenseePage).toBe(true);
+      if (onBuyerPage) {
+        await buyerDetailsPage.goBack();
+      } else {
+        await licenseeDetailsPage.goBack();
+      }
+      await enrollmentDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to User Details when Assignee field is tapped', async function () {
+      if (!hasEnrollmentsData) { this.skip(); return; }
+      await enrollmentDetailsPage.scrollToTop(3);
+      const assigneeField = enrollmentDetailsPage.getCompositeField('Assignee');
+      const isDisplayed = await assigneeField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await assigneeField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(userDetailsPage.headerTitle).toBeDisplayed();
+      await userDetailsPage.goBack();
+      await enrollmentDetailsPage.waitForPageReady();
     });
   });
 });

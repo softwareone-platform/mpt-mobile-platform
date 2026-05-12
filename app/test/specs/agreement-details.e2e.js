@@ -3,6 +3,8 @@ const { expect } = require('@wdio/globals');
 const agreementDetailsPage = require('../pageobjects/agreement-details.page');
 const agreementsPage = require('../pageobjects/agreements.page');
 const morePage = require('../pageobjects/more.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
+const productDetailsPage = require('../pageobjects/product-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
@@ -291,6 +293,34 @@ describe('[Client] Agreement Details Page', () => {
       );
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.agreementId).toBe(apiAgreementData.id);
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Product Details when Product field is tapped', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      const productField = agreementDetailsPage.getCompositeField('Product');
+      const isDisplayed = await productField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await productField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(productDetailsPage.headerTitle).toBeDisplayed();
+      await productDetailsPage.goBack();
+      await agreementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Account Details when Client field is tapped', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      const clientField = agreementDetailsPage.getCompositeField('Client');
+      const isDisplayed = await clientField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await clientField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(accountDetailsPage.itemIdText).toBeDisplayed();
+      await accountDetailsPage.goBack();
+      await agreementDetailsPage.waitForPageReady();
     });
   });
 });

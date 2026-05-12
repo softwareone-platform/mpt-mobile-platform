@@ -3,6 +3,9 @@ const { expect, $ } = require('@wdio/globals');
 const licenseeDetailsPage = require('../pageobjects/licensee-details.page');
 const licenseesPage = require('../pageobjects/licensees.page');
 const morePage = require('../pageobjects/more.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
+const buyerDetailsPage = require('../pageobjects/buyer-details.page');
+const sellerDetailsPage = require('../pageobjects/seller-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX, SCROLL } = require('../pageobjects/utils/constants');
@@ -239,6 +242,47 @@ describe('Licensee Details Page', () => {
       console.info(`Country:      UI="${uiDetails.country}" | API="${address.country}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.licenseeId).toBe(apiLicenseeData.id);
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Account Details when Account field is tapped', async function () {
+      if (!hasLicenseesData) { this.skip(); return; }
+      await licenseeDetailsPage.scrollToTop(3);
+      const accountField = licenseeDetailsPage.getCompositeField('Account');
+      const isDisplayed = await accountField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await accountField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(accountDetailsPage.itemIdText).toBeDisplayed();
+      await accountDetailsPage.goBack();
+      await licenseeDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Buyer Details when Buyer field is tapped', async function () {
+      if (!hasLicenseesData) { this.skip(); return; }
+      await licenseeDetailsPage.scrollToTop(3);
+      const buyerField = licenseeDetailsPage.getCompositeField('Buyer');
+      const isDisplayed = await buyerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await buyerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(buyerDetailsPage.headerTitle).toBeDisplayed();
+      await buyerDetailsPage.goBack();
+      await licenseeDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Seller Details when Seller field is tapped', async function () {
+      if (!hasLicenseesData) { this.skip(); return; }
+      await licenseeDetailsPage.scrollToTop(3);
+      const sellerField = licenseeDetailsPage.getCompositeField('Seller');
+      const isDisplayed = await sellerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await sellerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(sellerDetailsPage.headerTitle).toBeDisplayed();
+      await sellerDetailsPage.goBack();
+      await licenseeDetailsPage.waitForPageReady();
     });
   });
 });

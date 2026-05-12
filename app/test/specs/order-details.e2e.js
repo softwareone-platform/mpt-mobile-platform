@@ -2,9 +2,11 @@ const { expect } = require('@wdio/globals');
 
 const orderDetailsPage = require('../pageobjects/order-details.page');
 const ordersPage = require('../pageobjects/orders.page');
+const agreementDetailsPage = require('../pageobjects/agreement-details.page');
+const productDetailsPage = require('../pageobjects/product-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
-const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
 
@@ -340,6 +342,34 @@ describe('[Client] Order Details Page', () => {
 
       // Basic validation - order ID should always match
       expect(uiDetails.orderId).toBe(apiOrderData.id || apiOrderData.orderId);
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Agreement Details when Agreement field is tapped', async function () {
+      if (!hasOrdersData) { this.skip(); return; }
+      await orderDetailsPage.scrollToTop(3);
+      const agreementField = orderDetailsPage.getCompositeField('Agreement');
+      const isDisplayed = await agreementField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await agreementField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(agreementDetailsPage.headerTitle).toBeDisplayed();
+      await agreementDetailsPage.goBack();
+      await orderDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Product Details when Product field is tapped', async function () {
+      if (!hasOrdersData) { this.skip(); return; }
+      await orderDetailsPage.scrollToTop(3);
+      const productField = orderDetailsPage.getCompositeField('Product');
+      const isDisplayed = await productField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await productField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(productDetailsPage.headerTitle).toBeDisplayed();
+      await productDetailsPage.goBack();
+      await orderDetailsPage.waitForPageReady();
     });
   });
 });

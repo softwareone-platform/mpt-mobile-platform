@@ -3,6 +3,8 @@ const { expect } = require('@wdio/globals');
 const certificateDetailsPage = require('../pageobjects/certificate-details.page');
 const certificatesPage = require('../pageobjects/certificates.page');
 const morePage = require('../pageobjects/more.page');
+const programDetailsPage = require('../pageobjects/program-details.page');
+const buyerDetailsPage = require('../pageobjects/buyer-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
@@ -176,6 +178,34 @@ describe('Certificate Details Page', () => {
       console.info(`Expiration:     UI="${uiDetails.expiration}" | API="${apiCertificateData.expirationDate}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.certificateId).toBe(apiCertificateData.id);
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Program Details when Program field is tapped', async function () {
+      if (!hasCertificatesData) { this.skip(); return; }
+      await certificateDetailsPage.scrollToTop(3);
+      const programField = certificateDetailsPage.getCompositeField('Program');
+      const isDisplayed = await programField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await programField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(programDetailsPage.headerTitle).toBeDisplayed();
+      await programDetailsPage.goBack();
+      await certificateDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Buyer Details when Certificant field is tapped', async function () {
+      if (!hasCertificatesData) { this.skip(); return; }
+      await certificateDetailsPage.scrollToTop(3);
+      const certificantField = certificateDetailsPage.getCompositeField('Certificant');
+      const isDisplayed = await certificantField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await certificantField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(buyerDetailsPage.headerTitle).toBeDisplayed();
+      await buyerDetailsPage.goBack();
+      await certificateDetailsPage.waitForPageReady();
     });
   });
 });
