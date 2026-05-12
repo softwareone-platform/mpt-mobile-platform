@@ -28,7 +28,7 @@ describe('Licensee Details Page', () => {
 
     let clientsExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     if (!clientsExists) {
-      await licenseesPage.scrollDown();
+      await morePage.scrollDown();
       await browser.pause(PAUSE.ANIMATION_SETTLE);
       clientsExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     }
