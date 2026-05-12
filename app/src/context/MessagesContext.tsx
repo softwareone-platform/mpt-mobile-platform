@@ -47,8 +47,7 @@ const MESSAGE_SUBSCRIPTIONS: EntitySubscription[] = [
 export const MessagesProvider = ({ chatId, children }: MessagesProviderProps) => {
   const queryClient = useQueryClient();
   const { subscribe, addMessageListener, addReconnectionListener } = useSignalR();
-  const { userData } = useAccount();
-  const accountType = userData?.currentAccount?.type;
+  const { currentAccountType: accountType } = useAccount();
 
   const {
     data,

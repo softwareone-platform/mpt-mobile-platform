@@ -25,10 +25,9 @@ interface SubscriptionProviderProps {
 const SubscriptionsContext = createContext<SubscriptionsContextValue | undefined>(undefined);
 
 export const SubscriptionsProvider = ({ children, query, source }: SubscriptionProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

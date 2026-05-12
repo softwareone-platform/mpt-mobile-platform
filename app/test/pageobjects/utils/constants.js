@@ -172,10 +172,13 @@ const REGEX = {
   BUYER_ID_FLEX: /^BUY-(\d{4}-?)+\d{4}$/,
   LICENSEE_ID: /^LCE-\d{4}-\d{4}-\d{4}$/,
   ENROLLMENT_ID: /^ENR-\d{4}-\d{4}-\d{4}$/,
+  CERTIFICATE_ID: /^CER-\d{4}-\d{4}-\d{4}$/,
   CHAT_ID: /^CHT-\d{4}-\d{4}-\d{4}$/,
   CHAT_ID_EXTRACT: /(CHT-\d{4}-\d{4}-\d{4})/,
   USER_ID_IN_LABEL: /,\s*USR-\d{4}-\d{4},/,
   ACCOUNT_ID: /^ACC-\d{4}-\d{4}$/,
+  SELLER_ID: /^SEL-\d{4}-\d{4}$/,
+  SALES_ORDER_ID: /^SOR-\d{4}-\d{4}-\d{4}$/,
 };
 
 // ============ Default / Sentinel Constants ============
@@ -233,6 +236,15 @@ const STATUSES = {
 
   /** Valid statuses that can appear for users in the UI */
   USER: ['Active', 'Blocked', 'Invitation Expired'],
+
+  /** Valid statuses that can appear for certificates in the UI */
+  CERTIFICATE: ['Active', 'Draft', 'Terminated'],
+
+  /** Valid statuses that can appear for sellers in the UI */
+  SELLER: ['Active', 'Disabled'],
+
+  /** Valid statuses that can appear for sales orders in the UI */
+  SALES_ORDER: ['Draft', 'Processing', 'Ready', 'Completed', 'Cancelled'],
 };
 
 module.exports = {

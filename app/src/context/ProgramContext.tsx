@@ -19,10 +19,9 @@ interface ProgramContextValue {
 const ProgramContext = createContext<ProgramContextValue | undefined>(undefined);
 
 export const ProgramProvider = ({ children }: { children: ReactNode }) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

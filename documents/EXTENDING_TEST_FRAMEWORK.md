@@ -33,7 +33,7 @@ const androidCapabilities = {
     'appium:appPackage': process.env.APP_PACKAGE || 'com.softwareone.marketplaceMobile',
     'appium:appActivity': process.env.APP_ACTIVITY || '.MainActivity',
     'appium:deviceName': process.env.DEVICE_NAME || 'Android Emulator',
-    'appium:platformVersion': process.env.PLATFORM_VERSION || '14.0',
+    'appium:platformVersion': process.env.PLATFORM_VERSION || '12.0',
     'appium:automationName': 'UiAutomator2',
     'appium:udid': process.env.DEVICE_UDID,
 };
@@ -58,7 +58,7 @@ capabilities: [isAndroid() ? androidCapabilities : iosCapabilities]
 - `APP_PACKAGE`: Android package name (default: `com.softwareone.marketplaceMobile`)
 - `APP_ACTIVITY`: Main activity (default: `.MainActivity`)
 - `DEVICE_NAME`: Emulator or device name (default: `Android Emulator`)
-- `PLATFORM_VERSION`: Android version (default: `14.0`)
+- `PLATFORM_VERSION`: Android version (default: `12.0`)
 - `DEVICE_UDID`: Device serial (auto-detected by test script)
 
 **Common:**

@@ -24,10 +24,9 @@ interface BuyerProviderProps {
 const BuyersContext = createContext<BuyersContextValue | undefined>(undefined);
 
 export const BuyersProvider = ({ children, query }: BuyerProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

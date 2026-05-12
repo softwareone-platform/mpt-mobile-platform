@@ -1143,6 +1143,199 @@ class ApiClient {
     return response.data || response;
   }
 
+  // ========== Certificates Methods ==========
+
+  /**
+   * Get certificates list for the authenticated user
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of certificates to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.status] - Filter by certificate status (Active, Draft, Terminated)
+   * @returns {Promise<object>} - Certificates list response
+   *
+   * @example
+   * // Get all certificates
+   * const certificates = await apiClient.getCertificates();
+   *
+   * // Get certificates with pagination
+   * const certificates = await apiClient.getCertificates({ limit: 10, offset: 0 });
+   */
+  async getCertificates(options = {}) {
+    let endpoint = '/public/v1/program/certificates';
+
+    // Match app's default query (mirrors certificateService.ts: ne(status,"Deleted")&order=name)
+    const queryParams = ['select=-*,id,name,status', 'ne(status,"Deleted")', 'order=name'];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    if (options.status) queryParams.push(`eq(status,"${options.status}")`);
+
+    endpoint += '?' + queryParams.join('&');
+
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get a specific certificate by ID
+   * @param {string} certificateId - Certificate ID in format CER-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Certificate details
+   *
+   * @example
+   * const certificate = await apiClient.getCertificateById('CER-3022-2070-2487');
+   */
+  async getCertificateById(certificateId) {
+    if (!certificateId || !/^CER-\d{4}-\d{4}-\d{4}$/.test(certificateId)) {
+      throw new Error(`Invalid certificateId format: "${certificateId}". Expected format: CER-XXXX-XXXX-XXXX`);
+    }
+
+    return this.get(`/public/v1/program/certificates/${certificateId}?select=id,name,status,applicableTo,expirationDate,program.id,program.name,vendor.id,vendor.name,licensee.account.id,template.id,terms`);
+  }
+
+  /**
+   * Get certificates count
+   * @returns {Promise<number>} - Total number of certificates
+   */
+  async getCertificatesCount() {
+    const response = await this.getCertificates({ limit: 1 });
+    return response.$meta?.pagination?.total || response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if user has any certificates
+   * @returns {Promise<boolean>}
+   */
+  async hasCertificates() {
+    const count = await this.getCertificatesCount();
+    return count > 0;
+  }
+
+  /**
+   * Get certificates by status
+   * @param {string} status - Certificate status (Active, Draft, Terminated)
+   * @returns {Promise<Array>} - Array of certificates with the specified status
+   */
+  async getCertificatesByStatus(status) {
+    if (!STATUSES.CERTIFICATE.includes(status)) {
+      throw new Error(`Invalid status: "${status}". Must be one of: ${STATUSES.CERTIFICATE.join(', ')}`);
+    }
+
+    const response = await this.getCertificates({ status });
+    return response.data || response;
+  }
+
+  // ========== Sales Orders Methods ==========
+
+  /**
+   * Get sales orders list
+   * Matches app endpoint: /v1/procurement/sales-orders?select=-*,id,externalIds.operations,status&order=-audit.created.at
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of sales orders to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.order] - Sort order (default '-audit.created.at')
+   * @returns {Promise<object>} - Sales orders list response
+   *
+   * @example
+   * const salesOrders = await apiClient.getSalesOrders();
+   * const salesOrders = await apiClient.getSalesOrders({ limit: 10, offset: 0 });
+   */
+  async getSalesOrders(options = {}) {
+    const order = options.order || '-audit.created.at';
+    const queryParams = [`select=-*,id,externalIds.operations,status`, `order=${order}`];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    return this.get(`/public/v1/procurement/sales-orders?${queryParams.join('&')}`);
+  }
+
+  /**
+   * Get a specific sales order by ID
+   * @param {string} salesOrderId - Sales Order ID (e.g., 'SLO-XXXX-XXXX-XXXX')
+   * @returns {Promise<object>} - Sales order details including vendors and products
+   *
+   * @example
+   * const salesOrder = await apiClient.getSalesOrderById('SLO-1234-5678-9012');
+   */
+  async getSalesOrderById(salesOrderId) {
+    if (!salesOrderId) {
+      throw new Error(`Invalid salesOrderId: "${salesOrderId}"`);
+    }
+    return this.get(`/public/v1/procurement/sales-orders/${salesOrderId}?select=vendors,products`);
+  }
+
+  /**
+   * Get sales orders count
+   * @returns {Promise<number>} - Total number of sales orders
+   */
+  async getSalesOrdersCount() {
+    const response = await this.getSalesOrders({ limit: 1 });
+    return response.$meta?.pagination?.total || response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if any sales orders exist
+   * @returns {Promise<boolean>} - True if sales orders exist
+   */
+  async hasSalesOrders() {
+    const count = await this.getSalesOrdersCount();
+    return count > 0;
+  }
+
+  // ========== Sellers Methods ==========
+
+  /**
+   * Get sellers list
+   * Matches app endpoint: /v1/accounts/sellers?select=id,name,status,icon&order=name
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of sellers to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.order] - Sort order (default 'name')
+   * @returns {Promise<object>} - Sellers list response
+   *
+   * @example
+   * const sellers = await apiClient.getSellers();
+   * const sellers = await apiClient.getSellers({ limit: 10, offset: 0 });
+   */
+  async getSellers(options = {}) {
+    const order = options.order || 'name';
+    const queryParams = [`select=id,name,status,icon`, `order=${order}`];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+
+    return this.get(`/public/v1/accounts/sellers?${queryParams.join('&')}`);
+  }
+
+  /**
+   * Get a specific seller by ID
+   * @param {string} sellerId - Seller ID in format SEL-XXXX-XXXX
+   * @returns {Promise<object>} - Seller details
+   *
+   * @example
+   * const seller = await apiClient.getSellerById('SEL-0043-6778');
+   */
+  async getSellerById(sellerId) {
+    if (!sellerId || !/^SEL-\d{4}-\d{4}$/.test(sellerId)) {
+      throw new Error(`Invalid sellerId format: "${sellerId}". Expected format: SEL-XXXX-XXXX`);
+    }
+
+    return this.get(`/public/v1/accounts/sellers/${sellerId}?select=id,name,status,address,externalId,currencies`);
+  }
+
+  /**
+   * Get sellers count
+   * @returns {Promise<number>} - Total number of sellers
+   */
+  async getSellersCount() {
+    const response = await this.getSellers({ limit: 1 });
+    return response.$meta?.pagination?.total || response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if any sellers exist
+   * @returns {Promise<boolean>} - True if sellers exist
+   */
+  async hasSellers() {
+    const count = await this.getSellersCount();
+    return count > 0;
+  }
+
   // ========== Licensees Methods ==========
 
   /**
@@ -1346,6 +1539,78 @@ class ApiClient {
     if (total !== undefined) return total > 0;
     const data = response.data || response;
     return Array.isArray(data) && data.length > 0;
+  }
+
+  /**
+   * Get a single account by ID
+   * Matches app endpoint: /v1/accounts/accounts/{id}?select=audit,groups
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @returns {Promise<object>} - Account details object
+   */
+  async getAccountById(accountId) {
+    if (!accountId || !/^ACC-\d{4}-\d{4}$/.test(accountId)) {
+      throw new Error(`Invalid accountId format: "${accountId}". Expected format: ACC-XXXX-XXXX`);
+    }
+    return this.get(`/public/v1/accounts/accounts/${accountId}?select=audit,groups`);
+  }
+
+  /**
+   * Get buyers for a specific account (sublist)
+   * Matches portal endpoint: /v1/accounts/buyers?...eq(account.id,"{id}")&order=name
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum results to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Buyers list response
+   */
+  async getAccountBuyers(accountId, options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/buyers` +
+      `?select=sellers,audit.created.at,audit.updated.at,sellers.erpLink.status` +
+      `&and(ne(status,%22Deleted%22),eq(account.id,%22${accountId}%22))` +
+      `&order=name&offset=${offset}&limit=${limit}`;
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get licensees for a specific account (sublist)
+   * Matches portal endpoint: /v1/accounts/licensees?select=seller,buyer.status&eq(account.id,"{id}")&order=name
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum results to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Licensees list response
+   */
+  async getAccountLicensees(accountId, options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/licensees` +
+      `?select=seller,buyer.status` +
+      `&eq(account.id,%22${accountId}%22)` +
+      `&order=name&offset=${offset}&limit=${limit}`;
+    return this.get(endpoint);
+  }
+
+  /**
+   * Get users for a specific account (sublist)
+   * Matches portal endpoint: /v1/accounts/accounts/{id}/users?select=audit,groups,modules,buyers&order=name
+   * @param {string} accountId - Account ID in format ACC-XXXX-XXXX
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit=50] - Maximum results to return
+   * @param {number} [options.offset=0] - Offset for pagination
+   * @returns {Promise<object>} - Users list response
+   */
+  async getAccountUsers(accountId, options = {}) {
+    const limit = options.limit ?? 50;
+    const offset = options.offset ?? 0;
+    const endpoint =
+      `/public/v1/accounts/accounts/${accountId}/users` +
+      `?select=audit,groups,modules,buyers` +
+      `&order=name&offset=${offset}&limit=${limit}`;
+    return this.get(endpoint);
   }
 
   // ========== Vendors Methods ==========

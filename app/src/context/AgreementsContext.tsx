@@ -24,10 +24,9 @@ interface AgreementProviderProps {
 const AgreementsContext = createContext<AgreementsContextValue | undefined>(undefined);
 
 export const AgreementsProvider = ({ children, query }: AgreementProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

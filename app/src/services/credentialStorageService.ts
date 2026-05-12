@@ -8,6 +8,7 @@ export interface StorageKeys {
   TOKENS: string;
   REFRESH_TOKEN: string;
   USER: string;
+  ACCOUNT_ID: string;
 }
 
 class CredentialStorageService {
@@ -15,6 +16,7 @@ class CredentialStorageService {
     TOKENS: 'auth_tokens',
     REFRESH_TOKEN: 'auth_refresh_token',
     USER: 'auth_user',
+    ACCOUNT_ID: 'auth_account_id',
   };
 
   async storeTokens(tokens: AuthTokens): Promise<void> {
@@ -124,12 +126,45 @@ class CredentialStorageService {
     }
   }
 
+  async storeAccountId(accountId: string): Promise<void> {
+    try {
+      await SecureStore.setItemAsync(this.STORAGE_KEYS.ACCOUNT_ID, accountId);
+    } catch (error) {
+      logger.error('Failed to store account ID', error, {
+        operation: 'storeAccountId',
+      });
+    }
+  }
+
+  async loadAccountId(): Promise<string | null> {
+    try {
+      const accountId = await SecureStore.getItemAsync(this.STORAGE_KEYS.ACCOUNT_ID);
+      return accountId;
+    } catch (error) {
+      logger.error('Failed to load account ID', error, {
+        operation: 'loadAccountId',
+      });
+      return null;
+    }
+  }
+
+  async clearAccountId(): Promise<void> {
+    try {
+      await SecureStore.deleteItemAsync(this.STORAGE_KEYS.ACCOUNT_ID);
+    } catch (error) {
+      logger.error('Failed to clear account ID', error, {
+        operation: 'clearAccountId',
+      });
+    }
+  }
+
   async clearAllCredentials(): Promise<void> {
     try {
       await Promise.all([
         AsyncStorage.removeItem(this.STORAGE_KEYS.TOKENS),
         AsyncStorage.removeItem(this.STORAGE_KEYS.USER),
         SecureStore.deleteItemAsync(this.STORAGE_KEYS.REFRESH_TOKEN),
+        SecureStore.deleteItemAsync(this.STORAGE_KEYS.ACCOUNT_ID),
       ]);
     } catch (error) {
       logger.error('Failed to clear credentials', error, {

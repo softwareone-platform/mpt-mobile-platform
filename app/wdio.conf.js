@@ -4,6 +4,8 @@ const { execFileSync } = require('child_process');
 const dotenv = require('dotenv');
 const semver = require('semver');
 const { Reporter, ReportingApi } = require('@reportportal/agent-js-webdriverio');
+const RPClient = require('@reportportal/client-javascript');
+const { globSync } = require('glob');
 const { WDIO_DEFAULTS } = require('./test/config/wdio-defaults');
 
 // Load .env file if it exists (for local development and Windows batch execution)
@@ -474,6 +476,18 @@ exports.config = {
             './test/specs/enrollments.e2e.js',
             './test/specs/enrollment-details.e2e.js',
         ],
+        certificates: [
+            './test/specs/certificates.e2e.js',
+            './test/specs/certificate-details.e2e.js',
+        ],
+        sellers: [
+            './test/specs/sellers.e2e.js',
+            './test/specs/seller-details.e2e.js',
+        ],
+        salesOrders: [
+            './test/specs/sales-orders.e2e.js',
+            './test/specs/sales-order-details.e2e.js',
+        ],
         licensees: [
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
@@ -515,7 +529,9 @@ exports.config = {
         // Menu navigation, group headings, module-gated visibility (MPT-17294, MPT-20232, MPT-20348, MPT-17165)
         menuNavigation: ['./test/specs/menu-navigation.e2e.js'],
         // Clients list — accessible from More menu (Operations role, MPT-19251)
-        clients: ['./test/specs/clients.e2e.js'],
+        clients: ['./test/specs/clients.e2e.js', './test/specs/account-details.e2e.js'],
+        // Account Details — individual client account details page (Operations role, MPT-19251, MPT-17473)
+        accountDetails: ['./test/specs/account-details.e2e.js'],
         // Vendors list — accessible from More menu (Operations role, MPT-19251)
         vendors: ['./test/specs/vendors.e2e.js'],
         // User Accounts list — accessible from User Details via Accounts sub-list (Operations role, MPT-20672)
@@ -540,6 +556,10 @@ exports.config = {
             './test/specs/program-details.e2e.js',
             './test/specs/enrollments.e2e.js',
             './test/specs/enrollment-details.e2e.js',
+            './test/specs/certificates.e2e.js',
+            './test/specs/certificate-details.e2e.js',
+            './test/specs/sellers.e2e.js',
+            './test/specs/seller-details.e2e.js',
             './test/specs/buyers.e2e.js',
             './test/specs/buyer-details.e2e.js',
             './test/specs/users.e2e.js',
@@ -557,7 +577,12 @@ exports.config = {
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
             './test/specs/clients.e2e.js',
+            './test/specs/account-details.e2e.js',
             './test/specs/vendors.e2e.js',
+            './test/specs/sellers.e2e.js',
+            './test/specs/seller-details.e2e.js',
+            './test/specs/sales-orders.e2e.js',
+            './test/specs/sales-order-details.e2e.js',
             './test/specs/user-accounts.e2e.js',
         ],
     },
@@ -688,6 +713,8 @@ exports.config = {
                 seleniumCommandsLogLevel: 'debug',
                 autoAttachScreenshots: false,
                 screenshotsLogLevel: 'error',
+                skippedIssue: false,  // Don't mark skipped tests as "To Investigate"
+                isLaunchMergeRequired: true,  // Merge per-worker launches into one
                 mode: WDIO_DEFAULTS.REPORT_PORTAL_MODE,  // Valid values: DEFAULT, DEBUG
                 launchUuidPrint: true,  // Print launch UUID for debugging
                 launchUuidPrintOutput: WDIO_DEFAULTS.REPORT_PORTAL_UUID_OUTPUT,
@@ -1000,14 +1027,40 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
      */
-    onComplete: function () {
+    onComplete: async function () {
         fs.rm(SCREENSHOT_FOLDER, { recursive: true }, function (err) {
-        if (err) {
-            console.error(err);
-        } else {
-            console.info('Directory successfully removed.');
-        }
+            if (err) {
+                console.error(err);
+            } else {
+                console.info('Directory successfully removed.');
+            }
         });
+
+        if (process.env.REPORT_PORTAL_API_KEY && process.env.REPORT_PORTAL_API_KEY !== 'value not set') {
+            try {
+                const client = new RPClient({
+                    apiKey: process.env.REPORT_PORTAL_API_KEY,
+                    endpoint:
+                        (process.env.REPORT_PORTAL_ENDPOINT || WDIO_DEFAULTS.REPORT_PORTAL_ENDPOINT) +
+                        '/api/v2',
+                    project: process.env.REPORT_PORTAL_PROJECT || WDIO_DEFAULTS.REPORT_PORTAL_PROJECT,
+                    launch: process.env.REPORT_PORTAL_LAUNCH_NAME || WDIO_DEFAULTS.REPORT_PORTAL_LAUNCH_NAME,
+                });
+                await client.mergeLaunches();
+                console.info('ReportPortal launches successfully merged.');
+            } catch (error) {
+                console.warn('Failed to merge ReportPortal launches:', error.message);
+            } finally {
+                const tmpFiles = globSync('rplaunch-*.tmp');
+                tmpFiles.forEach((file) => {
+                    try {
+                        fs.unlinkSync(file);
+                    } catch (err) {
+                        // Ignore cleanup errors
+                    }
+                });
+            }
+        }
     },
     /**
     * Gets executed when a refresh happens.

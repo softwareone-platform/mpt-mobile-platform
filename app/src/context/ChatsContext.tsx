@@ -4,6 +4,7 @@ import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react'
 import { useAccount } from '@/context/AccountContext';
 import { useSignalR } from '@/context/SignalRContext';
 import { useChatsData } from '@/hooks/queries/useChatsData';
+import { useManualRefetch } from '@/hooks/useManualRefetch';
 import { logger } from '@/services/loggerService';
 import type { ChatItem } from '@/types/chat';
 
@@ -28,10 +29,9 @@ const ChatsContext = createContext<ChatsContextValue | undefined>(undefined);
 export const ChatsProvider = ({ children }: ChatsProviderProps) => {
   const queryClient = useQueryClient();
   const { addReconnectionListener } = useSignalR();
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,
@@ -44,6 +44,8 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
     refetch,
     isRefetching,
   } = useChatsData(userId, currentAccountId);
+
+  const { refetch: refetchChats, isManuallyRefetching } = useManualRefetch(refetch, isRefetching);
 
   const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
@@ -82,8 +84,8 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
         chatsError: isError,
         isUnauthorised,
         fetchChats: fetchNextPage,
-        refetchChats: refetch,
-        isRefetchingChats: isRefetching,
+        refetchChats,
+        isRefetchingChats: isManuallyRefetching,
       }}
     >
       {children}

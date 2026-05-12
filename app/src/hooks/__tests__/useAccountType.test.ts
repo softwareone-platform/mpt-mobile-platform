@@ -9,7 +9,7 @@ jest.mock('@/context/AccountContext', () => ({
 }));
 
 const makeAccount = (type: string) => ({
-  userData: { currentAccount: { type } },
+  currentAccountType: type,
 });
 
 describe('useAccountType', () => {
@@ -47,7 +47,7 @@ describe('useAccountType', () => {
   });
 
   it('returns undefined accountType and all false flags when account is not set', () => {
-    mockUseAccount.mockReturnValue({ userData: null });
+    mockUseAccount.mockReturnValue({ currentAccountType: undefined });
 
     const { result } = renderHook(() => useAccountType());
 

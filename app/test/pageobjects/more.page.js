@@ -197,6 +197,24 @@ class MorePage extends BasePage {
     );
   }
 
+  get sellersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-sellers',
+        android: '//*[@resource-id="nav-menu-sellers"]',
+      }),
+    );
+  }
+
+  get salesOrdersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-salesOrders',
+        android: '//*[@resource-id="nav-menu-salesOrders"]',
+      }),
+    );
+  }
+
   // ========== Group Heading Elements ==========
 
   get administrationGroupHeading() {
@@ -343,6 +361,15 @@ class MorePage extends BasePage {
   }
 
   /**
+   * Navigate to Certificates page
+   */
+  async navigateToCertificates() {
+    await this.ensureMorePage();
+    await this.certificatesMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
    * Navigate to Licensees page
    * @deprecated Licensees is not in the More menu. Use Clients → Client Details → sub-list navigation instead.
    */
@@ -412,6 +439,15 @@ class MorePage extends BasePage {
   async navigateToCertificates() {
     await this.ensureMorePage();
     await this.certificatesMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Sales Orders page
+   */
+  async navigateToSalesOrders() {
+    await this.ensureMorePage();
+    await this.salesOrdersMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 

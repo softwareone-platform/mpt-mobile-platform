@@ -15,9 +15,13 @@ let cachedAccount: { id?: string; icon?: string } | null = null;
 
 const AccountToolbarButton: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-  const { userData, userAccountsData, pendingAccountId } = useAccount();
+  const { userData, userAccountsData, pendingAccountId, currentAccountId } = useAccount();
 
-  const currentAccount = userData?.currentAccount;
+  const currentAccountFromList = currentAccountId
+    ? userAccountsData.all.find((a) => a.id === currentAccountId)
+    : undefined;
+  const currentAccount = userData?.currentAccount ?? currentAccountFromList;
+
   const pendingAccount = pendingAccountId
     ? userAccountsData.all.find((a) => a.id === pendingAccountId)
     : null;

@@ -32,6 +32,7 @@ jest.mock('@/context/AccountContext', () => ({
       icon: 'avatar.png',
       currentAccount: { id: 'ACC-1' },
     },
+    currentAccountId: 'ACC-1',
   }),
 }));
 

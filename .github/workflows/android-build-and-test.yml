@@ -26,7 +26,7 @@ on:
         description: 'Android API level for emulator'
         required: false
         type: string
-        default: '34'
+        default: '31'
       device-profile:
         description: 'Android emulator device profile'
         required: false
@@ -71,7 +71,7 @@ on:
         description: 'Android API level for emulator'
         required: false
         type: string
-        default: '34'
+        default: '31'
       device-profile:
         description: 'Android emulator device profile'
         required: false
@@ -95,7 +95,7 @@ on:
 
 env:
   BUILD_MODE: ${{ inputs.build-mode || github.event.inputs.build-mode || 'Release' }}
-  API_LEVEL: ${{ inputs.api-level || github.event.inputs.api-level || '34' }}
+  API_LEVEL: ${{ inputs.api-level || github.event.inputs.api-level || '31' }}
   DEVICE_PROFILE: ${{ inputs.device-profile || github.event.inputs.device-profile || 'pixel_6' }}
   DEFAULT_APPIUM_VERSION: '3.1.1'
 

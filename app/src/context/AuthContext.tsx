@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { AnalyticsEvents } from '@/constants/analytics';
+import { ACCOUNT_ID_CLAIM_KEY } from '@/constants/auth';
 import { usePortalVersion } from '@/hooks/queries/usePortalVersion';
 import { trackEvent } from '@/hooks/useTrackEvent';
 import { tokenProvider } from '@/lib/tokenProvider';
@@ -28,6 +29,7 @@ const AUTH_ACTIONS = {
   SET_AUTHENTICATED: 'SET_AUTHENTICATED',
   SET_UNAUTHENTICATED: 'SET_UNAUTHENTICATED',
   UPDATE_TOKENS: 'UPDATE_TOKENS',
+  SET_ACCOUNT_ID: 'SET_ACCOUNT_ID',
 } as const;
 
 interface AuthContextType {
@@ -37,24 +39,31 @@ interface AuthContextType {
   portalVersion: PortalVersionInfo;
   moduleClaims: ModuleClaims | null;
   accountType: AccountType | null;
+  accountId: string | null;
   login: (email: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
   sendPasswordlessEmail: (email: string) => Promise<void>;
   resendPasswordlessEmail: (email: string) => Promise<void>;
   refreshAuth: () => Promise<AuthTokens | null>;
   getAccessToken: () => Promise<string | null>;
+  updateStoredAccountId: (accountId: string) => Promise<void>;
 }
 
 type AuthAction =
   | { type: typeof AUTH_ACTIONS.SET_LOADING }
-  | { type: typeof AUTH_ACTIONS.SET_AUTHENTICATED; payload: { user: User; tokens: AuthTokens } }
+  | {
+      type: typeof AUTH_ACTIONS.SET_AUTHENTICATED;
+      payload: { user: User; tokens: AuthTokens; accountId: string | null };
+    }
   | { type: typeof AUTH_ACTIONS.SET_UNAUTHENTICATED }
-  | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens };
+  | { type: typeof AUTH_ACTIONS.UPDATE_TOKENS; payload: AuthTokens }
+  | { type: typeof AUTH_ACTIONS.SET_ACCOUNT_ID; payload: string | null };
 
 interface AuthReducerState {
   status: AuthState;
   user: User | null;
   tokens: AuthTokens | null;
+  accountId: string | null;
 }
 
 const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerState => {
@@ -69,12 +78,14 @@ const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerSt
         status: 'authenticated',
         user: action.payload.user,
         tokens: action.payload.tokens,
+        accountId: action.payload.accountId,
       };
     case AUTH_ACTIONS.SET_UNAUTHENTICATED:
       return {
         status: 'unauthenticated',
         user: null,
         tokens: null,
+        accountId: null,
       };
     case AUTH_ACTIONS.UPDATE_TOKENS: {
       const updatedUser = authService.getUserFromToken(action.payload.accessToken);
@@ -84,6 +95,11 @@ const authReducer = (state: AuthReducerState, action: AuthAction): AuthReducerSt
         tokens: action.payload,
       };
     }
+    case AUTH_ACTIONS.SET_ACCOUNT_ID:
+      return {
+        ...state,
+        accountId: action.payload,
+      };
     default:
       return state;
   }
@@ -93,6 +109,28 @@ const initialState: AuthReducerState = {
   status: 'loading',
   user: null,
   tokens: null,
+  accountId: null,
+};
+
+const syncStoredAccountIdFromToken = (
+  storedAccountId: string | null,
+  tokenAccountId: string | undefined,
+): Promise<void> => {
+  if (storedAccountId && tokenAccountId && tokenAccountId !== storedAccountId) {
+    logger.warn('Token accountId does not match stored accountId', {
+      operation: 'syncStoredAccountIdFromToken',
+    });
+  }
+
+  if (tokenAccountId && tokenAccountId !== storedAccountId) {
+    return credentialStorageService.storeAccountId(tokenAccountId);
+  }
+
+  if (!tokenAccountId && storedAccountId) {
+    return credentialStorageService.clearAccountId();
+  }
+
+  return Promise.resolve();
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -110,24 +148,37 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
   }, []);
 
-  const setAuthenticated = useCallback((user: User, tokens: AuthTokens) => {
-    dispatch({
-      type: AUTH_ACTIONS.SET_AUTHENTICATED,
-      payload: { user, tokens },
-    });
-  }, []);
+  const setAuthenticated = useCallback(
+    (user: User, tokens: AuthTokens, accountId: string | null) => {
+      dispatch({
+        type: AUTH_ACTIONS.SET_AUTHENTICATED,
+        payload: { user, tokens, accountId },
+      });
+    },
+    [],
+  );
 
   const loadStoredAuth = useCallback(async () => {
     try {
-      const { refreshToken, user } = await credentialStorageService.loadStoredCredentials();
+      const [{ refreshToken, user }, accountId] = await Promise.all([
+        credentialStorageService.loadStoredCredentials(),
+        credentialStorageService.loadAccountId(),
+      ]);
       if (!refreshToken || !user) {
         await setUnauthenticated();
         return;
       }
 
-      const newTokens = await authService.refreshAccessToken(refreshToken);
-      await credentialStorageService.storeTokens(newTokens);
-      setAuthenticated(user, newTokens);
+      const newTokens = await authService.refreshAccessToken(refreshToken, accountId ?? undefined);
+      const newUser = authService.getUserFromToken(newTokens.accessToken);
+      const tokenAccountId = newUser[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
+
+      await Promise.all([
+        credentialStorageService.storeTokens(newTokens),
+        syncStoredAccountIdFromToken(accountId, tokenAccountId),
+      ]);
+
+      setAuthenticated(newUser, newTokens, tokenAccountId ?? null);
     } catch (error) {
       logger.error('Failed to load stored auth', error, {
         operation: 'loadStoredAuth',
@@ -162,13 +213,22 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         throw new Error('No refresh token available');
       }
 
-      const newTokens = await authService.refreshAccessToken(authState.tokens.refreshToken);
-      await credentialStorageService.storeTokens(newTokens);
+      const storedAccountId = await credentialStorageService.loadAccountId();
+      const newTokens = await authService.refreshAccessToken(
+        authState.tokens.refreshToken,
+        storedAccountId ?? undefined,
+      );
 
-      dispatch({
-        type: AUTH_ACTIONS.UPDATE_TOKENS,
-        payload: newTokens,
-      });
+      const newUser = authService.getUserFromToken(newTokens.accessToken);
+      const tokenAccountId = newUser[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
+
+      await Promise.all([
+        credentialStorageService.storeTokens(newTokens),
+        syncStoredAccountIdFromToken(storedAccountId, tokenAccountId),
+      ]);
+
+      dispatch({ type: AUTH_ACTIONS.SET_ACCOUNT_ID, payload: tokenAccountId ?? null });
+      dispatch({ type: AUTH_ACTIONS.UPDATE_TOKENS, payload: newTokens });
 
       return newTokens;
     } catch (error) {
@@ -230,22 +290,29 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const tokens = await authService.verifyPasswordlessOtp(email, otp);
     const user = authService.getUserFromToken(tokens.accessToken);
+    const accountId = user[ACCOUNT_ID_CLAIM_KEY] as string | undefined;
 
-    await Promise.all([
+    const storageOps: Promise<void>[] = [
       credentialStorageService.storeTokens(tokens),
       credentialStorageService.storeUser(user),
-    ]);
+    ];
+    if (accountId) {
+      storageOps.push(credentialStorageService.storeAccountId(accountId));
+    }
+    await Promise.all(storageOps);
 
     dispatch({
       type: AUTH_ACTIONS.SET_AUTHENTICATED,
-      payload: {
-        user,
-        tokens,
-      },
+      payload: { user, tokens, accountId: accountId ?? null },
     });
 
     trackEvent(AnalyticsEvents.AUTH_LOGIN_SUCCESS);
   };
+
+  const updateStoredAccountId = useCallback(async (newAccountId: string): Promise<void> => {
+    await credentialStorageService.storeAccountId(newAccountId);
+    dispatch({ type: AUTH_ACTIONS.SET_ACCOUNT_ID, payload: newAccountId });
+  }, []);
 
   const resendPasswordlessEmail = async (email: string) => {
     try {
@@ -296,12 +363,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     portalVersion,
     moduleClaims,
     accountType,
+    accountId: authState.accountId,
     login,
     logout,
     sendPasswordlessEmail,
     resendPasswordlessEmail,
     refreshAuth,
     getAccessToken,
+    updateStoredAccountId,
   };
 
   useEffect(() => {

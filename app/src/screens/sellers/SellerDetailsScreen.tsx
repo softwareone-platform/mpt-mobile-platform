@@ -16,9 +16,8 @@ const SellerDetailsScreen = () => {
   const { t } = useTranslation();
   const { id } = useRoute<SellerDetailsRouteProp>().params;
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useSellerDetailsData(
     id,

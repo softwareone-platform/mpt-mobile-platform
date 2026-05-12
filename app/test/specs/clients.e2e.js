@@ -23,7 +23,7 @@ describe('Clients Page', () => {
     await morePage.ensureMorePage();
     let menuExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     if (!menuExists) {
-      await clientsPage.scrollDown();
+      await morePage.scrollDown();
       await browser.pause(PAUSE.ANIMATION_SETTLE);
       menuExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     }
@@ -43,7 +43,7 @@ describe('Clients Page', () => {
     await morePage.ensureMorePage();
     let menuExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     if (!menuExists) {
-      await clientsPage.scrollDown();
+      await morePage.scrollDown();
       await browser.pause(PAUSE.ANIMATION_SETTLE);
       menuExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     }

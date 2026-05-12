@@ -16,9 +16,8 @@ const SubscriptionDetailsScreen = () => {
   const { t } = useTranslation();
   const { id } = useRoute<SubscriptionDetailsRouteProp>().params;
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
     useSubscriptionDetailsData(id, userId, currentAccountId);

@@ -38,10 +38,8 @@ const ChatScreenContent = () => {
 
   const [isCreateChatVisible, setCreateChatVisible] = useState(false);
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId, currentAccountType: accountType } = useAccount();
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
-  const accountType = userData?.currentAccount?.type;
 
   const { t } = useTranslation();
   const queryClient = useQueryClient();

@@ -1,15 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useUserData } from './useUserData';
-
 import { SPOTLIGHT_CATEGORY, templateLookup } from '@/constants/spotlight';
 import { useAccountApi } from '@/services/accountService';
 import { arrangeSpotlightData } from '@/utils/spotlight';
 
-export const useSpotlightData = (userId: string | undefined) => {
-  const { data: userData } = useUserData(userId);
+export const useSpotlightData = (
+  userId: string | undefined,
+  currentAccountId: string | undefined,
+) => {
   const { getSpotlightData } = useAccountApi();
-  const currentAccountId = userData?.currentAccount?.id;
 
   return useQuery({
     queryKey: ['spotlightData', userId, currentAccountId],
