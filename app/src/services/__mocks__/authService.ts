@@ -3,6 +3,8 @@ const authService = {
   sendPasswordlessEmail: jest.fn(),
   loginWithEmail: jest.fn(),
   refreshToken: jest.fn(),
+  refreshAccessToken: jest.fn(),
+  getUserFromToken: jest.fn(),
   logout: jest.fn(),
   isTokenExpired: jest.fn(),
   verifyPasswordlessOtp: jest.fn(),

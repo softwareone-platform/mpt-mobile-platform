@@ -227,10 +227,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         syncStoredAccountIdFromToken(storedAccountId, tokenAccountId),
       ]);
 
-      if (storedAccountId && !tokenAccountId) {
-        dispatch({ type: AUTH_ACTIONS.SET_ACCOUNT_ID, payload: null });
-      }
-
+      dispatch({ type: AUTH_ACTIONS.SET_ACCOUNT_ID, payload: tokenAccountId ?? null });
       dispatch({ type: AUTH_ACTIONS.UPDATE_TOKENS, payload: newTokens });
 
       return newTokens;
