@@ -24,10 +24,9 @@ interface ProductProviderProps {
 }
 
 export const ProductProvider = ({ children, query }: ProductProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,

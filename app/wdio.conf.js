@@ -480,6 +480,10 @@ exports.config = {
             './test/specs/certificates.e2e.js',
             './test/specs/certificate-details.e2e.js',
         ],
+        sellers: [
+            './test/specs/sellers.e2e.js',
+            './test/specs/seller-details.e2e.js',
+        ],
         licensees: [
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
@@ -550,6 +554,8 @@ exports.config = {
             './test/specs/enrollment-details.e2e.js',
             './test/specs/certificates.e2e.js',
             './test/specs/certificate-details.e2e.js',
+            './test/specs/sellers.e2e.js',
+            './test/specs/seller-details.e2e.js',
             './test/specs/buyers.e2e.js',
             './test/specs/buyer-details.e2e.js',
             './test/specs/users.e2e.js',
@@ -569,6 +575,8 @@ exports.config = {
             './test/specs/clients.e2e.js',
             './test/specs/account-details.e2e.js',
             './test/specs/vendors.e2e.js',
+            './test/specs/sellers.e2e.js',
+            './test/specs/seller-details.e2e.js',
             './test/specs/user-accounts.e2e.js',
         ],
     },

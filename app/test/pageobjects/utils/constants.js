@@ -177,6 +177,7 @@ const REGEX = {
   CHAT_ID_EXTRACT: /(CHT-\d{4}-\d{4}-\d{4})/,
   USER_ID_IN_LABEL: /,\s*USR-\d{4}-\d{4},/,
   ACCOUNT_ID: /^ACC-\d{4}-\d{4}$/,
+  SELLER_ID: /^SEL-\d{4}-\d{4}$/,
 };
 
 // ============ Default / Sentinel Constants ============
@@ -237,6 +238,9 @@ const STATUSES = {
 
   /** Valid statuses that can appear for certificates in the UI */
   CERTIFICATE: ['Active', 'Draft', 'Terminated'],
+
+  /** Valid statuses that can appear for sellers in the UI */
+  SELLER: ['Active', 'Disabled'],
 };
 
 module.exports = {

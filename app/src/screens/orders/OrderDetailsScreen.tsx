@@ -16,9 +16,8 @@ const OrderDetailsScreen = () => {
   const { t } = useTranslation();
   const { id } = useRoute<OrderDetailsRouteProp>().params;
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useOrderDetailsData(
     id,

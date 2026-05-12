@@ -18,9 +18,8 @@ const UserDetailsScreen = () => {
   const { t } = useTranslation();
   const { id, showAccounts } = useRoute<UserDetailsRouteProp>().params;
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const currentUserId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data: userDetails,

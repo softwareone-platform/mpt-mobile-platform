@@ -16,9 +16,8 @@ const ProgramDetailsScreen = () => {
   const { t } = useTranslation();
   const { id } = useRoute<ProgramDetailsRouteProp>().params;
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } = useProgramDetailsData(
     id,

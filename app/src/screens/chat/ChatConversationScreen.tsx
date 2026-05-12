@@ -48,9 +48,8 @@ const ChatConversationScreenContent = () => {
   const flatListRef = useRef<FlatList<Message>>(null);
   const previousFirstMessageKeyRef = useRef<string | null>(null);
   const scrollToBottomOnContentChangeRef = useRef(false);
-  const { userData } = useAccount();
+  const { userData, currentAccountType: accountType } = useAccount();
   const currentUserId = userData?.id ?? '';
-  const accountType = userData?.currentAccount?.type;
 
   const {
     messages,

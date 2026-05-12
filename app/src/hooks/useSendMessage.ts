@@ -24,14 +24,13 @@ export function useSendMessage({
   onBeforeSend,
   visibility,
 }: UseSendMessageParams) {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const { addOptimisticMessage, replaceOptimisticMessage, markMessageFailed } = useMessages();
   const { saveMessage } = useMessageApi(chatId ?? '');
   const queryClient = useQueryClient();
   const isSendingRef = useRef(false);
 
   const currentUserId = userData?.id ?? '';
-  const currentAccountId = userData?.currentAccount?.id;
   const userName = userData?.name ?? '';
   const userIcon = userData?.icon;
 

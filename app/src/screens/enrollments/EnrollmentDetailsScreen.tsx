@@ -16,9 +16,8 @@ const EnrollmentDetailsScreen = () => {
   const { t } = useTranslation();
   const { id } = useRoute<EnrollmentDetailsRouteProp>().params;
 
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const { data, isLoading, isError, isUnauthorised, refetch, isRefetching } =
     useEnrollmentDetailsData(id, userId, currentAccountId);

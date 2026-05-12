@@ -24,10 +24,9 @@ interface StatementProviderProps {
 const StatementsContext = createContext<StatementsContextValue | undefined>(undefined);
 
 export const StatementsProvider = ({ children, query }: StatementProviderProps) => {
-  const { userData } = useAccount();
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,
