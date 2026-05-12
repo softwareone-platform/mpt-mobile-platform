@@ -1222,6 +1222,64 @@ class ApiClient {
     return response.data || response;
   }
 
+  // ========== Sellers Methods ==========
+
+  /**
+   * Get sellers list
+   * Matches app endpoint: /v1/accounts/sellers?select=id,name,status,icon&order=name
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of sellers to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.order] - Sort order (default 'name')
+   * @returns {Promise<object>} - Sellers list response
+   *
+   * @example
+   * const sellers = await apiClient.getSellers();
+   * const sellers = await apiClient.getSellers({ limit: 10, offset: 0 });
+   */
+  async getSellers(options = {}) {
+    const order = options.order || 'name';
+    const queryParams = [`select=id,name,status,icon`, `order=${order}`];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+
+    return this.get(`/public/v1/accounts/sellers?${queryParams.join('&')}`);
+  }
+
+  /**
+   * Get a specific seller by ID
+   * @param {string} sellerId - Seller ID in format SEL-XXXX-XXXX
+   * @returns {Promise<object>} - Seller details
+   *
+   * @example
+   * const seller = await apiClient.getSellerById('SEL-0043-6778');
+   */
+  async getSellerById(sellerId) {
+    if (!sellerId || !/^SEL-\d{4}-\d{4}$/.test(sellerId)) {
+      throw new Error(`Invalid sellerId format: "${sellerId}". Expected format: SEL-XXXX-XXXX`);
+    }
+
+    return this.get(`/public/v1/accounts/sellers/${sellerId}?select=id,name,status,address,externalId,currencies`);
+  }
+
+  /**
+   * Get sellers count
+   * @returns {Promise<number>} - Total number of sellers
+   */
+  async getSellersCount() {
+    const response = await this.getSellers({ limit: 1 });
+    return response.$meta?.pagination?.total || response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if any sellers exist
+   * @returns {Promise<boolean>} - True if sellers exist
+   */
+  async hasSellers() {
+    const count = await this.getSellersCount();
+    return count > 0;
+  }
+
   // ========== Licensees Methods ==========
 
   /**

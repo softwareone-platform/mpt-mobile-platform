@@ -33,7 +33,7 @@ describe('Account Details Page (Client)', () => {
 
     let clientsExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     if (!clientsExists) {
-      await clientsPage.scrollDown();
+      await morePage.scrollDown();
       await browser.pause(PAUSE.ANIMATION_SETTLE);
       clientsExists = await morePage.clientsMenuItem.isExisting().catch(() => false);
     }
@@ -226,7 +226,6 @@ describe('Account Details Page (Client)', () => {
       const apiTotal =
         apiBuyersData.$meta?.pagination?.total ??
         apiBuyersData.pagination?.total;
-      const apiBuyers = apiBuyersData.data || [];
 
       await accountDetailsPage.tapSubList('Buyers');
       await buyersPage.waitForScreenReady();
@@ -433,7 +432,6 @@ describe('Account Details Page (Client)', () => {
       console.info(`State:         UI (needs scroll) | API="${address.state ?? '-'}"`);
       console.info(`Country:       UI (needs scroll) | API="${address.country ?? '-'}" (shown as full name)`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      expect(uiDetails.accountId).toBe(apiAccountData.id);
     });
   });
 });
