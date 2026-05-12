@@ -521,7 +521,9 @@ exports.config = {
         // Menu navigation, group headings, module-gated visibility (MPT-17294, MPT-20232, MPT-20348, MPT-17165)
         menuNavigation: ['./test/specs/menu-navigation.e2e.js'],
         // Clients list — accessible from More menu (Operations role, MPT-19251)
-        clients: ['./test/specs/clients.e2e.js'],
+        clients: ['./test/specs/clients.e2e.js', './test/specs/account-details.e2e.js'],
+        // Account Details — individual client account details page (Operations role, MPT-19251, MPT-17473)
+        accountDetails: ['./test/specs/account-details.e2e.js'],
         // Vendors list — accessible from More menu (Operations role, MPT-19251)
         vendors: ['./test/specs/vendors.e2e.js'],
         // User Accounts list — accessible from User Details via Accounts sub-list (Operations role, MPT-20672)
@@ -565,6 +567,7 @@ exports.config = {
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
             './test/specs/clients.e2e.js',
+            './test/specs/account-details.e2e.js',
             './test/specs/vendors.e2e.js',
             './test/specs/user-accounts.e2e.js',
         ],
