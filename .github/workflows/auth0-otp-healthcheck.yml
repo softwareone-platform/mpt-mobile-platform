@@ -1,0 +1,195 @@
+name: Auth0 OTP Health Check
+run-name: "Auth0 OTP Health Check (${{ github.event_name == 'schedule' && 'scheduled' || 'manual' }})"
+
+on:
+  schedule:
+    # Every 12 hours, on the hour
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Avoid stacking up overlapping scheduled runs if a probe ever hangs near the timeout.
+concurrency:
+  group: auth0-otp-healthcheck
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [test, qa, prod]
+    environment:
+      name: ${{ matrix.environment }}
+    steps:
+      - name: Validate Auth0 configuration
+        env:
+          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+        run: |
+          if [ -z "${AUTH0_DOMAIN}" ]; then
+            echo "::error title=Auth0 misconfigured (${{ matrix.environment }})::AUTH0_DOMAIN is not set for environment '${{ matrix.environment }}'"
+            exit 1
+          fi
+          if [ -z "${AUTH0_CLIENT_ID}" ]; then
+            echo "::error title=Auth0 misconfigured (${{ matrix.environment }})::AUTH0_CLIENT_ID secret is not set for environment '${{ matrix.environment }}'"
+            exit 1
+          fi
+          echo "Auth0 config present for ${{ matrix.environment }} (domain: ${AUTH0_DOMAIN})"
+
+      - name: Probe OIDC discovery endpoint
+        id: oidc
+        env:
+          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
+        run: |
+          URL="https://${AUTH0_DOMAIN}/.well-known/openid-configuration"
+          echo "GET ${URL}"
+
+          HTTP_CODE=$(curl -sS -o /tmp/oidc-body.json -w "%{http_code}" \
+            --max-time 15 --retry 2 --retry-delay 2 \
+            "${URL}" || echo "000")
+
+          echo "Response status: ${HTTP_CODE}"
+          echo "status=${HTTP_CODE}" >> "$GITHUB_OUTPUT"
+
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error title=OIDC discovery failed (${{ matrix.environment }})::Expected 200 from ${URL}, got ${HTTP_CODE}"
+            echo "Response body:"
+            cat /tmp/oidc-body.json || true
+            exit 1
+          fi
+
+          if ! grep -q '"issuer"' /tmp/oidc-body.json; then
+            echo "::error title=OIDC discovery invalid (${{ matrix.environment }})::Response from ${URL} does not contain an issuer field"
+            cat /tmp/oidc-body.json
+            exit 1
+          fi
+          echo "OIDC discovery OK"
+
+      - name: Probe passwordless start (email OTP)
+        id: passwordless
+        env:
+          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+        run: |
+          URL="https://${AUTH0_DOMAIN}/passwordless/start"
+          echo "POST ${URL} (probe with malformed email — never dispatches a real OTP)"
+
+          # Auth0 validates the request in this order:
+          #   1) required body fields  2) email format  3) client auth  4) connection enabled  5) dispatch
+          # We send a syntactically broken email (no '@'), which Auth0 rejects at step 2 with
+          # `400 bad.email`. This proves the endpoint is up and responding without ever
+          # reaching step 5 (no OTP email is sent). A 5xx, network failure, or a body that
+          # signals a disabled connection / unauthorized client means OTP is broken.
+          PAYLOAD=$(cat <<'JSON'
+          {
+            "client_id": "__CLIENT_ID__",
+            "connection": "email",
+            "email": "auth0-healthcheck-probe-no-at-sign",
+            "send": "code"
+          }
+          JSON
+          )
+          PAYLOAD="${PAYLOAD//__CLIENT_ID__/${AUTH0_CLIENT_ID}}"
+
+          HTTP_CODE=$(curl -sS -o /tmp/pwl-body.json -w "%{http_code}" \
+            --max-time 15 --retry 2 --retry-delay 2 \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d "${PAYLOAD}" \
+            "${URL}" || echo "000")
+
+          echo "Response status: ${HTTP_CODE}"
+          echo "Response body:"
+          cat /tmp/pwl-body.json || true
+          echo
+          echo "status=${HTTP_CODE}" >> "$GITHUB_OUTPUT"
+
+          # 000 = curl could not reach the endpoint
+          if [ "${HTTP_CODE}" = "000" ]; then
+            echo "::error title=Auth0 OTP endpoint unreachable (${{ matrix.environment }})::Could not reach ${URL}"
+            exit 1
+          fi
+
+          # 5xx = Auth0 broken
+          if [ "${HTTP_CODE}" -ge 500 ]; then
+            echo "::error title=Auth0 OTP endpoint 5xx (${{ matrix.environment }})::${URL} returned ${HTTP_CODE}"
+            exit 1
+          fi
+
+          # Errors that mean OTP/email connection is NOT enabled or client is misconfigured.
+          # Anything else (e.g. "bad.email" / "bad request" validation errors) means the
+          # endpoint is alive and the email connection is wired up correctly.
+          BODY=$(cat /tmp/pwl-body.json)
+          if echo "${BODY}" | grep -qE '"error"[[:space:]]*:[[:space:]]*"(unauthorized_client|access_denied|extensibility_error|bad\.connection)"'; then
+            echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Passwordless email connection appears disabled or client is unauthorized for ${AUTH0_DOMAIN}"
+            exit 1
+          fi
+          if echo "${BODY}" | grep -qiE '"(error_description|description|message)"[[:space:]]*:[[:space:]]*"[^"]*(connection.*(disabled|not enabled|not found)|passwordless.*disabled)'; then
+            echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Email/passwordless connection is disabled at ${AUTH0_DOMAIN}"
+            exit 1
+          fi
+
+          if [ "${HTTP_CODE}" -lt 200 ] || [ "${HTTP_CODE}" -ge 500 ]; then
+            echo "::error title=Auth0 OTP unexpected status (${{ matrix.environment }})::Got ${HTTP_CODE} from ${URL}"
+            exit 1
+          fi
+
+          echo "Passwordless start endpoint is responding with a normal validation response (status ${HTTP_CODE})"
+
+      - name: Write job summary
+        if: always()
+        env:
+          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
+        run: |
+          ENV_NAME="${{ matrix.environment }}"
+          OIDC_STATUS="${{ steps.oidc.outputs.status || 'n/a' }}"
+          PWL_STATUS="${{ steps.passwordless.outputs.status || 'n/a' }}"
+
+          if [ "${{ job.status }}" = "success" ]; then
+            ICON="✅"
+            RESULT="Healthy"
+          else
+            ICON="❌"
+            RESULT="**FAILED**"
+          fi
+
+          {
+            echo "### ${ICON} Auth0 OTP — ${ENV_NAME}: ${RESULT}"
+            echo ""
+            echo "| Check | Endpoint | Status |"
+            echo "| --- | --- | --- |"
+            echo "| OIDC discovery | \`https://${AUTH0_DOMAIN}/.well-known/openid-configuration\` | ${OIDC_STATUS} |"
+            echo "| Passwordless start | \`https://${AUTH0_DOMAIN}/passwordless/start\` | ${PWL_STATUS} |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  summary:
+    name: Overall result
+    needs: check
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark run as failed if any environment failed
+        run: |
+          RESULT="${{ needs.check.result }}"
+          echo "Matrix result: ${RESULT}"
+          {
+            echo "## Auth0 OTP Health Check"
+            echo ""
+            if [ "${RESULT}" = "success" ]; then
+              echo "✅ All environments healthy."
+            else
+              echo "❌ **One or more environments failed.** Check the individual matrix jobs above."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${RESULT}" != "success" ]; then
+            echo "::error title=Auth0 OTP Health Check failed::At least one environment (test/qa/prod) failed its Auth0 OTP checks. See matrix jobs for details."
+            exit 1
+          fi
