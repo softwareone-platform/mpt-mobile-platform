@@ -4,6 +4,7 @@ import { createContext, ReactNode, useContext, useMemo, useEffect } from 'react'
 import { useAccount } from '@/context/AccountContext';
 import { useSignalR } from '@/context/SignalRContext';
 import { useChatsData } from '@/hooks/queries/useChatsData';
+import { useManualRefetch } from '@/hooks/useManualRefetch';
 import { logger } from '@/services/loggerService';
 import type { ChatItem } from '@/types/chat';
 
@@ -44,6 +45,8 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
     isRefetching,
   } = useChatsData(userId, currentAccountId);
 
+  const { refetch: refetchChats, isManuallyRefetching } = useManualRefetch(refetch, isRefetching);
+
   const chats = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
   useEffect(() => {
@@ -81,8 +84,8 @@ export const ChatsProvider = ({ children }: ChatsProviderProps) => {
         chatsError: isError,
         isUnauthorised,
         fetchChats: fetchNextPage,
-        refetchChats: refetch,
-        isRefetchingChats: isRefetching,
+        refetchChats,
+        isRefetchingChats: isManuallyRefetching,
       }}
     >
       {children}
