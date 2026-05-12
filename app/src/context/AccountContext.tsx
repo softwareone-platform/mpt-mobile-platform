@@ -1,5 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useContext, useCallback, useState, ReactNode, useMemo } from 'react';
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+  useMemo,
+} from 'react';
 
 import { AnalyticsEvents } from '@/constants/analytics';
 import { MAX_RECENT_ACCOUNTS } from '@/constants/api';
@@ -56,9 +65,22 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     isLoading: isSpotlightDataLoading,
     isError: isSpotlightError,
     fetchStatus,
-    refetch: refetchSpotlight,
+    refetch: refetchSpotlightQuery,
     isRefetching: isSpotlightRefetching,
   } = useSpotlightData(userId);
+
+  const isManualSpotlightRefreshingRef = useRef(false);
+
+  useEffect(() => {
+    if (!isSpotlightRefetching) {
+      isManualSpotlightRefreshingRef.current = false;
+    }
+  }, [isSpotlightRefetching]);
+
+  const refetchSpotlight = useCallback(() => {
+    isManualSpotlightRefreshingRef.current = true;
+    void refetchSpotlightQuery();
+  }, [refetchSpotlightQuery]);
 
   const spotlightData = spotlightDataRaw ?? {};
 
@@ -134,7 +156,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         pendingAccountId,
         switchAccount,
         refetchSpotlight,
-        isSpotlightRefetching,
+        isSpotlightRefetching: isSpotlightRefetching && isManualSpotlightRefreshingRef.current,
       }}
     >
       {children}
