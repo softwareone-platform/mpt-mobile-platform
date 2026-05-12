@@ -62,6 +62,23 @@ describe('Seller Details Page', () => {
     }
   });
 
+  beforeEach(async function () {
+    if (!sellersMenuAvailable || !hasSellersData) {
+      this.skip();
+      return;
+    }
+    const isOnPage = await sellerDetailsPage.isOnDetailsPage();
+    if (!isOnPage) {
+      await navigation.ensureHomePage({ resetFilters: false });
+      await sellersPage.footer.moreTab.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await morePage.sellersMenuItem.click();
+      await sellersPage.waitForScreenReady();
+      await sellersPage.tapSeller(testSellerId);
+      await sellerDetailsPage.waitForPageReady();
+    }
+  });
+
   describe('Page Structure', () => {
     it('should display the Sellers header title', async function () {
       if (!hasSellersData) {

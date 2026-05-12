@@ -206,6 +206,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get salesOrdersMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-salesOrders',
+        android: '//*[@resource-id="nav-menu-salesOrders"]',
+      }),
+    );
+  }
+
   // ========== Group Heading Elements ==========
 
   get administrationGroupHeading() {
@@ -430,6 +439,15 @@ class MorePage extends BasePage {
   async navigateToCertificates() {
     await this.ensureMorePage();
     await this.certificatesMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Sales Orders page
+   */
+  async navigateToSalesOrders() {
+    await this.ensureMorePage();
+    await this.salesOrdersMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 
