@@ -99,6 +99,10 @@ describe('Product Details Page', () => {
       const vendor = await productDetailsPage.getCompositeFieldValueByLabel('Vendor', true);
       expect(vendor).toBeTruthy();
     });
+
+    it('should display an avatar in the header', async function () {
+      await expect(productDetailsPage.headerAvatarWrapper).toBeDisplayed();
+    });
   });
 
   describe('API Data Validation', () => {

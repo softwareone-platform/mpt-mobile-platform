@@ -162,6 +162,15 @@ describe('Sales Order Details Page', () => {
       const gt = await salesOrderDetailsPage.getSimpleFieldValue('∑ GT', true).catch(() => '');
       expect(gt).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasSalesOrdersData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await salesOrderDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

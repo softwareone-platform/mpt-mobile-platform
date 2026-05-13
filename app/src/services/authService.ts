@@ -9,6 +9,7 @@ import {
 } from '@/constants/api';
 import { USER_ID_CLAIM_KEY } from '@/constants/auth';
 import { appInsightsService } from '@/services/appInsightsService';
+import { auth0ErrorParsingService } from '@/services/auth0ErrorParsingService';
 import { logger } from '@/services/loggerService';
 import { retryAuth0Operation, ErrorWithStatus } from '@/utils/retryAuth0';
 
@@ -112,7 +113,11 @@ class AuthenticationService {
       return { success: true };
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to send authentication email');
-      appInsightsService.trackException(err, { operation: 'sendPasswordlessEmail' }, 'Critical');
+      appInsightsService.trackException(
+        auth0ErrorParsingService.sanitizeForTelemetry(err),
+        { operation: 'sendPasswordlessEmail' },
+        'Critical',
+      );
       throw err;
     }
   }
@@ -137,7 +142,11 @@ class AuthenticationService {
     } catch (error) {
       const err =
         error instanceof Error ? error : new Error('Failed to verify authentication code');
-      appInsightsService.trackException(err, { operation: 'verifyPasswordlessOtp' }, 'Critical');
+      appInsightsService.trackException(
+        auth0ErrorParsingService.sanitizeForTelemetry(err),
+        { operation: 'verifyPasswordlessOtp' },
+        'Critical',
+      );
       throw err;
     }
   }
@@ -200,7 +209,11 @@ class AuthenticationService {
       };
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to refresh authentication');
-      appInsightsService.trackException(err, { operation: 'refreshAccessToken' }, 'Critical');
+      appInsightsService.trackException(
+        auth0ErrorParsingService.sanitizeForTelemetry(err),
+        { operation: 'refreshAccessToken' },
+        'Critical',
+      );
       throw err;
     }
   }

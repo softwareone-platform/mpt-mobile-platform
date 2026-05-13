@@ -97,6 +97,7 @@ export const TestIDs = {
   // Common
   HEADER_LOGO: 'header-logo-image',
   LOADING_INDICATOR: 'loading-indicator',
+  DETAILS_HEADER_AVATAR_CONTAINER: 'details-header-avatar-container',
 
   // Credit Memos Screen
   CREDIT_MEMOS_LOADING_INDICATOR: 'credit-memos-loading-indicator',

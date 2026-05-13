@@ -106,12 +106,14 @@ export function useBillingApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<ListItemNoImage>> => {
+      const defaultQuery = `&ne(status,%22Deleted%22)&order=-audit.created.at`;
+
       const endpoint =
         `/v1/billing/journals` +
         `?select=-*,id,name,status` +
-        `&ne(status,%22Deleted%22)` +
-        `&order=-audit.created.at` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
