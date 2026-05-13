@@ -156,6 +156,31 @@ describe('useBillingApi - Journals', () => {
     });
   });
 
+  it('getJournals - uses provided query instead of default filter', async () => {
+    const api = setup();
+    const mockResponse: PaginatedResponse<ListItemNoImage> = {
+      $meta: { pagination: { offset: DEFAULT_OFFSET, limit: DEFAULT_PAGE_SIZE, total: 0 } },
+      data: [],
+    };
+
+    mockGet.mockResolvedValueOnce(mockResponse);
+
+    const spotlightQuery = '&eq(status,%22InProgress%22)';
+
+    await act(async () => {
+      await api.getJournals(DEFAULT_OFFSET, DEFAULT_PAGE_SIZE, spotlightQuery);
+    });
+
+    const expectedUrl =
+      `/v1/billing/journals` +
+      `?select=-*,id,name,status` +
+      `${spotlightQuery}` +
+      `&offset=${DEFAULT_OFFSET}` +
+      `&limit=${DEFAULT_PAGE_SIZE}`;
+
+    expect(mockGet).toHaveBeenCalledWith(expectedUrl);
+  });
+
   it('getJournals - handles API errors correctly', async () => {
     const api = setup();
     const mockError = new Error('Network error');
