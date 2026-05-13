@@ -39,6 +39,7 @@ import {
   SearchScreen,
   SalesOrdersScreen,
   SalesOrderDetailsScreen,
+  SalesQuotesScreen,
 } from '@/screens';
 import type {
   MainTabItem,
@@ -228,6 +229,13 @@ export const secondaryTabsData: SecondaryTabGroup[] = [
         modules: ['procurement', 'new-procurement', 'digital-supply-chain'],
         roles: ['Client', 'Operations'],
       },
+      {
+        name: 'salesQuotes',
+        icon: 'request-quote',
+        component: SalesQuotesScreen,
+        modules: ['procurement', 'new-procurement', 'digital-supply-chain'],
+        roles: ['Client', 'Operations'],
+      },
     ],
   },
   {
@@ -302,4 +310,5 @@ export const appScreensData: AppScreenItem[] = [
   { name: 'chatConversation', component: ChatConversationScreen },
   { name: 'salesOrders', component: SalesOrdersScreen },
   { name: 'salesOrderDetails', component: SalesOrderDetailsScreen },
+  { name: 'salesQuotes', component: SalesQuotesScreen },
 ];
