@@ -10,5 +10,9 @@
   "salesQuotesScreen": {
     "emptyStateTitle": "No sales quotes",
     "emptyStateDescription": "No sales quotes found."
+  },
+  "salesQuoteDetailsScreen": {
+    "emptyStateTitle": "No sales quote details",
+    "emptyStateDescription": "No sales quote details found."
   }
 }

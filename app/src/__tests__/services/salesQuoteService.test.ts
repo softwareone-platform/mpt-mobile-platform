@@ -15,6 +15,13 @@ import {
   mockResponseValid,
   CUSTOM_OFFSET,
   CUSTOM_PAGE_SIZE,
+  mockSalesQuoteId1,
+  mockSalesQuoteId2,
+  mockSalesQuoteData,
+  mockSalesQuoteResponse1,
+  mockSalesQuoteResponse2,
+  expectedSalesQuoteUrl1,
+  expectedSalesQuoteUrl2,
 } from '../__mocks__/services/salesQuote';
 
 import { useSalesQuoteApi } from '@/services/salesQuoteService';
@@ -167,5 +174,61 @@ describe('useSalesQuoteApi - getSalesQuotes with optional query', () => {
     );
 
     expect(mockGet).toHaveBeenCalledWith(expectedUrlInvalidQuery);
+  });
+});
+
+describe('useSalesQuoteApi - getSalesQuoteDetails', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('getSalesQuoteDetails - calls with correct endpoint and returns data required for details view', async () => {
+    const api = setup();
+
+    let res;
+
+    mockGet.mockResolvedValueOnce(mockSalesQuoteData);
+
+    await act(async () => {
+      res = await api.getSalesQuoteDetails(mockSalesQuoteId1);
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(expectedSalesQuoteUrl1);
+    expect(res).toEqual(mockSalesQuoteData);
+  });
+
+  it('getSalesQuoteDetails - handles API errors correctly', async () => {
+    const api = setup();
+
+    const mockError = new Error('Network error');
+
+    mockGet.mockRejectedValueOnce(mockError);
+
+    await expect(api.getSalesQuoteDetails(mockSalesQuoteId1)).rejects.toThrow('Network error');
+  });
+
+  it('getSalesQuoteDetails - handles multiple calls correctly', async () => {
+    const api = setup();
+
+    let res1;
+    let res2;
+
+    mockGet.mockResolvedValueOnce(mockSalesQuoteResponse1);
+    mockGet.mockResolvedValueOnce(mockSalesQuoteResponse2);
+
+    await act(async () => {
+      res1 = await api.getSalesQuoteDetails(mockSalesQuoteId1);
+    });
+
+    await act(async () => {
+      res2 = await api.getSalesQuoteDetails(mockSalesQuoteId2);
+    });
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, expectedSalesQuoteUrl1);
+
+    expect(mockGet).toHaveBeenNthCalledWith(2, expectedSalesQuoteUrl2);
+
+    expect(res1).toEqual(mockSalesQuoteResponse1);
+    expect(res2).toEqual(mockSalesQuoteResponse2);
   });
 });

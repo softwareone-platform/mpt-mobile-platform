@@ -38,7 +38,7 @@ const DetailsListItem = ({
     <ListItemWithImage
       id={item.id || ''}
       title={label}
-      subtitle={subtitle || item.name || ''}
+      subtitle={subtitle || item.name || item.id || ''}
       subtitleLink
       hideImage={hideImage}
       imagePath={item.icon}

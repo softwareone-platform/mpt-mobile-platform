@@ -305,6 +305,13 @@ export const TestIDs = {
   SALES_QUOTES_ERROR_STATE: 'sales-quotes-error-state',
   SALES_QUOTES_EMPTY_STATE: 'sales-quotes-empty-state',
 
+  // Sales Quote Details Screen
+  SALES_QUOTE_DETAILS_LOADING_INDICATOR: 'sales-quote-details-loading-indicator',
+  SALES_QUOTE_DETAILS_ERROR_STATE: 'sales-quote-details-error-state',
+  SALES_QUOTE_DETAILS_EMPTY_STATE: 'sales-quote-details-empty-state',
+  SALES_QUOTE_DETAILS_HEADER_TITLE: 'sales-quote-details-header-title',
+  SALES_QUOTE_DETAILS_HEADER_STATUS: 'sales-quote-details-header-status',
+
   // Chats Screen
   CHATS_LOADING_INDICATOR: 'chats-loading-indicator',
   CHATS_ERROR_STATE: 'chats-error-state',
