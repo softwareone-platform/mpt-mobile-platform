@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { View, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
-import RefreshControl from '@/components/common/RefreshControl';
+import RefreshableEmptyWrapper from '@/components/common/RefreshableEmptyWrapper';
 import { useAccount } from '@/context/AccountContext';
 import { screenStyle } from '@/styles/components';
 import { Color } from '@/styles/tokens';
@@ -71,15 +71,9 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
 
     if (onRefresh) {
       return (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
-          }
-        >
+        <RefreshableEmptyWrapper onRefresh={onRefresh} isRefreshing={isRefreshing ?? false}>
           {errorState}
-        </ScrollView>
+        </RefreshableEmptyWrapper>
       );
     }
 
@@ -102,15 +96,9 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
 
     if (onRefresh) {
       return (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing ?? false} onRefresh={onRefresh} />
-          }
-        >
+        <RefreshableEmptyWrapper onRefresh={onRefresh} isRefreshing={isRefreshing ?? false}>
           {emptyState}
-        </ScrollView>
+        </RefreshableEmptyWrapper>
       );
     }
 
@@ -123,8 +111,6 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
 const styles = StyleSheet.create({
   containerMain: screenStyle.containerMain,
   containerCenterContent: screenStyle.containerCenterContent,
-  scrollView: { flex: 1 },
-  scrollViewContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default EmptyStateHelper;

@@ -14,6 +14,7 @@ import {
 import CardHeader from '@/components/card/CardHeader';
 import EmptyState from '@/components/common/EmptyState';
 import RefreshControl from '@/components/common/RefreshControl';
+import RefreshableEmptyWrapper from '@/components/common/RefreshableEmptyWrapper';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import { AnalyticsEvents } from '@/constants/analytics';
@@ -85,13 +86,7 @@ const SpotlightScreen = () => {
 
   if (isSpotlightError) {
     return (
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-        refreshControl={
-          <RefreshControl refreshing={isSpotlightRefetching} onRefresh={refetchSpotlight} />
-        }
-      >
+      <RefreshableEmptyWrapper onRefresh={refetchSpotlight} isRefreshing={isSpotlightRefetching}>
         <EmptyState
           testID={TestIDs.SPOTLIGHT_ERROR_STATE}
           icon={{
@@ -103,19 +98,13 @@ const SpotlightScreen = () => {
           title={t('spotlightScreen.errorFetchingDataTitle')}
           description={t('spotlightScreen.errorFetchingDataDescription')}
         />
-      </ScrollView>
+      </RefreshableEmptyWrapper>
     );
   }
 
   if (!spotlightData || Object.keys(spotlightData)?.length === 0) {
     return (
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-        refreshControl={
-          <RefreshControl refreshing={isSpotlightRefetching} onRefresh={refetchSpotlight} />
-        }
-      >
+      <RefreshableEmptyWrapper onRefresh={refetchSpotlight} isRefreshing={isSpotlightRefetching}>
         <EmptyState
           testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
           icon={{
@@ -125,7 +114,7 @@ const SpotlightScreen = () => {
           title={t('spotlightScreen.noTaskHeader')}
           description={t('spotlightScreen.noTaskDescription')}
         />
-      </ScrollView>
+      </RefreshableEmptyWrapper>
     );
   }
 
@@ -230,8 +219,6 @@ const styles = StyleSheet.create({
   containerFillScreen: screenStyle.containerFillScreen,
   contentFillContainer: screenStyle.contentFillContainer,
   noPaddingTop: screenStyle.noPaddingTop,
-  scrollView: { flex: 1 },
-  scrollViewContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default SpotlightScreen;

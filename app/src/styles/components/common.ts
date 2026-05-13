@@ -29,6 +29,11 @@ export const screenStyle = {
   contentFillContainer: {
     flexGrow: 1,
   },
+  contentCenterFillContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   contentContainerTop: {
     flexGrow: 1,
     justifyContent: 'flex-start',
