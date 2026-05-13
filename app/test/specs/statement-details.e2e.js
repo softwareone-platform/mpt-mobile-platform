@@ -107,6 +107,12 @@ describe('Statement Details Page', () => {
         this.skip();
         return;
       }
+      // Product is only linked on some statements; skip when API confirms it is absent
+      if (apiAvailable && apiStatementData && !apiStatementData.product) {
+        console.info('⚠️ Statement has no linked product - skipping Product field test');
+        this.skip();
+        return;
+      }
       const product = await statementDetailsPage.getCompositeFieldValueByLabel('Product', true);
       expect(product).toBeTruthy();
     });
@@ -116,6 +122,8 @@ describe('Statement Details Page', () => {
         this.skip();
         return;
       }
+      // Reset scroll position so previous test's scroll attempts don't interfere
+      await statementDetailsPage.scrollToTop();
       const type = await statementDetailsPage.getSimpleFieldValue('Statement type', true);
       expect(type).toBeTruthy();
     });

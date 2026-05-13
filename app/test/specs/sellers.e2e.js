@@ -20,8 +20,7 @@ describe('Sellers Page', () => {
    * Navigate to Sellers page via More menu
    */
   async function navigateToSellers() {
-    await sellersPage.footer.moreTab.click();
-    await browser.pause(PAUSE.NAVIGATION);
+    await morePage.ensureMorePage();
     await morePage.sellersMenuItem.click();
     await sellersPage.waitForScreenReady();
   }
@@ -33,8 +32,7 @@ describe('Sellers Page', () => {
     await navigation.ensureHomePage({ resetFilters: false });
 
     // Check if Sellers menu item is available for this user
-    await sellersPage.footer.moreTab.click();
-    await browser.pause(PAUSE.NAVIGATION);
+    await morePage.ensureMorePage();
     sellersMenuAvailable = await morePage.sellersMenuItem.isExisting().catch(() => false);
 
     if (!sellersMenuAvailable) {
