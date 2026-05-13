@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { PaginatedResponse, ListItemNoImageWithExternalIds } from '@/types/api';
+import type { SalesQuoteDetails } from '@/types/procurement';
 
 export function useSalesQuoteApi() {
   const api = useApi();
@@ -27,10 +28,22 @@ export function useSalesQuoteApi() {
     [api],
   );
 
+  const getSalesQuoteDetails = useCallback(
+    async (salesQuoteId: string): Promise<SalesQuoteDetails> => {
+      const endpoint =
+        `/v1/procurement/sales-quotes/${salesQuoteId}` +
+        `?select=salesOrders,products,vendors,attributes.navision.navisionCountryCode`;
+
+      return api.get<SalesQuoteDetails>(endpoint);
+    },
+    [api],
+  );
+
   return useMemo(
     () => ({
       getSalesQuotes,
+      getSalesQuoteDetails,
     }),
-    [getSalesQuotes],
+    [getSalesQuotes, getSalesQuoteDetails],
   );
 }

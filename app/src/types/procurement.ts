@@ -4,6 +4,7 @@ import type { DetailsListItemValue } from '@/types/lists';
 export interface CommonProcurementDetails {
   id: string;
   status: string;
+  source?: string;
   externalIds: {
     operations: string;
   };
@@ -35,7 +36,6 @@ export interface LineItem {
 }
 
 export interface SalesOrderDetails extends CommonProcurementDetails {
-  source?: string;
   salesQuote?: SalesQuote;
 }
 
