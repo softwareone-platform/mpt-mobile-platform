@@ -45,6 +45,7 @@ export type SecondaryTabsParamList = {
   orders: ScreenParams;
   subscriptions: ScreenParams;
   salesOrders: ScreenParams;
+  salesQuotes: ScreenParams;
 };
 
 export type AppScreensParamList = {

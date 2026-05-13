@@ -39,6 +39,7 @@ export { default as CreateChatModal } from './chat/create-chat/CreateChatWizard'
 export { default as SearchScreen } from './search/SearchScreen';
 export { default as SalesOrdersScreen } from './sales-orders/SalesOrdersScreen';
 export { default as SalesOrderDetailsScreen } from './sales-orders/SalesOrderDetailsScreen';
+export { default as SalesQuotesScreen } from './sales-quotes/SalesQuotesScreen';
 
 export { WelcomeScreen } from './auth';
 export { LoadingScreen } from './loading';
