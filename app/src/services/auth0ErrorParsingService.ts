@@ -1,3 +1,8 @@
+import { AUTH_CONSTANTS } from '@/constants/auth';
+
+const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const OTP_PATTERN = new RegExp(`\\b\\d{${AUTH_CONSTANTS.OTP_LENGTH}}\\b`, 'g');
+
 export interface Auth0ErrorDetails {
   name: string;
   message: string;
@@ -120,6 +125,16 @@ class Auth0ErrorParsingService {
     };
 
     return translationMap[errorType];
+  }
+
+  sanitizeForTelemetry(error: Error): Error {
+    const sanitizedMessage = error.message
+      .replace(EMAIL_PATTERN, '[email]')
+      .replace(OTP_PATTERN, '[code]');
+    const sanitized = new Error(sanitizedMessage);
+    sanitized.name = error.name;
+    sanitized.stack = error.stack;
+    return sanitized;
   }
 
   getTranslationKeyForError(error: Error): string {

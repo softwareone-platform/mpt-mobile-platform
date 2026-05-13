@@ -1,3 +1,7 @@
+jest.mock('@/constants/auth', () => ({
+  AUTH_CONSTANTS: { OTP_LENGTH: 6 },
+}));
+
 import auth0ErrorParsingService, { ErrorWithDetails } from '@/services/auth0ErrorParsingService';
 
 describe('auth0ErrorParsingService', () => {
@@ -168,6 +172,53 @@ describe('auth0ErrorParsingService', () => {
       const key = auth0ErrorParsingService.getTranslationKeyForError(error);
 
       expect(key).toBe('auth.errors.unknownError');
+    });
+  });
+
+  describe('sanitizeForTelemetry', () => {
+    it('replaces email addresses in the error message', () => {
+      const error = new Error('User user@example.com not found');
+      const result = auth0ErrorParsingService.sanitizeForTelemetry(error);
+      expect(result.message).toBe('User [email] not found');
+      expect(result.message).not.toContain('user@example.com');
+    });
+
+    it('replaces 6-digit OTP codes in the error message', () => {
+      const error = new Error('Invalid code: 123456');
+      const result = auth0ErrorParsingService.sanitizeForTelemetry(error);
+      expect(result.message).toBe('Invalid code: [code]');
+      expect(result.message).not.toContain('123456');
+    });
+
+    it('replaces both email and OTP when both appear in the message', () => {
+      const error = new Error('OTP 654321 sent to jane@example.com is wrong');
+      const result = auth0ErrorParsingService.sanitizeForTelemetry(error);
+      expect(result.message).toBe('OTP [code] sent to [email] is wrong');
+    });
+
+    it('preserves the error name', () => {
+      const error = new Error('Access denied for user@test.com') as Error & { name: string };
+      error.name = 'access_denied';
+      const result = auth0ErrorParsingService.sanitizeForTelemetry(error);
+      expect(result.name).toBe('access_denied');
+    });
+
+    it('preserves the stack trace', () => {
+      const error = new Error('Error for user@test.com');
+      const result = auth0ErrorParsingService.sanitizeForTelemetry(error);
+      expect(result.stack).toBe(error.stack);
+    });
+
+    it('leaves messages without PII unchanged', () => {
+      const error = new Error('Token refresh failed: 401 invalid_grant');
+      const result = auth0ErrorParsingService.sanitizeForTelemetry(error);
+      expect(result.message).toBe('Token refresh failed: 401 invalid_grant');
+    });
+
+    it('does not alter the original error', () => {
+      const error = new Error('Login failed for user@example.com with code 123456');
+      auth0ErrorParsingService.sanitizeForTelemetry(error);
+      expect(error.message).toBe('Login failed for user@example.com with code 123456');
     });
   });
 

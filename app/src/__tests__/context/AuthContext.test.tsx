@@ -1,4 +1,5 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 jest.mock('@/services/authService');
@@ -10,14 +11,14 @@ jest.mock('@/hooks/queries/usePortalVersion', () => ({
   usePortalVersion: jest.fn(() => ({ data: undefined })),
 }));
 jest.mock('@/lib/tokenProvider', () => ({
-  tokenProvider: { register: jest.fn(() => jest.fn()) },
+  tokenProvider: { register: jest.fn(() => jest.fn()), registerRefresh: jest.fn(() => jest.fn()) },
 }));
 jest.mock('@/hooks/useTrackEvent', () => ({ trackEvent: jest.fn() }));
 jest.mock('@/services/environmentSwitcherService', () => ({
   environmentSwitcherService: { switchEnvironmentForEmail: jest.fn() },
 }));
 jest.mock('@/services/appInsightsService', () => ({
-  appInsightsService: { trackException: jest.fn() },
+  appInsightsService: { trackException: jest.fn(), clearUser: jest.fn() },
 }));
 jest.mock('@/utils/moduleClaims', () => ({
   getModuleClaims: jest.fn(() => null),
@@ -26,6 +27,7 @@ jest.mock('@/utils/moduleClaims', () => ({
 
 import { ACCOUNT_ID_CLAIM_KEY } from '@/constants/auth';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { appInsightsService } from '@/services/appInsightsService';
 import authService from '@/services/authService';
 import credentialStorageService from '@/services/credentialStorageService';
 import { logger } from '@/services/loggerService';
@@ -34,6 +36,7 @@ const mockAuthService = authService as jest.Mocked<typeof authService>;
 const mockCredentialStorage = credentialStorageService as jest.Mocked<
   typeof credentialStorageService
 >;
+const mockAppInsights = appInsightsService as jest.Mocked<typeof appInsightsService>;
 
 const makeTokens = () => ({
   accessToken: 'access-token',
@@ -47,9 +50,15 @@ const makeUser = (accountId?: string) => ({
   ...(accountId !== undefined && { [ACCOUNT_ID_CLAIM_KEY]: accountId }),
 });
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <AuthProvider>{children}</AuthProvider>
-);
+const createWrapper = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>{children}</AuthProvider>
+    </QueryClientProvider>
+  );
+  return { wrapper, queryClient };
+};
 
 const setupLoadStoredAuth = (storedAccountId: string | null, tokenAccountId?: string) => {
   mockCredentialStorage.loadStoredCredentials.mockResolvedValue({
@@ -73,6 +82,7 @@ describe('AuthContext - syncStoredAccountIdFromToken', () => {
 
   it('updates stored accountId when token carries a different one', async () => {
     setupLoadStoredAuth('old-account', 'new-account');
+    const { wrapper } = createWrapper();
 
     renderHook(() => useAuth(), { wrapper });
 
@@ -84,6 +94,7 @@ describe('AuthContext - syncStoredAccountIdFromToken', () => {
 
   it('clears stored accountId when token carries no accountId claim', async () => {
     setupLoadStoredAuth('stale-account', undefined);
+    const { wrapper } = createWrapper();
 
     renderHook(() => useAuth(), { wrapper });
 
@@ -95,6 +106,7 @@ describe('AuthContext - syncStoredAccountIdFromToken', () => {
 
   it('does not modify accountId storage when token matches stored', async () => {
     setupLoadStoredAuth('same-account', 'same-account');
+    const { wrapper } = createWrapper();
 
     renderHook(() => useAuth(), { wrapper });
 
@@ -107,6 +119,7 @@ describe('AuthContext - syncStoredAccountIdFromToken', () => {
 
   it('logs a warning when token accountId differs from stored', async () => {
     setupLoadStoredAuth('old-account', 'new-account');
+    const { wrapper } = createWrapper();
 
     renderHook(() => useAuth(), { wrapper });
 
@@ -115,5 +128,119 @@ describe('AuthContext - syncStoredAccountIdFromToken', () => {
         operation: 'syncStoredAccountIdFromToken',
       });
     });
+  });
+});
+
+describe('AuthContext - logout', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCredentialStorage.storeTokens.mockResolvedValue();
+    mockCredentialStorage.storeAccountId.mockResolvedValue();
+    mockCredentialStorage.clearAccountId.mockResolvedValue();
+    mockCredentialStorage.clearAllCredentials.mockResolvedValue();
+    mockAuthService.isTokenExpired.mockReturnValue(false);
+    mockAuthService.logout.mockResolvedValue();
+    setupLoadStoredAuth('acc-1', 'acc-1');
+  });
+
+  it('clears the React Query cache on logout', async () => {
+    const { wrapper, queryClient } = createWrapper();
+    const clearSpy = jest.spyOn(queryClient, 'clear');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+
+    await act(async () => {
+      await result.current.logout();
+    });
+
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the App Insights user context on logout', async () => {
+    const { wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+
+    await act(async () => {
+      await result.current.logout();
+    });
+
+    expect(mockAppInsights.clearUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('still clears cache and user context when logout API call fails', async () => {
+    mockAuthService.logout.mockRejectedValue(new Error('network error'));
+    const { wrapper, queryClient } = createWrapper();
+    const clearSpy = jest.spyOn(queryClient, 'clear');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+
+    await act(async () => {
+      await result.current.logout();
+    });
+
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+    expect(mockAppInsights.clearUser).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe('unauthenticated');
+  });
+});
+
+describe('AuthContext - refreshAuth single-flight guard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCredentialStorage.storeTokens.mockResolvedValue();
+    mockCredentialStorage.storeAccountId.mockResolvedValue();
+    mockCredentialStorage.clearAccountId.mockResolvedValue();
+    mockCredentialStorage.clearAllCredentials.mockResolvedValue();
+    mockAuthService.isTokenExpired.mockReturnValue(false);
+    setupLoadStoredAuth('acc-1', 'acc-1');
+  });
+
+  it('deduplicates concurrent refresh calls — authService.refreshAccessToken called only once', async () => {
+    const { wrapper } = createWrapper();
+
+    let resolveRefresh!: (value: ReturnType<typeof makeTokens>) => void;
+    const refreshPromise = new Promise<ReturnType<typeof makeTokens>>((resolve) => {
+      resolveRefresh = resolve;
+    });
+
+    // First call blocks; subsequent concurrent calls should share the same promise
+    mockAuthService.refreshAccessToken
+      .mockResolvedValueOnce(makeTokens()) // initial loadStoredAuth on mount
+      .mockImplementationOnce(() => refreshPromise); // the deduplication target
+
+    mockCredentialStorage.loadAccountId.mockResolvedValue('acc-1');
+    mockAuthService.getUserFromToken.mockReturnValue(makeUser('acc-1'));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+
+    // Reset call count after initial mount refresh
+    mockAuthService.refreshAccessToken.mockClear();
+    mockAuthService.refreshAccessToken.mockImplementation(() => refreshPromise);
+
+    // Fire three concurrent refreshes
+    const [p1, p2, p3] = await act(async () => {
+      return [
+        result.current.refreshAuth(),
+        result.current.refreshAuth(),
+        result.current.refreshAuth(),
+      ];
+    });
+
+    resolveRefresh(makeTokens());
+
+    await act(async () => {
+      await Promise.all([p1, p2, p3]);
+    });
+
+    // Only one actual network call despite three concurrent calls
+    expect(mockAuthService.refreshAccessToken).toHaveBeenCalledTimes(1);
   });
 });
