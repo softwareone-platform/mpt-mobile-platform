@@ -13,8 +13,8 @@ import {
 
 import CardHeader from '@/components/card/CardHeader';
 import EmptyState from '@/components/common/EmptyState';
-import RefreshControl from '@/components/common/RefreshControl';
 import RefreshableEmptyWrapper from '@/components/common/RefreshableEmptyWrapper';
+import RefreshControl from '@/components/common/RefreshControl';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
 import { AnalyticsEvents } from '@/constants/analytics';
