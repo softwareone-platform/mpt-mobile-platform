@@ -1,6 +1,9 @@
 import { InternalAxiosRequestConfig, AxiosError } from 'axios';
 
-jest.mock('@/lib/tokenProvider');
+jest.mock('@/lib/tokenProvider', () => ({
+  getAccessTokenAsync: jest.fn(),
+  forceRefreshTokenAsync: jest.fn(),
+}));
 jest.mock('@/utils/apiError');
 jest.mock('@/services/appInsightsService', () => ({
   appInsightsService: {
@@ -19,8 +22,9 @@ jest.mock('@/config/env.config', () => ({
 }));
 
 import { configService } from '@/config/env.config';
+import { API_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import apiClient, { updateApiClientBaseURL } from '@/lib/apiClient';
-import { getAccessTokenAsync } from '@/lib/tokenProvider';
+import { forceRefreshTokenAsync, getAccessTokenAsync } from '@/lib/tokenProvider';
 import { appInsightsService } from '@/services/appInsightsService';
 import { createApiError } from '@/utils/apiError';
 
@@ -152,6 +156,130 @@ describe('apiClient interceptors', () => {
       { url: 'unknown', method: 'unknown', statusCode: 404, statusText: 'Not Found' },
       'Warning',
     );
+  });
+
+  it('has a 30s timeout configured', () => {
+    expect(apiClient.defaults.timeout).toBe(API_REQUEST_TIMEOUT_MS);
+  });
+
+  describe('401 retry logic', () => {
+    type ResponseErrorHandler = {
+      handlers: Array<{ rejected: (error: AxiosError) => Promise<unknown> }>;
+    };
+
+    const getResponseInterceptor = () =>
+      apiClient.interceptors.response as unknown as ResponseErrorHandler;
+
+    it('refreshes token and retries the request on 401', async () => {
+      (forceRefreshTokenAsync as jest.Mock).mockResolvedValue('new-token');
+      const requestSpy = jest
+        .spyOn(apiClient, 'request')
+        .mockResolvedValueOnce({ data: 'retried-ok' });
+
+      const mockError: Partial<AxiosError> = {
+        response: { status: 401, statusText: 'Unauthorized' } as AxiosError['response'],
+        config: {
+          url: '/api/resource',
+          method: 'get',
+          headers: {} as InternalAxiosRequestConfig['headers'],
+        } as InternalAxiosRequestConfig,
+      };
+
+      const result = await getResponseInterceptor().handlers[0].rejected(mockError as AxiosError);
+
+      expect(forceRefreshTokenAsync).toHaveBeenCalledTimes(1);
+      expect(requestSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer new-token' }),
+        }),
+      );
+      expect(result).toEqual({ data: 'retried-ok' });
+      expect(createApiError).not.toHaveBeenCalled();
+    });
+
+    it('rejects with error and does not retry when refresh returns null', async () => {
+      (forceRefreshTokenAsync as jest.Mock).mockResolvedValue(null);
+      (createApiError as jest.Mock).mockReturnValue({ name: 'API Error', status: 401 });
+      const requestSpy = jest.spyOn(apiClient, 'request');
+
+      const mockError: Partial<AxiosError> = {
+        response: { status: 401, statusText: 'Unauthorized' } as AxiosError['response'],
+        config: {
+          url: '/api/resource',
+          method: 'get',
+          headers: {} as InternalAxiosRequestConfig['headers'],
+        } as InternalAxiosRequestConfig,
+      };
+
+      await expect(
+        getResponseInterceptor().handlers[0].rejected(mockError as AxiosError),
+      ).rejects.toEqual({ name: 'API Error', status: 401 });
+
+      expect(requestSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not retry when _retried flag is already set', async () => {
+      (createApiError as jest.Mock).mockReturnValue({ name: 'API Error', status: 401 });
+      const requestSpy = jest.spyOn(apiClient, 'request');
+
+      const mockError: Partial<AxiosError> = {
+        response: { status: 401, statusText: 'Unauthorized' } as AxiosError['response'],
+        config: {
+          url: '/api/resource',
+          method: 'get',
+          headers: {} as InternalAxiosRequestConfig['headers'],
+          _retried: true,
+        } as InternalAxiosRequestConfig & { _retried?: boolean },
+      };
+
+      await expect(
+        getResponseInterceptor().handlers[0].rejected(mockError as AxiosError),
+      ).rejects.toEqual({ name: 'API Error', status: 401 });
+
+      expect(forceRefreshTokenAsync).not.toHaveBeenCalled();
+      expect(requestSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not retry when _noAuth flag is set (noAuth request)', async () => {
+      (createApiError as jest.Mock).mockReturnValue({ name: 'API Error', status: 401 });
+      const requestSpy = jest.spyOn(apiClient, 'request');
+
+      const mockError: Partial<AxiosError> = {
+        response: { status: 401, statusText: 'Unauthorized' } as AxiosError['response'],
+        config: {
+          url: '/oauth/token',
+          method: 'post',
+          headers: {} as InternalAxiosRequestConfig['headers'],
+          _noAuth: true,
+        } as InternalAxiosRequestConfig & { _noAuth?: boolean },
+      };
+
+      await expect(
+        getResponseInterceptor().handlers[0].rejected(mockError as AxiosError),
+      ).rejects.toEqual({ name: 'API Error', status: 401 });
+
+      expect(forceRefreshTokenAsync).not.toHaveBeenCalled();
+      expect(requestSpy).not.toHaveBeenCalled();
+    });
+
+    it('passes non-401 errors through without retrying', async () => {
+      (createApiError as jest.Mock).mockReturnValue({ name: 'API Error', status: 403 });
+
+      const mockError: Partial<AxiosError> = {
+        response: { status: 403, statusText: 'Forbidden' } as AxiosError['response'],
+        config: {
+          url: '/api/resource',
+          method: 'get',
+          headers: {} as InternalAxiosRequestConfig['headers'],
+        } as InternalAxiosRequestConfig,
+      };
+
+      await expect(
+        getResponseInterceptor().handlers[0].rejected(mockError as AxiosError),
+      ).rejects.toEqual({ name: 'API Error', status: 403 });
+
+      expect(forceRefreshTokenAsync).not.toHaveBeenCalled();
+    });
   });
 });
 

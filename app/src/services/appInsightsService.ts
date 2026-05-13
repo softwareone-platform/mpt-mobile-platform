@@ -92,6 +92,10 @@ class AppInsightsService {
     this.getUserFn = getUserFn;
   }
 
+  public clearUser(): void {
+    this.getUserFn = null;
+  }
+
   private getTraceId(): string {
     const context = this.appInsights?.context;
     const traceId = context?.telemetryTrace?.traceID || Crypto.randomUUID();
