@@ -18,7 +18,7 @@ interface JournalsContextValue {
 
 const JournalsContext = createContext<JournalsContextValue | undefined>(undefined);
 
-export const JournalsProvider = ({ children }: { children: ReactNode }) => {
+export const JournalsProvider = ({ children, query }: { children: ReactNode; query?: string }) => {
   const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
@@ -33,7 +33,7 @@ export const JournalsProvider = ({ children }: { children: ReactNode }) => {
     fetchNextPage,
     refetch,
     isRefetching,
-  } = useJournalsData(userId, currentAccountId);
+  } = useJournalsData(userId, currentAccountId, query);
 
   const journals = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
