@@ -2,6 +2,7 @@ const { expect } = require('@wdio/globals');
 
 const buyerDetailsPage = require('../pageobjects/buyer-details.page');
 const buyersPage = require('../pageobjects/buyers.page');
+const licenseesPage = require('../pageobjects/licensees.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
@@ -269,6 +270,24 @@ describe('Buyer Details Page', () => {
       );
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.buyerId).toBe(apiBuyerData.id);
+    });
+  });
+
+  describe('Sublists Navigation', () => {
+    it('should display the Licensees sublist navigation item', async function () {
+      if (!hasBuyersData) { this.skip(); return; }
+      const has = await buyerDetailsPage.hasSubList('Licensees');
+      expect(has).toBe(true);
+    });
+
+    it('should navigate to Licensees list when Licensees sublist tapped', async function () {
+      if (!hasBuyersData) { this.skip(); return; }
+      await buyerDetailsPage.scrollToTop(3);
+      await buyerDetailsPage.tapSubList('Licensees');
+      await licenseesPage.waitForScreenReady();
+      await expect(licenseesPage.headerTitle).toBeDisplayed();
+      await licenseesPage.goBack();
+      await buyerDetailsPage.waitForPageReady();
     });
   });
 });

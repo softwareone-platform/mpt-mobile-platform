@@ -1,5 +1,7 @@
 {
   "Accepted": "Accepted",
+  "Accepting": "Accepting",
+  "AwaitingAcceptance": "Awaiting acceptance",
   "Active": "Active",
   "Blocked": "Blocked",
   "Cancelled": "Cancelled",
@@ -16,6 +18,7 @@
   "Expired": "Expired",
   "Exported": "Exported",
   "Failed": "Failed",
+  "Finalizing": "Finalizing",
   "ForSale": "For Sale",
   "Generated": "Generated",
   "Generating": "Generating",
@@ -42,6 +45,7 @@
   "Quoted": "Quoted",
   "Ready": "Ready",
   "Redeemed": "Redeemed",
+  "Rejected": "Rejected",
   "Review": "Review",
   "Saved": "Saved",
   "Split": "Split",

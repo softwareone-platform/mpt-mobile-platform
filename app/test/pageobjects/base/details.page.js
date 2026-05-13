@@ -170,6 +170,65 @@ class DetailsPage extends BasePage {
     );
   }
 
+  // ========== Sublist Navigation Helpers ==========
+
+  /**
+   * Returns a selector for a NavigationItem sublist entry with the given label.
+   * NavigationItem renders as XCUIElementTypeOther on iOS (accessible label contains the name)
+   * and as a content-desc element on Android.
+   * @param {string} name - Displayed label, e.g. 'Subscriptions', 'Buyers', 'Orders'
+   * @returns {WebdriverIO.Element}
+   */
+  findSubListItem(name) {
+    return $(
+      getSelector({
+        ios: `//XCUIElementTypeOther[contains(@name, "${name}")]`,
+        android: `//*[contains(@content-desc, "${name}")]`,
+      }),
+    );
+  }
+
+  /**
+   * Scroll down until the named sublist navigation item is visible, then return it.
+   * @param {string} name - Displayed label, e.g. 'Subscriptions', 'Buyers', 'Orders'
+   * @returns {Promise<WebdriverIO.Element>} The visible sublist element
+   * @throws {Error} If not found after max scroll attempts
+   */
+  async scrollToSubListItem(name) {
+    for (let attempt = 0; attempt < SCROLL.MAX_SCROLL_ATTEMPTS; attempt++) {
+      const el = this.findSubListItem(name);
+      const isDisplayed = await el.isDisplayed().catch(() => false);
+      if (isDisplayed) return el;
+      await this.scrollDown();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+    }
+    throw new Error(`Sub-list item "${name}" not found after ${SCROLL.MAX_SCROLL_ATTEMPTS} scroll attempts`);
+  }
+
+  /**
+   * Check whether the named sublist item is present on the page (scrolls if needed).
+   * @param {string} name - Displayed label, e.g. 'Subscriptions', 'Buyers', 'Orders'
+   * @returns {Promise<boolean>}
+   */
+  async hasSubList(name) {
+    try {
+      await this.scrollToSubListItem(name);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Scroll to find the named sublist item and tap it to navigate into the sublist.
+   * @param {string} name - Displayed label, e.g. 'Subscriptions', 'Buyers', 'Orders'
+   */
+  async tapSubList(name) {
+    const el = await this.scrollToSubListItem(name);
+    await el.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
   // ========== Scroll Methods ==========
   // scrollDown(), scrollUp(), and _performSwipe() are inherited from BasePage
 
