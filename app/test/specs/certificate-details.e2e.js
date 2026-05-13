@@ -2,6 +2,8 @@ const { expect } = require('@wdio/globals');
 
 const certificateDetailsPage = require('../pageobjects/certificate-details.page');
 const certificatesPage = require('../pageobjects/certificates.page');
+const enrollmentsPage = require('../pageobjects/enrollments.page');
+const agreementsPage = require('../pageobjects/agreements.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
@@ -136,6 +138,15 @@ describe('Certificate Details Page', () => {
       const expiration = await certificateDetailsPage.getSimpleFieldValue('Expiration', true);
       expect(expiration).toBeDefined();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasCertificatesData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await certificateDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {
@@ -176,6 +187,41 @@ describe('Certificate Details Page', () => {
       console.info(`Expiration:     UI="${uiDetails.expiration}" | API="${apiCertificateData.expirationDate}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.certificateId).toBe(apiCertificateData.id);
+    });
+  });
+
+  describe('Sublists Navigation', () => {
+    it('should display the Enrollments sublist navigation item', async function () {
+      if (!hasCertificatesData) { this.skip(); return; }
+      const has = await certificateDetailsPage.hasSubList('Enrollments');
+      expect(has).toBe(true);
+    });
+
+    it('should display the Agreements sublist navigation item', async function () {
+      if (!hasCertificatesData) { this.skip(); return; }
+      await certificateDetailsPage.scrollToTop(3);
+      const has = await certificateDetailsPage.hasSubList('Agreements');
+      expect(has).toBe(true);
+    });
+
+    it('should navigate to Enrollments list when Enrollments sublist tapped', async function () {
+      if (!hasCertificatesData) { this.skip(); return; }
+      await certificateDetailsPage.scrollToTop(3);
+      await certificateDetailsPage.tapSubList('Enrollments');
+      await enrollmentsPage.waitForScreenReady();
+      await expect(enrollmentsPage.headerTitle).toBeDisplayed();
+      await enrollmentsPage.goBack();
+      await certificateDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Agreements list when Agreements sublist tapped', async function () {
+      if (!hasCertificatesData) { this.skip(); return; }
+      await certificateDetailsPage.scrollToTop(3);
+      await certificateDetailsPage.tapSubList('Agreements');
+      await agreementsPage.waitForScreenReady();
+      await expect(agreementsPage.headerTitle).toBeDisplayed();
+      await agreementsPage.goBack();
+      await certificateDetailsPage.waitForPageReady();
     });
   });
 });

@@ -97,6 +97,7 @@ export const TestIDs = {
   // Common
   HEADER_LOGO: 'header-logo-image',
   LOADING_INDICATOR: 'loading-indicator',
+  DETAILS_HEADER_AVATAR_CONTAINER: 'details-header-avatar-container',
 
   // Credit Memos Screen
   CREDIT_MEMOS_LOADING_INDICATOR: 'credit-memos-loading-indicator',
@@ -299,6 +300,11 @@ export const TestIDs = {
   SALES_ORDER_DETAILS_EMPTY_STATE: 'sales-order-details-empty-state',
   SALES_ORDER_DETAILS_HEADER_TITLE: 'sales-order-details-header-title',
   SALES_ORDER_DETAILS_HEADER_STATUS: 'sales-order-details-header-status',
+
+  // Sales Quotes Screen
+  SALES_QUOTES_LOADING_INDICATOR: 'sales-quotes-loading-indicator',
+  SALES_QUOTES_ERROR_STATE: 'sales-quotes-error-state',
+  SALES_QUOTES_EMPTY_STATE: 'sales-quotes-empty-state',
 
   // Chats Screen
   CHATS_LOADING_INDICATOR: 'chats-loading-indicator',

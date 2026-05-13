@@ -178,6 +178,15 @@ describe('Invoice Details Page', () => {
       const currency = await invoiceDetailsPage.getSimpleFieldValue('Currency', true);
       expect(currency).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasInvoicesData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await invoiceDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

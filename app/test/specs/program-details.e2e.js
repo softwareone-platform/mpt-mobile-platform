@@ -127,6 +127,14 @@ describe('Program Details Page', () => {
       const applicableTo = await programDetailsPage.getSimpleFieldValue('Applicable To', true);
       expect(['Buyer', 'Licensee']).toContain(applicableTo);
     });
+
+    it('should display an avatar in the header', async function () {
+      if (!hasProgramsData) {
+        this.skip();
+        return;
+      }
+      await expect(programDetailsPage.headerAvatarWrapper).toBeDisplayed();
+    });
   });
 
   describe('API Data Validation', () => {

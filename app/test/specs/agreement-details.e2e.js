@@ -2,6 +2,10 @@ const { expect } = require('@wdio/globals');
 
 const agreementDetailsPage = require('../pageobjects/agreement-details.page');
 const agreementsPage = require('../pageobjects/agreements.page');
+const subscriptionsPage = require('../pageobjects/subscriptions.page');
+const ordersPage = require('../pageobjects/orders.page');
+const invoicesPage = require('../pageobjects/invoices.page');
+const statementsPage = require('../pageobjects/statements.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
@@ -165,6 +169,15 @@ describe('[Client] Agreement Details Page', () => {
       );
       expect(billingCurrency).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasAgreementsData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await agreementDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {
@@ -291,6 +304,75 @@ describe('[Client] Agreement Details Page', () => {
       );
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.agreementId).toBe(apiAgreementData.id);
+    });
+  });
+
+  describe('Sublists Navigation', () => {
+    it('should display the Subscriptions sublist navigation item', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      const has = await agreementDetailsPage.hasSubList('Subscriptions');
+      expect(has).toBe(true);
+    });
+
+    it('should display the Orders sublist navigation item', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      const has = await agreementDetailsPage.hasSubList('Orders');
+      expect(has).toBe(true);
+    });
+
+    it('should display the Invoices sublist navigation item', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      const has = await agreementDetailsPage.hasSubList('Invoices');
+      expect(has).toBe(true);
+    });
+
+    it('should display the Statements sublist navigation item', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      const has = await agreementDetailsPage.hasSubList('Statements');
+      expect(has).toBe(true);
+    });
+
+    it('should navigate to Subscriptions list when Subscriptions sublist tapped', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      await agreementDetailsPage.tapSubList('Subscriptions');
+      await subscriptionsPage.waitForScreenReady();
+      await expect(subscriptionsPage.headerTitle).toBeDisplayed();
+      await subscriptionsPage.goBack();
+      await agreementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Orders list when Orders sublist tapped', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      await agreementDetailsPage.tapSubList('Orders');
+      await ordersPage.waitForScreenReady();
+      await expect(ordersPage.headerTitle).toBeDisplayed();
+      await ordersPage.goBack();
+      await agreementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Invoices list when Invoices sublist tapped', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      await agreementDetailsPage.tapSubList('Invoices');
+      await invoicesPage.waitForScreenReady();
+      await expect(invoicesPage.headerTitle).toBeDisplayed();
+      await invoicesPage.goBack();
+      await agreementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Statements list when Statements sublist tapped', async function () {
+      if (!hasAgreementsData) { this.skip(); return; }
+      await agreementDetailsPage.scrollToTop(3);
+      await agreementDetailsPage.tapSubList('Statements');
+      await statementsPage.waitForScreenReady();
+      await expect(statementsPage.headerTitle).toBeDisplayed();
+      await statementsPage.goBack();
+      await agreementDetailsPage.waitForPageReady();
     });
   });
 });
