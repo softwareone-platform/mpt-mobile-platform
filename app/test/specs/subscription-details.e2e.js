@@ -2,6 +2,7 @@ const { expect } = require('@wdio/globals');
 
 const subscriptionDetailsPage = require('../pageobjects/subscription-details.page');
 const subscriptionsPage = require('../pageobjects/subscriptions.page');
+const ordersPage = require('../pageobjects/orders.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
@@ -420,6 +421,24 @@ describe('Subscription Details Page', () => {
       expect(uiDetails.subscriptionId).toBe(
         apiSubscriptionData.id || apiSubscriptionData.subscriptionId,
       );
+    });
+  });
+
+  describe('Sublists Navigation', () => {
+    it('should display the Orders sublist navigation item', async function () {
+      if (!hasSubscriptionsData) { this.skip(); return; }
+      const has = await subscriptionDetailsPage.hasSubList('Orders');
+      expect(has).toBe(true);
+    });
+
+    it('should navigate to Orders list when Orders sublist tapped', async function () {
+      if (!hasSubscriptionsData) { this.skip(); return; }
+      await subscriptionDetailsPage.scrollToTop(3);
+      await subscriptionDetailsPage.tapSubList('Orders');
+      await ordersPage.waitForScreenReady();
+      await expect(ordersPage.headerTitle).toBeDisplayed();
+      await ordersPage.goBack();
+      await subscriptionDetailsPage.waitForPageReady();
     });
   });
 });
