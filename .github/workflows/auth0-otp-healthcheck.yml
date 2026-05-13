@@ -61,12 +61,16 @@ jobs:
             echo "::error title=OIDC discovery failed (${{ matrix.environment }})::Expected 200 from ${URL}, got ${HTTP_CODE}"
             echo "Response body:"
             cat /tmp/oidc-body.json || true
+            echo
             exit 1
           fi
 
-          if ! grep -q '"issuer"' /tmp/oidc-body.json; then
-            echo "::error title=OIDC discovery invalid (${{ matrix.environment }})::Response from ${URL} does not contain an issuer field"
+          # `jq -e` exits non-zero if `.issuer` is null/missing or the body is not valid JSON.
+          # This is more precise than a substring grep, which could false-match on a quoted value.
+          if ! jq -e '.issuer | type == "string" and length > 0' /tmp/oidc-body.json >/dev/null 2>&1; then
+            echo "::error title=OIDC discovery invalid (${{ matrix.environment }})::Response from ${URL} is not valid JSON or has no non-empty issuer field"
             cat /tmp/oidc-body.json
+            echo
             exit 1
           fi
           echo "OIDC discovery OK"
@@ -86,16 +90,11 @@ jobs:
           # `400 bad.email`. This proves the endpoint is up and responding without ever
           # reaching step 5 (no OTP email is sent). A 5xx, network failure, or a body that
           # signals a disabled connection / unauthorized client means OTP is broken.
-          PAYLOAD=$(cat <<'JSON'
-          {
-            "client_id": "__CLIENT_ID__",
-            "connection": "email",
-            "email": "auth0-healthcheck-probe-no-at-sign",
-            "send": "code"
-          }
-          JSON
-          )
-          PAYLOAD="${PAYLOAD//__CLIENT_ID__/${AUTH0_CLIENT_ID}}"
+          # Build the JSON payload via `jq -nc` so client_id is escaped correctly and we
+          # don't depend on YAML/heredoc indentation rules.
+          PAYLOAD=$(jq -nc \
+            --arg client_id "${AUTH0_CLIENT_ID}" \
+            '{client_id: $client_id, connection: "email", email: "auth0-healthcheck-probe-no-at-sign", send: "code"}')
 
           HTTP_CODE=$(curl -sS -o /tmp/pwl-body.json -w "%{http_code}" \
             --max-time 15 --retry 2 --retry-delay 2 \
@@ -110,33 +109,43 @@ jobs:
           echo
           echo "status=${HTTP_CODE}" >> "$GITHUB_OUTPUT"
 
-          # 000 = curl could not reach the endpoint
-          if [ "${HTTP_CODE}" = "000" ]; then
-            echo "::error title=Auth0 OTP endpoint unreachable (${{ matrix.environment }})::Could not reach ${URL}"
-            exit 1
-          fi
+          # Ordered status-code gate — single source of truth.
+          # 1. Non-numeric status (covers "000" from `|| echo` on curl failure, and any
+          #    other unexpected non-digit output — avoids a bash arithmetic error on `-lt`/`-ge`).
+          case "${HTTP_CODE}" in
+            000)
+              echo "::error title=Auth0 OTP endpoint unreachable (${{ matrix.environment }})::curl could not reach ${URL}"
+              exit 1
+              ;;
+            ''|*[!0-9]*)
+              echo "::error title=Auth0 OTP endpoint anomaly (${{ matrix.environment }})::Unexpected non-numeric status '${HTTP_CODE}' from ${URL}"
+              exit 1
+              ;;
+          esac
 
-          # 5xx = Auth0 broken
-          if [ "${HTTP_CODE}" -ge 500 ]; then
-            echo "::error title=Auth0 OTP endpoint 5xx (${{ matrix.environment }})::${URL} returned ${HTTP_CODE}"
-            exit 1
-          fi
-
-          # Errors that mean OTP/email connection is NOT enabled or client is misconfigured.
-          # Anything else (e.g. "bad.email" / "bad request" validation errors) means the
-          # endpoint is alive and the email connection is wired up correctly.
-          BODY=$(cat /tmp/pwl-body.json)
-          if echo "${BODY}" | grep -qE '"error"[[:space:]]*:[[:space:]]*"(unauthorized_client|access_denied|extensibility_error|bad\.connection)"'; then
-            echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Passwordless email connection appears disabled or client is unauthorized for ${AUTH0_DOMAIN}"
-            exit 1
-          fi
-          if echo "${BODY}" | grep -qiE '"(error_description|description|message)"[[:space:]]*:[[:space:]]*"[^"]*(connection.*(disabled|not enabled|not found)|passwordless.*disabled)'; then
-            echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Email/passwordless connection is disabled at ${AUTH0_DOMAIN}"
-            exit 1
-          fi
-
+          # 2. Anything outside 2xx/3xx/4xx (i.e. 1xx or 5xx) is unhealthy. A 4xx is expected
+          #    here — Auth0 should reject our malformed payload at validation time.
           if [ "${HTTP_CODE}" -lt 200 ] || [ "${HTTP_CODE}" -ge 500 ]; then
-            echo "::error title=Auth0 OTP unexpected status (${{ matrix.environment }})::Got ${HTTP_CODE} from ${URL}"
+            echo "::error title=Auth0 OTP endpoint unhealthy (${{ matrix.environment }})::${URL} returned ${HTTP_CODE} (expected 2xx/3xx/4xx)"
+            exit 1
+          fi
+
+          # 3. Body-content checks via jq — robust against pretty-printed or multi-line JSON.
+          #    These error codes/descriptions mean the email/passwordless connection is
+          #    disabled or the client is unauthorised. `jq -r '... // empty'` yields an
+          #    empty string when the field is absent or the body isn't valid JSON.
+          ERROR_CODE=$(jq -r '.error // empty' /tmp/pwl-body.json 2>/dev/null || true)
+          ERROR_DESCRIPTION=$(jq -r '.error_description // .description // .message // empty' /tmp/pwl-body.json 2>/dev/null || true)
+
+          case "${ERROR_CODE}" in
+            unauthorized_client|access_denied|extensibility_error|bad.connection)
+              echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Auth0 returned error '${ERROR_CODE}' — passwordless email connection appears disabled or client is unauthorised for ${AUTH0_DOMAIN}"
+              exit 1
+              ;;
+          esac
+
+          if printf '%s' "${ERROR_DESCRIPTION}" | grep -qiE 'connection.*(disabled|not enabled|not found)|passwordless.*disabled'; then
+            echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Email/passwordless connection appears disabled at ${AUTH0_DOMAIN} (description: '${ERROR_DESCRIPTION}')"
             exit 1
           fi
 
