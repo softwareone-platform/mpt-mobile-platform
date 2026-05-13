@@ -178,6 +178,15 @@ describe('Credit Memo Details Page', () => {
       const currency = await creditMemoDetailsPage.getSimpleFieldValue('Currency', true);
       expect(currency).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasCreditMemosData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await creditMemoDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

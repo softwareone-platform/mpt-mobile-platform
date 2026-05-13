@@ -169,6 +169,15 @@ describe('[Client] Agreement Details Page', () => {
       );
       expect(billingCurrency).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasAgreementsData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await agreementDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

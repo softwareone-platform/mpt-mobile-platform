@@ -138,6 +138,14 @@ describe('User Details Page', () => {
       const phone = await userDetailsPage.getSimpleFieldValue('Phone number', true);
       expect(phone).toBeTruthy();
     });
+
+    it('should display an avatar in the header', async function () {
+      if (!hasUsersData) {
+        this.skip();
+        return;
+      }
+      await expect(userDetailsPage.headerAvatarWrapper).toBeDisplayed();
+    });
   });
 
   describe('API Data Validation', () => {

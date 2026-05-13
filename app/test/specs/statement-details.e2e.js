@@ -136,6 +136,15 @@ describe('Statement Details Page', () => {
       const sp = await statementDetailsPage.getSimpleFieldValue('∑ SP', true);
       expect(sp).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasStatementsData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await statementDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {
