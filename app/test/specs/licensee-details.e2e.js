@@ -198,6 +198,14 @@ describe('Licensee Details Page', () => {
       const country = await licenseeDetailsPage.getSimpleFieldValue('Country', true).catch(() => '');
       expect(country).toBeDefined();
     });
+
+    it('should display an avatar in the header', async function () {
+      if (!hasLicenseesData) {
+        this.skip();
+        return;
+      }
+      await expect(licenseeDetailsPage.headerAvatarWrapper).toBeDisplayed();
+    });
   });
 
   describe('API Data Validation', () => {

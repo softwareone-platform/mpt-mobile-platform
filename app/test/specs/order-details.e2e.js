@@ -186,6 +186,15 @@ describe('[Client] Order Details Page', () => {
       expect(currencyValue).toBeTruthy();
       console.info(`[Currency Field] Value: ${currencyValue}`);
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasOrdersData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await orderDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

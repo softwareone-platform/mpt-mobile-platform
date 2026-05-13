@@ -150,6 +150,15 @@ describe('Enrollment Details Page', () => {
       const assignee = await enrollmentDetailsPage.getCompositeFieldValueByLabel('Assignee', true).catch(() => '');
       expect(assignee).toBeDefined();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasEnrollmentsData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await enrollmentDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

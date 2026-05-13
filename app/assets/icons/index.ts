@@ -46,6 +46,7 @@ import PublicOutlined from './public';
 import ReceiptOutlined from './receipt';
 import ReceiptLongOutlined from './receipt-long';
 import RedeemOutlined from './redeem';
+import RequestQuoteOutlined from './request-quote';
 import SearchOutlined from './search';
 import ShopTwoOutlined from './shop-two';
 import ShoppingCartOutlined from './shopping-cart';
@@ -104,6 +105,7 @@ export const OutlinedIcons = {
   receipt: ReceiptOutlined,
   'receipt-long': ReceiptLongOutlined,
   redeem: RedeemOutlined,
+  'request-quote': RequestQuoteOutlined,
   search: SearchOutlined,
   'shop-two': ShopTwoOutlined,
   'shopping-cart': ShoppingCartOutlined,
