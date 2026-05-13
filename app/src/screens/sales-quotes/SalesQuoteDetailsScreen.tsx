@@ -39,8 +39,8 @@ const SalesQuoteDetailsScreen = () => {
         <DetailsView
           data={data}
           config={listItemConfigNoImageNoSubtitle}
-          headerTitleTestId={TestIDs.SALES_ORDER_DETAILS_HEADER_TITLE}
-          headerStatusTestId={TestIDs.SALES_ORDER_DETAILS_HEADER_STATUS}
+          headerTitleTestId={TestIDs.SALES_QUOTE_DETAILS_HEADER_TITLE}
+          headerStatusTestId={TestIDs.SALES_QUOTE_DETAILS_HEADER_STATUS}
           onRefresh={refetch}
           isRefreshing={isRefetching}
         >

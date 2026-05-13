@@ -115,12 +115,12 @@ const SalesQuoteDetailsContent = ({ data }: { data: SalesQuoteDetails }) => {
         />
       )}
       <DetailsListItem
-        label={data.salesOrders?.length === 1 ? t(`details.salesOrder`) : t(`details.salesOrders`)}
+        label={data.salesOrders.length === 1 ? t(`details.salesOrder`) : t(`details.salesOrders`)}
         items={data.salesOrders}
         hideImage={true}
         isLast={true}
         onPress={() => {
-          if (data.salesOrders?.length === 1) {
+          if (data.salesOrders.length === 1) {
             navigation.navigate('salesOrderDetails', {
               id: data.salesOrders?.[0]?.id,
             });
