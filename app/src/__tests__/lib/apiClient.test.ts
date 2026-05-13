@@ -240,6 +240,28 @@ describe('apiClient interceptors', () => {
       expect(requestSpy).not.toHaveBeenCalled();
     });
 
+    it('does not retry when _noAuth flag is set (noAuth request)', async () => {
+      (createApiError as jest.Mock).mockReturnValue({ name: 'API Error', status: 401 });
+      const requestSpy = jest.spyOn(apiClient, 'request');
+
+      const mockError: Partial<AxiosError> = {
+        response: { status: 401, statusText: 'Unauthorized' } as AxiosError['response'],
+        config: {
+          url: '/oauth/token',
+          method: 'post',
+          headers: {} as InternalAxiosRequestConfig['headers'],
+          _noAuth: true,
+        } as InternalAxiosRequestConfig & { _noAuth?: boolean },
+      };
+
+      await expect(
+        getResponseInterceptor().handlers[0].rejected(mockError as AxiosError),
+      ).rejects.toEqual({ name: 'API Error', status: 401 });
+
+      expect(forceRefreshTokenAsync).not.toHaveBeenCalled();
+      expect(requestSpy).not.toHaveBeenCalled();
+    });
+
     it('passes non-401 errors through without retrying', async () => {
       (createApiError as jest.Mock).mockReturnValue({ name: 'API Error', status: 403 });
 

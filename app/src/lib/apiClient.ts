@@ -7,7 +7,11 @@ import { API_REQUEST_TIMEOUT_MS } from '@/constants/api';
 import { appInsightsService } from '@/services/appInsightsService';
 import { createApiError } from '@/utils/apiError';
 
-type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean; noAuth?: boolean };
+type RetriableConfig = InternalAxiosRequestConfig & {
+  _retried?: boolean;
+  _noAuth?: boolean;
+  noAuth?: boolean;
+};
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: configService.get('AUTH0_API_URL'),
@@ -25,6 +29,7 @@ export function updateApiClientBaseURL(): void {
 apiClient.interceptors.request.use(
   async (config: RetriableConfig) => {
     if (config.noAuth) {
+      config._noAuth = true;
       delete config.noAuth;
       return config;
     }
@@ -60,7 +65,12 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetriableConfig | undefined;
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retried) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retried &&
+      !originalRequest._noAuth
+    ) {
       originalRequest._retried = true;
       const newToken = await forceRefreshTokenAsync();
       if (newToken) {
