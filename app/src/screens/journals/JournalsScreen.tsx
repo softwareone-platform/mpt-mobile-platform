@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -6,10 +6,15 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigNoImage } from '@/config/list';
 import { JournalsProvider, useJournals } from '@/context/JournalsContext';
+import type { ListProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-const JournalsScreenContent = () => {
+type JournalsScreenRouteProp = RouteProp<RootStackParamList, 'journals'>;
+
+const JournalsScreenContent = ({
+  contentContainerStyle,
+}: Pick<ListProps, 'contentContainerStyle'>) => {
   const {
     journals,
     journalsLoading,
@@ -46,6 +51,7 @@ const JournalsScreenContent = () => {
         config={listItemConfigNoImage}
         onRefresh={refetchJournals}
         isRefreshing={isJournalsRefetching}
+        contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('journalDetails', { id });
         }}
@@ -54,10 +60,15 @@ const JournalsScreenContent = () => {
   );
 };
 
-const JournalsScreen = () => (
-  <JournalsProvider>
-    <JournalsScreenContent />
+export const JournalsList = ({ query, contentContainerStyle }: ListProps) => (
+  <JournalsProvider query={query}>
+    <JournalsScreenContent contentContainerStyle={contentContainerStyle} />
   </JournalsProvider>
 );
+
+const JournalsScreen = () => {
+  const route = useRoute<JournalsScreenRouteProp>();
+  return <JournalsList query={route.params?.query} />;
+};
 
 export default JournalsScreen;
