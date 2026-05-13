@@ -223,6 +223,6 @@ export interface SsoStatus {
 }
 
 export interface DataSource {
-  type: 'order';
+  type: 'order' | 'buyer' | 'account';
   id: string;
 }

@@ -1,4 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 
@@ -6,20 +7,23 @@ import StatusMessage from '@/components/common/EmptyStateHelper';
 import { ListView } from '@/components/list/ListView';
 import { listItemConfigFull } from '@/config/list';
 import { SellersProvider, useSellers } from '@/context/SellersContext';
+import { ListProps } from '@/types/lists';
 import type { RootStackParamList } from '@/types/navigation';
 import { TestIDs } from '@/utils/testID';
 
-const SellersScreenContent = () => {
+type SellersScreenRouteProp = RouteProp<RootStackParamList, 'sellers'>;
+
+const SellersScreenContent = ({ contentContainerStyle }: ListProps) => {
   const {
-    items,
-    isLoading,
-    isError,
-    isFetchingNext,
-    hasMore,
+    sellers,
+    sellersLoading,
+    sellersError,
+    sellersFetchingNext,
+    hasMoreSellers,
     isUnauthorised,
-    fetchNextPage,
-    refetch,
-    isRefetching,
+    fetchSellers,
+    refetchSellers,
+    isSellersRefetching,
   } = useSellers();
 
   const { t } = useTranslation();
@@ -28,9 +32,9 @@ const SellersScreenContent = () => {
 
   return (
     <StatusMessage
-      isLoading={isLoading}
-      isError={!!isError}
-      isEmpty={items.length === 0}
+      isLoading={sellersLoading}
+      isError={!!sellersError}
+      isEmpty={sellers.length === 0}
       isUnauthorised={isUnauthorised}
       loadingTestId={TestIDs.SELLERS_LOADING_INDICATOR}
       errorTestId={TestIDs.SELLERS_ERROR_STATE}
@@ -39,13 +43,14 @@ const SellersScreenContent = () => {
       emptyDescription={t('sellersScreen.emptyStateDescription')}
     >
       <ListView
-        data={items}
-        isFetchingNext={isFetchingNext}
-        hasMore={hasMore}
-        fetchNext={fetchNextPage}
+        data={sellers}
+        isFetchingNext={sellersFetchingNext}
+        hasMore={hasMoreSellers}
+        fetchNext={fetchSellers}
         config={listItemConfigFull}
-        onRefresh={refetch}
-        isRefreshing={isRefetching}
+        onRefresh={refetchSellers}
+        isRefreshing={isSellersRefetching}
+        contentContainerStyle={contentContainerStyle}
         onItemPress={(id) => {
           navigation.navigate('sellerDetails', {
             id,
@@ -56,10 +61,18 @@ const SellersScreenContent = () => {
   );
 };
 
-const SellersScreen = () => (
-  <SellersProvider>
-    <SellersScreenContent />
-  </SellersProvider>
-);
+export const SellersList = ({ source, contentContainerStyle }: ListProps) => {
+  return (
+    <SellersProvider source={source}>
+      <SellersScreenContent contentContainerStyle={contentContainerStyle} />
+    </SellersProvider>
+  );
+};
+
+const SellersScreen = () => {
+  const route = useRoute<SellersScreenRouteProp>();
+
+  return <SellersList source={route.params?.source} />;
+};
 
 export default SellersScreen;

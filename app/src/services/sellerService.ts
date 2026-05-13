@@ -25,6 +25,24 @@ export function useSellerApi() {
     [api],
   );
 
+  const getSellersForBuyer = useCallback(
+    async (
+      buyerId: string,
+      offset: number = DEFAULT_OFFSET,
+      limit: number = DEFAULT_PAGE_SIZE,
+    ): Promise<PaginatedResponse<ListItemFull>> => {
+      const endpoint =
+        `/v1/accounts/buyers/${buyerId}/sellers` +
+        `?select=parameters` +
+        `&order=name` +
+        `&offset=${offset}` +
+        `&limit=${limit}`;
+
+      return api.get<PaginatedResponse<ListItemFull>>(endpoint);
+    },
+    [api],
+  );
+
   const getSellerData = useCallback(
     async (sellerId: string): Promise<SellerData> => {
       const endpoint = `/v1/accounts/sellers/${sellerId}?select=audit.created.at,audit.created.by,audit.updated.at,audit.updated.by`;
@@ -37,7 +55,8 @@ export function useSellerApi() {
     () => ({
       getSellers,
       getSellerData,
+      getSellersForBuyer,
     }),
-    [getSellers, getSellerData],
+    [getSellers, getSellerData, getSellersForBuyer],
   );
 }

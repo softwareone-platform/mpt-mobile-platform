@@ -70,6 +70,14 @@ export const getBuyerSubList = (id: string): SubListItem[] => {
       roles: ['Client', 'Operations'],
       query: `&eq(buyer.id,"${id}")&order=name`,
     },
+    {
+      name: 'sellers',
+      roles: ['Client', 'Operations'],
+      source: {
+        type: 'buyer',
+        id,
+      },
+    },
   ];
 };
 
