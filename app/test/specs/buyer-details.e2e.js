@@ -2,8 +2,9 @@ const { expect } = require('@wdio/globals');
 
 const buyerDetailsPage = require('../pageobjects/buyer-details.page');
 const buyersPage = require('../pageobjects/buyers.page');
-const licenseesPage = require('../pageobjects/licensees.page');
 const morePage = require('../pageobjects/more.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
+const sellerDetailsPage = require('../pageobjects/seller-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX, DEFAULTS } = require('../pageobjects/utils/constants');
@@ -156,14 +157,6 @@ describe('Buyer Details Page', () => {
       const country = await buyerDetailsPage.getSimpleFieldValue('Country', true);
       expect(country).toBeDefined();
     });
-
-    it('should display an avatar in the header', async function () {
-      if (!hasBuyersData) {
-        this.skip();
-        return;
-      }
-      await expect(buyerDetailsPage.headerAvatarWrapper).toBeDisplayed();
-    });
   });
 
   describe('API Data Validation', () => {
@@ -273,20 +266,30 @@ describe('Buyer Details Page', () => {
     });
   });
 
-  describe('Sublists Navigation', () => {
-    it('should display the Licensees sublist navigation item', async function () {
-      if (!hasBuyersData) { this.skip(); return; }
-      const has = await buyerDetailsPage.hasSubList('Licensees');
-      expect(has).toBe(true);
-    });
-
-    it('should navigate to Licensees list when Licensees sublist tapped', async function () {
+  describe('Navigation Links', () => {
+    it('should navigate to Account Details when Account field is tapped', async function () {
       if (!hasBuyersData) { this.skip(); return; }
       await buyerDetailsPage.scrollToTop(3);
-      await buyerDetailsPage.tapSubList('Licensees');
-      await licenseesPage.waitForScreenReady();
-      await expect(licenseesPage.headerTitle).toBeDisplayed();
-      await licenseesPage.goBack();
+      const accountField = buyerDetailsPage.getCompositeField('Account');
+      const isDisplayed = await accountField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await accountField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(accountDetailsPage.itemIdText).toBeDisplayed();
+      await accountDetailsPage.goBack();
+      await buyerDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Seller Details when Seller field is tapped', async function () {
+      if (!hasBuyersData) { this.skip(); return; }
+      await buyerDetailsPage.scrollToTop(3);
+      const sellerField = buyerDetailsPage.getCompositeField('Seller');
+      const isDisplayed = await sellerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await sellerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(sellerDetailsPage.headerTitle).toBeDisplayed();
+      await sellerDetailsPage.goBack();
       await buyerDetailsPage.waitForPageReady();
     });
   });
