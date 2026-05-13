@@ -37,6 +37,8 @@ const CreditMemosScreenContent = () => {
       emptyTestId={TestIDs.CREDIT_MEMOS_EMPTY_STATE}
       emptyTitle={t('creditMemosScreen.emptyStateTitle')}
       emptyDescription={t('creditMemosScreen.emptyStateDescription')}
+      onRefresh={refetchCreditMemos}
+      isRefreshing={isCreditMemosRefetching}
     >
       <ListView
         data={creditMemos}

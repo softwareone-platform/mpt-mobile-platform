@@ -40,6 +40,8 @@ const SubscriptionsListContent = ({ contentContainerStyle }: ListProps) => {
       emptyTestId={TestIDs.SUBSCRIPTIONS_EMPTY_STATE}
       emptyTitle={t('subscriptionsScreen.emptyStateTitle')}
       emptyDescription={t('subscriptionsScreen.emptyStateDescription')}
+      onRefresh={refetchSubscriptions}
+      isRefreshing={isSubscriptionsRefetching}
     >
       <ListView
         data={subscriptions}

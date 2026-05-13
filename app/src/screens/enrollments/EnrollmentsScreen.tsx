@@ -39,6 +39,8 @@ const EnrollmentsScreenContent = () => {
       emptyTestId={TestIDs.ENROLLMENTS_EMPTY_STATE}
       emptyTitle={t('enrollmentsScreen.emptyStateTitle')}
       emptyDescription={t('enrollmentsScreen.emptyStateDescription')}
+      onRefresh={refetchEnrollments}
+      isRefreshing={isEnrollmentsRefetching}
     >
       <ListView
         data={enrollments}

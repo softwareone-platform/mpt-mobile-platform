@@ -46,6 +46,8 @@ const UserAccountsScreenContent = () => {
       emptyTestId={TestIDs.USER_ACCOUNTS_EMPTY_STATE}
       emptyTitle={t('userAccountsScreen.emptyStateTitle')}
       emptyDescription={t('userAccountsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       <ListView
         data={accounts}

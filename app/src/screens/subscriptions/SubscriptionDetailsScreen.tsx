@@ -33,6 +33,8 @@ const SubscriptionDetailsScreen = () => {
       emptyTestId={TestIDs.SUBSCRIPTION_DETAILS_EMPTY_STATE}
       emptyTitle={t('subscriptionDetailsScreen.emptyStateTitle')}
       emptyDescription={t('subscriptionDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView

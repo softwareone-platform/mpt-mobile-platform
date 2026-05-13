@@ -33,6 +33,8 @@ const CreditMemoDetailsScreen = () => {
       emptyTestId={TestIDs.CREDIT_MEMO_DETAILS_EMPTY_STATE}
       emptyTitle={t('creditMemoDetailsScreen.emptyStateTitle')}
       emptyDescription={t('creditMemoDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView

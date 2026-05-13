@@ -39,6 +39,8 @@ const StatementsScreenContent = () => {
       emptyTestId={TestIDs.STATEMENTS_EMPTY_STATE}
       emptyTitle={t('statementsScreen.emptyStateTitle')}
       emptyDescription={t('statementsScreen.emptyStateDescription')}
+      onRefresh={refetchStatements}
+      isRefreshing={isStatementsRefetching}
     >
       <ListView
         data={statements}

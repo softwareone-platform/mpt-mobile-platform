@@ -40,6 +40,8 @@ const AgreementsListContent = ({ contentContainerStyle }: ListProps) => {
       emptyTestId={TestIDs.AGREEMENTS_EMPTY_STATE}
       emptyTitle={t('agreementsScreen.emptyStateTitle')}
       emptyDescription={t('agreementsScreen.emptyStateDescription')}
+      onRefresh={refetchAgreements}
+      isRefreshing={isAgreementsRefetching}
     >
       <ListView
         data={agreements}

@@ -37,6 +37,8 @@ const CertificatesScreenContent = () => {
       emptyTestId={TestIDs.CERTIFICATES_EMPTY_STATE}
       emptyTitle={t('certificatesScreen.emptyStateTitle')}
       emptyDescription={t('certificatesScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       <ListView
         data={items}

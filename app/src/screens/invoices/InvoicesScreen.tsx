@@ -40,6 +40,8 @@ const InvoicesListContent = ({ contentContainerStyle }: ListProps) => {
       emptyTestId={TestIDs.INVOICES_EMPTY_STATE}
       emptyTitle={t('invoicesScreen.emptyStateTitle')}
       emptyDescription={t('invoicesScreen.emptyStateDescription')}
+      onRefresh={refetchInvoices}
+      isRefreshing={isInvoicesRefetching}
     >
       <ListView
         data={invoices}

@@ -85,7 +85,13 @@ const SpotlightScreen = () => {
 
   if (isSpotlightError) {
     return (
-      <View style={styles.containerCenterContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        refreshControl={
+          <RefreshControl refreshing={isSpotlightRefetching} onRefresh={refetchSpotlight} />
+        }
+      >
         <EmptyState
           testID={TestIDs.SPOTLIGHT_ERROR_STATE}
           icon={{
@@ -97,21 +103,29 @@ const SpotlightScreen = () => {
           title={t('spotlightScreen.errorFetchingDataTitle')}
           description={t('spotlightScreen.errorFetchingDataDescription')}
         />
-      </View>
+      </ScrollView>
     );
   }
 
   if (!spotlightData || Object.keys(spotlightData)?.length === 0) {
     return (
-      <EmptyState
-        testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
-        icon={{
-          name: 'how-to-reg',
-          variant: 'outlined',
-        }}
-        title={t('spotlightScreen.noTaskHeader')}
-        description={t('spotlightScreen.noTaskDescription')}
-      />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        refreshControl={
+          <RefreshControl refreshing={isSpotlightRefetching} onRefresh={refetchSpotlight} />
+        }
+      >
+        <EmptyState
+          testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
+          icon={{
+            name: 'how-to-reg',
+            variant: 'outlined',
+          }}
+          title={t('spotlightScreen.noTaskHeader')}
+          description={t('spotlightScreen.noTaskDescription')}
+        />
+      </ScrollView>
     );
   }
 
@@ -216,6 +230,8 @@ const styles = StyleSheet.create({
   containerFillScreen: screenStyle.containerFillScreen,
   contentFillContainer: screenStyle.contentFillContainer,
   noPaddingTop: screenStyle.noPaddingTop,
+  scrollView: { flex: 1 },
+  scrollViewContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default SpotlightScreen;

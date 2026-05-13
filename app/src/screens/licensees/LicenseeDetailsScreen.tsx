@@ -33,6 +33,8 @@ const LicenseeDetailsScreen = () => {
       emptyTestId={TestIDs.LICENSEE_DETAILS_EMPTY_STATE}
       emptyTitle={t('licenseeDetailsScreen.emptyStateTitle')}
       emptyDescription={t('licenseeDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView

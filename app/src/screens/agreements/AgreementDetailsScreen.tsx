@@ -33,6 +33,8 @@ const AgreementDetailsScreen = () => {
       emptyTestId={TestIDs.AGREEMENT_DETAILS_EMPTY_STATE}
       emptyTitle={t('agreementDetailsScreen.emptyStateTitle')}
       emptyDescription={t('agreementDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView
