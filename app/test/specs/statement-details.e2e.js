@@ -3,6 +3,12 @@ const { expect } = require('@wdio/globals');
 const statementDetailsPage = require('../pageobjects/statement-details.page');
 const statementsPage = require('../pageobjects/statements.page');
 const morePage = require('../pageobjects/more.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
+const buyerDetailsPage = require('../pageobjects/buyer-details.page');
+const licenseeDetailsPage = require('../pageobjects/licensee-details.page');
+const productDetailsPage = require('../pageobjects/product-details.page');
+const agreementDetailsPage = require('../pageobjects/agreement-details.page');
+const sellerDetailsPage = require('../pageobjects/seller-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
@@ -187,6 +193,112 @@ describe('Statement Details Page', () => {
       console.info(`∑ SP:         UI="${uiDetails.sp}"`);
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.statementId).toBe(apiStatementData.id);
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Account Details when Client field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const clientField = statementDetailsPage.getCompositeField('Client');
+      const isDisplayed = await clientField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await clientField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(accountDetailsPage.itemIdText).toBeDisplayed();
+      await accountDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Buyer Details when Buyer field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const buyerField = statementDetailsPage.getCompositeField('Buyer');
+      const isDisplayed = await buyerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await buyerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(buyerDetailsPage.headerTitle).toBeDisplayed();
+      await buyerDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Licensee Details when Licensee field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const licenseeField = statementDetailsPage.getCompositeField('Licensee');
+      const isDisplayed = await licenseeField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await licenseeField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(licenseeDetailsPage.headerTitle).toBeDisplayed();
+      await licenseeDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Account Details when Vendor field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const vendorField = statementDetailsPage.getCompositeField('Vendor');
+      const isDisplayed = await vendorField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await vendorField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(accountDetailsPage.itemIdText).toBeDisplayed();
+      await accountDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Product Details when Product field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const productField = statementDetailsPage.getCompositeField('Product');
+      const isDisplayed = await productField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await productField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(productDetailsPage.headerTitle).toBeDisplayed();
+      await productDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Agreement Details when Agreement field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const agreementField = statementDetailsPage.getCompositeField('Agreement');
+      const isDisplayed = await agreementField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await agreementField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(agreementDetailsPage.headerTitle).toBeDisplayed();
+      await agreementDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Seller Details when Seller field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const sellerField = statementDetailsPage.getCompositeField('Seller');
+      const isDisplayed = await sellerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await sellerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(sellerDetailsPage.headerTitle).toBeDisplayed();
+      await sellerDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Seller Details when Owner field is tapped', async function () {
+      if (!hasStatementsData) { this.skip(); return; }
+      await statementDetailsPage.scrollToTop(3);
+      const ownerField = statementDetailsPage.getCompositeField('Owner');
+      const isDisplayed = await ownerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await ownerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(sellerDetailsPage.headerTitle).toBeDisplayed();
+      await sellerDetailsPage.goBack();
+      await statementDetailsPage.waitForPageReady();
     });
   });
 });

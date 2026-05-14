@@ -8,12 +8,12 @@ import ListItemWithLabelAndText from '@/components/list-item/ListItemWithLabelAn
 import { EMPTY_VALUE } from '@/constants/common';
 import { useAccountType } from '@/hooks/useAccountType';
 import type { RootStackParamList } from '@/types/navigation';
-import type { SalesOrderDetails } from '@/types/procurement';
-import { formatPercentage, formatNumber } from '@/utils/formatting';
+import type { SalesQuoteDetails } from '@/types/procurement';
+import { formatPercentage, formatNumber, formatDateForLocale } from '@/utils/formatting';
 import { calculateSumByPath } from '@/utils/formulas';
 import { canNavigateTo } from '@/utils/navigationPermissions';
 
-const SalesOrderDetailsContent = ({ data }: { data: SalesOrderDetails }) => {
+const SalesQuoteDetailsContent = ({ data }: { data: SalesQuoteDetails }) => {
   const { t, i18n } = useTranslation();
 
   const language = i18n.language;
@@ -29,6 +29,8 @@ const SalesOrderDetailsContent = ({ data }: { data: SalesOrderDetails }) => {
 
   const formattedMarkup = `${formatPercentage(data.price.markup, 2) || EMPTY_VALUE} ${t('details.up')}`;
   const formattedMargin = `${formatPercentage(data.price.margin, 2) || EMPTY_VALUE} ${t('details.down')}`;
+
+  const expiryDate = formatDateForLocale(data.expiryDate, language);
 
   return (
     <CardWithHeader title={t(`details.title`)}>
@@ -87,17 +89,6 @@ const SalesOrderDetailsContent = ({ data }: { data: SalesOrderDetails }) => {
       {isOperations && (
         <ListItemWithLabelAndText title={t(`details.source`)} subtitle={data.source} />
       )}
-      <DetailsListItem
-        label={t(`details.salesQuote`)}
-        data={data.salesQuote}
-        subtitle={data.salesQuote?.id}
-        hideImage={true}
-        onPress={() => {
-          navigation.navigate('salesQuoteDetails', {
-            id: data.salesQuote?.id,
-          });
-        }}
-      />
       <ListItemWithLabelAndText
         title={t(`details.operationsExternalId`)}
         subtitle={data.externalIds.operations}
@@ -115,17 +106,29 @@ const SalesOrderDetailsContent = ({ data }: { data: SalesOrderDetails }) => {
       <ListItemWithLabelAndText
         title={t(`details.gt`)}
         subtitle={`${data.price.currency} ${totalGT}`}
-        isLast={isOperations ? false : true}
       />
+      <ListItemWithLabelAndText title={t(`details.expiryDate`)} subtitle={expiryDate} />
       {isOperations && (
         <ListItemWithLabelAndText
           title={t(`details.yield`)}
           subtitle={`${formattedMarkup}    ${formattedMargin}`}
-          isLast={true}
         />
       )}
+      <DetailsListItem
+        label={data.salesOrders.length === 1 ? t(`details.salesOrder`) : t(`details.salesOrders`)}
+        items={data.salesOrders}
+        hideImage={true}
+        isLast={true}
+        onPress={() => {
+          if (data.salesOrders.length === 1) {
+            navigation.navigate('salesOrderDetails', {
+              id: data.salesOrders?.[0]?.id,
+            });
+          }
+        }}
+      />
     </CardWithHeader>
   );
 };
 
-export default SalesOrderDetailsContent;
+export default SalesQuoteDetailsContent;

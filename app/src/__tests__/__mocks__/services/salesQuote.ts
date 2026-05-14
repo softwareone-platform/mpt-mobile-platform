@@ -109,3 +109,93 @@ export const mockResponseValid: PaginatedResponse<ListItemNoImageWithExternalIds
   },
   data: [mockQuoteValid],
 };
+
+export const mockSalesQuoteId1 = 'SQT-1234-7564';
+export const mockSalesQuoteId2 = 'SQT-1234-7565';
+
+export const mockSalesQuoteResponse1 = {
+  id: mockSalesQuoteId1,
+  name: 'Sales Quote One',
+  status: 'Draft',
+};
+
+export const mockSalesQuoteResponse2 = {
+  id: mockSalesQuoteId2,
+  name: 'Sales Quote Two longer name',
+  status: 'Completed',
+};
+
+export const expectedSalesQuoteUrl1 =
+  `/v1/procurement/sales-quotes/${mockSalesQuoteId1}` +
+  `?select=salesOrders,products,vendors,attributes.navision.navisionCountryCode`;
+
+export const expectedSalesQuoteUrl2 =
+  `/v1/procurement/sales-quotes/${mockSalesQuoteId2}` +
+  `?select=salesOrders,products,vendors,attributes.navision.navisionCountryCode`;
+
+export const mockSalesQuoteData = {
+  id: mockSalesQuoteId1,
+  name: 'Sales Quote for Microsoft Licenses',
+  status: 'Completed',
+
+  salesOrders: [
+    {
+      id: 'SOR-1234-5678',
+      externalIds: {
+        operations: 'US-SCO-1234567',
+      },
+    },
+  ],
+
+  vendors: [
+    {
+      id: 'VEN-1234-5678',
+      name: 'Microsoft CSP Distributor',
+      icon: '/v1/accounts/vendors/VEN-1234-5678/icon',
+    },
+  ],
+
+  products: [
+    {
+      id: 'PRD-1111-2222',
+      name: 'Microsoft 365 Business Premium',
+      icon: '/v1/catalog/products/PRD-1111-2222/icon',
+    },
+    {
+      id: 'PRD-3333-4444',
+      name: 'Microsoft Azure Subscription',
+      icon: '/v1/catalog/products/PRD-3333-4444/icon',
+    },
+  ],
+
+  attributes: {
+    navision: {
+      navisionCountryCode: 'IE',
+    },
+  },
+
+  total: {
+    currency: 'EUR',
+    amount: 2450.75,
+  },
+
+  audit: {
+    created: {
+      at: '2026-04-10T09:00:00Z',
+      by: {
+        id: 'USR-1111-2222',
+        name: 'Jane Smith',
+        icon: 'jane-smith-icon',
+      },
+    },
+
+    updated: {
+      at: '2026-04-15T15:30:00Z',
+      by: {
+        id: 'USR-3333-4444',
+        name: 'Michael Brown',
+        icon: 'michael-brown-icon',
+      },
+    },
+  },
+};
