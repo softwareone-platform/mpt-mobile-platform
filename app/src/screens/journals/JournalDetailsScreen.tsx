@@ -36,6 +36,8 @@ const JournalDetailsScreen = () => {
       emptyTestId={TestIDs.JOURNAL_DETAILS_EMPTY_STATE}
       emptyTitle={t('journalDetailsScreen.emptyStateTitle')}
       emptyDescription={t('journalDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView

@@ -13,6 +13,7 @@ import {
 
 import CardHeader from '@/components/card/CardHeader';
 import EmptyState from '@/components/common/EmptyState';
+import RefreshableEmptyWrapper from '@/components/common/RefreshableEmptyWrapper';
 import RefreshControl from '@/components/common/RefreshControl';
 import FiltersHorizontal from '@/components/filters/FiltersHorizontal';
 import NavigationItemWithImage from '@/components/navigation-item/NavigationItemWithImage';
@@ -85,7 +86,7 @@ const SpotlightScreen = () => {
 
   if (isSpotlightError) {
     return (
-      <View style={styles.containerCenterContent}>
+      <RefreshableEmptyWrapper onRefresh={refetchSpotlight} isRefreshing={isSpotlightRefetching}>
         <EmptyState
           testID={TestIDs.SPOTLIGHT_ERROR_STATE}
           icon={{
@@ -97,21 +98,23 @@ const SpotlightScreen = () => {
           title={t('spotlightScreen.errorFetchingDataTitle')}
           description={t('spotlightScreen.errorFetchingDataDescription')}
         />
-      </View>
+      </RefreshableEmptyWrapper>
     );
   }
 
   if (!spotlightData || Object.keys(spotlightData)?.length === 0) {
     return (
-      <EmptyState
-        testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
-        icon={{
-          name: 'how-to-reg',
-          variant: 'outlined',
-        }}
-        title={t('spotlightScreen.noTaskHeader')}
-        description={t('spotlightScreen.noTaskDescription')}
-      />
+      <RefreshableEmptyWrapper onRefresh={refetchSpotlight} isRefreshing={isSpotlightRefetching}>
+        <EmptyState
+          testID={TestIDs.SPOTLIGHT_EMPTY_STATE}
+          icon={{
+            name: 'how-to-reg',
+            variant: 'outlined',
+          }}
+          title={t('spotlightScreen.noTaskHeader')}
+          description={t('spotlightScreen.noTaskDescription')}
+        />
+      </RefreshableEmptyWrapper>
     );
   }
 

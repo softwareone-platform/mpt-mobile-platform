@@ -40,6 +40,8 @@ const ProductsListContent = ({ contentContainerStyle }: ListProps) => {
       emptyTestId={TestIDs.PRODUCTS_EMPTY_STATE}
       emptyTitle={t('productsScreen.emptyStateTitle')}
       emptyDescription={t('productsScreen.emptyStateDescription')}
+      onRefresh={refetchProducts}
+      isRefreshing={isProductsRefetching}
     >
       <ListView
         data={products}

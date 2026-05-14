@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
+import RefreshableEmptyWrapper from '@/components/common/RefreshableEmptyWrapper';
 import { useAccount } from '@/context/AccountContext';
 import { screenStyle } from '@/styles/components';
 import { Color } from '@/styles/tokens';
@@ -20,6 +21,8 @@ interface EmptyStateHelperProps {
   loadingTestId?: string;
   errorTestId?: string;
   emptyTestId?: string;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
   children: React.ReactNode;
 }
 
@@ -36,6 +39,8 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
   loadingTestId,
   errorTestId,
   emptyTestId,
+  onRefresh,
+  isRefreshing,
   children,
 }) => {
   const { t } = useTranslation();
@@ -50,25 +55,33 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
   }
 
   if (isError && !isUnauthorised) {
-    return (
-      <View style={styles.containerCenterContent}>
-        <EmptyState
-          testID={errorTestId}
-          icon={{
-            name: 'block',
-            variant: 'filled',
-            size: 48,
-            color: Color.brand.primary,
-          }}
-          title={errorTitle || t('common.message.errorGettingDataTitle')}
-          description={errorDescription || t('common.message.errorGettingDataDescription')}
-        />
-      </View>
+    const errorState = (
+      <EmptyState
+        testID={errorTestId}
+        icon={{
+          name: 'block',
+          variant: 'filled',
+          size: 48,
+          color: Color.brand.primary,
+        }}
+        title={errorTitle || t('common.message.errorGettingDataTitle')}
+        description={errorDescription || t('common.message.errorGettingDataDescription')}
+      />
     );
+
+    if (onRefresh) {
+      return (
+        <RefreshableEmptyWrapper onRefresh={onRefresh} isRefreshing={isRefreshing ?? false}>
+          {errorState}
+        </RefreshableEmptyWrapper>
+      );
+    }
+
+    return <View style={styles.containerCenterContent}>{errorState}</View>;
   }
 
   if (isEmpty || isUnauthorised) {
-    return (
+    const emptyState = (
       <EmptyState
         testID={emptyTestId}
         icon={{
@@ -80,6 +93,16 @@ const EmptyStateHelper: React.FC<EmptyStateHelperProps> = ({
         description={emptyDescription}
       />
     );
+
+    if (onRefresh) {
+      return (
+        <RefreshableEmptyWrapper onRefresh={onRefresh} isRefreshing={isRefreshing ?? false}>
+          {emptyState}
+        </RefreshableEmptyWrapper>
+      );
+    }
+
+    return emptyState;
   }
 
   return <>{children}</>;

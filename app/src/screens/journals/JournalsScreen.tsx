@@ -42,6 +42,8 @@ const JournalsScreenContent = ({
       emptyTestId={TestIDs.JOURNALS_EMPTY_STATE}
       emptyTitle={t('journalsScreen.emptyStateTitle')}
       emptyDescription={t('journalsScreen.emptyStateDescription')}
+      onRefresh={refetchJournals}
+      isRefreshing={isJournalsRefetching}
     >
       <ListView
         data={journals}

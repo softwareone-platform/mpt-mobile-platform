@@ -33,6 +33,8 @@ const CertificateDetailsScreen = () => {
       emptyTestId={TestIDs.CERTIFICATE_DETAILS_EMPTY_STATE}
       emptyTitle={t('certificateDetailsScreen.emptyStateTitle')}
       emptyDescription={t('certificateDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView

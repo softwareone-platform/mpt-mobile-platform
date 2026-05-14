@@ -36,6 +36,8 @@ const ProductDetailsScreen = () => {
       emptyTestId={TestIDs.PRODUCT_DETAILS_EMPTY_STATE}
       emptyTitle={t('productDetailsScreen.emptyStateTitle')}
       emptyDescription={t('productDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView

@@ -91,6 +91,8 @@ const ChatScreenContent = () => {
         emptyTestId={TestIDs.CHATS_EMPTY_STATE}
         emptyTitle={t('chatsScreen.emptyStateTitle')}
         emptyDescription={t('chatsScreen.emptyStateDescription')}
+        onRefresh={refetchChats}
+        isRefreshing={isRefetchingChats}
       >
         <ListViewChat
           userId={userId || ''}

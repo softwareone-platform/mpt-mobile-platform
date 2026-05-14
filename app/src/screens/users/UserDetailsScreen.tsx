@@ -54,6 +54,8 @@ const UserDetailsScreen = () => {
       emptyTestId={TestIDs.USER_DETAILS_EMPTY_STATE}
       emptyTitle={t('userDetailsScreen.emptyStateTitle')}
       emptyDescription={t('userDetailsScreen.emptyStateDescription')}
+      onRefresh={handleRefresh}
+      isRefreshing={isRefetching || isSsoRefetching}
     >
       {userDetails && sso && (
         <DetailsView

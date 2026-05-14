@@ -36,6 +36,8 @@ const InvoiceDetailsScreen = () => {
       emptyTestId={TestIDs.INVOICE_DETAILS_EMPTY_STATE}
       emptyTitle={t('invoiceDetailsScreen.emptyStateTitle')}
       emptyDescription={t('invoiceDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView

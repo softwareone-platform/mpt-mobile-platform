@@ -37,6 +37,8 @@ const ProgramsScreenContent = () => {
       emptyTestId={TestIDs.PROGRAMS_EMPTY_STATE}
       emptyTitle={t('programsScreen.emptyStateTitle')}
       emptyDescription={t('programsScreen.emptyStateDescription')}
+      onRefresh={refetchPrograms}
+      isRefreshing={isProgramsRefetching}
     >
       <ListView
         data={programs}

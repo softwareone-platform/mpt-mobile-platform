@@ -33,6 +33,8 @@ const EnrollmentDetailsScreen = () => {
       emptyTestId={TestIDs.ENROLLMENT_DETAILS_EMPTY_STATE}
       emptyTitle={t('enrollmentDetailsScreen.emptyStateTitle')}
       emptyDescription={t('enrollmentDetailsScreen.emptyStateDescription')}
+      onRefresh={refetch}
+      isRefreshing={isRefetching}
     >
       {data && (
         <DetailsView
