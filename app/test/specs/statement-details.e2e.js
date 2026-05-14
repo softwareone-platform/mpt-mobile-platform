@@ -10,7 +10,13 @@ const productDetailsPage = require('../pageobjects/product-details.page');
 const agreementDetailsPage = require('../pageobjects/agreement-details.page');
 const sellerDetailsPage = require('../pageobjects/seller-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
@@ -47,9 +53,8 @@ describe('Statement Details Page', () => {
     apiAvailable = !!process.env.API_OPS_TOKEN;
 
     if (hasStatementsData) {
-      const statementsWithStatus = await statementsPage.getVisibleStatementsWithStatus();
-      const issuedStatement = statementsWithStatus.find((s) => s.status === 'Issued');
-      testStatementId = issuedStatement ? issuedStatement.id : statementsWithStatus[0]?.id;
+      const statementIds = await statementsPage.getVisibleStatementIds();
+      testStatementId = statementIds[0];
 
       if (apiAvailable && testStatementId) {
         try {
@@ -300,5 +305,33 @@ describe('Statement Details Page', () => {
       await sellerDetailsPage.goBack();
       await statementDetailsPage.waitForPageReady();
     });
+  });
+});
+
+describe('[MPT-18620] Statement Details - Role-Based Access', function () {
+  it('should show Statements menu item for Client account', async function () {
+    // DOM evidence matrix has N/A for Client-statement; empirical testing confirms Client accounts
+    // DO have access to Statements (menu item is visible). Asserting presence here as ground truth.
+    if (!CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
+    await statementsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const statementsItemVisible = await morePage.statementsMenuItem.isExisting().catch(() => false);
+    expect(statementsItemVisible).toBe(true);
+    await ensureOperationsAccount();
+  });
+
+  it('should NOT show Statements menu item for Vendor account', async function () {
+    if (!VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureVendorAccount();
+    await statementsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const statementsItemVisible = await morePage.statementsMenuItem.isExisting().catch(() => false);
+    expect(statementsItemVisible).toBe(false);
+    await ensureOperationsAccount();
   });
 });

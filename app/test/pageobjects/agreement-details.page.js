@@ -34,22 +34,26 @@ class AgreementDetailsPage extends DetailsPage {
     return {
       agreementId: await this.getItemId(),
       status: await this.getStatus(),
+      // Core fields — scroll to find if not immediately visible
       vendor: await this.getCompositeFieldValueByLabel('Vendor', true),
       product: await this.getCompositeFieldValueByLabel('Product', true),
-      resaleLicensee: await this.getSimpleFieldValue('Resale licensee', true),
-      client: await this.getCompositeFieldValueByLabel('Client', true),
-      ppx: await this.getSimpleFieldValue('PPx', true),
-      ppxPrice: await this.getSimpleFieldValue('- USD/month    - USD/year', true),
-      averageYield: await this.getSimpleFieldValue('Average yield', true),
-      averageYieldValue: await this.getSimpleFieldValue('- M↑    - M↓', true),
-      defaultYield: await this.getSimpleFieldValue('Default yield', true),
-      defaultYieldValue: await this.getSimpleFieldValue('42.00% M↑    29.58% M↓', true),
-      spx: await this.getSimpleFieldValue('SPx', true),
-      spxPrice: await this.getSimpleFieldValue('- USD/month    - USD/year', true),
+      resaleLicensee: await this.getSimpleFieldValue('Resale licensee', false),
+      client: await this.getCompositeFieldValueByLabel('Client', false),
+      // Pricing/yield fields — check existence only (no scrolling); these are role-gated
+      // and will not be present for Client accounts, so scrollIfNeeded=false avoids
+      // burning 4 scroll attempts per missing field.
+      ppx: await this.getSimpleFieldValue('PPx', false),
+      ppxPrice: await this.getSimpleFieldValue('- USD/month    - USD/year', false),
+      averageYield: await this.getSimpleFieldValue('Average yield', false),
+      averageYieldValue: await this.getSimpleFieldValue('- M↑    - M↓', false),
+      defaultYield: await this.getSimpleFieldValue('Default yield', false),
+      defaultYieldValue: await this.getSimpleFieldValue('42.00% M↑    29.58% M↓', false),
+      spx: await this.getSimpleFieldValue('SPx', false),
+      spxPrice: await this.getSimpleFieldValue('- USD/month    - USD/year', false),
       baseCurrency: await this.getSimpleFieldValue('Base currency', true),
-      baseCurrencyValue: await this.getSimpleFieldValue('USD', true),
+      baseCurrencyValue: await this.getSimpleFieldValue('USD', false),
       billingCurrency: await this.getSimpleFieldValue('Billing currency', true),
-      billingCurrencyValue: await this.getSimpleFieldValue('USD', true),
+      billingCurrencyValue: await this.getSimpleFieldValue('USD', false),
     };
   }
 }

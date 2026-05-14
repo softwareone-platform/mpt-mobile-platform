@@ -564,10 +564,36 @@ exports.config = {
             './test/specs/buyer-details.e2e.js',
             './test/specs/users.e2e.js',
             './test/specs/user-details.e2e.js',
+            // Statements: Client accounts have access (empirically confirmed 2026-05-13)
+            './test/specs/statements.e2e.js',
+            './test/specs/statement-details.e2e.js',
             './test/specs/spotlight-filters.e2e.js',
             './test/specs/spotlight-navigation.e2e.js',
             './test/specs/profile.e2e.js',
             './test/specs/personal-information.e2e.js',
+        ],
+        // Vendor role — specs that include MPT-18620 vendor role-gated assertions.
+        // Requires VENDOR_ACCOUNT_ID to be set in app/.env; vendor-specific tests
+        // skip automatically when the variable is absent.
+        vendorScoped: [
+            './test/specs/orders.e2e.js',
+            './test/specs/order-details.e2e.js',
+            './test/specs/subscriptions.e2e.js',
+            './test/specs/subscription-details.e2e.js',
+            './test/specs/agreements.e2e.js',
+            './test/specs/agreement-details.e2e.js',
+            './test/specs/products.e2e.js',
+            './test/specs/product-details.e2e.js',
+            './test/specs/programs.e2e.js',
+            './test/specs/program-details.e2e.js',
+            './test/specs/enrollments.e2e.js',
+            './test/specs/enrollment-details.e2e.js',
+            './test/specs/certificates.e2e.js',
+            './test/specs/certificate-details.e2e.js',
+            './test/specs/journals.e2e.js',
+            './test/specs/journal-details.e2e.js',
+            // statement-details: Vendor cannot see Statements menu (access-control assertion)
+            './test/specs/statement-details.e2e.js',
         ],
         opsScoped: [
             './test/specs/statements.e2e.js',
