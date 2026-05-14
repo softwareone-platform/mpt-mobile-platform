@@ -178,6 +178,7 @@ const REGEX = {
   USER_ID_IN_LABEL: /,\s*USR-\d{4}-\d{4},/,
   ACCOUNT_ID: /^ACC-\d{4}-\d{4}$/,
   SELLER_ID: /^SEL-\d{4}-\d{4}$/,
+  SALES_ORDER_ID: /^SOR-\d{4}-\d{4}-\d{4}$/,
 };
 
 // ============ Default / Sentinel Constants ============
@@ -222,7 +223,7 @@ const STATUSES = {
   LICENSEE: ['Enabled', 'Disabled'],
 
   /** Valid statuses that can appear for buyers in the UI */
-  BUYER: ['Active', 'Enabled', 'Unassigned'],
+  BUYER: ['Active', 'Enabled', 'Disabled', 'Unassigned'],
 
   /** Valid statuses that can appear for products in the UI */
   PRODUCT: ['Published', 'Unpublished', 'Pending'],
@@ -241,6 +242,9 @@ const STATUSES = {
 
   /** Valid statuses that can appear for sellers in the UI */
   SELLER: ['Active', 'Disabled'],
+
+  /** Valid statuses that can appear for sales orders in the UI */
+  SALES_ORDER: ['Draft', 'Processing', 'Ready', 'Completed', 'Cancelled'],
 };
 
 module.exports = {

@@ -9,6 +9,7 @@ import { statusList } from '@/constants/status';
 import { listItemStyle } from '@/styles';
 import type { ListItemWithStatusProps } from '@/types/lists';
 import { getStatus } from '@/utils/list';
+import { TestIDs } from '@/utils/testID';
 
 type DetailsHeaderProps = ListItemWithStatusProps & {
   customAvatar?: React.ReactNode;
@@ -69,7 +70,10 @@ const DetailsHeader = ({
     <View style={styles.screenHeader}>
       <View style={styles.topRow}>
         {avatar && (
-          <View style={[styles.avatarWrapper, hasCustomAvatar && styles.avatarWrapperNoBorder]}>
+          <View
+            testID={TestIDs.DETAILS_HEADER_AVATAR_CONTAINER}
+            style={[styles.avatarWrapper, hasCustomAvatar && styles.avatarWrapperNoBorder]}
+          >
             {avatar}
           </View>
         )}

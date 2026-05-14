@@ -45,6 +45,7 @@ export type SecondaryTabsParamList = {
   orders: ScreenParams;
   subscriptions: ScreenParams;
   salesOrders: ScreenParams;
+  salesQuotes: ScreenParams;
 };
 
 export type AppScreensParamList = {
@@ -69,6 +70,7 @@ export type AppScreensParamList = {
   certificateDetails: { id: string | undefined };
   chatConversation: { id: string | undefined };
   salesOrderDetails: { id: string | undefined };
+  salesQuoteDetails: { id: string | undefined };
 };
 
 export type SpotlightStackParamList = {

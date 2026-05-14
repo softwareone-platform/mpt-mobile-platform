@@ -80,6 +80,7 @@ export function useMarkAsRead({
           id: currentParticipant.id,
           lastReadMessage: { id: messageId },
         });
+        void queryClient.invalidateQueries({ queryKey: ['chats'] });
       } catch (error) {
         lastReadMessageIdRef.current = null;
         lastReadCreatedAtRef.current = null;

@@ -62,6 +62,23 @@ describe('Seller Details Page', () => {
     }
   });
 
+  beforeEach(async function () {
+    if (!sellersMenuAvailable || !hasSellersData) {
+      this.skip();
+      return;
+    }
+    const isOnPage = await sellerDetailsPage.isOnDetailsPage();
+    if (!isOnPage) {
+      await navigation.ensureHomePage({ resetFilters: false });
+      await sellersPage.footer.moreTab.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await morePage.sellersMenuItem.click();
+      await sellersPage.waitForScreenReady();
+      await sellersPage.tapSeller(testSellerId);
+      await sellerDetailsPage.waitForPageReady();
+    }
+  });
+
   describe('Page Structure', () => {
     it('should display the Sellers header title', async function () {
       if (!hasSellersData) {
@@ -100,6 +117,14 @@ describe('Seller Details Page', () => {
       const country = await sellerDetailsPage.getSimpleFieldValue('Country', true).catch(() => '');
       const hasAddressData = addressLine1 || city || country;
       expect(hasAddressData).toBeTruthy();
+    });
+
+    it('should display an avatar in the header', async function () {
+      if (!hasSellersData) {
+        this.skip();
+        return;
+      }
+      await expect(sellerDetailsPage.headerAvatarWrapper).toBeDisplayed();
     });
   });
 

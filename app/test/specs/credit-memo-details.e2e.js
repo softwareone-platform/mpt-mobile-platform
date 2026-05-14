@@ -3,6 +3,12 @@ const { expect } = require('@wdio/globals');
 const creditMemoDetailsPage = require('../pageobjects/credit-memo-details.page');
 const creditMemosPage = require('../pageobjects/credit-memos.page');
 const morePage = require('../pageobjects/more.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
+const buyerDetailsPage = require('../pageobjects/buyer-details.page');
+const licenseeDetailsPage = require('../pageobjects/licensee-details.page');
+const productDetailsPage = require('../pageobjects/product-details.page');
+const agreementDetailsPage = require('../pageobjects/agreement-details.page');
+const sellerDetailsPage = require('../pageobjects/seller-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
@@ -178,6 +184,15 @@ describe('Credit Memo Details Page', () => {
       const currency = await creditMemoDetailsPage.getSimpleFieldValue('Currency', true);
       expect(currency).toBeTruthy();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasCreditMemosData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await creditMemoDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {
@@ -320,6 +335,86 @@ describe('Credit Memo Details Page', () => {
       );
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.creditMemoId).toBe(apiCreditMemoData.id);
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Account Details when Client field is tapped', async function () {
+      if (!hasCreditMemosData) { this.skip(); return; }
+      await creditMemoDetailsPage.scrollToTop(3);
+      const clientField = creditMemoDetailsPage.getCompositeField('Client');
+      const isDisplayed = await clientField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await clientField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(accountDetailsPage.itemIdText).toBeDisplayed();
+      await accountDetailsPage.goBack();
+      await creditMemoDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Buyer Details when Buyer field is tapped', async function () {
+      if (!hasCreditMemosData) { this.skip(); return; }
+      await creditMemoDetailsPage.scrollToTop(3);
+      const buyerField = creditMemoDetailsPage.getCompositeField('Buyer');
+      const isDisplayed = await buyerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await buyerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(buyerDetailsPage.headerTitle).toBeDisplayed();
+      await buyerDetailsPage.goBack();
+      await creditMemoDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Licensee Details when Licensee field is tapped', async function () {
+      if (!hasCreditMemosData) { this.skip(); return; }
+      await creditMemoDetailsPage.scrollToTop(3);
+      const licenseeField = creditMemoDetailsPage.getCompositeField('Licensee');
+      const isDisplayed = await licenseeField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await licenseeField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(licenseeDetailsPage.headerTitle).toBeDisplayed();
+      await licenseeDetailsPage.goBack();
+      await creditMemoDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Product Details when Product field is tapped', async function () {
+      if (!hasCreditMemosData) { this.skip(); return; }
+      await creditMemoDetailsPage.scrollToTop(3);
+      const productField = creditMemoDetailsPage.getCompositeField('Product');
+      const isDisplayed = await productField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await productField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(productDetailsPage.headerTitle).toBeDisplayed();
+      await productDetailsPage.goBack();
+      await creditMemoDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Agreement Details when Agreement field is tapped', async function () {
+      if (!hasCreditMemosData) { this.skip(); return; }
+      await creditMemoDetailsPage.scrollToTop(3);
+      const agreementField = creditMemoDetailsPage.getCompositeField('Agreement');
+      const isDisplayed = await agreementField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await agreementField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(agreementDetailsPage.headerTitle).toBeDisplayed();
+      await agreementDetailsPage.goBack();
+      await creditMemoDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Seller Details when Seller field is tapped', async function () {
+      if (!hasCreditMemosData) { this.skip(); return; }
+      await creditMemoDetailsPage.scrollToTop(3);
+      const sellerField = creditMemoDetailsPage.getCompositeField('Seller');
+      const isDisplayed = await sellerField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await sellerField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(sellerDetailsPage.headerTitle).toBeDisplayed();
+      await sellerDetailsPage.goBack();
+      await creditMemoDetailsPage.waitForPageReady();
     });
   });
 });

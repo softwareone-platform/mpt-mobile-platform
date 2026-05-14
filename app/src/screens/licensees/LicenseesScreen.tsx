@@ -39,6 +39,8 @@ const LicenseesScreenContent = () => {
       emptyTestId={TestIDs.LICENSEES_EMPTY_STATE}
       emptyTitle={t('licenseesScreen.emptyStateTitle')}
       emptyDescription={t('licenseesScreen.emptyStateDescription')}
+      onRefresh={refetchLicensees}
+      isRefreshing={isLicenseesRefetching}
     >
       <ListView
         data={licensees}

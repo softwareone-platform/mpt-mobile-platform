@@ -125,6 +125,25 @@ describe('AppInsightsService', () => {
     });
   });
 
+  describe('clearUser', () => {
+    it('should not throw when no user provider is set', () => {
+      expect(() => service.clearUser()).not.toThrow();
+    });
+
+    it('should not throw after setUserProvider has been called', () => {
+      service.setUserProvider(() => ({ sub: 'test-user' }));
+      expect(() => service.clearUser()).not.toThrow();
+    });
+
+    it('should be idempotent', () => {
+      service.setUserProvider(() => ({ sub: 'test-user' }));
+      expect(() => {
+        service.clearUser();
+        service.clearUser();
+      }).not.toThrow();
+    });
+  });
+
   describe('trackEvent', () => {
     it('should track event when initialized', () => {
       service.initialize();

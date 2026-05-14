@@ -138,6 +138,15 @@ describe('Journal Details Page', () => {
       const charges = await journalDetailsPage.getSimpleFieldValue('All charges', true);
       expect(charges).toBeDefined();
     });
+
+    it('should NOT display an avatar in the header', async function () {
+      if (!hasJournalsData) {
+        this.skip();
+        return;
+      }
+      const avatarExists = await journalDetailsPage.headerAvatarWrapper.isExisting().catch(() => false);
+      expect(avatarExists).toBe(false);
+    });
   });
 
   describe('API Data Validation', () => {

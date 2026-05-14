@@ -13,6 +13,16 @@ jest.mock('../services/appInsightsService', () => ({
   },
 }));
 
+jest.mock('../services/auth0ErrorParsingService', () => ({
+  auth0ErrorParsingService: {
+    sanitizeForTelemetry: jest.fn((err: Error) => {
+      const sanitized = new Error(`sanitized: ${err.message}`);
+      sanitized.name = err.name;
+      return sanitized;
+    }),
+  },
+}));
+
 jest.mock('../services/loggerService', () => ({
   logger: {
     warn: jest.fn(),
@@ -54,10 +64,17 @@ jest.mock('../config/env.config', () => ({
 
 const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
 
+import { appInsightsService } from '../services/appInsightsService';
+import { auth0ErrorParsingService } from '../services/auth0ErrorParsingService';
 import authService, { User } from '../services/authService';
 import { logger } from '../services/loggerService';
 
 import { ACCOUNT_ID_CLAIM_KEY, USER_ID_CLAIM_KEY } from '@/constants/auth';
+
+const mockAppInsights = appInsightsService as jest.Mocked<typeof appInsightsService>;
+const mockAuth0ErrorParsing = auth0ErrorParsingService as jest.Mocked<
+  typeof auth0ErrorParsingService
+>;
 
 describe('authService', () => {
   beforeEach(() => {
@@ -218,6 +235,20 @@ describe('authService', () => {
       mockPasswordlessWithEmail.mockRejectedValue('error');
       await expect(authService.sendPasswordlessEmail('test@example.com')).rejects.toThrow();
     });
+
+    it('tracks a sanitized error, not the original', async () => {
+      const original = new Error('Failed for user@example.com');
+      mockPasswordlessWithEmail.mockRejectedValue(original);
+
+      await expect(authService.sendPasswordlessEmail('user@example.com')).rejects.toThrow();
+
+      expect(mockAuth0ErrorParsing.sanitizeForTelemetry).toHaveBeenCalledWith(original);
+      expect(mockAppInsights.trackException).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'sanitized: Failed for user@example.com' }),
+        { operation: 'sendPasswordlessEmail' },
+        'Critical',
+      );
+    });
   });
 
   describe('verifyPasswordlessOtp', () => {
@@ -252,6 +283,24 @@ describe('authService', () => {
       await expect(
         authService.verifyPasswordlessOtp('test@example.com', '123456'),
       ).rejects.toThrow();
+    });
+
+    it('tracks a sanitized error, not the original', async () => {
+      const original = new Error('Wrong code 123456 for user@example.com');
+      mockLoginWithEmail.mockRejectedValue(original);
+
+      await expect(
+        authService.verifyPasswordlessOtp('user@example.com', '123456'),
+      ).rejects.toThrow();
+
+      expect(mockAuth0ErrorParsing.sanitizeForTelemetry).toHaveBeenCalledWith(original);
+      expect(mockAppInsights.trackException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'sanitized: Wrong code 123456 for user@example.com',
+        }),
+        { operation: 'verifyPasswordlessOtp' },
+        'Critical',
+      );
     });
   });
 
@@ -338,6 +387,23 @@ describe('authService', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       await expect(authService.refreshAccessToken('token')).rejects.toThrow();
+    });
+
+    it('tracks a sanitized error, not the original', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        text: async () => 'invalid_grant',
+      });
+
+      await expect(authService.refreshAccessToken('bad-token')).rejects.toThrow();
+
+      expect(mockAuth0ErrorParsing.sanitizeForTelemetry).toHaveBeenCalled();
+      expect(mockAppInsights.trackException).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining('sanitized:') }),
+        { operation: 'refreshAccessToken' },
+        'Critical',
+      );
     });
   });
 

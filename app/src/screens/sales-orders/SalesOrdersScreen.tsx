@@ -40,6 +40,8 @@ const SalesOrdersListContent = ({ contentContainerStyle }: ListProps) => {
       emptyTestId={TestIDs.SALES_ORDERS_EMPTY_STATE}
       emptyTitle={t('salesOrdersScreen.emptyStateTitle')}
       emptyDescription={t('salesOrdersScreen.emptyStateDescription')}
+      onRefresh={refetchSalesOrders}
+      isRefreshing={isSalesOrdersRefetching}
     >
       <ListView
         data={salesOrders}

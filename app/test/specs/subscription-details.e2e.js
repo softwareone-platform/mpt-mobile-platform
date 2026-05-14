@@ -2,9 +2,12 @@ const { expect } = require('@wdio/globals');
 
 const subscriptionDetailsPage = require('../pageobjects/subscription-details.page');
 const subscriptionsPage = require('../pageobjects/subscriptions.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
+const agreementDetailsPage = require('../pageobjects/agreement-details.page');
+const productDetailsPage = require('../pageobjects/product-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
-const { TIMEOUT, REGEX, STATUSES } = require('../pageobjects/utils/constants');
+const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
 
@@ -420,6 +423,47 @@ describe('Subscription Details Page', () => {
       expect(uiDetails.subscriptionId).toBe(
         apiSubscriptionData.id || apiSubscriptionData.subscriptionId,
       );
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should navigate to Product Details when Product field is tapped', async function () {
+      if (!hasSubscriptionsData) { this.skip(); return; }
+      await subscriptionDetailsPage.scrollToTop(3);
+      const productField = subscriptionDetailsPage.getCompositeField('Product');
+      const isDisplayed = await productField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await productField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(productDetailsPage.headerTitle).toBeDisplayed();
+      await productDetailsPage.goBack();
+      await subscriptionDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Agreement Details when Agreement field is tapped', async function () {
+      if (!hasSubscriptionsData) { this.skip(); return; }
+      await subscriptionDetailsPage.scrollToTop(3);
+      const agreementField = subscriptionDetailsPage.getCompositeField('Agreement');
+      const isDisplayed = await agreementField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await agreementField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(agreementDetailsPage.headerTitle).toBeDisplayed();
+      await agreementDetailsPage.goBack();
+      await subscriptionDetailsPage.waitForPageReady();
+    });
+
+    it('should navigate to Account Details when Client field is tapped', async function () {
+      if (!hasSubscriptionsData) { this.skip(); return; }
+      await subscriptionDetailsPage.scrollToTop(3);
+      const clientField = subscriptionDetailsPage.getCompositeField('Client');
+      const isDisplayed = await clientField.isDisplayed().catch(() => false);
+      if (!isDisplayed) { this.skip(); return; }
+      await clientField.click();
+      await browser.pause(PAUSE.NAVIGATION);
+      await expect(accountDetailsPage.itemIdText).toBeDisplayed();
+      await accountDetailsPage.goBack();
+      await subscriptionDetailsPage.waitForPageReady();
     });
   });
 });

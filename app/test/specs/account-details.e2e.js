@@ -155,6 +155,10 @@ describe('Account Details Page (Client)', () => {
       const value = await accountDetailsPage.getSimpleFieldValue('PYC ID', true).catch(() => '');
       expect(value).toBeDefined();
     });
+
+    it('should display an avatar in the header', async function () {
+      await expect(accountDetailsPage.headerAvatarWrapper).toBeDisplayed();
+    });
   });
 
   describe('Address Section', () => {

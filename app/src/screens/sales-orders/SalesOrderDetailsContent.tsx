@@ -92,7 +92,11 @@ const SalesOrderDetailsContent = ({ data }: { data: SalesOrderDetails }) => {
         data={data.salesQuote}
         subtitle={data.salesQuote?.id}
         hideImage={true}
-        onPress={() => {}}
+        onPress={() => {
+          navigation.navigate('salesQuoteDetails', {
+            id: data.salesQuote?.id,
+          });
+        }}
       />
       <ListItemWithLabelAndText
         title={t(`details.operationsExternalId`)}
@@ -107,18 +111,17 @@ const SalesOrderDetailsContent = ({ data }: { data: SalesOrderDetails }) => {
       <ListItemWithLabelAndText
         title={t(`details.sp`)}
         subtitle={`${data.price.currency} ${totalSP}`}
-        isLast={true}
       />
       <ListItemWithLabelAndText
         title={t(`details.gt`)}
         subtitle={`${data.price.currency} ${totalGT}`}
-        isLast={true}
+        isLast={isOperations ? false : true}
       />
-
       {isOperations && (
         <ListItemWithLabelAndText
           title={t(`details.yield`)}
           subtitle={`${formattedMarkup}    ${formattedMargin}`}
+          isLast={true}
         />
       )}
     </CardWithHeader>

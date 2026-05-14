@@ -2,6 +2,8 @@ import { Status } from '@/types/lists';
 
 export const statusList = {
   Accepted: 'success',
+  Accepting: 'warning',
+  AwaitingAcceptance: 'warning',
   Active: 'success',
   Blocked: 'default',
   Cancelled: 'default',
@@ -19,6 +21,7 @@ export const statusList = {
   Exported: 'success',
   Failed: 'danger',
   ForSale: 'success',
+  Finalizing: 'default',
   Generated: 'warning',
   Generating: 'info',
   Inactive: 'default',
@@ -44,6 +47,7 @@ export const statusList = {
   Quoted: 'default',
   Ready: 'warning',
   Redeemed: 'success',
+  Rejected: 'danger',
   Review: 'warning',
   Saved: 'default',
   Split: 'default',
