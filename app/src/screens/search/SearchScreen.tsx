@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, AppState, Keyboard, Pressable, TextInput } from 'react-native';
+import { View, StyleSheet, AppState, Keyboard } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
 import KeyboardWrapper from '@/components/common/KeyboardWrapper';
@@ -24,9 +24,9 @@ import { TestIDs } from '@/utils/testID';
 const SearchScreen = () => {
   const { t } = useTranslation();
   const { accountType } = useAccountType();
-  const searchInputRef = useRef<TextInput>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchMode, setIsSearchMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState<SearchCategory>('agreements');
 
   const categories = (Object.keys(searchConfig) as SearchCategory[]).filter((category) =>
@@ -53,10 +53,12 @@ const SearchScreen = () => {
       <View style={styles.container}>
         <SubHeaderContainer>
           <SearchInput
-            ref={searchInputRef}
             value={searchTerm}
             onChangeText={setSearchTerm}
             placeholder={`${t('search.placeholder')} ${t(`searchScreen.filter.${activeCategory}`).toLocaleLowerCase()}`}
+            showCancel
+            isSearchMode={isSearchMode}
+            onSearchModeChange={setIsSearchMode}
           />
         </SubHeaderContainer>
         <View>
@@ -88,10 +90,7 @@ const SearchScreen = () => {
             )}
           </View>
         ) : (
-          <Pressable
-            style={styles.emptyStateContainer}
-            onPress={() => searchInputRef.current?.blur()}
-          >
+          <View style={styles.emptyStateContainer}>
             <EmptyState
               icon={{
                 name: 'search',
@@ -100,7 +99,7 @@ const SearchScreen = () => {
               description={t('searchScreen.emptyStateDescription')}
               testID={TestIDs.SEARCH_EMPTY_STATE}
             />
-          </Pressable>
+          </View>
         )}
       </View>
     </KeyboardWrapper>
