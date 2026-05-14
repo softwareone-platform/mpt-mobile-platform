@@ -3,6 +3,7 @@ const { expect } = require('@wdio/globals');
 const programDetailsPage = require('../pageobjects/program-details.page');
 const programsPage = require('../pageobjects/programs.page');
 const morePage = require('../pageobjects/more.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const {
   ensureOperationsAccount,

@@ -5,6 +5,7 @@ const certificatesPage = require('../pageobjects/certificates.page');
 const morePage = require('../pageobjects/more.page');
 const programDetailsPage = require('../pageobjects/program-details.page');
 const buyerDetailsPage = require('../pageobjects/buyer-details.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const {
   ensureOperationsAccount,
