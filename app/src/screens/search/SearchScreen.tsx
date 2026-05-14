@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, AppState, Keyboard } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
 import KeyboardWrapper from '@/components/common/KeyboardWrapper';
@@ -26,11 +26,21 @@ const SearchScreen = () => {
   const { accountType } = useAccountType();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchMode, setIsSearchMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState<SearchCategory>('agreements');
 
   const categories = (Object.keys(searchConfig) as SearchCategory[]).filter((category) =>
     searchConfig[category].roles.includes(accountType as AccountType),
   );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        Keyboard.dismiss();
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   const debouncedSearchTerm = useDebounce(searchTerm).trim();
   const hasSearchTerm = debouncedSearchTerm.length > 0;
@@ -46,6 +56,9 @@ const SearchScreen = () => {
             value={searchTerm}
             onChangeText={setSearchTerm}
             placeholder={`${t('search.placeholder')} ${t(`searchScreen.filter.${activeCategory}`).toLocaleLowerCase()}`}
+            showCancel
+            isSearchMode={isSearchMode}
+            onSearchModeChange={setIsSearchMode}
           />
         </SubHeaderContainer>
         <View>
