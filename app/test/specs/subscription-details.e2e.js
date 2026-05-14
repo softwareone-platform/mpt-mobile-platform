@@ -6,7 +6,13 @@ const accountDetailsPage = require('../pageobjects/account-details.page');
 const agreementDetailsPage = require('../pageobjects/agreement-details.page');
 const productDetailsPage = require('../pageobjects/product-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX, STATUSES } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
@@ -193,9 +199,11 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
+      // scrollIfNeeded=false: yield fields are role-gated (Operations only); avoid burning
+      // 4 scroll attempts on a field that won't be present for Client accounts.
       const avgYieldValue = await subscriptionDetailsPage.getSimpleFieldValue(
         'Average yield',
-        true,
+        false,
       );
       if (!avgYieldValue) {
         this.skip();
@@ -209,9 +217,11 @@ describe('Subscription Details Page', () => {
         this.skip();
         return;
       }
+      // scrollIfNeeded=false: yield fields are role-gated (Operations only); avoid burning
+      // 4 scroll attempts on a field that won't be present for Client accounts.
       const defaultYieldValue = await subscriptionDetailsPage.getSimpleFieldValue(
         'Default yield',
-        true,
+        false,
       );
       if (!defaultYieldValue) {
         this.skip();
@@ -429,7 +439,7 @@ describe('Subscription Details Page', () => {
   describe('Navigation Links', () => {
     it('should navigate to Product Details when Product field is tapped', async function () {
       if (!hasSubscriptionsData) { this.skip(); return; }
-      await subscriptionDetailsPage.scrollToTop(3);
+      await subscriptionDetailsPage.scrollToTop();
       const productField = subscriptionDetailsPage.getCompositeField('Product');
       const isDisplayed = await productField.isDisplayed().catch(() => false);
       if (!isDisplayed) { this.skip(); return; }
@@ -442,7 +452,7 @@ describe('Subscription Details Page', () => {
 
     it('should navigate to Agreement Details when Agreement field is tapped', async function () {
       if (!hasSubscriptionsData) { this.skip(); return; }
-      await subscriptionDetailsPage.scrollToTop(3);
+      await subscriptionDetailsPage.scrollToTop();
       const agreementField = subscriptionDetailsPage.getCompositeField('Agreement');
       const isDisplayed = await agreementField.isDisplayed().catch(() => false);
       if (!isDisplayed) { this.skip(); return; }
@@ -455,8 +465,12 @@ describe('Subscription Details Page', () => {
 
     it('should navigate to Account Details when Client field is tapped', async function () {
       if (!hasSubscriptionsData) { this.skip(); return; }
-      await subscriptionDetailsPage.scrollToTop(3);
+      // Check existence before scrolling — Client field is absent for Client accounts, so
+      // an isExisting() check lets us skip immediately rather than after a full scrollToTop.
       const clientField = subscriptionDetailsPage.getCompositeField('Client');
+      const exists = await clientField.isExisting().catch(() => false);
+      if (!exists) { this.skip(); return; }
+      await subscriptionDetailsPage.scrollToTop();
       const isDisplayed = await clientField.isDisplayed().catch(() => false);
       if (!isDisplayed) { this.skip(); return; }
       await clientField.click();
@@ -465,5 +479,56 @@ describe('Subscription Details Page', () => {
       await accountDetailsPage.goBack();
       await subscriptionDetailsPage.waitForPageReady();
     });
+  });
+});
+
+describe('[MPT-18620] Subscription Details - Role-Gated Field Visibility', function () {
+  let hasData = false;
+
+  async function navigateToFirstSubscriptionDetail(accountSwitchFn) {
+    await navigation.ensureHomePage({ resetFilters: false });
+    await accountSwitchFn();
+    await subscriptionsPage.ensureSubscriptionsPage();
+    const exists = await subscriptionsPage.hasSubscriptions();
+    if (!exists) return false;
+    const ids = await subscriptionsPage.getVisibleSubscriptionIds();
+    await subscriptionsPage.tapSubscription(ids[0]);
+    await subscriptionDetailsPage.waitForPageReady();
+    return true;
+  }
+
+  before(async function () {
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureOperationsAccount();
+    await subscriptionsPage.ensureSubscriptionsPage();
+    hasData = await subscriptionsPage.hasSubscriptions();
+  });
+
+  it('should show Client field for Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstSubscriptionDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Client', true);
+    expect(client).toBeTruthy();
+  });
+
+  it('should hide Client field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstSubscriptionDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Client', false);
+    expect(client).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should hide Client field for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstSubscriptionDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await subscriptionDetailsPage.getCompositeFieldValueByLabel('Client', false);
+    expect(client).toBeFalsy();
+    await ensureOperationsAccount();
   });
 });

@@ -6,7 +6,13 @@ const morePage = require('../pageobjects/more.page');
 const accountDetailsPage = require('../pageobjects/account-details.page');
 const productDetailsPage = require('../pageobjects/product-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
@@ -78,7 +84,7 @@ describe('[Client] Agreement Details Page', () => {
       this.skip();
       return;
     }
-    await agreementDetailsPage.scrollToTop(3);
+    await agreementDetailsPage.scrollToTop();
   });
 
   describe('Page Structure', () => {
@@ -137,7 +143,9 @@ describe('[Client] Agreement Details Page', () => {
         this.skip();
         return;
       }
-      const client = await agreementDetailsPage.getCompositeFieldValueByLabel('Client', true);
+      // scrollIfNeeded=false: Client field is role-gated away for Client accounts, so avoid
+      // burning 4 scroll attempts searching for a field that won't be there.
+      const client = await agreementDetailsPage.getCompositeFieldValueByLabel('Client', false);
       if (!client) {
         // Client field is not present on all agreement types
         console.info('⚠️ Client field not present on this agreement - skipping');
@@ -224,7 +232,9 @@ describe('[Client] Agreement Details Page', () => {
         this.skip();
         return;
       }
-      const uiClient = await agreementDetailsPage.getCompositeFieldValueByLabel('Client', true);
+      // scrollIfNeeded=false: Client field is role-gated away for Client accounts, so avoid
+      // burning 4 scroll attempts searching for a field that won't be there.
+      const uiClient = await agreementDetailsPage.getCompositeFieldValueByLabel('Client', false);
       if (!uiClient) {
         // Client field is not present on all agreement types
         this.skip();
@@ -299,7 +309,7 @@ describe('[Client] Agreement Details Page', () => {
   describe('Navigation Links', () => {
     it('should navigate to Product Details when Product field is tapped', async function () {
       if (!hasAgreementsData) { this.skip(); return; }
-      await agreementDetailsPage.scrollToTop(3);
+      await agreementDetailsPage.scrollToTop();
       const productField = agreementDetailsPage.getCompositeField('Product');
       const isDisplayed = await productField.isDisplayed().catch(() => false);
       if (!isDisplayed) { this.skip(); return; }
@@ -312,7 +322,7 @@ describe('[Client] Agreement Details Page', () => {
 
     it('should navigate to Account Details when Client field is tapped', async function () {
       if (!hasAgreementsData) { this.skip(); return; }
-      await agreementDetailsPage.scrollToTop(3);
+      await agreementDetailsPage.scrollToTop();
       const clientField = agreementDetailsPage.getCompositeField('Client');
       const isDisplayed = await clientField.isDisplayed().catch(() => false);
       if (!isDisplayed) { this.skip(); return; }
@@ -322,5 +332,89 @@ describe('[Client] Agreement Details Page', () => {
       await accountDetailsPage.goBack();
       await agreementDetailsPage.waitForPageReady();
     });
+  });
+});
+
+describe('[MPT-18620] Agreement Details - Role-Gated Field Visibility', function () {
+  let hasData = false;
+
+  async function navigateToFirstAgreementDetail(accountSwitchFn) {
+    await navigation.ensureHomePage({ resetFilters: false });
+    await accountSwitchFn();
+    await agreementsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.agreementsMenuItem.isExisting().catch(() => false);
+    if (!available) return false;
+    await morePage.agreementsMenuItem.click();
+    await agreementsPage.waitForScreenReady();
+    const exists = await agreementsPage.hasAgreements();
+    if (!exists) return false;
+    const ids = await agreementsPage.getVisibleAgreementIds();
+    await agreementsPage.tapAgreement(ids[0]);
+    await agreementDetailsPage.waitForPageReady();
+    return true;
+  }
+
+  before(async function () {
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureOperationsAccount();
+    await agreementsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.agreementsMenuItem.isExisting().catch(() => false);
+    if (!available) { console.info('\u26a0\ufe0f Agreements menu not available - skipping role-gated tests'); return; }
+    await morePage.agreementsMenuItem.click();
+    await agreementsPage.waitForScreenReady();
+    hasData = await agreementsPage.hasAgreements();
+    if (hasData) {
+      const ids = await agreementsPage.getVisibleAgreementIds();
+      await agreementsPage.tapAgreement(ids[0]);
+      await agreementDetailsPage.waitForPageReady();
+    }
+  });
+
+  it('should show Client field for Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstAgreementDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await agreementDetailsPage.getCompositeFieldValueByLabel('Client', true);
+    expect(client).toBeTruthy();
+  });
+
+  it('should hide Client field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstAgreementDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await agreementDetailsPage.getCompositeFieldValueByLabel('Client', false);
+    expect(client).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should show Vendor field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstAgreementDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await agreementDetailsPage.getCompositeFieldValueByLabel('Vendor', true);
+    expect(vendor).toBeTruthy();
+    await ensureOperationsAccount();
+  });
+
+  it('should hide Vendor name field for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstAgreementDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await agreementDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+    expect(vendor).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should show Client field for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstAgreementDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await agreementDetailsPage.getCompositeFieldValueByLabel('Client', true);
+    expect(client).toBeTruthy();
+    await ensureOperationsAccount();
   });
 });

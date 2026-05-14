@@ -6,7 +6,13 @@ const morePage = require('../pageobjects/more.page');
 const programDetailsPage = require('../pageobjects/program-details.page');
 const buyerDetailsPage = require('../pageobjects/buyer-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
@@ -207,5 +213,83 @@ describe('Certificate Details Page', () => {
       await buyerDetailsPage.goBack();
       await certificateDetailsPage.waitForPageReady();
     });
+  });
+});
+
+describe('[MPT-18620] Certificate Details - Role-Gated Field Visibility', function () {
+  let hasData = false;
+
+  async function navigateToFirstCertificateDetail(accountSwitchFn) {
+    await navigation.ensureHomePage({ resetFilters: false });
+    await accountSwitchFn();
+    await certificatesPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.certificatesMenuItem.isExisting().catch(() => false);
+    if (!available) return false;
+    await morePage.certificatesMenuItem.click();
+    await certificatesPage.waitForScreenReady();
+    const exists = await certificatesPage.hasCertificates();
+    if (!exists) return false;
+    const ids = await certificatesPage.getVisibleCertificateIds();
+    await certificatesPage.tapCertificate(ids[0]);
+    await certificateDetailsPage.waitForPageReady();
+    return true;
+  }
+
+  before(async function () {
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureOperationsAccount();
+    await certificatesPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.certificatesMenuItem.isExisting().catch(() => false);
+    if (!available) { console.info('\u26a0\ufe0f Certificates menu not available - skipping role-gated tests'); return; }
+    await morePage.certificatesMenuItem.click();
+    await certificatesPage.waitForScreenReady();
+    hasData = await certificatesPage.hasCertificates();
+  });
+
+  it('should show Vendor field for Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstCertificateDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await certificateDetailsPage.getCompositeFieldValueByLabel('Vendor', true);
+    expect(vendor).toBeTruthy();
+  });
+
+  it('should show Vendor field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstCertificateDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await certificateDetailsPage.getCompositeFieldValueByLabel('Vendor', true);
+    expect(vendor).toBeTruthy();
+    await ensureOperationsAccount();
+  });
+
+  it('should hide Vendor label for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstCertificateDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await certificateDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+    expect(vendor).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should show Program field for Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstCertificateDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    const program = await certificateDetailsPage.getCompositeFieldValueByLabel('Program', true);
+    expect(program).toBeTruthy();
+  });
+
+  it('should show Program field for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstCertificateDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const program = await certificateDetailsPage.getCompositeFieldValueByLabel('Program', true);
+    expect(program).toBeTruthy();
+    await ensureOperationsAccount();
   });
 });

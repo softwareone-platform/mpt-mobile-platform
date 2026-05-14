@@ -9,7 +9,13 @@ const buyerDetailsPage = require('../pageobjects/buyer-details.page');
 const licenseeDetailsPage = require('../pageobjects/licensee-details.page');
 const userDetailsPage = require('../pageobjects/user-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
@@ -261,5 +267,69 @@ describe('Enrollment Details Page', () => {
       await userDetailsPage.goBack();
       await enrollmentDetailsPage.waitForPageReady();
     });
+  });
+});
+
+describe('[MPT-18620] Enrollment Details - Role-Gated Field Visibility', function () {
+  let hasData = false;
+
+  async function navigateToFirstEnrollmentDetail(accountSwitchFn) {
+    await navigation.ensureHomePage({ resetFilters: false });
+    await accountSwitchFn();
+    await enrollmentsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.enrollmentsMenuItem.isExisting().catch(() => false);
+    if (!available) return false;
+    await morePage.enrollmentsMenuItem.click();
+    await enrollmentsPage.waitForScreenReady();
+    const exists = await enrollmentsPage.hasEnrollments();
+    if (!exists) return false;
+    const ids = await enrollmentsPage.getVisibleEnrollmentIds();
+    await enrollmentsPage.tapEnrollment(ids[0]);
+    await enrollmentDetailsPage.waitForPageReady();
+    return true;
+  }
+
+  before(async function () {
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureOperationsAccount();
+    await enrollmentsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.enrollmentsMenuItem.isExisting().catch(() => false);
+    if (!available) { console.info('\u26a0\ufe0f Enrollments menu not available - skipping role-gated tests'); return; }
+    await morePage.enrollmentsMenuItem.click();
+    await enrollmentsPage.waitForScreenReady();
+    hasData = await enrollmentsPage.hasEnrollments();
+  });
+
+  // Per DOM evidence matrix: Enrollment Details has NO role variance — Vendor field is absent
+  // for all account types (Operations, Client, Vendor). These tests confirm that behaviour.
+  it('should NOT display Vendor field for Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstEnrollmentDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await enrollmentDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+    expect(vendor).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should NOT display Vendor field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstEnrollmentDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await enrollmentDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+    expect(vendor).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should NOT display Vendor field for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstEnrollmentDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await enrollmentDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+    expect(vendor).toBeFalsy();
+    await ensureOperationsAccount();
   });
 });
