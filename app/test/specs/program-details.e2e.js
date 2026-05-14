@@ -3,6 +3,7 @@ const { expect } = require('@wdio/globals');
 const programDetailsPage = require('../pageobjects/program-details.page');
 const programsPage = require('../pageobjects/programs.page');
 const morePage = require('../pageobjects/more.page');
+const accountDetailsPage = require('../pageobjects/account-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
@@ -185,3 +186,154 @@ describe('Program Details Page', () => {
     });
   });
 });
+<<<<<<< Updated upstream
+=======
+
+describe('[MPT-18620] Program Details - Role-Gated Field Visibility', function () {
+  let hasData = false;
+
+  async function navigateToFirstProgramDetail(accountSwitchFn) {
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await accountSwitchFn();
+    await programsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.programsMenuItem.isExisting().catch(() => false);
+    if (!available) return false;
+    await morePage.programsMenuItem.click();
+    await programsPage.waitForScreenReady();
+    const exists = await programsPage.hasPrograms();
+    if (!exists) return false;
+    const ids = await programsPage.getVisibleProgramIds();
+    await programsPage.tapProgram(ids[0]);
+    await programDetailsPage.waitForPageReady();
+    return true;
+  }
+
+  before(async function () {
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    try {
+      await ensureOperationsAccount();
+    } catch (e) {
+      console.warn(`⚠️ ensureOperationsAccount failed on first attempt, retrying: ${e.message}`);
+      await ensureLoggedIn();
+      await navigation.ensureHomePage({ resetFilters: false });
+      await ensureOperationsAccount();
+    }
+    await programsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.programsMenuItem.isExisting().catch(() => false);
+    if (!available) { console.info('\u26a0\ufe0f Programs menu not available - skipping role-gated tests'); return; }
+    await morePage.programsMenuItem.click();
+    await programsPage.waitForScreenReady();
+    hasData = await programsPage.hasPrograms();
+  });
+
+  it('should show Vendor field for Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstProgramDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await programDetailsPage.getCompositeFieldValueByLabel('Vendor', true);
+    expect(vendor).toBeTruthy();
+  });
+
+  it('should show Vendor field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstProgramDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await programDetailsPage.getCompositeFieldValueByLabel('Vendor', true);
+    expect(vendor).toBeTruthy();
+    await ensureOperationsAccount();
+  });
+
+  it('should hide Vendor label for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstProgramDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await programDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+    expect(vendor).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+});
+
+describe('[MPT-18042] Program Details - Non-navigable Vendor field for Client account', function () {
+  let hasData = false;
+
+  async function navigateToFirstProgramDetail(accountSwitchFn) {
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await accountSwitchFn();
+    await programsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.programsMenuItem.isExisting().catch(() => false);
+    if (!available) return false;
+    await morePage.programsMenuItem.click();
+    await programsPage.waitForScreenReady();
+    const exists = await programsPage.hasPrograms();
+    if (!exists) return false;
+    const ids = await programsPage.getVisibleProgramIds();
+    await programsPage.tapProgram(ids[0]);
+    await programDetailsPage.waitForPageReady();
+    return true;
+  }
+
+  before(async function () {
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    try {
+      await ensureOperationsAccount();
+    } catch (e) {
+      console.warn(`⚠️ ensureOperationsAccount failed, retrying: ${e.message}`);
+      await ensureLoggedIn();
+      await navigation.ensureHomePage({ resetFilters: false });
+      await ensureOperationsAccount();
+    }
+    await programsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.programsMenuItem.isExisting().catch(() => false);
+    if (!available) { console.info('⚠️ Programs menu not available - skipping MPT-18042 tests'); return; }
+    await morePage.programsMenuItem.click();
+    await programsPage.waitForScreenReady();
+    hasData = await programsPage.hasPrograms();
+  });
+
+  // Per MPT-18042: Vendor field is visible to Client but has no navigation link —
+  // tapping it must not navigate away from Program Details.
+  it('should NOT navigate when Vendor field is tapped as Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstProgramDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    await programDetailsPage.scrollToTop(3);
+    const vendorField = programDetailsPage.getCompositeField('Vendor');
+    const isDisplayed = await vendorField.isDisplayed().catch(() => false);
+    if (!isDisplayed) { this.skip(); return; }
+    await vendorField.click().catch(() => {});
+    await browser.pause(PAUSE.NAVIGATION);
+    // Must still be on Program Details — vendor link is display-only for Client
+    const stillOnPage = await programDetailsPage.headerTitle.isDisplayed().catch(() => false);
+    expect(stillOnPage).toBe(true);
+    await ensureOperationsAccount();
+  });
+
+  // Counterpart: Vendor field IS navigable for Operations — confirms the test setup is valid.
+  it('should navigate to Account Details when Vendor field is tapped as Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstProgramDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    await programDetailsPage.scrollToTop(3);
+    const vendorField = programDetailsPage.getCompositeField('Vendor');
+    const isDisplayed = await vendorField.isDisplayed().catch(() => false);
+    if (!isDisplayed) { this.skip(); return; }
+    await vendorField.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const onAccountDetails = await accountDetailsPage.itemIdText.isDisplayed().catch(() => false);
+    expect(onAccountDetails).toBe(true);
+    await accountDetailsPage.goBack();
+    await programDetailsPage.waitForPageReady();
+    await ensureOperationsAccount();
+  });
+});
+>>>>>>> Stashed changes
