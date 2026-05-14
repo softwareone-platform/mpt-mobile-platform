@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, AppState, Keyboard, Pressable, TextInput } from 'react-native';
 
 import EmptyState from '@/components/common/EmptyState';
 import KeyboardWrapper from '@/components/common/KeyboardWrapper';
@@ -24,6 +24,7 @@ import { TestIDs } from '@/utils/testID';
 const SearchScreen = () => {
   const { t } = useTranslation();
   const { accountType } = useAccountType();
+  const searchInputRef = useRef<TextInput>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<SearchCategory>('agreements');
@@ -31,6 +32,15 @@ const SearchScreen = () => {
   const categories = (Object.keys(searchConfig) as SearchCategory[]).filter((category) =>
     searchConfig[category].roles.includes(accountType as AccountType),
   );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        Keyboard.dismiss();
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   const debouncedSearchTerm = useDebounce(searchTerm).trim();
   const hasSearchTerm = debouncedSearchTerm.length > 0;
@@ -43,6 +53,7 @@ const SearchScreen = () => {
       <View style={styles.container}>
         <SubHeaderContainer>
           <SearchInput
+            ref={searchInputRef}
             value={searchTerm}
             onChangeText={setSearchTerm}
             placeholder={`${t('search.placeholder')} ${t(`searchScreen.filter.${activeCategory}`).toLocaleLowerCase()}`}
@@ -77,7 +88,10 @@ const SearchScreen = () => {
             )}
           </View>
         ) : (
-          <View style={styles.emptyStateContainer}>
+          <Pressable
+            style={styles.emptyStateContainer}
+            onPress={() => searchInputRef.current?.blur()}
+          >
             <EmptyState
               icon={{
                 name: 'search',
@@ -86,7 +100,7 @@ const SearchScreen = () => {
               description={t('searchScreen.emptyStateDescription')}
               testID={TestIDs.SEARCH_EMPTY_STATE}
             />
-          </View>
+          </Pressable>
         )}
       </View>
     </KeyboardWrapper>
