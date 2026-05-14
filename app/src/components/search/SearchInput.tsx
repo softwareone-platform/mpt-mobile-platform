@@ -72,16 +72,9 @@ const SearchInput = ({
           </Pressable>
         )}
       </View>
-      {showCancel && (
-        <TouchableOpacity
-          style={styles.cancel}
-          onPress={handleCancel}
-          disabled={!isSearchMode}
-          activeOpacity={1}
-        >
-          <Text style={[styles.cancelText, !isSearchMode && styles.cancelTextDisabled]}>
-            {t('common.action.cancel')}
-          </Text>
+      {showCancel && isSearchMode && (
+        <TouchableOpacity style={styles.cancel} onPress={handleCancel} activeOpacity={1}>
+          <Text style={styles.cancelText}>{t('common.action.cancel')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -96,7 +89,6 @@ const styles = StyleSheet.create({
   rightIcon: inputSearchStyle.rightIcon,
   cancel: inputSearchStyle.cancel,
   cancelText: inputSearchStyle.cancelText,
-  cancelTextDisabled: inputSearchStyle.cancelTextDisabled,
 });
 
 export default SearchInput;
