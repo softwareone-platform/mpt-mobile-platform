@@ -5,7 +5,13 @@ const programsPage = require('../pageobjects/programs.page');
 const morePage = require('../pageobjects/more.page');
 const accountDetailsPage = require('../pageobjects/account-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
@@ -186,8 +192,6 @@ describe('Program Details Page', () => {
     });
   });
 });
-<<<<<<< Updated upstream
-=======
 
 describe('[MPT-18620] Program Details - Role-Gated Field Visibility', function () {
   let hasData = false;
@@ -336,4 +340,3 @@ describe('[MPT-18042] Program Details - Non-navigable Vendor field for Client ac
     await ensureOperationsAccount();
   });
 });
->>>>>>> Stashed changes
