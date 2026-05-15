@@ -40,19 +40,14 @@ const CLIENT_ACCOUNT_IDS = {
 const CLIENT_ACCOUNT_ID = getEnv('CLIENT_ACCOUNT_ID', CLIENT_ACCOUNT_IDS.test);
 
 /**
- * ACC- IDs for the Vendor test account, keyed by environment.
+ * ACC- ID for the Vendor test account.
  * Used to detect and switch to the vendor account for tests that validate
  * vendor-scoped data (journals, role-gated field visibility, etc.).
  *
- * When VENDOR_ACCOUNT_ID is not set via env var, ensureVendorAccount() will log a
- * warning and skip the account switch — tests will run under whichever account is
- * currently active.
+ * Must be supplied via the VENDOR_ACCOUNT_ID env var — there is no fallback default.
+ * When unset, ensureVendorAccount() will log a warning and skip the account switch.
  */
-const VENDOR_ACCOUNT_IDS = {
-  test: '', // No default — must be supplied via VENDOR_ACCOUNT_ID env var
-};
-
-const VENDOR_ACCOUNT_ID = getEnv('VENDOR_ACCOUNT_ID', VENDOR_ACCOUNT_IDS.test);
+const VENDOR_ACCOUNT_ID = getEnv('VENDOR_ACCOUNT_ID', '');
 
 /**
  * Opens the profile/account-switcher screen via the header account button.
@@ -185,7 +180,6 @@ module.exports = {
   CLIENT_ACCOUNT_ID,
   CLIENT_ACCOUNT_IDS,
   VENDOR_ACCOUNT_ID,
-  VENDOR_ACCOUNT_IDS,
   isOperationsAccountActive,
   ensureOperationsAccount,
   isClientAccountActive,
