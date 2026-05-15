@@ -48,6 +48,9 @@ module.exports = {
   // ACC- ID of the Client/Buyer test account for the current environment.
   // Used by account.helper.js to detect and switch to the Client account.
   CLIENT_ACCOUNT_ID: getEnv('CLIENT_ACCOUNT_ID'),
+  // ACC- ID of the Vendor test account for the current environment.
+  // Used by account.helper.js to detect and switch to the Vendor account.
+  VENDOR_ACCOUNT_ID: getEnv('VENDOR_ACCOUNT_ID'),
   // Short label for the current test environment (e.g. 'test', 'portal', 'qa').
   // Override via TEST_ENV env var; falls back to the first meaningful hostname segment
   // derived from API_BASE_URL (e.g. 'https://api.portal.s1.team' → 'portal').

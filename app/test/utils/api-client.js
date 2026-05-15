@@ -2189,4 +2189,12 @@ module.exports = {
    * @returns {ApiClient}
    */
   getClientApi() { return clientApiClient || apiClient; },
+  /**
+   * Returns the best available API client for vendor-scoped tests.
+   * Prefers vendorApiClient (vendor token) when available, falls back to apiClient (ops token).
+   * Call this inside before() hooks or test bodies — not at module top level —
+   * so that dynamically initialized tokens are picked up.
+   * @returns {ApiClient}
+   */
+  getVendorApi() { return vendorApiClient || apiClient; },
 };

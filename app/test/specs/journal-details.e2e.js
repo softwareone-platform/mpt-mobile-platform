@@ -4,7 +4,13 @@ const journalDetailsPage = require('../pageobjects/journal-details.page');
 const journalsPage = require('../pageobjects/journals.page');
 const morePage = require('../pageobjects/more.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureOperationsAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { apiClient } = require('../utils/api-client');
@@ -188,5 +194,71 @@ describe('Journal Details Page', () => {
       console.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       expect(uiDetails.journalId).toBe(apiJournalData.id);
     });
+  });
+});
+
+describe('[MPT-18620] Journal Details - Role-Based Access', function () {
+  it('should NOT show Journals menu item for Client account', async function () {
+    if (!CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureClientAccount();
+    await journalsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const journalsItemVisible = await morePage.journalsMenuItem.isExisting().catch(() => false);
+    expect(journalsItemVisible).toBe(false);
+    await ensureOperationsAccount();
+  });
+
+  it('should show Journals menu item for Vendor account', async function () {
+    if (!VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureVendorAccount();
+    await journalsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const journalsItemVisible = await morePage.journalsMenuItem.isExisting().catch(() => false);
+    expect(journalsItemVisible).toBe(true);
+    await ensureOperationsAccount();
+  });
+
+  it('should show Ignored charges field for Operations account', async function () {
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureOperationsAccount();
+    await journalsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.journalsMenuItem.isExisting().catch(() => false);
+    if (!available) { this.skip(); return; }
+    await morePage.journalsMenuItem.click();
+    await journalsPage.waitForScreenReady();
+    const hasJournals = await journalsPage.hasJournals();
+    if (!hasJournals) { this.skip(); return; }
+    const ids = await journalsPage.getVisibleJournalIds();
+    await journalsPage.tapJournal(ids[0]);
+    await journalDetailsPage.waitForPageReady();
+    const ignoredCharges = await journalDetailsPage.getSimpleFieldValue('Ignored charges', true);
+    expect(ignoredCharges).toBeDefined();
+  });
+
+  it('should hide Ignored charges field for Vendor account', async function () {
+    if (!VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureVendorAccount();
+    await journalsPage.footer.moreTab.click();
+    await browser.pause(PAUSE.NAVIGATION);
+    const available = await morePage.journalsMenuItem.isExisting().catch(() => false);
+    if (!available) { await ensureOperationsAccount(); this.skip(); return; }
+    await morePage.journalsMenuItem.click();
+    await journalsPage.waitForScreenReady();
+    const hasJournals = await journalsPage.hasJournals();
+    if (!hasJournals) { await ensureOperationsAccount(); this.skip(); return; }
+    const ids = await journalsPage.getVisibleJournalIds();
+    await journalsPage.tapJournal(ids[0]);
+    await journalDetailsPage.waitForPageReady();
+    const ignoredCharges = await journalDetailsPage.getSimpleFieldValue('Ignored charges', false);
+    expect(ignoredCharges).toBeFalsy();
+    await ensureOperationsAccount();
   });
 });
