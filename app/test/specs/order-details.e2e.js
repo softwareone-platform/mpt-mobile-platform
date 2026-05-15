@@ -5,7 +5,13 @@ const ordersPage = require('../pageobjects/orders.page');
 const agreementDetailsPage = require('../pageobjects/agreement-details.page');
 const productDetailsPage = require('../pageobjects/product-details.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
-const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
+const {
+  ensureOperationsAccount,
+  ensureClientAccount,
+  ensureVendorAccount,
+  CLIENT_ACCOUNT_ID,
+  VENDOR_ACCOUNT_ID,
+} = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
@@ -380,5 +386,74 @@ describe('[Client] Order Details Page', () => {
       await productDetailsPage.goBack();
       await orderDetailsPage.waitForPageReady();
     });
+  });
+});
+
+describe('[MPT-18620] Order Details - Role-Gated Field Visibility', function () {
+  let hasData = false;
+
+  async function navigateToFirstOrderDetail(accountSwitchFn) {
+    await navigation.ensureHomePage({ resetFilters: false });
+    await accountSwitchFn();
+    await ordersPage.ensureOrdersPage();
+    const exists = await ordersPage.hasOrders();
+    if (!exists) return false;
+    const ids = await ordersPage.getVisibleOrderIds();
+    await ordersPage.tapOrder(ids[0]);
+    await orderDetailsPage.waitForPageReady();
+    return true;
+  }
+
+  before(async function () {
+    this.timeout(TIMEOUT.TEST_SETUP_LONG);
+    await ensureLoggedIn();
+    await navigation.ensureHomePage({ resetFilters: false });
+    await ensureOperationsAccount();
+    await ordersPage.ensureOrdersPage();
+    hasData = await ordersPage.hasOrders();
+  });
+
+  it('should show Client field for Operations account', async function () {
+    if (!hasData) { this.skip(); return; }
+    const ok = await navigateToFirstOrderDetail(ensureOperationsAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await orderDetailsPage.getCompositeFieldValueByLabel('Client', true);
+    expect(client).toBeTruthy();
+  });
+
+  it('should hide Client field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstOrderDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await orderDetailsPage.getCompositeFieldValueByLabel('Client', false);
+    expect(client).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should show Vendor field for Client account', async function () {
+    if (!hasData || !CLIENT_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstOrderDetail(ensureClientAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await orderDetailsPage.getCompositeFieldValueByLabel('Vendor', true);
+    expect(vendor).toBeTruthy();
+    await ensureOperationsAccount();
+  });
+
+  it('should hide Vendor field for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstOrderDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const vendor = await orderDetailsPage.getCompositeFieldValueByLabel('Vendor', false);
+    expect(vendor).toBeFalsy();
+    await ensureOperationsAccount();
+  });
+
+  it('should show Client field for Vendor account', async function () {
+    if (!hasData || !VENDOR_ACCOUNT_ID) { this.skip(); return; }
+    const ok = await navigateToFirstOrderDetail(ensureVendorAccount);
+    if (!ok) { this.skip(); return; }
+    const client = await orderDetailsPage.getCompositeFieldValueByLabel('Client', true);
+    expect(client).toBeTruthy();
+    await ensureOperationsAccount();
   });
 });
