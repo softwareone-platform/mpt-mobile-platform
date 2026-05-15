@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment: [test, qa, prod]
+        environment: [test, qa, prod, dev]
     environment:
       name: ${{ matrix.environment }}
     steps:
@@ -80,21 +80,29 @@ jobs:
         env:
           AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          # Optional per-env override; defaults to an IANA-reserved sink domain
+          # (example.com) so no real mailbox is bothered. Override only if a
+          # tenant rejects example.com via an allowlist or similar.
+          AUTH0_HEALTHCHECK_EMAIL: ${{ vars.AUTH0_HEALTHCHECK_EMAIL || 'auth0-otp-healthcheck@example.com' }}
         run: |
           URL="https://${AUTH0_DOMAIN}/passwordless/start"
-          echo "POST ${URL} (probe with malformed email — never dispatches a real OTP)"
+          echo "POST ${URL}"
 
-          # Auth0 validates the request in this order:
-          #   1) required body fields  2) email format  3) client auth  4) connection enabled  5) dispatch
-          # We send a syntactically broken email (no '@'), which Auth0 rejects at step 2 with
-          # `400 bad.email`. This proves the endpoint is up and responding without ever
-          # reaching step 5 (no OTP email is sent). A 5xx, network failure, or a body that
-          # signals a disabled connection / unauthorized client means OTP is broken.
-          # Build the JSON payload via `jq -nc` so client_id is escaped correctly and we
-          # don't depend on YAML/heredoc indentation rules.
+          # We send a syntactically valid email at a non-deliverable reserved
+          # domain. Auth0 returns 200 from this endpoint only when the email
+          # passwordless connection is enabled AND the client is authorised for
+          # it; otherwise it returns 4xx (bad.connection, unauthorized_client,
+          # extensibility_error, etc.). Per Auth0's "prevent user enumeration"
+          # guidance, a 200 is returned regardless of whether the email belongs
+          # to a real user — so we don't need (and shouldn't use) a real mailbox.
+          # This catches the dev team's most common failure mode: passwordless
+          # accidentally disabled in the Auth0 dashboard while the tenant itself
+          # is still up. Build the JSON payload via `jq -nc` so client_id is
+          # escaped correctly and we don't depend on YAML/heredoc indentation.
           PAYLOAD=$(jq -nc \
             --arg client_id "${AUTH0_CLIENT_ID}" \
-            '{client_id: $client_id, connection: "email", email: "auth0-healthcheck-probe-no-at-sign", send: "code"}')
+            --arg email "${AUTH0_HEALTHCHECK_EMAIL}" \
+            '{client_id: $client_id, connection: "email", email: $email, send: "code"}')
 
           HTTP_CODE=$(curl -sS -o /tmp/pwl-body.json -w "%{http_code}" \
             --max-time 15 --retry 2 --retry-delay 2 \
@@ -109,9 +117,16 @@ jobs:
           echo
           echo "status=${HTTP_CODE}" >> "$GITHUB_OUTPUT"
 
-          # Ordered status-code gate — single source of truth.
-          # 1. Non-numeric status (covers "000" from `|| echo` on curl failure, and any
-          #    other unexpected non-digit output — avoids a bash arithmetic error on `-lt`/`-ge`).
+          # Healthy = HTTP 200. Anything else means passwordless is not working.
+          if [ "${HTTP_CODE}" = "200" ]; then
+            echo "Passwordless start succeeded — email connection is enabled at ${AUTH0_DOMAIN}"
+            exit 0
+          fi
+
+          # Non-200: classify the failure for an actionable error message.
+          # 1. Non-numeric status (covers "000" from `|| echo` on curl failure,
+          #    and any other unexpected non-digit output — avoids a bash
+          #    arithmetic error on `-ge`).
           case "${HTTP_CODE}" in
             000)
               echo "::error title=Auth0 OTP endpoint unreachable (${{ matrix.environment }})::curl could not reach ${URL}"
@@ -123,33 +138,29 @@ jobs:
               ;;
           esac
 
-          # 2. Anything outside 2xx/3xx/4xx (i.e. 1xx or 5xx) is unhealthy. A 4xx is expected
-          #    here — Auth0 should reject our malformed payload at validation time.
-          if [ "${HTTP_CODE}" -lt 200 ] || [ "${HTTP_CODE}" -ge 500 ]; then
-            echo "::error title=Auth0 OTP endpoint unhealthy (${{ matrix.environment }})::${URL} returned ${HTTP_CODE} (expected 2xx/3xx/4xx)"
+          if [ "${HTTP_CODE}" -ge 500 ]; then
+            echo "::error title=Auth0 OTP endpoint unhealthy (${{ matrix.environment }})::${URL} returned ${HTTP_CODE} (expected 200) — Auth0 server-side error"
             exit 1
           fi
 
-          # 3. Body-content checks via jq — robust against pretty-printed or multi-line JSON.
-          #    These error codes/descriptions mean the email/passwordless connection is
-          #    disabled or the client is unauthorised. `jq -r '... // empty'` yields an
-          #    empty string when the field is absent or the body isn't valid JSON.
+          # 4xx — parse the body for a more specific message.
           ERROR_CODE=$(jq -r '.error // empty' /tmp/pwl-body.json 2>/dev/null || true)
           ERROR_DESCRIPTION=$(jq -r '.error_description // .description // .message // empty' /tmp/pwl-body.json 2>/dev/null || true)
 
           case "${ERROR_CODE}" in
             unauthorized_client|access_denied|extensibility_error|bad.connection)
-              echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Auth0 returned error '${ERROR_CODE}' — passwordless email connection appears disabled or client is unauthorised for ${AUTH0_DOMAIN}"
+              echo "::error title=Auth0 passwordless disabled (${{ matrix.environment }})::Auth0 returned '${ERROR_CODE}' — email/passwordless connection appears disabled or client unauthorised at ${AUTH0_DOMAIN}: ${ERROR_DESCRIPTION}"
               exit 1
               ;;
           esac
 
           if printf '%s' "${ERROR_DESCRIPTION}" | grep -qiE 'connection.*(disabled|not enabled|not found)|passwordless.*disabled'; then
-            echo "::error title=Auth0 OTP disabled (${{ matrix.environment }})::Email/passwordless connection appears disabled at ${AUTH0_DOMAIN} (description: '${ERROR_DESCRIPTION}')"
+            echo "::error title=Auth0 passwordless disabled (${{ matrix.environment }})::Email/passwordless connection appears disabled at ${AUTH0_DOMAIN}: ${ERROR_DESCRIPTION}"
             exit 1
           fi
 
-          echo "Passwordless start endpoint is responding with a normal validation response (status ${HTTP_CODE})"
+          echo "::error title=Auth0 passwordless not working (${{ matrix.environment }})::${URL} returned ${HTTP_CODE} (expected 200). Error: '${ERROR_CODE}' / description: '${ERROR_DESCRIPTION}'"
+          exit 1
 
       - name: Write job summary
         if: always()
@@ -171,10 +182,10 @@ jobs:
           {
             echo "### ${ICON} Auth0 OTP — ${ENV_NAME}: ${RESULT}"
             echo ""
-            echo "| Check | Endpoint | Status |"
-            echo "| --- | --- | --- |"
-            echo "| OIDC discovery | \`https://${AUTH0_DOMAIN}/.well-known/openid-configuration\` | ${OIDC_STATUS} |"
-            echo "| Passwordless start | \`https://${AUTH0_DOMAIN}/passwordless/start\` | ${PWL_STATUS} |"
+            echo "| Check | Endpoint | Expected | Got |"
+            echo "| --- | --- | --- | --- |"
+            echo "| Auth0 client up | \`https://${AUTH0_DOMAIN}/.well-known/openid-configuration\` | 200 | ${OIDC_STATUS} |"
+            echo "| Passwordless works | \`https://${AUTH0_DOMAIN}/passwordless/start\` | 200 | ${PWL_STATUS} |"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -192,13 +203,13 @@ jobs:
             echo "## Auth0 OTP Health Check"
             echo ""
             if [ "${RESULT}" = "success" ]; then
-              echo "✅ All environments healthy."
+              echo "✅ All environments (test, qa, prod, dev) healthy."
             else
               echo "❌ **One or more environments failed.** Check the individual matrix jobs above."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${RESULT}" != "success" ]; then
-            echo "::error title=Auth0 OTP Health Check failed::At least one environment (test/qa/prod) failed its Auth0 OTP checks. See matrix jobs for details."
+            echo "::error title=Auth0 OTP Health Check failed::At least one environment (test/qa/prod/dev) failed its Auth0 OTP checks. See matrix jobs for details."
             exit 1
           fi
