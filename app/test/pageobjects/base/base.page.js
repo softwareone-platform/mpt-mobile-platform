@@ -134,6 +134,34 @@ class BasePage {
   async swipe(direction, percent = SCROLL.DEFAULT_PERCENT) {
     await this._performSwipe(direction, percent);
   }
+
+  /**
+   * Trigger pull-to-refresh on the current screen.
+   * Performs a downward over-scroll from near the top of the visible area.
+   * On iOS uses mobile: swipe (physical gesture); on Android uses mobile: swipeGesture
+   * starting close to the top so the scroll view registers an over-pull.
+   */
+  async pullToRefresh() {
+    if (this.isAndroid()) {
+      const { height, width } = await browser.getWindowRect();
+      const startTop = Math.floor(height * 0.15);
+      const swipeHeight = Math.floor(height * 0.45);
+      await browser.execute('mobile: swipeGesture', {
+        left: Math.floor(width / 2) - 50,
+        top: startTop,
+        width: 100,
+        height: swipeHeight,
+        direction: 'down',
+        percent: 1.0,
+      });
+    } else {
+      await browser.execute('mobile: swipe', {
+        direction: 'down',
+        velocity: GESTURE.IOS_VELOCITY,
+      });
+    }
+    await browser.pause(PAUSE.ANIMATION_SETTLE);
+  }
 }
 
 module.exports = BasePage;

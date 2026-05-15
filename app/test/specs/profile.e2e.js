@@ -5,7 +5,7 @@ const profilePage = require('../pageobjects/profile.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
-const { getClientApi } = require('../utils/api-client');
+const { getClientApi, opsApiClient } = require('../utils/api-client');
 const { TIMEOUT, REGEX } = require('../pageobjects/utils/constants');
 
 describe('Profile Page', () => {
@@ -39,15 +39,12 @@ describe('Profile Page', () => {
     userId = await profilePage.getCurrentUserId();
     console.info(`📋 Current user ID: ${userId}`);
 
-    // Fetch user information from API
+    // Fetch user information from API using ops token — client-scoped tokens
+    // do not return the full accounts list for a given user.
     try {
-      userInfo = await api.getUserInformation(userId);
-      userAccounts = userInfo.data || userInfo.accounts || userInfo;
-      if (Array.isArray(userAccounts)) {
-        console.info(`📊 Loaded ${userAccounts.length} accounts from API for user ${userId}`);
-      } else {
-        userAccounts = [];
-      }
+      userInfo = await opsApiClient.getUserInformation(userId);
+      userAccounts = userInfo.accounts || [];
+      console.info(`📊 Loaded ${userAccounts.length} accounts from API for user ${userId}`);
     } catch (error) {
       console.warn(`⚠️ Could not fetch user information from API: ${error.message}`);
       userInfo = null;
