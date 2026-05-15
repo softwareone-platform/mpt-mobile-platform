@@ -18,16 +18,16 @@ interface SellersContextValue {
 
 interface SellersProviderProps {
   children: ReactNode;
+  query?: string;
   source?: DataSource;
 }
 
 const SellersContext = createContext<SellersContextValue | undefined>(undefined);
 
-export const SellersProvider = ({ children, source }: SellersProviderProps) => {
-  const { userData } = useAccount();
+export const SellersProvider = ({ children, query, source }: SellersProviderProps) => {
+  const { userData, currentAccountId } = useAccount();
 
   const userId = userData?.id;
-  const currentAccountId = userData?.currentAccount?.id;
 
   const {
     data,
@@ -39,7 +39,7 @@ export const SellersProvider = ({ children, source }: SellersProviderProps) => {
     fetchNextPage,
     refetch,
     isRefetching,
-  } = useSellersData(userId, currentAccountId, source);
+  } = useSellersData(userId, currentAccountId, query, source);
 
   const sellers = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 

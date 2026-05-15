@@ -61,9 +61,9 @@ const SellersScreenContent = ({ contentContainerStyle }: ListProps) => {
   );
 };
 
-export const SellersList = ({ source, contentContainerStyle }: ListProps) => {
+export const SellersList = ({ query, source, contentContainerStyle }: ListProps) => {
   return (
-    <SellersProvider source={source}>
+    <SellersProvider query={query} source={source}>
       <SellersScreenContent contentContainerStyle={contentContainerStyle} />
     </SellersProvider>
   );
@@ -72,7 +72,7 @@ export const SellersList = ({ source, contentContainerStyle }: ListProps) => {
 const SellersScreen = () => {
   const route = useRoute<SellersScreenRouteProp>();
 
-  return <SellersList source={route.params?.source} />;
+  return <SellersList query={route.params?.query} source={route.params?.source} />;
 };
 
 export default SellersScreen;

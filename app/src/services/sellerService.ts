@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-
+import { logger } from '@/services/loggerService'; //TODO remove
 import { DEFAULT_OFFSET, DEFAULT_PAGE_SIZE } from '@/constants/api';
 import { useApi } from '@/hooks/useApi';
 import type { SellerData } from '@/types/admin';
@@ -12,11 +12,13 @@ export function useSellerApi() {
     async (
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
+      query?: string,
     ): Promise<PaginatedResponse<ListItemFull>> => {
+      const defaultQuery = '&order=name';
       const endpoint =
         `/v1/accounts/sellers` +
-        `?select=id,name,status,icon` +
-        '&order=name' +
+        `?select=-*,id,name,status,icon` +
+        `${query || defaultQuery}` +
         `&offset=${offset}` +
         `&limit=${limit}`;
 
@@ -31,14 +33,27 @@ export function useSellerApi() {
       offset: number = DEFAULT_OFFSET,
       limit: number = DEFAULT_PAGE_SIZE,
     ): Promise<PaginatedResponse<ListItemFull>> => {
-      const endpoint =
-        `/v1/accounts/buyers/${buyerId}/sellers` +
-        `?select=parameters` +
-        `&order=name` +
-        `&offset=${offset}` +
-        `&limit=${limit}`;
 
-      return api.get<PaginatedResponse<ListItemFull>>(endpoint);
+      logger.debug('GetSellersForBuyer', { buyerId });
+
+      const endpoint =
+        `/v1/accounts/buyers/${buyerId}` +
+        `?select=-*,sellers`;
+
+      const buyer = await api.get<{ sellers: ListItemFull[] }>(endpoint);
+      const allSellers = buyer.sellers ?? [];
+      const paged = allSellers.slice(offset, offset + limit);
+
+      return {
+        $meta: {
+          pagination: {
+            offset,
+            limit,
+            total: allSellers.length,
+          },
+        },
+        data: paged,
+      };
     },
     [api],
   );

@@ -5,6 +5,7 @@ import type { ListItemFull, DataSource } from '@/types/api';
 export const useSellersData = (
   userId: string | undefined,
   currentAccountId: string | undefined,
+  query?: string,
   source?: DataSource,
 ) => {
   const { getSellers, getSellersForBuyer } = useSellerApi();
@@ -12,6 +13,7 @@ export const useSellersData = (
   return usePaginatedQuery<ListItemFull>({
     queryKey: ['sellers', userId, currentAccountId, source],
     queryFn: (offset, limit) => {
+      
       switch (source?.type) {
         case 'buyer':
           return getSellersForBuyer(source.id, offset, limit);
