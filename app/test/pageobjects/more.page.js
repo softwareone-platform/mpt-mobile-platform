@@ -215,6 +215,15 @@ class MorePage extends BasePage {
     );
   }
 
+  get salesQuotesMenuItem() {
+    return $(
+      getSelector({
+        ios: '~nav-menu-salesQuotes',
+        android: '//*[@resource-id="nav-menu-salesQuotes"]',
+      }),
+    );
+  }
+
   // ========== Group Heading Elements ==========
 
   get administrationGroupHeading() {
@@ -448,6 +457,15 @@ class MorePage extends BasePage {
   async navigateToSalesOrders() {
     await this.ensureMorePage();
     await this.salesOrdersMenuItem.click();
+    await browser.pause(PAUSE.NAVIGATION);
+  }
+
+  /**
+   * Navigate to Sales Quotes page
+   */
+  async navigateToSalesQuotes() {
+    await this.ensureMorePage();
+    await this.salesQuotesMenuItem.click();
     await browser.pause(PAUSE.NAVIGATION);
   }
 

@@ -488,6 +488,10 @@ exports.config = {
             './test/specs/sales-orders.e2e.js',
             './test/specs/sales-order-details.e2e.js',
         ],
+        salesQuotes: [
+            './test/specs/sales-quotes.e2e.js',
+            './test/specs/sales-quote-details.e2e.js',
+        ],
         licensees: [
             './test/specs/licensees.e2e.js',
             './test/specs/licensee-details.e2e.js',
@@ -564,6 +568,8 @@ exports.config = {
             './test/specs/buyer-details.e2e.js',
             './test/specs/users.e2e.js',
             './test/specs/user-details.e2e.js',
+            './test/specs/sales-quotes.e2e.js',
+            './test/specs/sales-quote-details.e2e.js',
             // Statements: Client accounts have access (empirically confirmed 2026-05-13)
             './test/specs/statements.e2e.js',
             './test/specs/statement-details.e2e.js',
@@ -609,6 +615,8 @@ exports.config = {
             './test/specs/seller-details.e2e.js',
             './test/specs/sales-orders.e2e.js',
             './test/specs/sales-order-details.e2e.js',
+            './test/specs/sales-quotes.e2e.js',
+            './test/specs/sales-quote-details.e2e.js',
             './test/specs/user-accounts.e2e.js',
         ],
     },
