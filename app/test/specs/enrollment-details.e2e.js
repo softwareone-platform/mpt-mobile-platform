@@ -274,6 +274,7 @@ describe('[MPT-18620] Enrollment Details - Role-Gated Field Visibility', functio
   let hasData = false;
 
   async function navigateToFirstEnrollmentDetail(accountSwitchFn) {
+    await ensureLoggedIn();
     await navigation.ensureHomePage({ resetFilters: false });
     await accountSwitchFn();
     await enrollmentsPage.footer.moreTab.click();

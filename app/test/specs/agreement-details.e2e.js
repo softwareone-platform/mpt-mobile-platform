@@ -367,11 +367,8 @@ describe('[MPT-18620] Agreement Details - Role-Gated Field Visibility', function
     await morePage.agreementsMenuItem.click();
     await agreementsPage.waitForScreenReady();
     hasData = await agreementsPage.hasAgreements();
-    if (hasData) {
-      const ids = await agreementsPage.getVisibleAgreementIds();
-      await agreementsPage.tapAgreement(ids[0]);
-      await agreementDetailsPage.waitForPageReady();
-    }
+    // Do not navigate to detail here — each test calls navigateToFirstAgreementDetail()
+    // which performs the full account-switch + navigation from scratch.
   });
 
   it('should show Client field for Operations account', async function () {
