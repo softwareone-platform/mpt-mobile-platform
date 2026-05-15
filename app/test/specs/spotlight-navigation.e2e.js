@@ -2,6 +2,7 @@ const { expect, $ } = require('@wdio/globals');
 
 const headingPage = require('../pageobjects/base/heading.page');
 const spotlightsPage = require('../pageobjects/spotlights.page');
+const journalsPage = require('../pageobjects/journals.page');
 const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const { ensureClientAccount } = require('../pageobjects/utils/account.helper');
 const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
@@ -290,6 +291,55 @@ describe('Spotlight Navigation', () => {
 
       const journalItems = await spotlightsPage.getVisibleItemsFromCard('journals', 1);
       expect(journalItems.length).toBeGreaterThan(0);
+    });
+  });
+
+  // ========== MPT-21075: Journals "View All" must land on InProgress-filtered list ==========
+  describe('Journals View All Filtering (MPT-21075)', () => {
+    it('should navigate to an InProgress-filtered journals list when journals spotlight "View All" is tapped', async function () {
+      if (!hasSpotlightsData || !sectionData.hasJournals) {
+        this.skip();
+        return;
+      }
+
+      // Scroll to the journals section and verify the card is present
+      await spotlightsPage.scrollToSection('in progress journals');
+      const journalItems = await spotlightsPage.getVisibleItemsFromCard('journals', 1);
+      if (journalItems.length === 0) {
+        this.skip();
+        return;
+      }
+
+      // Activate the journals filter chip so only the journals card (and its View All) is visible
+      await spotlightsPage.scrollToFilter('journals');
+      await spotlightsPage.filterJournals.click();
+      await browser.pause(PAUSE.ANIMATION_SETTLE);
+
+      // Scroll the journals card footer into view and tap View All
+      const viewAllFooter = spotlightsPage.getCardFooterByPattern('view all');
+      const isFooterVisible = await viewAllFooter.isDisplayed().catch(() => false);
+      if (!isFooterVisible) {
+        this.skip();
+        return;
+      }
+      await viewAllFooter.scrollIntoView();
+      await viewAllFooter.click();
+      await browser.pause(PAUSE.NAVIGATION);
+
+      // Assert we landed on the Journals list screen
+      await expect(journalsPage.headerTitle).toBeDisplayed();
+
+      // Assert every visible journal has "In Progress" status.
+      // If the bug (MPT-21075) is present, the list is unfiltered and will
+      // contain journals with other statuses (e.g. "Validated"), failing this check.
+      await journalsPage.waitForScreenReady();
+      const visibleJournals = await journalsPage.getVisibleJournalsWithStatus();
+      expect(visibleJournals.length).toBeGreaterThan(0);
+
+      const nonInProgress = visibleJournals.filter(
+        (j) => !j.status.toLowerCase().includes('in progress'),
+      );
+      expect(nonInProgress).toHaveLength(0);
     });
   });
 });
