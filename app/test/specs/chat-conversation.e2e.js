@@ -219,7 +219,7 @@ describe('Chat Conversation Page', () => {
         return;
       }
       await chatConversationPage.waitForScreenReady();
-      await chatConversationPage.scrollUp(1);
+      await chatConversationPage.scrollDown(1);
       await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 
@@ -282,7 +282,7 @@ describe('Chat Conversation Page', () => {
         return;
       }
       await chatConversationPage.waitForScreenReady();
-      await chatConversationPage.scrollUp(1);
+      await chatConversationPage.scrollDown(1);
       await browser.pause(PAUSE.ANIMATION_SETTLE);
     });
 

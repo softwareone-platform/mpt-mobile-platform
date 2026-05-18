@@ -6,8 +6,8 @@ const { ensureLoggedIn } = require('../pageobjects/utils/auth.helper');
 const navigation = require('../pageobjects/utils/navigation.page');
 const { getClientApi } = require('../utils/api-client');
 const { isAndroid, selectors } = require('../pageobjects/utils/selectors');
-const { TIMEOUT, PAUSE } = require('../pageobjects/utils/constants');
-const { QA_CHAT_NAME_PREFIX } = require('../pageobjects/utils/chat.helper');
+const { TIMEOUT, PAUSE, REGEX } = require('../pageobjects/utils/constants');
+const { navigateToChatList, QA_CHAT_NAME_PREFIX } = require('../pageobjects/utils/chat.helper');
 
 function getUnreadCountFromLabel(label) {
   const parts = label.split(',').map((p) => p.trim());
@@ -22,12 +22,6 @@ describe('Chat Page', () => {
   let hasEmptyState = false;
   let apiAvailable = false;
 
-  async function navigateToChat() {
-    await chatPage.footer.chatTab.click();
-    await browser.pause(PAUSE.NAVIGATION);
-    await chatPage.waitForScreenReady();
-  }
-
   before(async function () {
     this.timeout(TIMEOUT.TEST_SETUP_LONG);
     await ensureLoggedIn();
@@ -35,7 +29,7 @@ describe('Chat Page', () => {
 
     await getClientApi().ensureQaGroupChat(QA_CHAT_NAME_PREFIX);
 
-    await navigateToChat();
+    await navigateToChatList();
 
     hasChatsData = await chatPage.hasChats();
     hasEmptyState =
@@ -50,7 +44,7 @@ describe('Chat Page', () => {
   beforeEach(async function () {
     const isOnChat = await chatPage.isOnChatPage();
     if (!isOnChat) {
-      await navigateToChat();
+      await navigateToChatList();
     }
   });
 
@@ -205,8 +199,8 @@ describe('Chat Page', () => {
         const parts = label.split(',').map((p) => p.trim());
         const chatName = parts[0];
         if (chatsWithMessage.has(chatName)) {
-          // Label must have at least 3 segments: name, last-message-content, timestamp
-          if (parts.length < 3 || !parts[parts.length - 1]) failures++;
+          const lastSegment = parts[parts.length - 1];
+          if (!REGEX.CHAT_TIMESTAMP_TIME.test(lastSegment) && !REGEX.CHAT_TIMESTAMP_DATE.test(lastSegment)) failures++;
         }
       }
       expect(failures).toBe(0);
@@ -238,12 +232,14 @@ describe('Chat Page', () => {
       await chatPage.pullToRefresh();
       await browser.pause(PAUSE.ANIMATION_SETTLE);
       const loadingShown = await chatPage.loadingIndicator
-        .waitForDisplayed({ timeout: 3000 })
+        .waitForDisplayed({ timeout: TIMEOUT.SHORT_WAIT })
         .then(() => true)
         .catch(() => false);
-      const emptyStillShown = await chatPage.emptyState.isDisplayed().catch(() => false);
-      const listShown = await chatPage.hasChats().catch(() => false);
-      expect(loadingShown || emptyStillShown || listShown).toBe(true);
+      expect(loadingShown).toBe(true);
+      const afterState =
+        (await chatPage.emptyState.isDisplayed().catch(() => false)) ||
+        (await chatPage.hasChats().catch(() => false));
+      expect(afterState).toBe(true);
     });
 
     // MPT-20876 — Create chat button must be tappable on Android when chat list is empty
@@ -278,8 +274,15 @@ describe('Chat Page', () => {
       await chatPage.waitForScreenReady();
       const chatsVisible = await chatPage.hasChats();
       expect(chatsVisible).toBe(true);
-      const isLoading = await chatPage.loadingIndicator.isDisplayed().catch(() => false);
-      expect(isLoading).toBe(false);
+      // Poll for SPINNER_OBSERVE ms — if the spinner appears at any point the MPT-21018 regression is present
+      let spinnerSeen = false;
+      const deadline = Date.now() + TIMEOUT.SPINNER_OBSERVE;
+      while (Date.now() < deadline) {
+        spinnerSeen = await chatPage.loadingIndicator.isDisplayed().catch(() => false);
+        if (spinnerSeen) break;
+        await browser.pause(PAUSE.CHARACTER_INPUT);
+      }
+      expect(spinnerSeen).toBe(false);
     });
   });
 
@@ -330,6 +333,9 @@ describe('Chat Page', () => {
       }
       const label = await chatPage.getChatItemLabel(targetItem);
       const uiBadgeCount = getUnreadCountFromLabel(label);
+      // Known race: SignalR may push a mark-as-read event between the API snapshot and this UI read,
+      // causing a spurious failure in an otherwise-correct implementation. If this flakes, increase
+      // PAUSE.ANIMATION_SETTLE above or capture the UI count before the API call.
       expect(uiBadgeCount).toBe(chatWithUnreadFromApi.unreadCount);
     });
 

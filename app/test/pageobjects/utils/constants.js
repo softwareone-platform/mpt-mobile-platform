@@ -43,6 +43,9 @@ const TIMEOUT = {
 
   /** Default Mocha suite timeout in WDIO config */
   MOCHA_SUITE: 600000,
+
+  /** Observation window for asserting a spinner does NOT appear (e.g. MPT-21018) */
+  SPINNER_OBSERVE: 500,
 };
 
 // ============ Pause/Delay Constants (milliseconds) ============
@@ -152,6 +155,12 @@ const REGEX = {
   /** Basic email format validation */
   EMAIL_BASIC: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 
+  /** Chat list item timestamp — short time format e.g. "9:05", "19:11" */
+  CHAT_TIMESTAMP_TIME: /^\d{1,2}:\d{2}$/,
+
+  /** Chat list item timestamp — relative/calendar format e.g. "Mon", "Yesterday", "Jan 3" */
+  CHAT_TIMESTAMP_DATE: /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Yesterday|\d{1,2}\s+\w+)$/i,
+
   /** Entity ID formats */
   ORDER_ID: /^ORD-\d{4}-\d{4}-\d{4}$/,
   SUBSCRIPTION_ID: /^SUB-\d{4}-\d{4}-\d{4}$/,
@@ -179,7 +188,6 @@ const REGEX = {
   ACCOUNT_ID: /^ACC-\d{4}-\d{4}$/,
   SELLER_ID: /^SEL-\d{4}-\d{4}$/,
   SALES_ORDER_ID: /^SOR-\d{4}-\d{4}-\d{4}$/,
-  SALES_QUOTE_ID: /^SQT-\d{4}-\d{4}-\d{4}$/,
 };
 
 // ============ Default / Sentinel Constants ============
@@ -246,9 +254,6 @@ const STATUSES = {
 
   /** Valid statuses that can appear for sales orders in the UI */
   SALES_ORDER: ['Draft', 'Processing', 'Ready', 'Completed', 'Cancelled'],
-
-  /** Valid statuses that can appear for sales quotes in the UI */
-  SALES_QUOTE: ['Draft', 'Processing', 'Ready', 'Completed', 'Cancelled', 'Rejected', 'Awaiting acceptance', 'Deleted', 'Error'],
 };
 
 module.exports = {
