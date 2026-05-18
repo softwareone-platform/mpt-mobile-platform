@@ -214,21 +214,21 @@ jobs:
             exit 1
           fi
 
-  # Post to a Microsoft Teams channel when a scheduled run goes red. We
-  # deliberately do NOT fire on manual workflow_dispatch runs — those are
-  # usually triggered while diagnosing a known issue and would create
-  # noise. See MPT-20569.
+  # Post to a Microsoft Teams channel when a run goes red, whether it was
+  # triggered by the cron schedule or manually via workflow_dispatch. See
+  # MPT-20569.
   #
   # Set up: in the target Teams channel, add a workflow from the
   # "Send webhook alerts to a channel" template (channel → ⋯ →
   # Workflows → Add). Microsoft's legacy "Office 365 Connector" Incoming
   # Webhooks are being retired; this template is its replacement and
-  # accepts a simple `{"text": "..."}` JSON body by default. Store the
-  # generated URL as the `TEAMS_WEBHOOK_URL` repository secret.
+  # requires an Adaptive Card payload (a plain `{"text": "..."}` body is
+  # accepted by the trigger but fails downstream). Store the generated
+  # URL as the `TEAMS_WEBHOOK_URL` repository secret.
   notify-on-failure:
     name: Notify on failure
     needs: summary
-    if: failure() && github.event_name == 'schedule'
+    if: failure()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
