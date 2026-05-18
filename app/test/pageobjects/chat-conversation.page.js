@@ -136,8 +136,8 @@ class ChatConversationPage extends BasePage {
           // Text nodes — the button's accessibility name becomes the concatenated text content.
           // Use contains(@name) on any element type within the scroll view to cover both
           // StaticText (if children are accessible) and Button (if they are merged).
-          ios: `//XCUIElementTypeScrollView//*[contains(@name, "${linkName}")]`,
-          android: `//android.widget.ScrollView//*[contains(@content-desc, "${linkName}") or contains(@text, "${linkName}")]`,
+          ios: `(//XCUIElementTypeScrollView//*[contains(@name, "${linkName}")])[last()]`,
+          android: `(//android.widget.ScrollView//*[contains(@content-desc, "${linkName}") or contains(@text, "${linkName}")])[last()]`,
         }),
       );
     }
@@ -152,8 +152,8 @@ class ChatConversationPage extends BasePage {
   getMessageByContent(text) {
     return $(
       getSelector({
-        ios: `//XCUIElementTypeScrollView//XCUIElementTypeStaticText[@name="${text}"]`,
-        android: `//android.widget.ScrollView//android.widget.TextView[@text="${text}"]`,
+        ios: `(//XCUIElementTypeScrollView//XCUIElementTypeStaticText[@name="${text}"])[last()]`,
+        android: `(//android.widget.ScrollView//android.widget.TextView[@text="${text}"])[last()]`,
       }),
     );
   }
