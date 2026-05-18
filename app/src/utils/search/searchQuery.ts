@@ -3,7 +3,7 @@ import { searchConfig } from '@/config/search';
 import type { AccountType } from '@/types/common';
 import { getAgreementSearchQuery } from '@/utils/search/entities/agreement';
 
-type searchQueryByCategoryParams = {
+type SearchQueryByCategoryParams = {
   category: SearchCategory;
   accountType: AccountType | undefined;
   searchTerm: string;
@@ -13,7 +13,7 @@ export function getSearchQueryByCategory({
   category,
   accountType,
   searchTerm,
-}: searchQueryByCategoryParams): string | undefined {
+}: SearchQueryByCategoryParams): string | undefined {
   if (!searchTerm) {
     return undefined;
   }

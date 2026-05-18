@@ -23,8 +23,6 @@ export function useAgreementApi() {
         `&offset=${offset}` +
         `&limit=${limit}`;
 
-      console.info('ENDPOINT', endpoint);
-
       return api.get<PaginatedResponse<ListItemNoImage>>(endpoint);
     },
     [api],
