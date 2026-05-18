@@ -54,6 +54,10 @@ describe('Statement Details Page', () => {
 
     if (hasStatementsData) {
       const statementIds = await statementsPage.getVisibleStatementIds();
+      // Take the first visible statement regardless of status — all downstream tests
+      // assert only that status is truthy (not a specific value), so any statement works.
+      // A previous version filtered for "Issued" status which was unnecessarily restrictive
+      // and caused skips whenever no Issued statement appeared in the first page.
       testStatementId = statementIds[0];
 
       if (apiAvailable && testStatementId) {

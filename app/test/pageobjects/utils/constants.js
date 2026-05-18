@@ -179,6 +179,7 @@ const REGEX = {
   ACCOUNT_ID: /^ACC-\d{4}-\d{4}$/,
   SELLER_ID: /^SEL-\d{4}-\d{4}$/,
   SALES_ORDER_ID: /^SOR-\d{4}-\d{4}-\d{4}$/,
+  SALES_QUOTE_ID: /^SQT-\d{4}-\d{4}-\d{4}$/,
 };
 
 // ============ Default / Sentinel Constants ============
@@ -245,6 +246,9 @@ const STATUSES = {
 
   /** Valid statuses that can appear for sales orders in the UI */
   SALES_ORDER: ['Draft', 'Processing', 'Ready', 'Completed', 'Cancelled'],
+
+  /** Valid statuses that can appear for sales quotes in the UI */
+  SALES_QUOTE: ['Draft', 'Processing', 'Ready', 'Completed', 'Cancelled', 'Rejected', 'Awaiting acceptance', 'Deleted', 'Error'],
 };
 
 module.exports = {

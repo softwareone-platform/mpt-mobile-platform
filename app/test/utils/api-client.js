@@ -1278,6 +1278,57 @@ class ApiClient {
     return count > 0;
   }
 
+  // ========== Sales Quotes Methods ==========
+
+  /**
+   * Get sales quotes list
+   * Matches app endpoint: /v1/procurement/sales-quotes?select=-*,id,externalIds.operations,status
+   * @param {Object} options - Query parameters
+   * @param {number} [options.limit] - Maximum number of sales quotes to return
+   * @param {number} [options.offset] - Offset for pagination
+   * @param {string} [options.order] - Sort order (default '-audit.created.at')
+   * @returns {Promise<object>} - Sales quotes list response
+   */
+  async getSalesQuotes(options = {}) {
+    const order = options.order || '-audit.created.at';
+    const queryParams = [`select=-*,id,externalIds.operations,status`, `order=${order}`];
+    if (options.limit) queryParams.push(`limit=${options.limit}`);
+    if (options.offset !== undefined) queryParams.push(`offset=${options.offset}`);
+    return this.get(`/public/v1/procurement/sales-quotes?${queryParams.join('&')}`);
+  }
+
+  /**
+   * Get a specific sales quote by ID
+   * @param {string} salesQuoteId - Sales Quote ID in format SQT-XXXX-XXXX-XXXX
+   * @returns {Promise<object>} - Sales quote details
+   */
+  async getSalesQuoteById(salesQuoteId) {
+    if (!salesQuoteId) {
+      throw new Error(`Invalid salesQuoteId: "${salesQuoteId}"`);
+    }
+    return this.get(
+      `/public/v1/procurement/sales-quotes/${salesQuoteId}?select=salesOrders,products,vendors,attributes.navision.navisionCountryCode`,
+    );
+  }
+
+  /**
+   * Get total count of sales quotes
+   * @returns {Promise<number>} - Total count
+   */
+  async getSalesQuotesCount() {
+    const response = await this.getSalesQuotes({ limit: 1 });
+    return response.$meta?.pagination?.total || response.pagination?.total || response.data?.length || 0;
+  }
+
+  /**
+   * Check if any sales quotes exist
+   * @returns {Promise<boolean>} - True if sales quotes exist
+   */
+  async hasSalesQuotes() {
+    const count = await this.getSalesQuotesCount();
+    return count > 0;
+  }
+
   // ========== Sellers Methods ==========
 
   /**
