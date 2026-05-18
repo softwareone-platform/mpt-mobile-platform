@@ -231,10 +231,15 @@ jobs:
     if: failure()
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      # Needed for `gh api .../jobs` to read the matrix job conclusions
+      # we surface in the per-environment breakdown.
+      actions: read
     steps:
       - name: Notify Teams channel
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "${TEAMS_WEBHOOK_URL}" ]; then
@@ -242,14 +247,37 @@ jobs:
             exit 0
           fi
 
+          # Pull each matrix check job's conclusion from the run's job
+          # listing so we can render a per-environment breakdown. Matrix
+          # jobs are named "Check <env>" — keep in lockstep with the
+          # `check` job's `name:` field above if it's ever renamed.
+          JOBS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100")
+          # Sort by the matrix declaration order from the `check` job so
+          # the card always reads test → qa → prod → dev regardless of
+          # which matrix instance completed first. Anything unrecognised
+          # falls to the end.
+          ENV_STATUSES=$(echo "${JOBS_JSON}" | jq '[
+            .jobs[]
+            | select(.name | test("^Check "))
+            | {env: (.name | sub("^Check "; "")), conclusion: .conclusion}
+          ] | sort_by(.env as $e | ["test","qa","prod","dev"] | index($e) // 999)')
+          FAILED_COUNT=$(echo "${ENV_STATUSES}" | jq 'map(select(.conclusion != "success")) | length')
+          TOTAL_COUNT=$(echo "${ENV_STATUSES}" | jq 'length')
+          echo "Per-env results: ${ENV_STATUSES}"
+          echo "Failed: ${FAILED_COUNT} of ${TOTAL_COUNT}"
+
           # Build the payload via jq so the run URL is JSON-escaped
           # correctly and we don't depend on YAML/heredoc indentation. The
           # "Send webhook alerts to a channel" template REQUIRES an
           # Adaptive Card or Message Card payload — a plain `{"text": "..."}`
-          # body is accepted at the webhook layer (HTTP 202) but causes the
-          # downstream flow run to fail without posting anything to Teams.
+          # body is accepted at the webhook layer (HTTP 202) but causes
+          # the downstream flow run to fail without posting anything to
+          # Teams.
           PAYLOAD=$(jq -nc \
             --arg run_url "${RUN_URL}" \
+            --arg failed_count "${FAILED_COUNT}" \
+            --arg total_count "${TOTAL_COUNT}" \
+            --argjson env_statuses "${ENV_STATUSES}" \
             '{
               type: "message",
               attachments: [{
@@ -265,12 +293,24 @@ jobs:
                       size: "Medium",
                       weight: "Bolder",
                       color: "Attention",
-                      text: "❌ Auth0 OTP Health Check failing"
+                      text: "❌ Auth0 OTP Health Check — \($failed_count) of \($total_count) environments unhealthy"
                     },
                     {
-                      type: "TextBlock",
-                      text: "The scheduled Auth0 OTP Health Check failed. At least one of the test/qa/prod/dev environments reported an unhealthy result.",
-                      wrap: true
+                      type: "FactSet",
+                      facts: [
+                        $env_statuses[]
+                        | {
+                            title: .env,
+                            value: (
+                              if .conclusion == "success" then "✅ Healthy"
+                              elif .conclusion == "failure" then "❌ Failed"
+                              elif .conclusion == "cancelled" then "⚠️ Cancelled"
+                              elif .conclusion == "skipped" then "➖ Skipped"
+                              else "❓ \(.conclusion // "unknown")"
+                              end
+                            )
+                          }
+                      ]
                     }
                   ],
                   actions: [
