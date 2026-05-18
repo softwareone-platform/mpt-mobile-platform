@@ -19,6 +19,8 @@ import { ProductsList } from '@/screens/products/ProductsScreen';
 import { SubscriptionsList } from '@/screens/subscriptions/SubscriptionsScreen';
 import { screenStyle, spacingStyle } from '@/styles';
 import type { AccountType } from '@/types/common';
+import { sanitizeSearchInput } from '@/utils/search/search';
+import { getSearchQueryByCategory } from '@/utils/search/searchQuery';
 import { TestIDs } from '@/utils/testID';
 
 const SearchScreen = () => {
@@ -43,10 +45,14 @@ const SearchScreen = () => {
   }, []);
 
   const debouncedSearchTerm = useDebounce(searchTerm).trim();
-  const hasSearchTerm = debouncedSearchTerm.length > 0;
-  const query = hasSearchTerm
-    ? searchConfig[activeCategory].getQuery(debouncedSearchTerm)
-    : undefined;
+  const sanitizedSearchTerm = sanitizeSearchInput(debouncedSearchTerm);
+  const hasSearchTerm = sanitizedSearchTerm.length > 0;
+
+  const query = getSearchQueryByCategory({
+    category: activeCategory,
+    accountType,
+    searchTerm: sanitizedSearchTerm,
+  });
 
   return (
     <KeyboardWrapper keyboardOffset={KEYBOARD_VERTICAL_OFFSET_FULL_SCREEN}>
@@ -71,7 +77,7 @@ const SearchScreen = () => {
           />
         </View>
 
-        {hasSearchTerm ? (
+        {hasSearchTerm && query ? (
           <View style={styles.container}>
             {activeCategory === 'agreements' && (
               <AgreementsList query={query} contentContainerStyle={styles.noPaddingTop} />
@@ -88,6 +94,18 @@ const SearchScreen = () => {
             {activeCategory === 'subscriptions' && (
               <SubscriptionsList query={query} contentContainerStyle={styles.noPaddingTop} />
             )}
+          </View>
+        ) : hasSearchTerm && !query ? (
+          <View style={styles.emptyStateContainer}>
+            <EmptyState
+              icon={{
+                name: 'no-results-animated',
+                variant: 'outlined',
+              }}
+              animatedIcon={true}
+              title={t('searchScreen.invalidQueryTitle')}
+              testID={TestIDs.SEARCH_INVALID_QUERY_STATE}
+            />
           </View>
         ) : (
           <View style={styles.emptyStateContainer}>

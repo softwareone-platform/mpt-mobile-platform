@@ -5,6 +5,7 @@
   "searchScreen": {
     "emptyStateTitle": "Start your search",
     "emptyStateDescription": "Type in the search bar to find what you are looking for",
+    "invalidQueryTitle": "No results found",
     "filter": {
       "agreements": "Agreements",
       "invoices": "Invoices",
