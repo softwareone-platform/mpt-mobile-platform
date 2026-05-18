@@ -57,7 +57,7 @@ describe('subListsNavigation (queries)', () => {
       );
 
       expect(result.find((i) => i.name === 'agreements')?.query).toBe(
-        `&any(certificates,eq(id, "${id}"))`,
+        `&any(certificates,eq(id, "${id}"))&order=name`,
       );
     });
   });

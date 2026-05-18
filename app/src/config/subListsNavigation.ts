@@ -37,7 +37,7 @@ export const getCertificateSubList = (id: string): SubListItem[] => {
     {
       name: 'agreements',
       roles: ['Client', 'Operations'],
-      query: `&any(certificates,eq(id, "${id}"))`,
+      query: `&any(certificates,eq(id, "${id}"))&order=name`,
     },
   ];
 };

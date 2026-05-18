@@ -331,6 +331,7 @@ export const TestIDs = {
 
   // Search
   SEARCH_EMPTY_STATE: 'search-empty-state',
+  SEARCH_INVALID_QUERY_STATE: 'search-invalid-query-state',
   SEARCH_FILTER: 'search-filter',
 } as const;
 
