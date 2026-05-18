@@ -14,15 +14,16 @@ export function useAgreementApi() {
       limit: number = DEFAULT_PAGE_SIZE,
       query?: string,
     ): Promise<PaginatedResponse<ListItemNoImage>> => {
-      const defaultQuery = `&filter(group.buyers)&and(ne(status,"Draft"),ne(status,"Failed"))`;
+      const defaultQuery = `&filter(group.buyers)&and(ne(status,"Draft"),ne(status,"Failed"))&order=name`;
 
       const endpoint =
         `/v1/commerce/agreements` +
         `?select=-*,id,name,status` +
         `${query || defaultQuery}` +
-        `&order=name` +
         `&offset=${offset}` +
         `&limit=${limit}`;
+
+      console.info('ENDPOINT', endpoint);
 
       return api.get<PaginatedResponse<ListItemNoImage>>(endpoint);
     },
