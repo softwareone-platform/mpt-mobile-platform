@@ -20,7 +20,7 @@ import { SubscriptionsList } from '@/screens/subscriptions/SubscriptionsScreen';
 import { screenStyle, spacingStyle } from '@/styles';
 import type { AccountType } from '@/types/common';
 import { sanitizeSearchInput } from '@/utils/search/search';
-import { getSearchQueryByCategory } from '@/utils/search/searchQuery';
+// import { getSearchQueryByCategory } from '@/utils/search/searchQuery';
 import { TestIDs } from '@/utils/testID';
 
 const SearchScreen = () => {
@@ -48,11 +48,7 @@ const SearchScreen = () => {
   const sanitizedSearchTerm = sanitizeSearchInput(debouncedSearchTerm);
   const hasSearchTerm = sanitizedSearchTerm.length > 0;
 
-  const query = getSearchQueryByCategory({
-    category: activeCategory,
-    accountType,
-    searchTerm: sanitizedSearchTerm,
-  });
+  const query = searchConfig[activeCategory].getQuery(sanitizedSearchTerm, accountType);
 
   return (
     <KeyboardWrapper keyboardOffset={KEYBOARD_VERTICAL_OFFSET_FULL_SCREEN}>
