@@ -15,3 +15,11 @@ export type PartialEntityType =
   | 'PartialProductItem'
   | 'PartialBuyer'
   | 'PartialAccount';
+
+export interface EntitySearchConfig {
+  fullMappings: Partial<Record<EntityType, string>>;
+  partialMappings: Partial<Record<PartialEntityType, string>>;
+  idFields: string[];
+  textFields: string[];
+  includeExternalIds: boolean;
+}
