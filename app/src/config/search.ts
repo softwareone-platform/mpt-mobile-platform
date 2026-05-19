@@ -23,7 +23,7 @@ export const agreementSearchConfig: EntitySearchConfig = {
   includeExternalIds: true,
 };
 
-export const orderSearchConfig = {
+export const orderSearchConfig: EntitySearchConfig = {
   fullMappings: {
     Order: 'id',
     Agreement: 'agreement.id',

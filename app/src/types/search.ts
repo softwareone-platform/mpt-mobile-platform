@@ -17,8 +17,8 @@ export type PartialEntityType =
   | 'PartialAccount';
 
 export interface EntitySearchConfig {
-  fullMappings: Record<string, string>;
-  partialMappings: Record<string, string>;
+  fullMappings: Partial<Record<EntityType, string>>;
+  partialMappings: Partial<Record<PartialEntityType, string>>;
   idFields: string[];
   textFields: string[];
   includeExternalIds: boolean;

@@ -1,5 +1,5 @@
 import type { AccountType } from '@/types/common';
-import type { EntitySearchConfig } from '@/types/search';
+import type { EntitySearchConfig, EntityType, PartialEntityType } from '@/types/search';
 import { checkIfIsPartialId, getEntityTypeBySearchTerm } from '@/utils/search/search';
 
 export function buildSearchQuery(
@@ -17,12 +17,12 @@ export function buildSearchQuery(
   const isToFilterById = isPartialId === undefined ? true : isPartialId;
   const isToFilterByText = isPartialId === undefined ? true : !isPartialId;
 
-  if (entityType && config.fullMappings[entityType]) {
-    return `&eq(${config.fullMappings[entityType]},"${searchTerm}")`;
+  if (entityType && config.fullMappings[entityType as EntityType]) {
+    return `&eq(${config.fullMappings[entityType as EntityType]},"${searchTerm}")`;
   }
 
-  if (entityType && config.partialMappings[entityType]) {
-    return `&ilike(${config.partialMappings[entityType]},"${searchTerm}*")`;
+  if (entityType && config.partialMappings[entityType as PartialEntityType]) {
+    return `&ilike(${config.partialMappings[entityType as PartialEntityType]},"${searchTerm}*")`;
   }
 
   if (entityType === null) {
