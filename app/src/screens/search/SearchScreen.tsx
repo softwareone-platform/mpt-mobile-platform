@@ -20,7 +20,6 @@ import { SubscriptionsList } from '@/screens/subscriptions/SubscriptionsScreen';
 import { screenStyle, spacingStyle } from '@/styles';
 import type { AccountType } from '@/types/common';
 import { sanitizeSearchInput } from '@/utils/search/search';
-// import { getSearchQueryByCategory } from '@/utils/search/searchQuery';
 import { TestIDs } from '@/utils/testID';
 
 const SearchScreen = () => {
